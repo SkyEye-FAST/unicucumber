@@ -132,7 +132,7 @@ export default {
 </script>
 
 <style scoped>
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&family=Fira+Code:wght@400;500&display=swap");
+@import url("https://fonts.font.im/css2?family=Noto+Sans:wght@400;700&family=Fira+Code:wght@400;500&display=swap");
 
 .container {
   display: flex;
@@ -152,11 +152,9 @@ export default {
 
 .grid-container {
   display: grid;
-  grid-template-columns: 25px repeat(16, 25px);
+  grid-template-columns: var(--cell-size) repeat(16, var(--cell-size));
   gap: 0;
-  width: 100%;
-  max-width: 400px;
-  padding-right: 50px;
+  padding-right: var(--cell-size);
 }
 
 .header-row {
@@ -168,13 +166,13 @@ export default {
 }
 
 .corner-cell {
-  width: 25px;
-  height: 25px;
+  width: var(--cell-size);
+  height: var(--cell-size);
 }
 
 .header-cell {
-  width: 25px;
-  height: 25px;
+  width: var(--cell-size);
+  height: var(--cell-size);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -183,9 +181,9 @@ export default {
 }
 
 .cell {
-  width: 25px;
-  height: 25px;
-  background-color: #f2f2f2;
+  width: var(--cell-size);
+  height: var(--cell-size);
+  background-color: #fff;
   border: 0.5px solid #196b24;
   cursor: pointer;
 }
@@ -196,7 +194,7 @@ export default {
 
 .tool-buttons {
   display: flex;
-  margin: 10px 0;
+  margin: 30px 0 15px 0;
 }
 
 .tool-button {
@@ -205,6 +203,7 @@ export default {
   border: none;
   background: #ddd;
   cursor: pointer;
+  width: 5em;
 }
 
 .tool-button.active {
@@ -213,6 +212,7 @@ export default {
 }
 
 .hex-code-container {
+  width: 25em;
   display: flex;
   align-items: center;
   margin-top: 15px;
@@ -220,7 +220,6 @@ export default {
 
 .hex-input {
   width: 100%;
-  max-width: 600px;
   padding: 5px;
   font-family: "Fira Code", monospace;
   font-size: 0.9em;
@@ -240,5 +239,69 @@ export default {
 
 .copy-button:hover {
   background-color: #3d8b25;
+}
+
+@media (orientation: portrait) and (max-width: 768px) {
+  .hex-code-container {
+    width: 20em;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
+  .title {
+    font-size: 2.5em;
+  }
+
+  .header-cell {
+    font-size: 1.5em;
+  }
+
+  .hex-code-container {
+    width: 35em;
+  }
+
+  .tool-button {
+    font-size: 2em;
+    width: 8em;
+  }
+
+  .hex-input {
+    padding: 10px 0;
+    font-size: 1.5em;
+  }
+
+  .copy-button {
+    padding: 10px 20px;
+    font-size: 1.5em;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 1024px){
+  .title {
+    font-size: 4em;
+  }
+
+  .header-cell {
+    font-size: 2em;
+  }
+
+  .hex-code-container {
+    width: 50em;
+  }
+
+  .tool-button {
+    font-size: 3em;
+    width: 8em;
+  }
+
+  .hex-input {
+    padding: 10px 0;
+    font-size: 2.2em;
+  }
+
+  .copy-button {
+    padding: 15px 25px;
+    font-size: 2em;
+  }
 }
 </style>
