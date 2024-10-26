@@ -2,25 +2,30 @@
   <div class="container">
     <h1 class="title">UniCucumber</h1>
     <div class="grid-container">
-      <!-- 列标号 -->
       <div class="header-row">
         <div class="corner-cell"></div>
         <div v-for="colIndex in 16" :key="`col-${colIndex}`" class="header-cell"
-          :style="{ color: colIndex % 2 === 0 ? '#000' : '#f4005f' }">
+          :style="{ color: colIndex % 2 === 1 ? '#000' : '#f4005f' }">
           {{ (colIndex - 1).toString(16).toUpperCase() }}
         </div>
       </div>
-      <!-- 网格和行标号 -->
       <div v-for="(row, rowIndex) in gridData" :key="`row-${rowIndex}`" class="grid-row">
-        <!-- 行标号 -->
         <div class="header-cell" :style="{ color: rowIndex % 2 === 0 ? '#000' : '#f4005f' }">
           {{ rowIndex.toString(16).toUpperCase() }}
         </div>
-        <!-- 网格单元格 -->
         <div v-for="(cell, cellIndex) in row" :key="`cell-${rowIndex}-${cellIndex}`"
           :class="['cell', { filled: cell === 1 }]" @mousedown.prevent="toggleCell(rowIndex, cellIndex, $event)"
-          @mouseover="drawCell(rowIndex, cellIndex)" @mouseup="stopDrawing"></div>
+          @touchstart.prevent="toggleCell(rowIndex, cellIndex, { button: drawValue === 1 ? 0 : 2 })"
+          @mouseover="drawCell(rowIndex, cellIndex)" @mouseup="stopDrawing" @touchmove.prevent="handleTouchMove"></div>
       </div>
+    </div>
+    <div class="tool-buttons">
+      <button @click="setDrawValue(1)" :class="{ active: drawValue === 1 }" class="tool-button">
+        🖊️
+      </button>
+      <button @click="setDrawValue(0)" :class="{ active: drawValue === 0 }" class="tool-button">
+        🧽
+      </button>
     </div>
     <div class="hex-code-container">
       <input v-model="hexCode" @input="updateGridFromHex" class="hex-input" maxlength="64"
@@ -37,18 +42,16 @@ export default {
       gridData: Array.from({ length: 16 }, () => Array(16).fill(0)),
       hexCode: "",
       isDrawing: false,
-      drawValue: 1,
+      drawValue: 1, // 1 = Pen, 0 = Eraser
     };
   },
   methods: {
-    // 切换单元格状态并更新hex
     toggleCell(rowIndex, cellIndex, event) {
       this.drawValue = event.button === 2 ? 0 : 1;
       this.gridData[rowIndex][cellIndex] = this.drawValue;
       this.updateHexCode();
       this.isDrawing = true;
     },
-    // 拖动编辑单元格
     drawCell(rowIndex, cellIndex) {
       if (this.isDrawing) {
         this.gridData[rowIndex][cellIndex] = this.drawValue;
@@ -58,7 +61,21 @@ export default {
     stopDrawing() {
       this.isDrawing = false;
     },
-    // 更新hex字符串
+    handleTouchMove(event) {
+      const touch = event.touches[0];
+      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (target && target.classList.contains("cell")) {
+        const cellIndex = Array.from(target.parentNode.children).indexOf(target) - 1;
+        const rowIndex = Array.from(target.parentNode.parentNode.children).indexOf(target.parentNode) - 1;
+        if (rowIndex >= 0 && cellIndex >= 0 && rowIndex < 16 && cellIndex < 16) {
+          this.gridData[rowIndex][cellIndex] = this.drawValue;
+          this.updateHexCode();
+        }
+      }
+    },
+    setDrawValue(value) {
+      this.drawValue = value;
+    },
     updateHexCode() {
       let binaryString = this.gridData
         .flat()
@@ -66,7 +83,6 @@ export default {
         .join("");
       this.hexCode = this.binaryToHex(binaryString);
     },
-    // 二进制转换为十六进制
     binaryToHex(binaryString) {
       let hexString = "";
       for (let i = 0; i < binaryString.length; i += 4) {
@@ -75,19 +91,16 @@ export default {
       }
       return hexString;
     },
-    // 从hex字符串更新网格
     updateGridFromHex() {
       if (
         this.hexCode.length !== 32 &&
         this.hexCode.length !== 64 ||
         /[^0-9A-Fa-f]/.test(this.hexCode)
       ) {
-        // 如果长度非法或含有非十六进制字符，显示空白字形
         this.gridData = Array.from({ length: 16 }, () => Array(16).fill(0));
         return;
       }
 
-      // 有效的hex字符串转成二进制并更新网格
       let binaryString = this.hexToBinary(this.hexCode);
       binaryString.split("").forEach((bit, index) => {
         const row = Math.floor(index / 16);
@@ -95,14 +108,12 @@ export default {
         this.gridData[row][col] = parseInt(bit, 10);
       });
     },
-    // 十六进制转二进制
     hexToBinary(hexString) {
       return hexString
         .split("")
         .map((hex) => parseInt(hex, 16).toString(2).padStart(4, "0"))
         .join("");
     },
-    // 复制hex字符串
     copyHex() {
       navigator.clipboard.writeText(this.hexCode).then(() => {
         alert("Hex code copied to clipboard!");
@@ -136,13 +147,16 @@ export default {
   font-family: "Noto Sans", sans-serif;
   font-size: 2em;
   color: #4ea72e;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 .grid-container {
   display: grid;
-  grid-template-columns: 20px repeat(16, 20px);
+  grid-template-columns: 25px repeat(16, 25px);
   gap: 0;
+  width: 100%;
+  max-width: 400px;
+  padding-right: 50px;
 }
 
 .header-row {
@@ -154,23 +168,23 @@ export default {
 }
 
 .corner-cell {
-  width: 20px;
-  height: 20px;
+  width: 25px;
+  height: 25px;
 }
 
 .header-cell {
-  width: 20px;
-  height: 20px;
+  width: 25px;
+  height: 25px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8em;
+  font-size: 1em;
   font-family: "Fira Code", monospace;
 }
 
 .cell {
-  width: 20px;
-  height: 20px;
+  width: 25px;
+  height: 25px;
   background-color: #f2f2f2;
   border: 0.5px solid #196b24;
   cursor: pointer;
@@ -180,6 +194,24 @@ export default {
   background-color: black;
 }
 
+.tool-buttons {
+  display: flex;
+  margin: 10px 0;
+}
+
+.tool-button {
+  font-size: 1.5em;
+  padding: 5px 10px;
+  border: none;
+  background: #ddd;
+  cursor: pointer;
+}
+
+.tool-button.active {
+  background: #4ea72e;
+  color: #fff;
+}
+
 .hex-code-container {
   display: flex;
   align-items: center;
@@ -187,7 +219,8 @@ export default {
 }
 
 .hex-input {
-  width: 300px;
+  width: 100%;
+  max-width: 600px;
   padding: 5px;
   font-family: "Fira Code", monospace;
   font-size: 0.9em;
