@@ -21,16 +21,18 @@
     </div>
     <div class="tool-buttons">
       <button @click="setDrawValue(1)" :class="{ active: drawValue === 1 }" class="tool-button">
-        🖊️
+        <span class="material-symbols-outlined">draw</span>
       </button>
       <button @click="setDrawValue(0)" :class="{ active: drawValue === 0 }" class="tool-button">
-        🧽
+        <span class="material-symbols-outlined">ink_eraser</span>
       </button>
     </div>
     <div class="hex-code-container">
       <input v-model="hexCode" @input="updateGridFromHex" class="hex-input" maxlength="64"
-        placeholder="Enter hex code (32 or 64 characters)" />
-      <button @click="copyHex" class="copy-button">Copy</button>
+        placeholder="Enter .hex format string (32 or 64 characters)" />
+      <button @click="copyHex" class="copy-button">
+        <span class="material-symbols-outlined">content_copy</span>
+      </button>
     </div>
   </div>
 </template>
@@ -116,7 +118,7 @@ export default {
     },
     copyHex() {
       navigator.clipboard.writeText(this.hexCode).then(() => {
-        alert("Hex code copied to clipboard!");
+        alert("Code copied to clipboard!");
       });
     },
   },
@@ -133,6 +135,15 @@ export default {
 
 <style scoped>
 @import url("https://fonts.font.im/css2?family=Noto+Sans:wght@400;700&family=Fira+Code:wght@400;500&display=swap");
+
+.material-symbols-outlined {
+  transform: translateY(0.1em);
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 48
+}
 
 .container {
   display: flex;
@@ -203,7 +214,7 @@ export default {
   border: none;
   background: #ddd;
   cursor: pointer;
-  width: 5em;
+  width: 8em;
 }
 
 .tool-button.active {
@@ -220,15 +231,15 @@ export default {
 
 .hex-input {
   width: 100%;
-  padding: 5px;
+  padding: 8px;
   font-family: "Fira Code", monospace;
-  font-size: 0.9em;
+  font-size: 1em;
   border: 2px solid #000;
 }
 
 .copy-button {
   margin-left: 5px;
-  padding: 5px 10px;
+  padding: 6px 15px;
   font-family: "Fira Code", monospace;
   font-size: 0.9em;
   background-color: #4ea72e;
@@ -248,6 +259,10 @@ export default {
 }
 
 @media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
+  .material-symbols-outlined {
+    font-size: larger;
+  }
+
   .title {
     font-size: 2.5em;
   }
@@ -276,7 +291,11 @@ export default {
   }
 }
 
-@media (orientation: portrait) and (min-width: 1024px){
+@media (orientation: portrait) and (min-width: 1024px) {
+  .material-symbols-outlined {
+    font-size: larger;
+  }
+
   .title {
     font-size: 4em;
   }
@@ -296,11 +315,11 @@ export default {
 
   .hex-input {
     padding: 10px 0;
-    font-size: 2.2em;
+    font-size: 2em;
   }
 
   .copy-button {
-    padding: 15px 25px;
+    padding: 10px 35px;
     font-size: 2em;
   }
 }
