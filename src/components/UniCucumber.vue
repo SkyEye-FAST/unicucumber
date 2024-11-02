@@ -38,9 +38,9 @@
           {{ rowIndex.toString(16).toUpperCase() }}
         </div>
         <div v-for="(cell, cellIndex) in row" :key="`cell-${rowIndex}-${cellIndex}`"
-          :class="['cell', { filled: cell === 1, cursor: cursorEffect }]"
-          @mousedown.prevent="startDrawing(rowIndex, cellIndex, $event)" @mouseover="drawCell(rowIndex, cellIndex)"
-          @mouseup="stopDrawing" @touchstart.prevent="startDrawing(rowIndex, cellIndex)"
+          :class="['cell', { filled: cell === 1 }]" :style="getCellStyle(rowIndex, cellIndex)"
+          @mousedown.prevent="startDrawing(rowIndex, cellIndex, $event)" @mouseover="handleHover(rowIndex, cellIndex)"
+          @mouseleave="clearHover" @mouseup="stopDrawing" @touchstart.prevent="startDrawing(rowIndex, cellIndex)"
           @touchmove.prevent="handleTouchMove"></div>
       </div>
     </div>
@@ -77,9 +77,10 @@ export default {
       hexCode: "",
       isDrawing: false,
       drawValue: 1,
+      hoverCell: { row: -1, col: -1 },
       showSettings: false,
       drawMode: localStorage.getItem("drawMode") || "singleButtonDraw",
-      cursorEffect: JSON.parse(localStorage.getItem("cursorEffect")) || false,
+      cursorEffect: JSON.parse(localStorage.getItem("cursorEffect")) ?? true,
     };
   },
   methods: {
@@ -94,6 +95,22 @@ export default {
       if (this.isDrawing) {
         this.updateCell(rowIndex, cellIndex, this.drawValue);
       }
+    },
+    handleHover(rowIndex, cellIndex) {
+      if (this.isDrawing) {
+        this.updateCell(rowIndex, cellIndex, this.drawValue);
+      } else {
+        this.hoverCell = { row: rowIndex, col: cellIndex };
+      }
+    },
+    clearHover() {
+      this.hoverCell = { row: -1, col: -1 };
+    },
+    getCellStyle(rowIndex, cellIndex) {
+      if (this.cursorEffect && this.hoverCell.row === rowIndex && this.hoverCell.col === cellIndex) {
+        return { backgroundColor: this.drawValue === 1 ? 'black' : 'white' };
+      }
+      return {};
     },
     stopDrawing() {
       this.isDrawing = false;
@@ -377,11 +394,6 @@ export default {
 
 .close-button:hover {
   background-color: #ff6b66;
-}
-
-
-.cell.cursor {
-  border: 1px solid #333;
 }
 
 @media (orientation: portrait) and (max-width: 768px) {
