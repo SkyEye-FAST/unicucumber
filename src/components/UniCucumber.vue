@@ -17,19 +17,19 @@
     <div v-if="showSettings" class="overlay" @click="toggleSettings(false)"></div>
     <!-- Settings -->
     <div v-if="showSettings" class="settings-modal">
-      <h2 class="modal-title">Settings</h2>
+      <h2 class="modal-title">{{ $t('settings.title') }}</h2>
       <div class="setting-option">
-        <label for="drawMode">Draw Mode:</label>
+        <label for="drawMode">{{ $t('settings.draw_mode.label') }}</label>
         <select id="drawMode" v-model="drawMode" @change="saveSettings">
-          <option value="doubleButtonDraw">Left Draw, Right Erase</option>
-          <option value="singleButtonDraw">Left Draw & Erase</option>
+          <option value="doubleButtonDraw">{{ $t('settings.draw_mode.double_button') }}</option>
+          <option value="singleButtonDraw">{{ $t('settings.draw_mode.single_button') }}</option>
         </select>
       </div>
       <div class="setting-option">
-        <label for="cursorEffect">Cursor Effect:</label>
+        <label for="cursorEffect">{{ $t('settings.cursor_effect') }}</label>
         <input type="checkbox" id="cursorEffect" v-model="cursorEffect" @change="saveSettings" />
       </div>
-      <button @click="toggleSettings(false)" class="close-button">Close</button>
+      <button @click="toggleSettings(false)" class="close-button">{{ $t('settings.close') }}</button>
     </div>
 
     <!-- Glyph drawing area -->
@@ -455,7 +455,7 @@ export default {
     font-size: 2em;
   }
 
-  .settings-modal{
+  .settings-modal {
     width: 40em;
   }
 
@@ -522,7 +522,7 @@ export default {
     font-size: 3em;
   }
 
-  .settings-modal{
+  .settings-modal {
     width: 50em;
   }
 
