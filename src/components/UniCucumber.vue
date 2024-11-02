@@ -68,7 +68,7 @@
       <input v-model="hexCode" @input="updateGridFromHex" class="hex-input" maxlength="64"
         placeholder="Enter .hex format string (32 or 64 characters)" />
       <button @click="copyHex" class="copy-button">
-        <span class="material-symbols-outlined">content_copy</span>
+        <span class="material-symbols-outlined">{{ copyIcon }}</span>
       </button>
     </div>
   </div>
@@ -80,6 +80,7 @@ export default {
     return {
       gridData: Array.from({ length: 16 }, () => Array(16).fill(0)),
       hexCode: "",
+      copyIcon: 'content_copy',
       isDrawing: false,
       drawValue: 1,
       hoverCell: { row: -1, col: -1 },
@@ -182,7 +183,12 @@ export default {
       this.gridData = Array.from({ length: 16 }, () => Array(16).fill(0));
     },
     copyHex() {
-      navigator.clipboard.writeText(this.hexCode).then(() => alert("Code copied to clipboard!"));
+      navigator.clipboard.writeText(this.hexCode).then(() => {
+        this.copyIcon = 'check';
+        setTimeout(() => {
+          this.copyIcon = 'content_copy';
+        }, 1500);
+      });
     },
   },
   mounted() {
@@ -328,6 +334,7 @@ export default {
   color: #fff;
   border: none;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .copy-button:hover {
