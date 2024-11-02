@@ -9,19 +9,19 @@
     <div v-if="showSettings" class="overlay" @click="toggleSettings(false)"></div>
     <!-- Settings -->
     <div v-if="showSettings" class="settings-modal">
-      <h2>Settings</h2>
+      <h2 class="modal-title">Settings</h2>
       <div class="setting-option">
         <label for="drawMode">Draw Mode:</label>
         <select id="drawMode" v-model="drawMode" @change="saveSettings">
-          <option value="leftDrawRightErase">Left Draw, Right Erase</option>
-          <option value="singleButtonDraw">Left Button Draw/Ease</option>
+          <option value="doubleButtonDraw">Left Draw, Right Erase</option>
+          <option value="singleButtonDraw">Left Draw & Erase</option>
         </select>
       </div>
       <div class="setting-option">
         <label for="cursorEffect">Cursor Effect:</label>
         <input type="checkbox" id="cursorEffect" v-model="cursorEffect" @change="saveSettings" />
       </div>
-      <button @click="toggleSettings(false)">Close</button>
+      <button @click="toggleSettings(false)" class="close-button">Close</button>
     </div>
 
     <!-- Glyph drawing area -->
@@ -85,7 +85,7 @@ export default {
   methods: {
     startDrawing(rowIndex, cellIndex, event) {
       this.isDrawing = true;
-      if (this.drawMode === "leftDrawRightErase") {
+      if (this.drawMode === "doubleButtonDraw") {
         this.drawValue = event.button === 2 ? 0 : 1;
       }
       this.updateCell(rowIndex, cellIndex, this.drawValue);
@@ -263,7 +263,7 @@ export default {
 .tool-button {
   font-size: 1.5em;
   padding: 5px 10px;
-  border: none;
+  border: transparent 2px solid;
   background: #ddd;
   cursor: pointer;
   width: 8em;
@@ -272,6 +272,10 @@ export default {
 .tool-button.active {
   background: #4ea72e;
   color: #fff;
+}
+
+.tool-button:hover {
+  border: #0c4461 2px solid;
 }
 
 .hex-code-container {
@@ -315,15 +319,66 @@ export default {
 }
 
 .settings-modal {
+  font-family: "Noto Sans", sans-serif;
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   background: white;
-  padding: 20px;
-  border-radius: 8px;
+  padding: 5px 30px 25px;
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   z-index: 999;
+  width: 320px;
 }
+
+.modal-title {
+  font-size: 1.8em;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.setting-option {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.setting-option label {
+  font-size: 1em;
+  color: #444;
+}
+
+#drawMode,
+#cursorEffect {
+  padding: 5px;
+  font-size: 1em;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  width: 60%;
+}
+
+.close-button {
+  margin-top: 20px;
+  width: 100%;
+  padding: 10px 0;
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #fff;
+  background-color: #ff5449;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.close-button:hover {
+  background-color: #ff6b66;
+}
+
 
 .cell.cursor {
   border: 1px solid #333;
