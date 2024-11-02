@@ -1,8 +1,16 @@
 <template>
   <div class="container">
+    <!-- Header -->
     <div class="header">
       <img src="/icon.png" alt="UniCucumber" class="logo" />
       <h1 class="title"><span style="color: #000">Uni</span>Cucumber</h1>
+    </div>
+
+    <!-- Modal buttons -->
+    <div class="modal-buttons">
+      <button @click="toggleSettings(true)" class="modal-button">
+        <span class="material-symbols-outlined bold">settings</span>
+      </button>
     </div>
 
     <!-- Gray background overlay -->
@@ -52,9 +60,6 @@
       </button>
       <button @click="setDrawValue(0)" :class="{ active: drawValue === 0 }" class="tool-button">
         <span class="material-symbols-outlined">ink_eraser</span>
-      </button>
-      <button @click="toggleSettings(true)" class="tool-button">
-        Settings
       </button>
     </div>
 
@@ -192,17 +197,6 @@ export default {
 </script>
 
 <style scoped>
-@import url("https://fonts.font.im/css2?family=Noto+Sans:wght@400;700&family=Fira+Code:wght@400;500&display=swap");
-
-.material-symbols-outlined {
-  transform: translateY(0.1em);
-  font-variation-settings:
-    'FILL' 0,
-    'wght' 400,
-    'GRAD' 0,
-    'opsz' 48
-}
-
 .container {
   display: flex;
   flex-direction: column;
@@ -221,20 +215,35 @@ export default {
   width: 2.5em;
   height: 2.5em;
   margin-right: 10px;
+  margin-top: 20px;
 }
 
 .title {
   font-family: "Noto Sans", sans-serif;
   font-size: 2em;
   color: #4ea72e;
-  margin-bottom: 25px;
+  margin-bottom: 5px;
+}
+
+.modal-buttons {
+  display: flex;
+  margin-bottom: 5px;
+}
+
+.modal-button {
+  color: #196b24;
+  font-size: 1.8em;
+  padding: 5px 10px;
+  cursor: pointer;
+  width: 8em;
+  border: none;
 }
 
 .grid-container {
   display: grid;
   grid-template-columns: var(--cell-size) repeat(16, var(--cell-size));
   gap: 0;
-  padding-right: var(--cell-size);
+  padding-right: calc(var(--cell-size) * 0.5);
 }
 
 .header-row {
@@ -346,7 +355,7 @@ export default {
   border-radius: 10px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   z-index: 999;
-  width: 320px;
+  width: 20em;
 }
 
 .modal-title {
@@ -400,6 +409,14 @@ export default {
   .hex-code-container {
     width: 20em;
   }
+
+  .tool-button {
+    width: 7em;
+  }
+
+  .cell {
+    border-width: 0.2px;
+  }
 }
 
 @media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
@@ -408,11 +425,21 @@ export default {
   }
 
   .title {
-    font-size: 2.5em;
+    font-size: 3em;
+  }
+
+  .logo {
+    width: 3.5em;
+    height: 3.5em;
+    margin-top: 30px;
   }
 
   .header-cell {
     font-size: 1.5em;
+  }
+
+  .cell {
+    border-width: 0.3px;
   }
 
   .hex-code-container {
@@ -422,6 +449,34 @@ export default {
   .tool-button {
     font-size: 2em;
     width: 8em;
+  }
+
+  .modal-button {
+    font-size: 2em;
+  }
+
+  .settings-modal{
+    width: 40em;
+  }
+
+  .modal-title {
+    font-size: 3em;
+  }
+
+  .setting-option label {
+    font-size: 2em;
+  }
+
+  #drawMode {
+    font-size: 2em;
+  }
+
+  #cursorEffect {
+    zoom: 250%;
+  }
+
+  .close-button {
+    font-size: 2em;
   }
 
   .hex-input {
@@ -444,6 +499,12 @@ export default {
     font-size: 4em;
   }
 
+  .logo {
+    width: 5em;
+    height: 5em;
+    margin-top: 40px;
+  }
+
   .header-cell {
     font-size: 2em;
   }
@@ -455,6 +516,34 @@ export default {
   .tool-button {
     font-size: 3em;
     width: 8em;
+  }
+
+  .modal-button {
+    font-size: 3em;
+  }
+
+  .settings-modal{
+    width: 50em;
+  }
+
+  .modal-title {
+    font-size: 4em;
+  }
+
+  .setting-option label {
+    font-size: 2.5em;
+  }
+
+  #drawMode {
+    font-size: 2.5em;
+  }
+
+  #cursorEffect {
+    zoom: 300%;
+  }
+
+  .close-button {
+    font-size: 2.5em;
   }
 
   .hex-input {
