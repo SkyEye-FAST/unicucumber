@@ -1,6 +1,9 @@
 <template>
   <div class="container">
-    <h1 class="title"><span style="color: #000">Uni</span>Cucumber</h1>
+    <div class="header">
+      <img src="/icon.png" alt="UniCucumber" class="logo" />
+      <h1 class="title"><span style="color: #000">Uni</span>Cucumber</h1>
+    </div>
 
     <!-- Gray background overlay -->
     <div v-if="showSettings" class="overlay" @click="toggleSettings(false)"></div>
@@ -190,6 +193,17 @@ export default {
   font-family: "Fira Code", monospace;
   background-color: #f2f2f2;
   padding: 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  width: 2.5em;
+  height: 2.5em;
+  margin-right: 10px;
 }
 
 .title {
