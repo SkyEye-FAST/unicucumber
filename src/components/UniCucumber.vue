@@ -1,6 +1,27 @@
 <template>
   <div class="container">
     <h1 class="title">UniCucumber</h1>
+
+    <!-- 灰色背景遮罩 -->
+    <div v-if="showSettings" class="overlay" @click="toggleSettings(false)"></div>
+
+    <!-- 设置菜单弹窗 -->
+    <div v-if="showSettings" class="settings-modal">
+      <h2>Settings</h2>
+      <div class="setting-option">
+        <label for="drawMode">Draw Mode:</label>
+        <select id="drawMode" v-model="drawMode" @change="saveSettings">
+          <option value="leftDrawRightErase">Left Draw, Right Erase</option>
+          <option value="singleButtonDraw">Left Button Draw/Ease</option>
+        </select>
+      </div>
+      <div class="setting-option">
+        <label for="cursorEffect">Cursor Effect:</label>
+        <input type="checkbox" id="cursorEffect" v-model="cursorEffect" @change="saveSettings" />
+      </div>
+      <button @click="toggleSettings(false)">Close</button>
+    </div>
+
     <div class="grid-container">
       <div class="header-row">
         <div class="corner-cell"></div>
@@ -14,11 +35,13 @@
           {{ rowIndex.toString(16).toUpperCase() }}
         </div>
         <div v-for="(cell, cellIndex) in row" :key="`cell-${rowIndex}-${cellIndex}`"
-          :class="['cell', { filled: cell === 1 }]" @mousedown.prevent="toggleCell(rowIndex, cellIndex, $event)"
-          @touchstart.prevent="toggleCell(rowIndex, cellIndex, { button: drawValue === 1 ? 0 : 2 })"
-          @mouseover="drawCell(rowIndex, cellIndex)" @mouseup="stopDrawing" @touchmove.prevent="handleTouchMove"></div>
+          :class="['cell', { filled: cell === 1, cursor: cursorEffect }]"
+          @mousedown.prevent="startDrawing(rowIndex, cellIndex, $event)" @mouseover="drawCell(rowIndex, cellIndex)"
+          @mouseup="stopDrawing" @touchstart.prevent="startDrawing(rowIndex, cellIndex)"
+          @touchmove.prevent="handleTouchMove"></div>
       </div>
     </div>
+
     <div class="tool-buttons">
       <button @click="setDrawValue(1)" :class="{ active: drawValue === 1 }" class="tool-button">
         <span class="material-symbols-outlined">draw</span>
@@ -26,7 +49,11 @@
       <button @click="setDrawValue(0)" :class="{ active: drawValue === 0 }" class="tool-button">
         <span class="material-symbols-outlined">ink_eraser</span>
       </button>
+      <button @click="toggleSettings(true)" class="tool-button">
+        Settings
+      </button>
     </div>
+
     <div class="hex-code-container">
       <input v-model="hexCode" @input="updateGridFromHex" class="hex-input" maxlength="64"
         placeholder="Enter .hex format string (32 or 64 characters)" />
@@ -44,87 +71,85 @@ export default {
       gridData: Array.from({ length: 16 }, () => Array(16).fill(0)),
       hexCode: "",
       isDrawing: false,
-      drawValue: 1, // 1 = Pen, 0 = Eraser
+      drawValue: 1,
+      showSettings: false,
+      drawMode: localStorage.getItem("drawMode") || "singleButtonDraw",
+      cursorEffect: JSON.parse(localStorage.getItem("cursorEffect")) || false,
     };
   },
   methods: {
-    toggleCell(rowIndex, cellIndex, event) {
-      this.drawValue = event.button === 2 ? 0 : 1;
-      this.gridData[rowIndex][cellIndex] = this.drawValue;
-      this.updateHexCode();
+    startDrawing(rowIndex, cellIndex, event) {
       this.isDrawing = true;
+      if (this.drawMode === "leftDrawRightErase") {
+        this.drawValue = event.button === 2 ? 0 : 1;
+      }
+      this.updateCell(rowIndex, cellIndex, this.drawValue);
     },
     drawCell(rowIndex, cellIndex) {
       if (this.isDrawing) {
-        this.gridData[rowIndex][cellIndex] = this.drawValue;
-        this.updateHexCode();
+        this.updateCell(rowIndex, cellIndex, this.drawValue);
       }
     },
     stopDrawing() {
       this.isDrawing = false;
     },
+    updateCell(rowIndex, cellIndex, value) {
+      this.gridData[rowIndex][cellIndex] = value;
+      this.updateHexCode();
+    },
     handleTouchMove(event) {
       const touch = event.touches[0];
       const target = document.elementFromPoint(touch.clientX, touch.clientY);
       if (target && target.classList.contains("cell")) {
-        const cellIndex = Array.from(target.parentNode.children).indexOf(target) - 1;
-        const rowIndex = Array.from(target.parentNode.parentNode.children).indexOf(target.parentNode) - 1;
-        if (rowIndex >= 0 && cellIndex >= 0 && rowIndex < 16 && cellIndex < 16) {
-          this.gridData[rowIndex][cellIndex] = this.drawValue;
-          this.updateHexCode();
+        const { rowIndex, cellIndex } = this.getCellIndex(target);
+        if (rowIndex !== -1 && cellIndex !== -1) {
+          this.updateCell(rowIndex, cellIndex, this.drawValue);
         }
       }
+    },
+    getCellIndex(target) {
+      const cellIndex = Array.from(target.parentNode.children).indexOf(target) - 1;
+      const rowIndex = Array.from(target.parentNode.parentNode.children).indexOf(target.parentNode) - 1;
+      return rowIndex >= 0 && cellIndex >= 0 && rowIndex < 16 && cellIndex < 16
+        ? { rowIndex, cellIndex }
+        : { rowIndex: -1, cellIndex: -1 };
+    },
+    toggleSettings(state) {
+      this.showSettings = state;
+    },
+    saveSettings() {
+      localStorage.setItem("drawMode", this.drawMode);
+      localStorage.setItem("cursorEffect", JSON.stringify(this.cursorEffect));
     },
     setDrawValue(value) {
       this.drawValue = value;
     },
     updateHexCode() {
-      let binaryString = this.gridData
-        .flat()
-        .map((cell) => (cell === 1 ? "1" : "0"))
-        .join("");
-      this.hexCode = this.binaryToHex(binaryString);
-    },
-    binaryToHex(binaryString) {
-      let hexString = "";
-      for (let i = 0; i < binaryString.length; i += 4) {
-        let nibble = binaryString.slice(i, i + 4);
-        hexString += parseInt(nibble, 2).toString(16).toUpperCase();
-      }
-      return hexString;
+      const binaryString = this.gridData.flat().map(cell => (cell ? "1" : "0")).join("");
+      this.hexCode = parseInt(binaryString, 2).toString(16).padStart(64, "0").toUpperCase();
     },
     updateGridFromHex() {
-      if (
-        this.hexCode.length !== 32 &&
-        this.hexCode.length !== 64 ||
-        /[^0-9A-Fa-f]/.test(this.hexCode)
-      ) {
-        this.gridData = Array.from({ length: 16 }, () => Array(16).fill(0));
+      if (!/^[0-9A-F]{32,64}$/i.test(this.hexCode)) {
+        this.resetGrid();
         return;
       }
-
-      let binaryString = this.hexToBinary(this.hexCode);
+      const binaryString = BigInt(`0x${this.hexCode}`).toString(2).padStart(256, "0");
       binaryString.split("").forEach((bit, index) => {
         const row = Math.floor(index / 16);
         const col = index % 16;
         this.gridData[row][col] = parseInt(bit, 10);
       });
     },
-    hexToBinary(hexString) {
-      return hexString
-        .split("")
-        .map((hex) => parseInt(hex, 16).toString(2).padStart(4, "0"))
-        .join("");
+    resetGrid() {
+      this.gridData = Array.from({ length: 16 }, () => Array(16).fill(0));
     },
     copyHex() {
-      navigator.clipboard.writeText(this.hexCode).then(() => {
-        alert("Code copied to clipboard!");
-      });
+      navigator.clipboard.writeText(this.hexCode).then(() => alert("Code copied to clipboard!"));
     },
   },
   mounted() {
     this.updateHexCode();
-    this.$el.addEventListener("contextmenu", (e) => e.preventDefault());
+    this.$el.addEventListener("contextmenu", e => e.preventDefault());
     window.addEventListener("mouseup", this.stopDrawing);
   },
   beforeUnmount() {
@@ -250,6 +275,31 @@ export default {
 
 .copy-button:hover {
   background-color: #3d8b25;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+}
+
+.settings-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  z-index: 999;
+}
+
+.cell.cursor {
+  border: 1px solid #333;
 }
 
 @media (orientation: portrait) and (max-width: 768px) {
