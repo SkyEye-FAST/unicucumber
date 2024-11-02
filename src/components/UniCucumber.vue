@@ -1,11 +1,10 @@
 <template>
   <div class="container">
-    <h1 class="title">UniCucumber</h1>
+    <h1 class="title"><span style="color: #000">Uni</span>Cucumber</h1>
 
-    <!-- 灰色背景遮罩 -->
+    <!-- Gray background overlay -->
     <div v-if="showSettings" class="overlay" @click="toggleSettings(false)"></div>
-
-    <!-- 设置菜单弹窗 -->
+    <!-- Settings -->
     <div v-if="showSettings" class="settings-modal">
       <h2>Settings</h2>
       <div class="setting-option">
@@ -22,6 +21,7 @@
       <button @click="toggleSettings(false)">Close</button>
     </div>
 
+    <!-- Glyph drawing area -->
     <div class="grid-container">
       <div class="header-row">
         <div class="corner-cell"></div>
@@ -42,6 +42,7 @@
       </div>
     </div>
 
+    <!-- Tool buttons -->
     <div class="tool-buttons">
       <button @click="setDrawValue(1)" :class="{ active: drawValue === 1 }" class="tool-button">
         <span class="material-symbols-outlined">draw</span>
@@ -54,6 +55,7 @@
       </button>
     </div>
 
+    <!-- Hex code container -->
     <div class="hex-code-container">
       <input v-model="hexCode" @input="updateGridFromHex" class="hex-input" maxlength="64"
         placeholder="Enter .hex format string (32 or 64 characters)" />
@@ -125,15 +127,26 @@ export default {
       this.drawValue = value;
     },
     updateHexCode() {
-      const binaryString = this.gridData.flat().map(cell => (cell ? "1" : "0")).join("");
-      this.hexCode = parseInt(binaryString, 2).toString(16).padStart(64, "0").toUpperCase();
+      let binaryString = this.gridData
+        .flat()
+        .map((cell) => (cell === 1 ? "1" : "0"))
+        .join("");
+      this.hexCode = this.binaryToHex(binaryString);
+    },
+    binaryToHex(binaryString) {
+      let hexString = "";
+      for (let i = 0; i < binaryString.length; i += 4) {
+        let nibble = binaryString.slice(i, i + 4);
+        hexString += parseInt(nibble, 2).toString(16).toUpperCase();
+      }
+      return hexString;
     },
     updateGridFromHex() {
       if (!/^[0-9A-F]{32,64}$/i.test(this.hexCode)) {
         this.resetGrid();
         return;
       }
-      const binaryString = BigInt(`0x${this.hexCode}`).toString(2).padStart(256, "0");
+      let binaryString = this.hexToBinary(this.hexCode);
       binaryString.split("").forEach((bit, index) => {
         const row = Math.floor(index / 16);
         const col = index % 16;
