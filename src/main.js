@@ -22,11 +22,11 @@ const i18n = createI18n({
       settings: {
         title: '设置',
         draw_mode: {
-          label: '绘制模式:',
+          label: '绘制模式：',
           double_button: '左键绘制，右键擦除',
           single_button: '左键绘制或擦除',
         },
-        cursor_effect: '光标效果:',
+        cursor_effect: '光标效果：',
         close: '关闭',
       },
     },

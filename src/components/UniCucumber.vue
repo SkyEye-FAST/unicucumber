@@ -71,6 +71,22 @@
         <span class="material-symbols-outlined">{{ copyIcon }}</span>
       </button>
     </div>
+
+    <!-- Download buttons -->
+    <div class="download-buttons">
+      <button @click="downloadAsPNG" class="download-button">
+        <span class="material-symbols-outlined">download</span><br>
+        <span style="font-size: smaller;">PNG</span>
+      </button>
+      <button @click="downloadAsBMP" class="download-button">
+        <span class="material-symbols-outlined">download</span><br>
+        <span style="font-size: smaller;">BMP</span>
+      </button>
+      <button @click="downloadAsSVG" class="download-button">
+        <span class="material-symbols-outlined">download</span><br>
+        <span style="font-size: smaller;">SVG</span>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -296,7 +312,7 @@ export default {
   font-size: 1.5em;
   padding: 5px 10px;
   border: transparent 2px solid;
-  background: #ddd;
+  background-color: #ddd;
   cursor: pointer;
   width: 8em;
 }
@@ -341,6 +357,27 @@ export default {
   background-color: #3d8b25;
 }
 
+.download-buttons {
+  display: flex;
+  margin: 30px 0 15px 0;
+}
+
+.download-button {
+  font-size: 1.2em;
+  margin: 0 16px;
+  padding: 5px 0;
+  border: transparent 2px solid;
+  background-color: #4ea72e;
+  color: #fff;
+  cursor: pointer;
+  width: 5em;
+  transition: background-color 0.3s ease;
+}
+
+.download-button:hover {
+  background-color: #3d8b25;
+}
+
 .overlay {
   position: fixed;
   top: 0;
@@ -363,6 +400,8 @@ export default {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   z-index: 999;
   width: 20em;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-title {
@@ -395,8 +434,8 @@ export default {
 }
 
 .close-button {
-  margin-top: 20px;
-  width: 100%;
+  margin: 20px auto 0;
+  width: 60%;
   padding: 10px 0;
   font-size: 1.1em;
   font-weight: bold;
@@ -423,6 +462,33 @@ export default {
 
   .cell {
     border-width: 0.2px;
+  }
+
+  .settings-modal {
+    padding: 10px 20px 20px;
+  }
+
+  .setting-option {
+    margin: 10px;
+  }
+
+  .setting-option label {
+    font-size: 1.1em;
+    margin-left: 5px;
+  }
+
+  #drawMode {
+    font-size: 1.1em;
+    padding: 10px 0;
+  }
+
+  #cursorEffect {
+    zoom: 150%;
+  }
+
+  .download-button {
+    font-size: 1.2em;
+    margin: 0 10px;
   }
 }
 
@@ -466,16 +532,22 @@ export default {
     width: 40em;
   }
 
+  .setting-option {
+    margin: 20px 25px 20px;
+  }
+
   .modal-title {
     font-size: 3em;
   }
 
   .setting-option label {
     font-size: 2em;
+    margin-left: 30px;
   }
 
   #drawMode {
     font-size: 2em;
+    padding: 10px 0;
   }
 
   #cursorEffect {
@@ -484,6 +556,8 @@ export default {
 
   .close-button {
     font-size: 2em;
+    padding: 15px 0;
+    margin-bottom: 30px;
   }
 
   .hex-input {
@@ -494,6 +568,11 @@ export default {
   .copy-button {
     padding: 10px 20px;
     font-size: 1.5em;
+  }
+
+  .download-button {
+    font-size: 1.8em;
+    width: 4.5em;
   }
 }
 
@@ -530,19 +609,25 @@ export default {
   }
 
   .settings-modal {
-    width: 50em;
+    width: 45em;
+  }
+
+  .setting-option {
+    margin: 20px 20px 20px;
   }
 
   .modal-title {
-    font-size: 4em;
+    font-size: 3.5em;
   }
 
   .setting-option label {
-    font-size: 2.5em;
+    font-size: 2.2em;
+    margin-left: 30px;
   }
 
   #drawMode {
-    font-size: 2.5em;
+    font-size: 2.2em;
+    padding: 10px 0;
   }
 
   #cursorEffect {
@@ -551,6 +636,8 @@ export default {
 
   .close-button {
     font-size: 2.5em;
+    padding: 15px 0;
+    margin-bottom: 40px;
   }
 
   .hex-input {
@@ -561,6 +648,11 @@ export default {
   .copy-button {
     padding: 10px 35px;
     font-size: 2em;
+  }
+
+  .download-button {
+    font-size: 2.2em;
+    width: 5em;
   }
 }
 </style>
