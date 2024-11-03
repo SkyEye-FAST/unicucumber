@@ -113,11 +113,10 @@ export default {
       }
       this.updateCell(rowIndex, cellIndex, this.drawValue);
     },
-    drawCell(rowIndex, cellIndex) {
-      if (this.isDrawing) {
-        this.updateCell(rowIndex, cellIndex, this.drawValue);
-      }
+    stopDrawing() {
+      this.isDrawing = false;
     },
+
     handleHover(rowIndex, cellIndex) {
       if (this.isDrawing) {
         this.updateCell(rowIndex, cellIndex, this.drawValue);
@@ -128,19 +127,30 @@ export default {
     clearHover() {
       this.hoverCell = { row: -1, col: -1 };
     },
+
+    drawCell(rowIndex, cellIndex) {
+      if (this.isDrawing) {
+        this.updateCell(rowIndex, cellIndex, this.drawValue);
+      }
+    },
+    updateCell(rowIndex, cellIndex, value) {
+      this.gridData[rowIndex][cellIndex] = value;
+      this.updateHexCode();
+    },
     getCellStyle(rowIndex, cellIndex) {
       if (this.cursorEffect && this.hoverCell.row === rowIndex && this.hoverCell.col === cellIndex) {
         return { backgroundColor: this.drawValue === 1 ? 'black' : 'white' };
       }
       return {};
     },
-    stopDrawing() {
-      this.isDrawing = false;
+    getCellIndex(target) {
+      const cellIndex = Array.from(target.parentNode.children).indexOf(target) - 1;
+      const rowIndex = Array.from(target.parentNode.parentNode.children).indexOf(target.parentNode) - 1;
+      return rowIndex >= 0 && cellIndex >= 0 && rowIndex < 16 && cellIndex < 16
+        ? { rowIndex, cellIndex }
+        : { rowIndex: -1, cellIndex: -1 };
     },
-    updateCell(rowIndex, cellIndex, value) {
-      this.gridData[rowIndex][cellIndex] = value;
-      this.updateHexCode();
-    },
+
     handleTouchMove(event) {
       const touch = event.touches[0];
       const target = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -151,13 +161,10 @@ export default {
         }
       }
     },
-    getCellIndex(target) {
-      const cellIndex = Array.from(target.parentNode.children).indexOf(target) - 1;
-      const rowIndex = Array.from(target.parentNode.parentNode.children).indexOf(target.parentNode) - 1;
-      return rowIndex >= 0 && cellIndex >= 0 && rowIndex < 16 && cellIndex < 16
-        ? { rowIndex, cellIndex }
-        : { rowIndex: -1, cellIndex: -1 };
+    setDrawValue(value) {
+      this.drawValue = value;
     },
+
     toggleSettings(state) {
       this.showSettings = state;
     },
@@ -165,15 +172,18 @@ export default {
       localStorage.setItem("drawMode", this.drawMode);
       localStorage.setItem("cursorEffect", JSON.stringify(this.cursorEffect));
     },
-    setDrawValue(value) {
-      this.drawValue = value;
-    },
+
     updateHexCode() {
       let binaryString = this.gridData
         .flat()
         .map((cell) => (cell === 1 ? "1" : "0"))
         .join("");
       this.hexCode = this.binaryToHex(binaryString);
+    },
+    hexToBinary(hexString) {
+      return hexString.split("").map(char => {
+        return parseInt(char, 16).toString(2).padStart(4, '0');
+      }).join("");
     },
     binaryToHex(binaryString) {
       let hexString = "";
@@ -198,6 +208,7 @@ export default {
     resetGrid() {
       this.gridData = Array.from({ length: 16 }, () => Array(16).fill(0));
     },
+
     copyHex() {
       navigator.clipboard.writeText(this.hexCode).then(() => {
         this.copyIcon = 'check';
@@ -205,6 +216,80 @@ export default {
           this.copyIcon = 'content_copy';
         }, 1500);
       });
+    },
+
+    async downloadAsPNG() {
+      const canvas = await this.createCanvasFromGrid();
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = 'glyph.png';
+      link.click();
+    },
+    async downloadAsBMP() {
+      const canvas = await this.createCanvasFromGrid();
+      const context = canvas.getContext('2d');
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+      const bmpBlob = await this.convertToBMP(imageData);
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(bmpBlob);
+      link.download = 'glyph.bmp';
+      link.click();
+      URL.revokeObjectURL(link.href);
+    },
+    downloadAsSVG() {
+      const svg = this.createSVGFromGrid();
+      const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(svgBlob);
+      link.download = 'glyph.svg';
+      link.click();
+      URL.revokeObjectURL(link.href);
+    },
+    async createCanvasFromGrid() {
+      const canvas = document.createElement('canvas');
+      const cellSize = 1;
+      canvas.width = this.gridData[0].length * cellSize;
+      canvas.height = this.gridData.length * cellSize;
+      const context = canvas.getContext('2d');
+
+      this.gridData.forEach((row, rowIndex) => {
+        row.forEach((cell, colIndex) => {
+          context.fillStyle = cell === 1 ? '#000' : '#FFF';
+          context.fillRect(colIndex * cellSize, rowIndex * cellSize, cellSize, cellSize);
+        });
+      });
+
+      return canvas;
+    },
+    async convertToBMP(imageData) {
+      const canvas = document.createElement('canvas');
+      canvas.width = imageData.width;
+      canvas.height = imageData.height;
+      const context = canvas.getContext('2d');
+      context.putImageData(imageData, 0, 0);
+
+      return new Promise((resolve) => {
+        canvas.toBlob(resolve, 'image/bmp');
+      });
+    },
+    createSVGFromGrid() {
+      const cellSize = 1;
+      const width = this.gridData[0].length * cellSize;
+      const height = this.gridData.length * cellSize;
+
+      let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">`;
+      this.gridData.forEach((row, rowIndex) => {
+        row.forEach((cell, colIndex) => {
+          if (cell === 1) {
+            const x = colIndex * cellSize;
+            const y = rowIndex * cellSize;
+            svgContent += `<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" fill="black" />`;
+          }
+        });
+      });
+      svgContent += '</svg>';
+      return svgContent;
     },
   },
   mounted() {
