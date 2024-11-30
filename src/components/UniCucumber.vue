@@ -11,6 +11,9 @@
       <button @click="toggleSettings(true)" class="modal-button">
         <span class="material-symbols-outlined bold">settings</span>
       </button>
+      <a href="https://github.com/SkyEye-FAST/unicucumber">
+        <img src="/github-icon.svg" alt="GitHub" class="github-icon" />
+      </a>
     </div>
 
     <!-- Gray background overlay -->
@@ -339,11 +342,19 @@ export default {
 
 .modal-button {
   color: #196b24;
+  background-color: inherit;
   font-size: 1.8em;
-  padding: 5px 10px;
+  padding: 5px 15px;
+  margin: 0 10px;
   cursor: pointer;
-  width: 8em;
   border: none;
+  transition: color 0.3s ease;
+}
+
+.github-icon {
+  width: 1.5em;
+  vertical-align: middle;
+  transform: translateY(0.6em);
 }
 
 .grid-container {
