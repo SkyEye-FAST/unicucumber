@@ -11,6 +11,9 @@
       <button @click="toggleSettings(true)" class="modal-button">
         <span class="material-symbols-outlined bold">settings</span>
       </button>
+      <button @click="toggleGlyphList(true)" class="modal-button">
+        <span class="material-symbols-outlined bold">glyphs</span>
+      </button>
     </div>
 
     <!-- Gray background overlay -->
@@ -30,6 +33,25 @@
         <input type="checkbox" id="cursorEffect" v-model="cursorEffect" @change="saveSettings" />
       </div>
       <button @click="toggleSettings(false)" class="close-button">{{ $t('settings.close') }}</button>
+    </div>
+
+    <!-- Gray background overlay -->
+    <div v-if="showGlyphList" class="overlay" @click="toggleGlyphList(false)"></div>
+    <!-- Glyph list -->
+    <div v-if="showGlyphList" class="glyph-list-modal">
+      <h2 class="modal-title">字形列表</h2>
+      <button @click="loadHexFile" class="modal-button">读取.hex文件</button>
+      <button @click="saveHexFile" class="modal-button">保存为.hex文件</button>
+      <div class="glyph-list">
+        <div v-for="(glyph, index) in glyphs" :key="index" class="glyph-item">
+          <span>字形 {{ index + 1 }}</span>
+          <button @click="loadGlyph(index)">读取</button>
+          <button @click="deleteGlyph(index)">删除</button>
+        </div>
+      </div>
+      <input type="file" @change="loadHexFile" accept=".hex" class="file-input" />
+      <button @click="saveCurrentGlyph" class="modal-button">保存当前字形</button>
+      <button @click="toggleGlyphList(false)" class="close-button">关闭</button>
     </div>
 
     <!-- Glyph drawing area -->
@@ -96,11 +118,13 @@ export default {
     return {
       gridData: Array.from({ length: 16 }, () => Array(16).fill(0)),
       hexCode: "",
+      glyphs: [],
       copyIcon: 'content_copy',
       isDrawing: false,
       drawValue: 1,
       hoverCell: { row: -1, col: -1 },
       showSettings: false,
+      showGlyphList: false,
       drawMode: localStorage.getItem("drawMode") || "singleButtonDraw",
       cursorEffect: JSON.parse(localStorage.getItem("cursorEffect")) ?? true,
     };
@@ -171,6 +195,43 @@ export default {
     saveSettings() {
       localStorage.setItem("drawMode", this.drawMode);
       localStorage.setItem("cursorEffect", JSON.stringify(this.cursorEffect));
+    },
+
+    toggleGlyphList(state) {
+      this.showGlyphList = state;
+    },
+
+    saveCurrentGlyph() {
+      this.glyphs.push(this.hexCode);
+    },
+    loadGlyph(index) {
+      this.hexCode = this.glyphs[index];
+      this.updateGridFromHex();
+      this.toggleGlyphList(false);
+    },
+    deleteGlyph(index) {
+      this.glyphs.splice(index, 1);
+    },
+    async loadHexFile() {
+      try {
+        const file = await this.$refs.fileInput.click();
+        if (file) {
+          const fileContent = await file.text();
+          this.hexCode = fileContent.trim();
+          this.updateGridFromHex();
+        }
+      } catch (error) {
+        console.error("Error loading file:", error);
+      }
+    },
+    saveHexFile() {
+      const blob = new Blob([this.hexCode], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "glyph.hex";
+      a.click();
+      URL.revokeObjectURL(url);
     },
 
     updateHexCode() {
@@ -338,12 +399,18 @@ export default {
 }
 
 .modal-button {
-  color: #196b24;
-  font-size: 1.8em;
+  color: #4ea72e;
+  background-color: inherit;
+  font-size: 1.5em;
   padding: 5px 10px;
+  margin: 0 10px;
   cursor: pointer;
-  width: 8em;
   border: none;
+  transition: color 0.3s ease;
+}
+
+.modal-button:hover {
+  color: #3d8b25;
 }
 
 .grid-container {
@@ -535,6 +602,39 @@ export default {
 .close-button:hover {
   background-color: #ff6b66;
 }
+
+.glyph-list-modal {
+  font-family: "Noto Sans", sans-serif;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  z-index: 999;
+  width: 20em;
+  display: flex;
+  flex-direction: column;
+}
+
+.glyph-list {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+}
+
+.glyph-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.file-input {
+  margin-bottom: 10px;
+}
+
 
 @media (orientation: portrait) and (max-width: 768px) {
   .hex-code-container {
