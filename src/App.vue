@@ -9,5 +9,8 @@ export default {
   components: {
     UniCucumber,
   },
+  metaInfo: {
+    title: 'Default Title',
+  }
 };
 </script>
