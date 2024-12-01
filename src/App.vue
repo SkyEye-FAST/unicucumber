@@ -8,9 +8,6 @@ import UniCucumber from "./components/UniCucumber.vue";
 export default {
   components: {
     UniCucumber,
-  },
-  metaInfo: {
-    title: 'Default Title',
   }
 };
 </script>
