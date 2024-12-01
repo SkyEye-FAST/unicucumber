@@ -344,7 +344,7 @@ export default {
   color: #196b24;
   background-color: inherit;
   font-size: 1.8em;
-  padding: 5px 15px;
+  padding: 5px;
   margin: 0 10px;
   cursor: pointer;
   border: none;
@@ -352,9 +352,10 @@ export default {
 }
 
 .github-icon {
-  width: 1.5em;
+  width: 1.4em;
+  padding: 5px;
   vertical-align: middle;
-  transform: translateY(0.6em);
+  transform: translateY(0.3em);
 }
 
 .grid-container {
@@ -593,6 +594,12 @@ export default {
     font-size: larger;
   }
 
+  .github-icon {
+    width: 2.1em;
+    padding: 5px 10px;
+    transform: translateY(0.3em);
+  }
+
   .title {
     font-size: 3em;
   }
@@ -621,6 +628,7 @@ export default {
   }
 
   .modal-button {
+    padding: 5px 10px;
     font-size: 2em;
   }
 
@@ -677,6 +685,12 @@ export default {
     font-size: larger;
   }
 
+  .github-icon {
+    width: 3.2em;
+    padding: 10px 15px;
+    transform: translateY(0.5em);
+  }
+
   .title {
     font-size: 4em;
   }
@@ -702,6 +716,7 @@ export default {
 
   .modal-button {
     font-size: 3em;
+    padding: 10px 15px;
   }
 
   .settings-modal {
