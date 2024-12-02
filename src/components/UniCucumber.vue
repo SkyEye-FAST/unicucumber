@@ -16,9 +16,10 @@
       </a>
     </div>
 
-    <!-- Gray background overlay -->
+    <!-- Overlay for settings -->
     <div v-if="showSettings" class="overlay" @click="toggleSettings(false)"></div>
-    <!-- Settings -->
+
+    <!-- Settings modal -->
     <div v-if="showSettings" class="settings-modal">
       <h2 class="modal-title">{{ $t('settings.title') }}</h2>
       <div class="setting-option">
@@ -40,18 +41,18 @@
       <div class="header-row">
         <div class="corner-cell"></div>
         <div v-for="colIndex in 16" :key="`col-${colIndex}`" class="header-cell"
-          :style="{ color: colIndex % 2 === 1 ? '#000' : '#f4005f' }">
+          :style="{ color: colIndex % 2 ? '#000' : '#f4005f' }">
           {{ (colIndex - 1).toString(16).toUpperCase() }}
         </div>
       </div>
       <div v-for="(row, rowIndex) in gridData" :key="`row-${rowIndex}`" class="grid-row">
-        <div class="header-cell" :style="{ color: rowIndex % 2 === 0 ? '#000' : '#f4005f' }">
+        <div class="header-cell" :style="{ color: rowIndex % 2 ? '#f4005f' : '#000' }">
           {{ rowIndex.toString(16).toUpperCase() }}
         </div>
         <div v-for="(cell, cellIndex) in row" :key="`cell-${rowIndex}-${cellIndex}`"
           :class="['cell', { filled: cell === 1 }]" :style="getCellStyle(rowIndex, cellIndex)"
           @mousedown.prevent="startDrawing(rowIndex, cellIndex, $event)" @mouseover="handleHover(rowIndex, cellIndex)"
-          @mouseleave="clearHover" @mouseup="stopDrawing" @touchstart.prevent="startDrawing(rowIndex, cellIndex)"
+          @mouseleave="clearHover" @mouseup="stopDrawing" @touchstart.prevent="handleTouchStart"
           @touchmove.prevent="handleTouchMove"></div>
       </div>
     </div>
@@ -99,7 +100,7 @@ export default {
     return {
       gridData: Array.from({ length: 16 }, () => Array(16).fill(0)),
       hexCode: "",
-      copyIcon: 'content_copy',
+      copyIcon: "content_copy",
       isDrawing: false,
       drawValue: 1,
       hoverCell: { row: -1, col: -1 },
@@ -119,7 +120,6 @@ export default {
     stopDrawing() {
       this.isDrawing = false;
     },
-
     handleHover(rowIndex, cellIndex) {
       if (this.isDrawing) {
         this.updateCell(rowIndex, cellIndex, this.drawValue);
@@ -130,44 +130,47 @@ export default {
     clearHover() {
       this.hoverCell = { row: -1, col: -1 };
     },
-
     drawCell(rowIndex, cellIndex) {
-      if (this.isDrawing) {
-        this.updateCell(rowIndex, cellIndex, this.drawValue);
-      }
+      if (this.isDrawing) this.updateCell(rowIndex, cellIndex, this.drawValue);
     },
     updateCell(rowIndex, cellIndex, value) {
       this.gridData[rowIndex][cellIndex] = value;
       this.updateHexCode();
     },
     getCellStyle(rowIndex, cellIndex) {
-      if (this.cursorEffect && this.hoverCell.row === rowIndex && this.hoverCell.col === cellIndex) {
-        return { backgroundColor: this.drawValue === 1 ? 'black' : 'white' };
-      }
-      return {};
+      return this.cursorEffect && this.hoverCell.row === rowIndex && this.hoverCell.col === cellIndex
+        ? { backgroundColor: this.drawValue === 1 ? 'black' : 'white' }
+        : {};
     },
     getCellIndex(target) {
       const cellIndex = Array.from(target.parentNode.children).indexOf(target) - 1;
       const rowIndex = Array.from(target.parentNode.parentNode.children).indexOf(target.parentNode) - 1;
-      return rowIndex >= 0 && cellIndex >= 0 && rowIndex < 16 && cellIndex < 16
-        ? { rowIndex, cellIndex }
-        : { rowIndex: -1, cellIndex: -1 };
+      return { rowIndex, cellIndex };
     },
-
+    handleTouchStart(event) {
+      const touch = event.touches[0];
+      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (target && target.classList.contains("cell")) {
+        const { rowIndex, cellIndex } = this.getCellIndex(target);
+        this.startDrawing(rowIndex, cellIndex, event);
+      }
+    },
     handleTouchMove(event) {
       const touch = event.touches[0];
       const target = document.elementFromPoint(touch.clientX, touch.clientY);
       if (target && target.classList.contains("cell")) {
         const { rowIndex, cellIndex } = this.getCellIndex(target);
-        if (rowIndex !== -1 && cellIndex !== -1) {
+        if (rowIndex >= 0 && cellIndex >= 0) {
           this.updateCell(rowIndex, cellIndex, this.drawValue);
         }
       }
     },
+    handleTouchEnd() {
+      this.stopDrawing();
+    },
     setDrawValue(value) {
       this.drawValue = value;
     },
-
     toggleSettings(state) {
       this.showSettings = state;
     },
@@ -175,26 +178,18 @@ export default {
       localStorage.setItem("drawMode", this.drawMode);
       localStorage.setItem("cursorEffect", JSON.stringify(this.cursorEffect));
     },
-
     updateHexCode() {
-      let binaryString = this.gridData
-        .flat()
-        .map((cell) => (cell === 1 ? "1" : "0"))
-        .join("");
+      let binaryString = this.gridData.flat().map(cell => (cell === 1 ? "1" : "0")).join("");
       this.hexCode = this.binaryToHex(binaryString);
     },
     hexToBinary(hexString) {
-      return hexString.split("").map(char => {
-        return parseInt(char, 16).toString(2).padStart(4, '0');
-      }).join("");
+      return hexString.split("").map(char => parseInt(char, 16).toString(2).padStart(4, '0')).join("");
     },
     binaryToHex(binaryString) {
-      let hexString = "";
-      for (let i = 0; i < binaryString.length; i += 4) {
-        let nibble = binaryString.slice(i, i + 4);
-        hexString += parseInt(nibble, 2).toString(16).toUpperCase();
-      }
-      return hexString;
+      return Array.from({ length: Math.ceil(binaryString.length / 4) }, (_, i) => {
+        let nibble = binaryString.slice(i * 4, i * 4 + 4);
+        return parseInt(nibble, 2).toString(16).toUpperCase();
+      }).join("");
     },
     updateGridFromHex() {
       if (!/^[0-9A-F]{32,64}$/i.test(this.hexCode)) {
@@ -211,16 +206,12 @@ export default {
     resetGrid() {
       this.gridData = Array.from({ length: 16 }, () => Array(16).fill(0));
     },
-
     copyHex() {
       navigator.clipboard.writeText(this.hexCode).then(() => {
         this.copyIcon = 'check';
-        setTimeout(() => {
-          this.copyIcon = 'content_copy';
-        }, 1500);
+        setTimeout(() => { this.copyIcon = 'content_copy'; }, 1500);
       });
     },
-
     async downloadAsPNG() {
       const canvas = await this.createCanvasFromGrid();
       const link = document.createElement('a');
@@ -232,34 +223,31 @@ export default {
       const canvas = await this.createCanvasFromGrid();
       const context = canvas.getContext('2d');
       const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-
       const bmpBlob = await this.convertToBMP(imageData);
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(bmpBlob);
-      link.download = 'glyph.bmp';
-      link.click();
-      URL.revokeObjectURL(link.href);
+      this.triggerDownload(bmpBlob, 'glyph.bmp');
     },
     downloadAsSVG() {
       const svg = this.createSVGFromGrid();
       const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+      this.triggerDownload(svgBlob, 'glyph.svg');
+    },
+    triggerDownload(blob, filename) {
       const link = document.createElement('a');
-      link.href = URL.createObjectURL(svgBlob);
-      link.download = 'glyph.svg';
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
       link.click();
       URL.revokeObjectURL(link.href);
     },
     async createCanvasFromGrid() {
       const canvas = document.createElement('canvas');
-      const cellSize = 1;
-      canvas.width = this.gridData[0].length * cellSize;
-      canvas.height = this.gridData.length * cellSize;
+      canvas.width = this.gridData[0].length;
+      canvas.height = this.gridData.length;
       const context = canvas.getContext('2d');
 
       this.gridData.forEach((row, rowIndex) => {
         row.forEach((cell, colIndex) => {
           context.fillStyle = cell === 1 ? '#000' : '#FFF';
-          context.fillRect(colIndex * cellSize, rowIndex * cellSize, cellSize, cellSize);
+          context.fillRect(colIndex, rowIndex, 1, 1);
         });
       });
 
@@ -272,36 +260,35 @@ export default {
       const context = canvas.getContext('2d');
       context.putImageData(imageData, 0, 0);
 
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         canvas.toBlob(resolve, 'image/bmp');
       });
     },
     createSVGFromGrid() {
       const cellSize = 1;
-      const width = this.gridData[0].length * cellSize;
-      const height = this.gridData.length * cellSize;
+      const width = this.gridData[0].length;
+      const height = this.gridData.length;
 
       let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">`;
       this.gridData.forEach((row, rowIndex) => {
         row.forEach((cell, colIndex) => {
           if (cell === 1) {
-            const x = colIndex * cellSize;
-            const y = rowIndex * cellSize;
-            svgContent += `<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" fill="black" />`;
+            svgContent += `<rect x="${colIndex}" y="${rowIndex}" width="${cellSize}" height="${cellSize}" fill="black" />`;
           }
         });
       });
-      svgContent += '</svg>';
-      return svgContent;
+      return svgContent + '</svg>';
     },
   },
   mounted() {
     this.updateHexCode();
     this.$el.addEventListener("contextmenu", e => e.preventDefault());
     window.addEventListener("mouseup", this.stopDrawing);
+    window.addEventListener("touchend", this.handleTouchEnd);
   },
   beforeUnmount() {
     window.removeEventListener("mouseup", this.stopDrawing);
+    window.removeEventListener("touchend", this.handleTouchEnd);
   },
 };
 </script>
