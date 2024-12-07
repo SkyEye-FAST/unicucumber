@@ -11,7 +11,7 @@
       <button @click="toggleSettings(true)" class="modal-button">
         <span class="material-symbols-outlined bold">settings</span>
       </button>
-      <a href="https://github.com/SkyEye-FAST/unicucumber">
+      <a href="https://github.com/SkyEye-FAST/unicucumber" class="github-link">
         <img src="/github-icon.svg" alt="GitHub" class="github-icon" />
       </a>
     </div>
@@ -69,7 +69,7 @@
 
     <!-- Hex code container -->
     <div class="hex-code-container">
-      <input v-model="hexCode" @input="updateGridFromHex" class="hex-input" maxlength="64"
+      <input v-model="hexCode" @input="updateGridFromHex" id="hexInput" class="hex-input" maxlength="64"
         placeholder="Enter .hex format string (32 or 64 characters)" />
       <button @click="copyHex" class="copy-button">
         <span class="material-symbols-outlined">{{ copyIcon }}</span>
@@ -94,203 +94,213 @@
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      gridData: Array.from({ length: 16 }, () => Array(16).fill(0)),
-      hexCode: "",
-      copyIcon: "content_copy",
-      isDrawing: false,
-      drawValue: 1,
-      hoverCell: { row: -1, col: -1 },
-      showSettings: false,
-      drawMode: localStorage.getItem("drawMode") || "singleButtonDraw",
-      cursorEffect: JSON.parse(localStorage.getItem("cursorEffect")) ?? true,
-    };
-  },
-  methods: {
-    startDrawing(rowIndex, cellIndex, event) {
-      this.isDrawing = true;
-      if (this.drawMode === "doubleButtonDraw") {
-        this.drawValue = event.button === 2 ? 0 : 1;
-      }
-      this.updateCell(rowIndex, cellIndex, this.drawValue);
-    },
-    stopDrawing() {
-      this.isDrawing = false;
-    },
-    handleHover(rowIndex, cellIndex) {
-      if (this.isDrawing) {
-        this.updateCell(rowIndex, cellIndex, this.drawValue);
-      } else {
-        this.hoverCell = { row: rowIndex, col: cellIndex };
-      }
-    },
-    clearHover() {
-      this.hoverCell = { row: -1, col: -1 };
-    },
-    drawCell(rowIndex, cellIndex) {
-      if (this.isDrawing) this.updateCell(rowIndex, cellIndex, this.drawValue);
-    },
-    updateCell(rowIndex, cellIndex, value) {
-      this.gridData[rowIndex][cellIndex] = value;
-      this.updateHexCode();
-    },
-    getCellStyle(rowIndex, cellIndex) {
-      return this.cursorEffect && this.hoverCell.row === rowIndex && this.hoverCell.col === cellIndex
-        ? { backgroundColor: this.drawValue === 1 ? 'black' : 'white' }
-        : {};
-    },
-    getCellIndex(target) {
-      const cellIndex = Array.from(target.parentNode.children).indexOf(target) - 1;
-      const rowIndex = Array.from(target.parentNode.parentNode.children).indexOf(target.parentNode) - 1;
-      return { rowIndex, cellIndex };
-    },
-    handleTouchStart(event) {
-      const touch = event.touches[0];
-      const target = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (target && target.classList.contains("cell")) {
-        const { rowIndex, cellIndex } = this.getCellIndex(target);
-        this.startDrawing(rowIndex, cellIndex, event);
-      }
-    },
-    handleTouchMove(event) {
-      const touch = event.touches[0];
-      const target = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (target && target.classList.contains("cell")) {
-        const { rowIndex, cellIndex } = this.getCellIndex(target);
-        if (rowIndex >= 0 && cellIndex >= 0) {
-          this.updateCell(rowIndex, cellIndex, this.drawValue);
-        }
-      }
-    },
-    handleTouchEnd() {
-      this.stopDrawing();
-    },
-    setDrawValue(value) {
-      this.drawValue = value;
-    },
-    toggleSettings(state) {
-      this.showSettings = state;
-    },
-    saveSettings() {
-      localStorage.setItem("drawMode", this.drawMode);
-      localStorage.setItem("cursorEffect", JSON.stringify(this.cursorEffect));
-    },
-    updateHexCode() {
-      let binaryString = this.gridData.flat().map(cell => (cell === 1 ? "1" : "0")).join("");
-      this.hexCode = this.binaryToHex(binaryString);
-    },
-    hexToBinary(hexString) {
-      return hexString.split("").map(char => parseInt(char, 16).toString(2).padStart(4, '0')).join("");
-    },
-    binaryToHex(binaryString) {
-      return Array.from({ length: Math.ceil(binaryString.length / 4) }, (_, i) => {
-        let nibble = binaryString.slice(i * 4, i * 4 + 4);
-        return parseInt(nibble, 2).toString(16).toUpperCase();
-      }).join("");
-    },
-    updateGridFromHex() {
-      if (!/^[0-9A-F]{32,64}$/i.test(this.hexCode)) {
-        this.resetGrid();
-        return;
-      }
-      let binaryString = this.hexToBinary(this.hexCode);
-      binaryString.split("").forEach((bit, index) => {
-        const row = Math.floor(index / 16);
-        const col = index % 16;
-        this.gridData[row][col] = parseInt(bit, 10);
-      });
-    },
-    resetGrid() {
-      this.gridData = Array.from({ length: 16 }, () => Array(16).fill(0));
-    },
-    copyHex() {
-      navigator.clipboard.writeText(this.hexCode).then(() => {
-        this.copyIcon = 'check';
-        setTimeout(() => { this.copyIcon = 'content_copy'; }, 1500);
-      });
-    },
-    async downloadAsPNG() {
-      const canvas = await this.createCanvasFromGrid();
-      const link = document.createElement('a');
-      link.href = canvas.toDataURL('image/png');
-      link.download = 'glyph.png';
-      link.click();
-    },
-    async downloadAsBMP() {
-      const canvas = await this.createCanvasFromGrid();
-      const context = canvas.getContext('2d');
-      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      const bmpBlob = await this.convertToBMP(imageData);
-      this.triggerDownload(bmpBlob, 'glyph.bmp');
-    },
-    downloadAsSVG() {
-      const svg = this.createSVGFromGrid();
-      const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-      this.triggerDownload(svgBlob, 'glyph.svg');
-    },
-    triggerDownload(blob, filename) {
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = filename;
-      link.click();
-      URL.revokeObjectURL(link.href);
-    },
-    async createCanvasFromGrid() {
-      const canvas = document.createElement('canvas');
-      canvas.width = this.gridData[0].length;
-      canvas.height = this.gridData.length;
-      const context = canvas.getContext('2d');
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 
-      this.gridData.forEach((row, rowIndex) => {
-        row.forEach((cell, colIndex) => {
-          context.fillStyle = cell === 1 ? '#000' : '#FFF';
-          context.fillRect(colIndex, rowIndex, 1, 1);
-        });
-      });
+const gridData = ref(Array.from({ length: 16 }, () => Array(16).fill(0)));
+const hexCode = ref("");
+const copyIcon = ref("content_copy");
+const isDrawing = ref(false);
+const drawValue = ref(1);
+const hoverCell = ref({ row: -1, col: -1 });
+const showSettings = ref(false);
+const drawMode = ref(localStorage.getItem("drawMode") || "singleButtonDraw");
+const cursorEffect = ref(JSON.parse(localStorage.getItem("cursorEffect")) ?? true);
 
-      return canvas;
-    },
-    async convertToBMP(imageData) {
-      const canvas = document.createElement('canvas');
-      canvas.width = imageData.width;
-      canvas.height = imageData.height;
-      const context = canvas.getContext('2d');
-      context.putImageData(imageData, 0, 0);
-
-      return new Promise(resolve => {
-        canvas.toBlob(resolve, 'image/bmp');
-      });
-    },
-    createSVGFromGrid() {
-      const cellSize = 1;
-      const width = this.gridData[0].length;
-      const height = this.gridData.length;
-
-      let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">`;
-      this.gridData.forEach((row, rowIndex) => {
-        row.forEach((cell, colIndex) => {
-          if (cell === 1) {
-            svgContent += `<rect x="${colIndex}" y="${rowIndex}" width="${cellSize}" height="${cellSize}" fill="black" />`;
-          }
-        });
-      });
-      return svgContent + '</svg>';
-    },
-  },
-  mounted() {
-    this.updateHexCode();
-    this.$el.addEventListener("contextmenu", e => e.preventDefault());
-    window.addEventListener("mouseup", this.stopDrawing);
-    window.addEventListener("touchend", this.handleTouchEnd);
-  },
-  beforeUnmount() {
-    window.removeEventListener("mouseup", this.stopDrawing);
-    window.removeEventListener("touchend", this.handleTouchEnd);
-  },
+const startDrawing = (rowIndex, cellIndex, event) => {
+  isDrawing.value = true;
+  if (drawMode.value === "doubleButtonDraw") {
+    drawValue.value = event.button === 2 ? 0 : 1;
+  }
+  updateCell(rowIndex, cellIndex, drawValue.value);
 };
+
+const stopDrawing = () => {
+  isDrawing.value = false;
+};
+
+const handleHover = (rowIndex, cellIndex) => {
+  if (isDrawing.value) {
+    updateCell(rowIndex, cellIndex, drawValue.value);
+  } else {
+    hoverCell.value = { row: rowIndex, col: cellIndex };
+  }
+};
+
+const clearHover = () => {
+  hoverCell.value = { row: -1, col: -1 };
+};
+
+const updateCell = (rowIndex, cellIndex, value) => {
+  gridData.value[rowIndex][cellIndex] = value;
+  updateHexCode();
+};
+
+const getCellStyle = (rowIndex, cellIndex) => {
+  return cursorEffect.value && hoverCell.value.row === rowIndex && hoverCell.value.col === cellIndex
+    ? { backgroundColor: drawValue.value === 1 ? 'black' : 'white' }
+    : {};
+};
+
+const getCellIndex = (target) => {
+  const cellIndex = Array.from(target.parentNode.children).indexOf(target) - 1;
+  const rowIndex = Array.from(target.parentNode.parentNode.children).indexOf(target.parentNode) - 1;
+  return { rowIndex, cellIndex };
+};
+
+const handleTouchStart = (event) => {
+  const touch = event.touches[0];
+  const target = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (target && target.classList.contains("cell")) {
+    const { rowIndex, cellIndex } = getCellIndex(target);
+    startDrawing(rowIndex, cellIndex, event);
+  }
+};
+
+const handleTouchMove = (event) => {
+  const touch = event.touches[0];
+  const target = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (target && target.classList.contains("cell")) {
+    const { rowIndex, cellIndex } = getCellIndex(target);
+    if (rowIndex >= 0 && cellIndex >= 0) {
+      updateCell(rowIndex, cellIndex, drawValue.value);
+    }
+  }
+};
+
+const setDrawValue = (value) => {
+  drawValue.value = value;
+};
+
+const toggleSettings = (state) => {
+  showSettings.value = state;
+};
+
+const saveSettings = () => {
+  localStorage.setItem("drawMode", drawMode.value);
+  localStorage.setItem("cursorEffect", JSON.stringify(cursorEffect.value));
+};
+
+const updateHexCode = () => {
+  let binaryString = gridData.value.flat().map(cell => (cell === 1 ? "1" : "0")).join("");
+  hexCode.value = binaryToHex(binaryString);
+};
+
+const hexToBinary = (hexString) => {
+  return hexString.split("").map(char => parseInt(char, 16).toString(2).padStart(4, '0')).join("");
+};
+
+const binaryToHex = (binaryString) => {
+  return Array.from({ length: Math.ceil(binaryString.length / 4) }, (_, i) => {
+    let nibble = binaryString.slice(i * 4, i * 4 + 4);
+    return parseInt(nibble, 2).toString(16).toUpperCase();
+  }).join("");
+};
+
+const updateGridFromHex = () => {
+  if (!/^[0-9A-F]{32,64}$/i.test(hexCode.value)) {
+    resetGrid();
+    return;
+  }
+  let binaryString = hexToBinary(hexCode.value);
+  binaryString.split("").forEach((bit, index) => {
+    const row = Math.floor(index / 16);
+    const col = index % 16;
+    gridData.value[row][col] = parseInt(bit, 10);
+  });
+};
+
+const resetGrid = () => {
+  gridData.value = Array.from({ length: 16 }, () => Array(16).fill(0));
+};
+
+const copyHex = async () => {
+  await navigator.clipboard.writeText(hexCode.value);
+  copyIcon.value = 'check';
+  setTimeout(() => { copyIcon.value = 'content_copy'; }, 1500);
+};
+
+const downloadAsPNG = async () => {
+  const canvas = createCanvasFromGrid();
+  const link = document.createElement('a');
+  link.href = canvas.toDataURL('image/png');
+  link.download = 'glyph.png';
+  link.click();
+};
+
+const downloadAsBMP = async () => {
+  const canvas = createCanvasFromGrid();
+  const context = canvas.getContext('2d');
+  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  const bmpBlob = await convertToBMP(imageData);
+  triggerDownload(bmpBlob, 'glyph.bmp');
+};
+
+const downloadAsSVG = () => {
+  const svg = createSVGFromGrid();
+  const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+  triggerDownload(svgBlob, 'glyph.svg');
+};
+
+const triggerDownload = (blob, filename) => {
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+};
+
+const createCanvasFromGrid = () => {
+  const canvas = document.createElement('canvas');
+  canvas.width = gridData.value[0].length;
+  canvas.height = gridData.value.length;
+  const context = canvas.getContext('2d');
+  gridData.value.forEach((row, rowIndex) => {
+    row.forEach((cell, colIndex) => {
+      context.fillStyle = cell === 1 ? '#000' : '#FFF';
+      context.fillRect(colIndex, rowIndex, 1, 1);
+    });
+  });
+  return canvas;
+};
+
+const convertToBMP = (imageData) => {
+  const canvas = document.createElement('canvas');
+  canvas.width = imageData.width;
+  canvas.height = imageData.height;
+  const context = canvas.getContext('2d');
+  context.putImageData(imageData, 0, 0);
+  return new Promise(resolve => {
+    canvas.toBlob(resolve, 'image/bmp');
+  });
+};
+
+const createSVGFromGrid = () => {
+  const cellSize = 1;
+  const width = gridData.value[0].length;
+  const height = gridData.value.length;
+  let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">`;
+  gridData.value.forEach((row, rowIndex) => {
+    row.forEach((cell, colIndex) => {
+      if (cell === 1) {
+        svgContent += `<rect x="${colIndex}" y="${rowIndex}" width="${cellSize}" height="${cellSize}" fill="black" />`;
+      }
+    });
+  });
+  return svgContent + '</svg>';
+};
+
+onMounted(() => {
+  updateHexCode();
+  document.addEventListener("contextmenu", e => e.preventDefault());
+  window.addEventListener("mouseup", stopDrawing);
+  window.addEventListener("touchend", stopDrawing);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("mouseup", stopDrawing);
+  window.removeEventListener("touchend", stopDrawing);
+});
 </script>
 
 <style scoped>
@@ -325,6 +335,8 @@ export default {
 .modal-buttons {
   display: flex;
   margin-bottom: 5px;
+  align-items: center;
+  flex-direction: row;
 }
 
 .modal-button {
@@ -338,11 +350,20 @@ export default {
   transition: color 0.3s ease;
 }
 
+.github-link {
+  transform: translateY(0.1em)
+}
+
+@-moz-document url-prefix() {
+  .github-icon {
+    vertical-align: middle;
+  }
+}
+
 .github-icon {
   width: 1.4em;
   padding: 5px;
-  vertical-align: middle;
-  transform: translateY(0.3em);
+  margin: 0 10px;
 }
 
 .grid-container {
@@ -447,6 +468,7 @@ export default {
 }
 
 .download-button {
+  font-family: 'Noto Sans', sans-serif;
   font-size: 1.2em;
   margin: 0 16px;
   padding: 5px 0;
