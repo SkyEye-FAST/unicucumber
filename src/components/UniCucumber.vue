@@ -606,7 +606,6 @@ onBeforeUnmount(() => {
   .github-icon {
     width: 2.1em;
     padding: 5px 10px;
-    transform: translateY(0.3em);
   }
 
   .title {
@@ -697,7 +696,6 @@ onBeforeUnmount(() => {
   .github-icon {
     width: 3.2em;
     padding: 10px 15px;
-    transform: translateY(0.5em);
   }
 
   .title {
