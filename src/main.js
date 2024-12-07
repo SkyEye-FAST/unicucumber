@@ -2,37 +2,19 @@ import { createApp } from 'vue'
 import { createI18n } from 'vue-i18n'
 import App from './App.vue'
 
+import en from './locales/en.json'
+import zh_cn from './locales/zh_cn.json'
+
 const i18n = createI18n({
-  locale: navigator.language,
+  legacy: false,
+  locale: navigator.language || navigator.userLanguage || 'en',
   fallbackLocale: 'en',
+  silentTranslationWarn: true,
   messages: {
-    en: {
-      settings: {
-        title: 'Settings',
-        draw_mode: {
-          label: 'Draw Mode:',
-          double_button: 'Left Draw, Right Erase',
-          single_button: 'Left Draw & Erase',
-        },
-        cursor_effect: 'Cursor Effect:',
-        close: 'Close',
-      },
-    },
-    zh: {
-      settings: {
-        title: '设置',
-        draw_mode: {
-          label: '绘制模式：',
-          double_button: '左键绘制，右键擦除',
-          single_button: '左键绘制或擦除',
-        },
-        cursor_effect: '光标效果：',
-        close: '关闭',
-      },
-    },
+    en: en,
+    'zh-CN': zh_cn,
   },
 })
 const app = createApp(App)
-
-app.use(i18n)
-app.mount('#app')
+document.title = i18n.global.t(`title`)
+app.use(i18n).mount('#app')

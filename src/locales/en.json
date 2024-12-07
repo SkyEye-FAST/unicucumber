@@ -1,0 +1,13 @@
+{
+  "title": "UniCucumber - Unifont Web Editor",
+  "settings": {
+    "title": "Settings",
+    "draw_mode": {
+      "label": "Draw Mode:",
+      "double_button": "Left Draw, Right Erase",
+      "single_button": "Left Draw & Erase"
+    },
+    "cursor_effect": "Cursor Effect:",
+    "close": "Close"
+  }
+}
