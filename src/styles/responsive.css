@@ -1,0 +1,234 @@
+@media (orientation: portrait) and (max-width: 768px) {
+  :root {
+    --cell-size: 21px;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
+  :root {
+    --cell-size: 35px;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 1024px) {
+  :root {
+    --cell-size: 45px;
+  }
+}
+
+@media (orientation: portrait) and (max-width: 768px) {
+  .hex-code-container {
+    width: 20em;
+  }
+
+  .tool-button {
+    width: 7em;
+  }
+
+  .cell {
+    border-width: 0.2px;
+  }
+
+  .settings-modal {
+    padding: 10px 20px 20px;
+  }
+
+  .setting-option {
+    margin: 10px;
+  }
+
+  .setting-option label {
+    font-size: 1.1em;
+    margin-left: 5px;
+  }
+
+  #drawMode {
+    font-size: 1.1em;
+    padding: 10px 0;
+  }
+
+  #cursorEffect {
+    zoom: 150%;
+  }
+
+  .download-button {
+    font-size: 1.2em;
+    margin: 0 10px;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
+  .material-symbols-outlined {
+    font-size: larger;
+  }
+
+  .github-icon {
+    width: 2.1em;
+    padding: 5px 10px;
+  }
+
+  .title {
+    font-size: 3em;
+  }
+
+  .logo {
+    width: 3.5em;
+    height: 3.5em;
+    margin-top: 30px;
+  }
+
+  .header-cell {
+    font-size: 1.5em;
+  }
+
+  .cell {
+    border-width: 0.3px;
+  }
+
+  .hex-code-container {
+    width: 35em;
+  }
+
+  .tool-button {
+    font-size: 2em;
+    width: 8em;
+  }
+
+  .modal-button {
+    padding: 5px 10px;
+    font-size: 2em;
+  }
+
+  .settings-modal {
+    width: 40em;
+  }
+
+  .setting-option {
+    margin: 20px 25px 20px;
+  }
+
+  .modal-title {
+    font-size: 3em;
+  }
+
+  .setting-option label {
+    font-size: 2em;
+    margin-left: 30px;
+  }
+
+  #drawMode {
+    font-size: 2em;
+    padding: 10px 0;
+  }
+
+  #cursorEffect {
+    zoom: 250%;
+  }
+
+  .close-button {
+    font-size: 2em;
+    padding: 15px 0;
+    margin-bottom: 30px;
+  }
+
+  .hex-input {
+    padding: 10px 0;
+    font-size: 1.5em;
+  }
+
+  .copy-button {
+    padding: 10px 20px;
+    font-size: 1.5em;
+  }
+
+  .download-button {
+    font-size: 1.8em;
+    width: 4.5em;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 1024px) {
+  .material-symbols-outlined {
+    font-size: larger;
+  }
+
+  .github-icon {
+    width: 3.2em;
+    padding: 10px 15px;
+  }
+
+  .title {
+    font-size: 4em;
+  }
+
+  .logo {
+    width: 5em;
+    height: 5em;
+    margin-top: 40px;
+  }
+
+  .header-cell {
+    font-size: 2em;
+  }
+
+  .hex-code-container {
+    width: 50em;
+  }
+
+  .tool-button {
+    font-size: 3em;
+    width: 8em;
+  }
+
+  .modal-button {
+    font-size: 3em;
+    padding: 10px 15px;
+  }
+
+  .settings-modal {
+    width: 45em;
+  }
+
+  .setting-option {
+    margin: 20px 20px 20px;
+  }
+
+  .modal-title {
+    font-size: 3.5em;
+  }
+
+  .setting-option label {
+    font-size: 2.2em;
+    margin-left: 30px;
+  }
+
+  #drawMode {
+    font-size: 2.2em;
+    padding: 10px 0;
+  }
+
+  #cursorEffect {
+    zoom: 300%;
+  }
+
+  .close-button {
+    font-size: 2.5em;
+    padding: 15px 0;
+    margin-bottom: 40px;
+  }
+
+  .hex-input {
+    padding: 10px 0;
+    font-size: 2em;
+  }
+
+  .copy-button {
+    padding: 10px 35px;
+    font-size: 2em;
+  }
+
+  .download-button {
+    font-size: 2.2em;
+    width: 5em;
+  }
+}

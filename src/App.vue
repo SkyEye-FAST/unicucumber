@@ -4,7 +4,7 @@
 
 <script>
 import { useI18n } from 'vue-i18n'
-import UniCucumber from "./components/UniCucumber.vue";
+import UniCucumber from "./components/GlyphEditor.vue";
 
 export default {
   components: {
@@ -16,3 +16,8 @@ export default {
   }
 };
 </script>
+
+<style>
+@import './styles/base.css';
+@import './styles/responsive.css';
+</style>

@@ -1,0 +1,14 @@
+:root {
+  --cell-size: 25px;
+  --primary-color: #4ea72e;
+  --primary-dark: #3d8b25;
+  --primary-darker: #196b24;
+  --background-color: #f2f2f2;
+  --border-color: #ddd;
+  --text-color: #333;
+  --text-secondary: #444;
+}
+
+body {
+  background-color: #f2f2f2;
+}
