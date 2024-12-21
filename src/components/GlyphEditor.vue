@@ -39,14 +39,3 @@ onBeforeUnmount(() => {
   document.removeEventListener("contextmenu", preventDefault);
 });
 </script>
-
-<style scoped>
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-family: "Fira Code", monospace;
-  background-color: var(--background-color);
-  padding: 20px;
-}
-</style>

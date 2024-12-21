@@ -112,4 +112,96 @@ defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'save']);
 .close-button:hover {
   background-color: #ff6b66;
 }
+
+@media (orientation: portrait) and (max-width: 768px) {
+  .settings-modal {
+    padding: 10px 20px 20px;
+  }
+
+  .setting-option {
+    margin: 10px;
+  }
+
+  .setting-option label {
+    font-size: 1.1em;
+    margin-left: 5px;
+  }
+
+  #drawMode {
+    font-size: 1.1em;
+    padding: 10px 0;
+  }
+
+  #cursorEffect {
+    zoom: 150%;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
+  .settings-modal {
+    width: 40em;
+  }
+
+  .setting-option {
+    margin: 20px 25px 20px;
+  }
+
+  .modal-title {
+    font-size: 3em;
+  }
+
+  .setting-option label {
+    font-size: 2em;
+    margin-left: 30px;
+  }
+
+  #drawMode {
+    font-size: 2em;
+    padding: 10px 0;
+  }
+
+  #cursorEffect {
+    zoom: 250%;
+  }
+
+  .close-button {
+    font-size: 2em;
+    padding: 15px 0;
+    margin-bottom: 30px;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 1024px) {
+  .settings-modal {
+    width: 45em;
+  }
+
+  .setting-option {
+    margin: 20px 20px 20px;
+  }
+
+  .modal-title {
+    font-size: 3.5em;
+  }
+
+  .setting-option label {
+    font-size: 2.2em;
+    margin-left: 30px;
+  }
+
+  #drawMode {
+    font-size: 2.2em;
+    padding: 10px 0;
+  }
+
+  #cursorEffect {
+    zoom: 300%;
+  }
+
+  .close-button {
+    font-size: 2.5em;
+    padding: 15px 0;
+    margin-bottom: 40px;
+  }
+}
 </style>

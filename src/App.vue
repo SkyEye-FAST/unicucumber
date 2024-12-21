@@ -16,8 +16,3 @@ export default {
   }
 };
 </script>
-
-<style>
-@import './styles/base.css';
-@import './styles/responsive.css';
-</style>

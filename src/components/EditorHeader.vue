@@ -70,4 +70,48 @@ defineEmits(['openSettings']);
     vertical-align: middle;
   }
 }
+
+@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
+  .modal-button {
+    padding: 5px 10px;
+    font-size: 2em;
+  }
+
+  .github-icon {
+    width: 2.1em;
+    padding: 5px 10px;
+  }
+
+  .title {
+    font-size: 3em;
+  }
+
+  .logo {
+    width: 3.5em;
+    height: 3.5em;
+    margin-top: 30px;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 1024px) {
+  .modal-button {
+    font-size: 3em;
+    padding: 10px 15px;
+  }
+
+  .github-icon {
+    width: 3.2em;
+    padding: 10px 15px;
+  }
+
+  .title {
+    font-size: 4em;
+  }
+
+  .logo {
+    width: 5em;
+    height: 5em;
+    margin-top: 40px;
+  }
+}
 </style>

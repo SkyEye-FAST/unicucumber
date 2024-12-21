@@ -73,4 +73,42 @@ const copyHex = async () => {
 .copy-button:hover {
   background-color: var(--primary-dark);
 }
+
+@media (orientation: portrait) and (max-width: 768px) {
+  .hex-code-container {
+    width: 20em;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
+  .hex-code-container {
+    width: 35em;
+  }
+
+  .hex-input {
+    padding: 10px 0;
+    font-size: 1.5em;
+  }
+
+  .copy-button {
+    padding: 10px 20px;
+    font-size: 1.5em;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 1024px) {
+  .hex-code-container {
+    width: 50em;
+  }
+
+  .hex-input {
+    padding: 10px 0;
+    font-size: 2.2em;
+  }
+
+  .copy-button {
+    padding: 10px 35px;
+    font-size: 2.2em;
+  }
+}
 </style>

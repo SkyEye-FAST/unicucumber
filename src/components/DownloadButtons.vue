@@ -80,4 +80,26 @@ const downloadFile = async (format) => {
 .download-button:hover {
   background-color: var(--primary-dark);
 }
+
+@media (orientation: portrait) and (max-width: 768px) {
+  .download-button {
+    font-size: 1.2em;
+    margin: 0 10px;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
+  .download-button {
+    font-size: 1.8em;
+    width: 4.5em;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 1024px) {
+  .download-button {
+    font-size: 2.2em;
+    width: 5em;
+  }
+}
+
 </style>

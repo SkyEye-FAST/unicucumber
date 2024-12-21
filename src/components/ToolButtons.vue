@@ -47,4 +47,24 @@ const updateDrawValue = (value) => {
 .tool-button:hover {
   border: #0c4461 2px solid;
 }
+
+@media (orientation: portrait) and (max-width: 768px) {
+  .tool-button {
+    width: 7em;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
+  .tool-button {
+    font-size: 2em;
+    width: 8em;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 1024px) {
+  .tool-button {
+    font-size: 3em;
+    width: 8em;
+  }
+}
 </style>

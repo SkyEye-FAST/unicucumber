@@ -25,7 +25,6 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
 import { useDrawing } from '@/composables/useDrawing';
 
 const props = defineProps({
@@ -50,7 +49,6 @@ const props = defineProps({
 const emit = defineEmits(['update:cell']);
 
 const {
-  isDrawing,
   hoverCell,
   startDrawing,
   stopDrawing,
@@ -107,5 +105,27 @@ const getCellStyle = (rowIndex, cellIndex) => {
 
 .cell.filled {
   background-color: black;
+}
+
+@media (orientation: portrait) and (max-width: 768px) {
+  .cell {
+    border-width: 0.2px;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
+  .header-cell {
+    font-size: 1.5em;
+  }
+
+  .cell {
+    border-width: 0.3px;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 1024px) {
+  .header-cell {
+    font-size: 2em;
+  }
 }
 </style>
