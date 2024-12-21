@@ -1,0 +1,49 @@
+:root {
+  --cell-size: 25px;
+  --primary-color: #4ea72e;
+  --primary-dark: #3d8b25;
+  --primary-darker: #196b24;
+  --background-color: #f2f2f2;
+  --border-color: #ddd;
+  --text-color: #333;
+  --text-secondary: #444;
+}
+
+body {
+  background-color: #f2f2f2;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Fira Code', monospace;
+  background-color: var(--background-color);
+  padding: 20px;
+}
+
+@media (orientation: portrait) and (max-width: 768px) {
+  :root {
+    --cell-size: 21px;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
+  :root {
+    --cell-size: 35px;
+  }
+
+  .material-symbols-outlined {
+    font-size: larger !important;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 1024px) {
+  :root {
+    --cell-size: 45px;
+  }
+
+  .material-symbols-outlined {
+    font-size: larger !important;
+  }
+}
