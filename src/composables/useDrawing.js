@@ -1,8 +1,16 @@
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 
 export function useDrawing(props, emit) {
   const isDrawing = ref(false)
   const hoverCell = ref({ row: -1, col: -1 })
+
+  onMounted(() => {
+    document.addEventListener('mouseup', stopDrawing)
+  })
+
+  onBeforeUnmount(() => {
+    document.removeEventListener('mouseup', stopDrawing)
+  })
 
   const startDrawing = (rowIndex, cellIndex, event) => {
     isDrawing.value = true
