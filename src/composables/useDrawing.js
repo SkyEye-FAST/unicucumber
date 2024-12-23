@@ -35,7 +35,7 @@ export function useDrawing(props, emit) {
     emit('update:cell', rowIndex, cellIndex, value)
   }
 
-  const getCellIndex = target => {
+  const getCellIndex = (target) => {
     const cellIndex = Array.from(target.parentNode.children).indexOf(target) - 1
     const rowIndex =
       Array.from(target.parentNode.parentNode.children).indexOf(
@@ -44,7 +44,7 @@ export function useDrawing(props, emit) {
     return { rowIndex, cellIndex }
   }
 
-  const handleTouchStart = event => {
+  const handleTouchStart = (event) => {
     const touch = event.touches[0]
     const target = document.elementFromPoint(touch.clientX, touch.clientY)
     if (target?.classList.contains('cell')) {
@@ -53,7 +53,7 @@ export function useDrawing(props, emit) {
     }
   }
 
-  const handleTouchMove = event => {
+  const handleTouchMove = (event) => {
     const touch = event.touches[0]
     const target = document.elementFromPoint(touch.clientX, touch.clientY)
     if (target?.classList.contains('cell')) {

@@ -7,7 +7,7 @@ export function useHexCode(gridData, resetGrid) {
   const updateHexCode = () => {
     const binaryString = gridData.value
       .flat()
-      .map(cell => (cell === 1 ? '1' : '0'))
+      .map((cell) => (cell === 1 ? '1' : '0'))
       .join('')
     hexCode.value = binaryToHex(binaryString)
   }
