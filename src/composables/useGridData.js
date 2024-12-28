@@ -11,7 +11,6 @@ export function useGridData(initialWidth = 16) {
     const newGrid = createEmptyGrid(newWidth)
     const minWidth = Math.min(newWidth, gridData.value[0].length)
 
-    // 复制现有数据到新网格
     for (let i = 0; i < 16; i++) {
       for (let j = 0; j < minWidth; j++) {
         newGrid[i][j] = gridData.value[i][j]

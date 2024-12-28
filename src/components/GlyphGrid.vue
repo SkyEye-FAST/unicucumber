@@ -67,7 +67,7 @@ const getCellStyle = (rowIndex, cellIndex) => {
     : {};
 };
 
-// 计算网格容器样式
+
 const gridStyle = computed(() => ({
   gridTemplateColumns: `var(--cell-size) repeat(${props.gridData[0].length}, var(--cell-size))`
 }));

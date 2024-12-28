@@ -98,7 +98,8 @@ defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'update:gl
 }
 
 #drawMode,
-#cursorEffect {
+#cursorEffect,
+#glyphWidth {
   padding: 5px;
   font-size: 1em;
   border: 1px solid var(--border-color);
@@ -138,7 +139,8 @@ defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'update:gl
     margin-left: 5px;
   }
 
-  #drawMode {
+  #drawMode,
+  #glyphWidth {
     font-size: 1.1em;
     padding: 10px 0;
   }
@@ -166,7 +168,8 @@ defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'update:gl
     margin-left: 30px;
   }
 
-  #drawMode {
+  #drawMode,
+  #glyphWidth {
     font-size: 2em;
     padding: 10px 0;
   }
@@ -200,7 +203,8 @@ defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'update:gl
     margin-left: 30px;
   }
 
-  #drawMode {
+  #drawMode,
+  #glyphWidth {
     font-size: 2.2em;
     padding: 10px 0;
   }

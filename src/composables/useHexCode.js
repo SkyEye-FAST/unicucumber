@@ -6,7 +6,6 @@ export function useHexCode(gridData, resetGrid) {
   const updateHexCode = () => {
     const width = gridData.value[0].length
 
-    // 将网格数据转换为二进制字符串
     const binaryString = gridData.value
       .map((row) =>
         row
@@ -16,7 +15,6 @@ export function useHexCode(gridData, resetGrid) {
       )
       .join('')
 
-    // 按4位分组转换为十六进制
     const hex = []
     for (let i = 0; i < binaryString.length; i += 4) {
       const chunk = binaryString.slice(i, i + 4)
@@ -36,20 +34,16 @@ export function useHexCode(gridData, resetGrid) {
       return
     }
 
-    // 根据hex长度设置宽度
     const width = hexCode.value.length <= 32 ? 8 : 16
     const height = 16
 
-    // 转换为二进制
     const binary = hexCode.value
       .split('')
       .map((char) => parseInt(char, 16).toString(2).padStart(4, '0'))
       .join('')
 
-    // 重置网格大小
     resetGrid(width)
 
-    // 更新网格数据
     for (let i = 0; i < height; i++) {
       for (let j = 0; j < width; j++) {
         const index = i * width + j

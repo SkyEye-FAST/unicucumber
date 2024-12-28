@@ -71,9 +71,9 @@ const setGlyphs = (newGlyphs) => {
 
 const preventDefault = (e) => e.preventDefault();
 
-const sidebarWidth = ref(400); // 默认宽度
-const minWidth = 300; // 最小宽度
-const maxWidth = 800; // 最大宽度
+const sidebarWidth = ref(400);
+const minWidth = 300;
+const maxWidth = 800;
 
 const startResize = (e) => {
   const startX = e.clientX;
@@ -100,21 +100,21 @@ const addToGlyphset = () => {
   isSidebarActive.value = true;
 };
 
-// 将十六进制字符串转换为二维数组，并自动调整宽度
+
 const hexToGrid = (hexStr) => {
-  // 根据输入的hex字符串长度决定宽度
+
   const width = hexStr.length <= 32 ? 8 : 16;
   const height = 16;
 
-  // 更新编辑器宽度设置
+
   glyphWidth.value = width;
 
-  // 转换为二进制字符串
+
   const binary = hexStr.split('')
     .map(char => parseInt(char, 16).toString(2).padStart(4, '0'))
     .join('');
 
-  // 创建网格
+
   const grid = [];
   for (let i = 0; i < height; i++) {
     const row = [];
@@ -135,15 +135,15 @@ const hexToGrid = (hexStr) => {
   return grid;
 };
 
-// 处理字形编辑
+
 const handleGlyphEdit = (hexValue) => {
   try {
     const newGrid = hexToGrid(hexValue);
-    // 先更新网格大小
+
     updateGrid(newGrid[0].length);
-    // 再更新网格数据
+
     gridData.value = newGrid;
-    // 保持原始hex值
+
     hexCode.value = hexValue;
   } catch (error) {
     console.error('Error loading glyph:', error);
@@ -154,29 +154,29 @@ const clearPrefillData = () => {
   prefillData.value = null;
 };
 
-// 添加对字形宽度变化的监听
+
 watch(glyphWidth, (newWidth) => {
   updateGrid(newWidth);
   updateHexCode();
 });
 
-// 添加历史记录管理
+
 const { pushState, undo, redo, canUndo, canRedo } = useHistory(gridData.value);
 
-// 处理网格更新
+
 const handleGridUpdate = (newGrid) => {
   gridData.value = newGrid;
   pushState(newGrid);
   updateHexCode();
 };
 
-// 清空编辑器
+
 const handleClear = () => {
   const newGrid = Array.from({ length: 16 }, () => Array(gridData.value[0].length).fill(0));
   handleGridUpdate(newGrid);
 };
 
-// 撤销重做处理
+
 const handleUndo = () => {
   const prevState = undo();
   if (prevState) {
@@ -193,14 +193,14 @@ const handleRedo = () => {
   }
 };
 
-// 修改 updateCell 以支持历史记录
+
 const updateCell = (rowIndex, cellIndex, value) => {
   const newGrid = gridData.value.map(row => [...row]);
   newGrid[rowIndex][cellIndex] = value;
   handleGridUpdate(newGrid);
 };
 
-// 添加键盘快捷键
+
 const handleKeydown = (e) => {
   if (e.ctrlKey) {
     if (e.key === 'z') {
@@ -229,18 +229,20 @@ onBeforeUnmount(() => {
 .sidebar {
   position: fixed;
   top: 0;
-  left: -100%;
+  left: 0;
+  width: v-bind(sidebarWidth + 'px');
   height: 100%;
   background-color: #f8f9fa;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
-  transition: left 0.3s ease;
+  transition: transform 0.3s ease;
+  transform: translateX(-100%);
   z-index: 1000;
   overflow: hidden;
+  will-change: transform;
 }
 
 .sidebar.active {
-  left: 0;
-  width: v-bind(sidebarWidth + 'px');
+  transform: translateX(0);
 }
 
 .sidebar-resizer {

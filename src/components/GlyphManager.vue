@@ -21,7 +21,6 @@
 
       <template v-else>
         <div class="input-group">
-          <label>Unicode码点 (4-6位十六进制):</label>
           <input v-model="newGlyph.codePoint" placeholder="输入Unicode码点 (例如: 4E00)" class="input"
             @input="$event.target.value = $event.target.value.toUpperCase()" />
           <input v-if="!prefillData" v-model="newGlyph.hexValue" placeholder="输入字形数据 (32位或64位十六进制)" class="input"
@@ -88,7 +87,6 @@ const props = defineProps({
   }
 });
 
-// 修改 emit 声明，增加 clear-prefill 事件
 const emit = defineEmits(['edit-in-grid', 'clear-prefill']);
 
 const newGlyph = ref({ codePoint: '', hexValue: '' });
@@ -96,7 +94,6 @@ const searchQuery = ref('');
 const editMode = ref(false);
 const duplicateGlyph = ref(null);
 
-// 修改验证逻辑
 const isValidInput = computed(() => {
   const isValidCodePoint = /^[0-9A-Fa-f]{4,6}$/.test(newGlyph.value.codePoint);
   const hasValidHex = (props.prefillData && props.prefillData.hexValue) ||
@@ -104,7 +101,6 @@ const isValidInput = computed(() => {
   return isValidCodePoint && hasValidHex;
 });
 
-// 更新添加按钮提示信息
 const getAddButtonTitle = computed(() => {
   if (!newGlyph.value.codePoint) return '请输入Unicode码点';
   if (!/^[0-9A-Fa-f]{4,6}$/.test(newGlyph.value.codePoint)) return '码点必须是4-6位十六进制数';
@@ -114,7 +110,6 @@ const getAddButtonTitle = computed(() => {
   return '添加字形';
 });
 
-// 更新添加字形逻辑
 const addGlyph = () => {
   if (!isValidInput.value) return;
 
@@ -131,12 +126,10 @@ const addGlyph = () => {
   clearForm();
 };
 
-// 添加检查重复的方法
 const findExistingGlyph = (codePoint) => {
   return props.glyphs.find(g => g.codePoint.toLowerCase() === codePoint.toLowerCase());
 };
 
-// 修改添加方法
 const handleAdd = () => {
   if (!isValidInput.value) return;
 
@@ -149,7 +142,6 @@ const handleAdd = () => {
   addGlyph();
 };
 
-// 更新现有字形
 const updateExistingGlyph = () => {
   const hexValue = props.prefillData ? props.prefillData.hexValue : newGlyph.value.hexValue;
   const updatedGlyphs = props.glyphs.map(g =>
@@ -162,22 +154,19 @@ const updateExistingGlyph = () => {
   clearForm();
 };
 
-// 取消添加
 const cancelAdd = () => {
   duplicateGlyph.value = null;
   clearForm();
 };
 
-// 修改清除表单方法
 const clearForm = () => {
   newGlyph.value = { codePoint: '', hexValue: '' };
   duplicateGlyph.value = null;
   editMode.value = false;
-  // 发送清除预填充数据的事件
+
   emit('clear-prefill');
 };
 
-// 监听预填充数据，但不清除已有输入
 watch(() => props.prefillData, (newData) => {
   if (newData) {
     nextTick(() => {
@@ -208,7 +197,6 @@ const editGlyph = (glyph) => {
 };
 
 const handleEditInGrid = (glyph) => {
-  // 保持原始十六进制值，不需要特殊处理长度
   console.log('Editing glyph:', {
     codePoint: glyph.codePoint,
     hexValue: glyph.hexValue
