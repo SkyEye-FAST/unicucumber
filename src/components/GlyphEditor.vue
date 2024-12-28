@@ -16,13 +16,21 @@
     <HexCodeInput v-model:hexCode="hexCode" @update:grid="updateGridFromHex" />
     <DownloadButtons :gridData="gridData" />
 
+    <div class="editor-actions">
+      <button class="action-button" @click="addToGlyphset">
+        添加到字形集
+      </button>
+    </div>
+
     <div :class="['sidebar', { active: isSidebarActive }]">
       <div class="sidebar-resizer" @mousedown="startResize"></div>
       <GlyphManager
         v-if="isSidebarActive"
         :glyphs="glyphs"
         :onGlyphChange="setGlyphs"
+        :prefillData="prefillData"
         @edit-in-grid="handleGlyphEdit"
+        @clear-prefill="clearPrefillData"
       />
     </div>
   </div>
@@ -47,6 +55,7 @@ const { hexCode, updateHexCode, updateGridFromHex } = useHexCode(gridData, reset
 const drawValue = ref(1);
 const isSidebarActive = ref(false);
 const glyphs = ref([]);
+const prefillData = ref(null);
 
 const toggleSidebar = () => {
   isSidebarActive.value = !isSidebarActive.value;
@@ -78,6 +87,13 @@ const startResize = (e) => {
 
   window.addEventListener('mousemove', doResize);
   window.addEventListener('mouseup', stopResize);
+};
+
+const addToGlyphset = () => {
+  prefillData.value = {
+    hexValue: hexCode.value
+  };
+  isSidebarActive.value = true;
 };
 
 // 将十六进制字符串转换为二维数组，并自动调整宽度
@@ -130,6 +146,10 @@ const handleGlyphEdit = (hexValue) => {
   }
 };
 
+const clearPrefillData = () => {
+  prefillData.value = null;
+};
+
 // 添加对字形宽度变化的监听
 watch(glyphWidth, (newWidth) => {
   updateGrid(newWidth);
@@ -177,5 +197,26 @@ onBeforeUnmount(() => {
 
 .sidebar-resizer:hover {
   background-color: #007bff;
+}
+
+.editor-actions {
+  margin: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.action-button {
+  padding: 8px 16px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.action-button:hover {
+  background: #45a049;
 }
 </style>
