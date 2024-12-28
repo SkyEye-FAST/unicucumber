@@ -1,9 +1,9 @@
 <template>
-  <div class="grid-container">
+  <div class="grid-container" :style="gridStyle">
     <!-- Header row with column numbers -->
     <div class="header-row">
       <div class="corner-cell"></div>
-      <div v-for="colIndex in 16" :key="`col-${colIndex}`" class="header-cell"
+      <div v-for="colIndex in gridData[0].length" :key="`col-${colIndex}`" class="header-cell"
         :style="{ color: colIndex % 2 ? '#000' : '#f4005f' }">
         {{ (colIndex - 1).toString(16).toUpperCase() }}
       </div>
@@ -25,6 +25,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import { useDrawing } from '@/composables/useDrawing';
 
 const props = defineProps({
@@ -65,14 +66,20 @@ const getCellStyle = (rowIndex, cellIndex) => {
     ? { backgroundColor: props.drawValue === 1 ? 'black' : 'white' }
     : {};
 };
+
+// 计算网格容器样式
+const gridStyle = computed(() => ({
+  gridTemplateColumns: `var(--cell-size) repeat(${props.gridData[0].length}, var(--cell-size))`
+}));
 </script>
 
 <style scoped>
 .grid-container {
   display: grid;
-  grid-template-columns: var(--cell-size) repeat(16, var(--cell-size));
   gap: 0;
   padding-right: calc(var(--cell-size) * 0.5);
+  margin: 0 auto; /* 居中显示 */
+  width: fit-content; /* 根据内容自适应宽度 */
 }
 
 .header-row,

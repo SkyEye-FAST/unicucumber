@@ -7,6 +7,9 @@
     <button @click="$emit('openSettings')" class="modal-button">
       <span class="material-symbols-outlined bold">settings</span>
     </button>
+    <button @click="$emit('toggleSidebar')" class="modal-button">
+      <span class="material-symbols-outlined bold">glyphs</span>
+    </button>
     <a href="https://github.com/SkyEye-FAST/unicucumber" class="github-link">
       <img src="/github-icon.svg" alt="GitHub" class="github-icon" />
     </a>
@@ -14,7 +17,7 @@
 </template>
 
 <script setup>
-defineEmits(['openSettings']);
+defineEmits(['openSettings', 'toggleSidebar']);
 </script>
 
 <style scoped>
@@ -45,14 +48,18 @@ defineEmits(['openSettings']);
 }
 
 .modal-button {
-  color: var(--primary-darker);
+  color: var(--primary-color);
   background-color: inherit;
-  font-size: 1.8em;
+  font-size: 1.5em;
   padding: 5px;
   margin: 0 10px;
   cursor: pointer;
   border: none;
   transition: color 0.3s ease;
+}
+
+.modal-button:hover {
+  color: var(--primary-dark);
 }
 
 .github-link {

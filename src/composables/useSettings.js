@@ -1,22 +1,21 @@
 import { ref, watch } from 'vue'
 
 export function useSettings() {
-  const getCursorEffect = () => {
-    try {
-      return JSON.parse(localStorage.getItem('cursorEffect')) ?? true
-    } catch {
-      return true
-    }
+  const getGlyphWidth = () => {
+    const width = parseInt(localStorage.getItem('glyphWidth')) || 16
+    return width === 8 || width === 16 ? width : 16
   }
 
   const drawMode = ref(localStorage.getItem('drawMode') || 'singleButtonDraw')
-  const cursorEffect = ref(getCursorEffect())
+  const cursorEffect = ref(JSON.parse(localStorage.getItem('cursorEffect') ?? 'true'))
+  const glyphWidth = ref(getGlyphWidth())
   const showSettings = ref(false)
 
-  watch([drawMode, cursorEffect], () => {
+  watch([drawMode, cursorEffect, glyphWidth], () => {
     try {
       localStorage.setItem('drawMode', drawMode.value)
       localStorage.setItem('cursorEffect', JSON.stringify(cursorEffect.value))
+      localStorage.setItem('glyphWidth', glyphWidth.value.toString())
     } catch (error) {
       console.error('Failed to save settings:', error)
     }
@@ -29,6 +28,7 @@ export function useSettings() {
   return {
     drawMode,
     cursorEffect,
+    glyphWidth,
     showSettings,
     saveSettings,
   }

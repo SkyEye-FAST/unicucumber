@@ -14,6 +14,17 @@
       <input type="checkbox" id="cursorEffect" :checked="cursorEffect"
         @change="$emit('update:cursorEffect', $event.target.checked)" />
     </div>
+    <div class="setting-option">
+      <label for="glyphWidth">字形宽度</label>
+      <select
+        id="glyphWidth"
+        :value="glyphWidth"
+        @change="$emit('update:glyphWidth', parseInt($event.target.value))"
+      >
+        <option value="8">8 像素</option>
+        <option value="16">16 像素</option>
+      </select>
+    </div>
     <button @click="$emit('update:show', false)" class="close-button">
       {{ $t('settings.close') }}
     </button>
@@ -33,10 +44,14 @@ defineProps({
   cursorEffect: {
     type: Boolean,
     default: false
+  },
+  glyphWidth: {
+    type: Number,
+    default: 16
   }
 });
 
-defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'save']);
+defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'update:glyphWidth', 'save']);
 </script>
 
 <style scoped>
