@@ -27,7 +27,7 @@ const updateDrawValue = (value) => {
 <style scoped>
 .tool-buttons {
   display: flex;
-  margin: 30px 0 15px 0;
+  margin: 10px 0 15px 0;
 }
 
 .tool-button {
