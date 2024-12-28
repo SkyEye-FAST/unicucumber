@@ -232,8 +232,8 @@ onBeforeUnmount(() => {
   left: 0;
   width: v-bind(sidebarWidth + 'px');
   height: 100%;
-  background-color: #f8f9fa;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+  background-color: var(--background-light);
+  box-shadow: 2px 0 5px var(--modal-overlay);
   transition: transform 0.3s ease;
   transform: translateX(-100%);
   z-index: 1000;
@@ -251,13 +251,13 @@ onBeforeUnmount(() => {
   top: 0;
   width: 4px;
   height: 100%;
-  background-color: #ddd;
+  background-color: var(--border-color);
   cursor: col-resize;
   transition: background-color 0.3s;
 }
 
 .sidebar-resizer:hover {
-  background-color: #007bff;
+  background-color: var(--info-color);
 }
 
 .editor-actions {
@@ -286,21 +286,21 @@ onBeforeUnmount(() => {
 }
 
 .action-button.primary {
-  background: #4CAF50;
+  background: var(--success-color);
   color: white;
 }
 
 .action-button.primary:hover {
-  background: #45a049;
+  background: var(--success-hover);
 }
 
 .action-button.secondary {
-  background: #f44336;
+  background: var(--danger-color);
   color: white;
 }
 
 .action-button.secondary:hover {
-  background: #d32f2f;
+  background: var(--danger-hover);
 }
 
 .action-button .material-symbols-outlined {
@@ -316,11 +316,11 @@ onBeforeUnmount(() => {
   width: 36px;
   height: 36px;
   padding: 0;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   background: white;
   cursor: pointer;
-  color: #666;
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -328,9 +328,9 @@ onBeforeUnmount(() => {
 }
 
 .icon-button:hover:not(:disabled) {
-  background: #f5f5f5;
-  border-color: #bbb;
-  color: #333;
+  background: var(--background-hover);
+  border-color: var(--border-hover);
+  color: var(--text-color);
 }
 
 .icon-button:disabled {

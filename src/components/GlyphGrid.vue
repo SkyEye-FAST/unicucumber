@@ -4,14 +4,14 @@
     <div class="header-row">
       <div class="corner-cell"></div>
       <div v-for="colIndex in gridData[0].length" :key="`col-${colIndex}`" class="header-cell"
-        :style="{ color: colIndex % 2 ? '#000' : '#f4005f' }">
+        :style="{ color: colIndex % 2 ? 'var(--text-color)' : 'var(--danger-color)' }">
         {{ (colIndex - 1).toString(16).toUpperCase() }}
       </div>
     </div>
 
     <!-- Grid rows -->
     <div v-for="(row, rowIndex) in gridData" :key="`row-${rowIndex}`" class="grid-row">
-      <div class="header-cell" :style="{ color: rowIndex % 2 ? '#f4005f' : '#000' }">
+      <div class="header-cell" :style="{ color: rowIndex % 2 ? 'var(--danger-color)' : 'var(--text-color)' }">
         {{ rowIndex.toString(16).toUpperCase() }}
       </div>
       <div v-for="(cell, cellIndex) in row" :key="`cell-${rowIndex}-${cellIndex}`"
@@ -107,7 +107,7 @@ const gridStyle = computed(() => ({
 .cell {
   width: var(--cell-size);
   height: var(--cell-size);
-  background-color: #fff;
+  background-color: white;
   border: 0.5px solid var(--primary-darker);
   cursor: pointer;
 }

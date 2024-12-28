@@ -216,7 +216,7 @@ const handleEditInGrid = (glyph) => {
 
 .title {
   margin: 0;
-  color: #2c3e50;
+  color: var(--text-color);
   font-size: 1.5rem;
   font-weight: 600;
 }
@@ -228,28 +228,28 @@ const handleEditInGrid = (glyph) => {
 .search-input {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   font-size: 0.9rem;
 }
 
 .add-glyph {
-  border: 2px solid #4CAF50;
+  border: 2px solid var(--success-color);
   padding: 16px;
   border-radius: 8px;
-  background: #f8f9fa;
+  background: var(--background-light);
 }
 
 .input {
   padding: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 0.9rem;
 }
 
 .btn-add {
   padding: 8px;
-  background: #4CAF50;
+  background: var(--success-color);
   color: white;
   border: none;
   border-radius: 4px;
@@ -258,7 +258,7 @@ const handleEditInGrid = (glyph) => {
 }
 
 .btn-add:disabled {
-  background: #ccc;
+  background: var(--border-color);
   cursor: not-allowed;
 }
 
@@ -277,7 +277,7 @@ const handleEditInGrid = (glyph) => {
   padding: 12px;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 .glyph-preview {
@@ -288,14 +288,14 @@ const handleEditInGrid = (glyph) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f7fa;
+  background: var(--background-light);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .glyph-preview:hover {
-  background: #e9ecef;
+  background: var(--background-active);
   transform: scale(1.05);
 }
 
@@ -306,7 +306,7 @@ const handleEditInGrid = (glyph) => {
   flex-direction: column;
   gap: 4px;
   font-size: 0.9rem;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .info-row {
@@ -317,7 +317,7 @@ const handleEditInGrid = (glyph) => {
 
 .info-label {
   flex: 0 0 auto;
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -344,13 +344,13 @@ const handleEditInGrid = (glyph) => {
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  color: #666;
+  color: var(--text-secondary);
   transition: all 0.2s ease;
 }
 
 .btn-icon:hover {
-  background-color: #e9ecef;
-  color: #333;
+  background-color: var(--background-active);
+  color: var(--text-color);
 }
 
 .input-group {
@@ -365,12 +365,12 @@ const handleEditInGrid = (glyph) => {
 }
 
 .input[readonly] {
-  background-color: #f5f5f5;
+  background-color: var(--background-hover);
   cursor: not-allowed;
 }
 
 .hex-preview {
-  background: #f0f0f0;
+  background: var(--background-hover);
   padding: 8px 12px;
   border-radius: 4px;
   margin-top: 4px;
@@ -378,14 +378,14 @@ const handleEditInGrid = (glyph) => {
 }
 
 .hex-label {
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 500;
   margin-right: 8px;
 }
 
 .hex-value {
   word-break: break-all;
-  color: #2c3e50;
+  color: var(--text-color);
 }
 
 .button-group {
@@ -396,7 +396,7 @@ const handleEditInGrid = (glyph) => {
 
 .btn-clear {
   padding: 8px 16px;
-  background: #f44336;
+  background: var(--danger-color);
   color: white;
   border: none;
   border-radius: 4px;
@@ -405,7 +405,7 @@ const handleEditInGrid = (glyph) => {
 }
 
 .btn-clear:hover {
-  background: #d32f2f;
+  background: var(--danger-hover);
 }
 
 .add-glyph h3 {
@@ -415,15 +415,15 @@ const handleEditInGrid = (glyph) => {
 }
 
 .duplicate-warning {
-  background-color: #fff3cd;
-  border: 1px solid #ffeeba;
+  background-color: var(--warning-background);
+  border: 1px solid var(--warning-border);
   padding: 12px;
   border-radius: 4px;
   margin-bottom: 12px;
 }
 
 .duplicate-warning p {
-  color: #856404;
+  color: var(--warning-text);
   margin: 0 0 12px 0;
   font-weight: 500;
 }
@@ -435,8 +435,8 @@ const handleEditInGrid = (glyph) => {
 
 .btn-warn {
   padding: 8px 16px;
-  background: #ffc107;
-  color: #000;
+  background: var(--warning-color);
+  color: black;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -445,12 +445,12 @@ const handleEditInGrid = (glyph) => {
 }
 
 .btn-warn:hover {
-  background: #e0a800;
+  background: var(--warning-hover);
 }
 
 .btn-cancel {
   padding: 8px 16px;
-  background: #6c757d;
+  background: var(--grey-color);
   color: white;
   border: none;
   border-radius: 4px;
@@ -460,6 +460,6 @@ const handleEditInGrid = (glyph) => {
 }
 
 .btn-cancel:hover {
-  background: #5a6268;
+  background: var(--grey-hover);
 }
 </style>

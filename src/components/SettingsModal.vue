@@ -57,7 +57,7 @@ defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'update:gl
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--modal-overlay);
   z-index: 998;
 }
 
@@ -70,7 +70,7 @@ defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'update:gl
   background: white;
   padding: 5px 30px 25px;
   border-radius: 10px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 16px var(--shadow-color);
   z-index: 999;
   width: 20em;
   display: flex;
@@ -113,8 +113,8 @@ defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'update:gl
   padding: 10px 0;
   font-size: 1.1em;
   font-weight: bold;
-  color: #fff;
-  background-color: #ff5449;
+  color: white;
+  background-color: var(--danger-color);
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -122,7 +122,7 @@ defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'update:gl
 }
 
 .close-button:hover {
-  background-color: #ff6b66;
+  background-color: var(--danger-hover);
 }
 
 @media (orientation: portrait) and (max-width: 768px) {

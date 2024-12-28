@@ -41,11 +41,11 @@ const updateDrawValue = (value) => {
 
 .tool-button.active {
   background: var(--primary-color);
-  color: #fff;
+  color: white;
 }
 
 .tool-button:hover {
-  border: #0c4461 2px solid;
+  border: var(--primary-darker) 2px solid;
 }
 
 @media (orientation: portrait) and (max-width: 768px) {

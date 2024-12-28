@@ -55,7 +55,7 @@ const copyHex = async () => {
   padding: 8px;
   font-family: "Fira Code", monospace;
   font-size: 1em;
-  border: 2px solid #000;
+  border: 2px solid var(--text-color);
 }
 
 .copy-button {
@@ -64,7 +64,7 @@ const copyHex = async () => {
   font-family: "Fira Code", monospace;
   font-size: 0.9em;
   background-color: var(--primary-color);
-  color: #fff;
+  color: white;
   border: none;
   cursor: pointer;
   transition: background-color 0.3s ease;
