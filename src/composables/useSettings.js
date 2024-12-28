@@ -7,7 +7,9 @@ export function useSettings() {
   }
 
   const drawMode = ref(localStorage.getItem('drawMode') || 'singleButtonDraw')
-  const cursorEffect = ref(JSON.parse(localStorage.getItem('cursorEffect') ?? 'true'))
+  const cursorEffect = ref(
+    JSON.parse(localStorage.getItem('cursorEffect') ?? 'true'),
+  )
   const glyphWidth = ref(getGlyphWidth())
   const showSettings = ref(false)
 

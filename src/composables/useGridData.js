@@ -33,6 +33,6 @@ export function useGridData(initialWidth = 16) {
     gridData,
     updateCell,
     resetGrid,
-    updateGrid
+    updateGrid,
   }
 }

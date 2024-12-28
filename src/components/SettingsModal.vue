@@ -16,11 +16,7 @@
     </div>
     <div class="setting-option">
       <label for="glyphWidth">字形宽度</label>
-      <select
-        id="glyphWidth"
-        :value="glyphWidth"
-        @change="$emit('update:glyphWidth', parseInt($event.target.value))"
-      >
+      <select id="glyphWidth" :value="glyphWidth" @change="$emit('update:glyphWidth', parseInt($event.target.value))">
         <option value="8">8 像素</option>
         <option value="16">16 像素</option>
       </select>

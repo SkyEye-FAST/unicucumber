@@ -22,19 +22,10 @@
       <template v-else>
         <div class="input-group">
           <label>Unicode码点 (4-6位十六进制):</label>
-          <input
-            v-model="newGlyph.codePoint"
-            placeholder="输入Unicode码点 (例如: 4E00)"
-            class="input"
-            @input="$event.target.value = $event.target.value.toUpperCase()"
-          />
-          <input
-            v-if="!prefillData"
-            v-model="newGlyph.hexValue"
-            placeholder="输入字形数据 (32位或64位十六进制)"
-            class="input"
-            @input="$event.target.value = $event.target.value.toUpperCase()"
-          />
+          <input v-model="newGlyph.codePoint" placeholder="输入Unicode码点 (例如: 4E00)" class="input"
+            @input="$event.target.value = $event.target.value.toUpperCase()" />
+          <input v-if="!prefillData" v-model="newGlyph.hexValue" placeholder="输入字形数据 (32位或64位十六进制)" class="input"
+            @input="$event.target.value = $event.target.value.toUpperCase()" />
           <div v-else class="hex-preview">
             <span class="hex-label">字形数据:</span>
             <span class="hex-value">{{ prefillData.hexValue }}</span>
@@ -53,11 +44,7 @@
 
     <div class="glyph-list">
       <div v-for="glyph in filteredGlyphs" :key="glyph.codePoint" class="glyph-card">
-        <div
-          class="glyph-preview"
-          @click="handleEditInGrid(glyph)"
-          :title="'点击编辑字形: ' + glyph.codePoint"
-        >
+        <div class="glyph-preview" @click="handleEditInGrid(glyph)" :title="'点击编辑字形: ' + glyph.codePoint">
           {{ String.fromCodePoint(parseInt(glyph.codePoint, 16)) }}
         </div>
         <div class="glyph-info">

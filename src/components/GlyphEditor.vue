@@ -1,37 +1,25 @@
 <template>
   <div class="container">
     <EditorHeader @openSettings="showSettings = true" @toggleSidebar="toggleSidebar" />
-    <SettingsModal
-      v-model:show="showSettings"
-      v-model:drawMode="drawMode"
-      v-model:cursorEffect="cursorEffect"
-      v-model:glyphWidth="glyphWidth"
-      @save="saveSettings"
-    />
+    <SettingsModal v-model:show="showSettings" v-model:drawMode="drawMode" v-model:cursorEffect="cursorEffect"
+      v-model:glyphWidth="glyphWidth" @save="saveSettings" />
 
     <GlyphGrid :gridData="gridData" :drawMode="drawMode" :drawValue="drawValue" :cursorEffect="cursorEffect"
       @update:cell="updateCell" />
-
-    <ToolButtons v-model:modelValue="drawValue" />
-    <HexCodeInput v-model:hexCode="hexCode" @update:grid="updateGridFromHex" />
-    <DownloadButtons :gridData="gridData" />
 
     <div class="editor-actions">
       <button class="action-button" @click="addToGlyphset">
         添加到字形集
       </button>
     </div>
+    <ToolButtons v-model:modelValue="drawValue" />
+    <HexCodeInput v-model:hexCode="hexCode" @update:grid="updateGridFromHex" />
+    <DownloadButtons :gridData="gridData" />
 
     <div :class="['sidebar', { active: isSidebarActive }]">
       <div class="sidebar-resizer" @mousedown="startResize"></div>
-      <GlyphManager
-        v-if="isSidebarActive"
-        :glyphs="glyphs"
-        :onGlyphChange="setGlyphs"
-        :prefillData="prefillData"
-        @edit-in-grid="handleGlyphEdit"
-        @clear-prefill="clearPrefillData"
-      />
+      <GlyphManager v-if="isSidebarActive" :glyphs="glyphs" :onGlyphChange="setGlyphs" :prefillData="prefillData"
+        @edit-in-grid="handleGlyphEdit" @clear-prefill="clearPrefillData" />
     </div>
   </div>
 </template>
