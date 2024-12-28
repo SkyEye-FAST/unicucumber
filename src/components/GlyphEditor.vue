@@ -8,9 +8,24 @@
       @update:cell="updateCell" />
 
     <div class="editor-actions">
-      <button class="action-button" @click="addToGlyphset">
-        添加到字形集
-      </button>
+      <div class="action-group">
+        <button class="action-button secondary" @click="handleClear" title="清空编辑器">
+          <span class="material-symbols-outlined">mop</span>
+          清空
+        </button>
+        <button class="action-button primary" @click="addToGlyphset" title="将当前字形添加到字形集">
+          <span class="material-symbols-outlined">add_box</span>
+          添加到字形集
+        </button>
+      </div>
+      <div class="history-controls">
+        <button class="icon-button" @click="handleUndo" :disabled="!canUndo" title="撤销(Ctrl+Z)">
+          <span class="material-symbols-outlined">undo</span>
+        </button>
+        <button class="icon-button" @click="handleRedo" :disabled="!canRedo" title="重做(Ctrl+Y)">
+          <span class="material-symbols-outlined">redo</span>
+        </button>
+      </div>
     </div>
     <ToolButtons v-model:modelValue="drawValue" />
     <HexCodeInput v-model:hexCode="hexCode" @update:grid="updateGridFromHex" />
@@ -36,9 +51,10 @@ import GlyphManager from './GlyphManager.vue';
 import { useSettings } from '@/composables/useSettings';
 import { useGridData } from '@/composables/useGridData';
 import { useHexCode } from '@/composables/useHexCode';
+import { useHistory } from '@/composables/useHistory';
 
 const { drawMode, cursorEffect, showSettings, saveSettings, glyphWidth } = useSettings();
-const { gridData, updateCell, resetGrid, updateGrid } = useGridData(glyphWidth.value);
+const { gridData, resetGrid, updateGrid } = useGridData(glyphWidth.value);
 const { hexCode, updateHexCode, updateGridFromHex } = useHexCode(gridData, resetGrid);
 const drawValue = ref(1);
 const isSidebarActive = ref(false);
@@ -144,13 +160,68 @@ watch(glyphWidth, (newWidth) => {
   updateHexCode();
 });
 
+// 添加历史记录管理
+const { pushState, undo, redo, canUndo, canRedo } = useHistory(gridData.value);
+
+// 处理网格更新
+const handleGridUpdate = (newGrid) => {
+  gridData.value = newGrid;
+  pushState(newGrid);
+  updateHexCode();
+};
+
+// 清空编辑器
+const handleClear = () => {
+  const newGrid = Array.from({ length: 16 }, () => Array(gridData.value[0].length).fill(0));
+  handleGridUpdate(newGrid);
+};
+
+// 撤销重做处理
+const handleUndo = () => {
+  const prevState = undo();
+  if (prevState) {
+    gridData.value = prevState;
+    updateHexCode();
+  }
+};
+
+const handleRedo = () => {
+  const nextState = redo();
+  if (nextState) {
+    gridData.value = nextState;
+    updateHexCode();
+  }
+};
+
+// 修改 updateCell 以支持历史记录
+const updateCell = (rowIndex, cellIndex, value) => {
+  const newGrid = gridData.value.map(row => [...row]);
+  newGrid[rowIndex][cellIndex] = value;
+  handleGridUpdate(newGrid);
+};
+
+// 添加键盘快捷键
+const handleKeydown = (e) => {
+  if (e.ctrlKey) {
+    if (e.key === 'z') {
+      e.preventDefault();
+      handleUndo();
+    } else if (e.key === 'y') {
+      e.preventDefault();
+      handleRedo();
+    }
+  }
+};
+
 onMounted(() => {
   updateHexCode();
   document.addEventListener("contextmenu", preventDefault);
+  document.addEventListener('keydown', handleKeydown);
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener("contextmenu", preventDefault);
+  document.removeEventListener('keydown', handleKeydown);
 });
 </script>
 
@@ -190,21 +261,82 @@ onBeforeUnmount(() => {
 .editor-actions {
   margin: 1rem;
   display: flex;
+  gap: 16px;
   justify-content: center;
+  align-items: center;
+}
+
+.action-group {
+  display: flex;
+  gap: 8px;
 }
 
 .action-button {
   padding: 8px 16px;
-  background: #4CAF50;
-  color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   transition: background-color 0.2s;
 }
 
-.action-button:hover {
+.action-button.primary {
+  background: #4CAF50;
+  color: white;
+}
+
+.action-button.primary:hover {
   background: #45a049;
+}
+
+.action-button.secondary {
+  background: #f44336;
+  color: white;
+}
+
+.action-button.secondary:hover {
+  background: #d32f2f;
+}
+
+.action-button .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.history-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.icon-button {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.icon-button:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #bbb;
+  color: #333;
+}
+
+.icon-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.icon-button .material-symbols-outlined {
+  font-size: 20px;
 }
 </style>

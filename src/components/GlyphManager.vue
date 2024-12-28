@@ -59,10 +59,10 @@
         </div>
         <div class="glyph-actions">
           <button @click="editGlyph(glyph)" class="btn-icon" title="编辑">
-            <span>✏️</span>
+            <span class="material-symbols-outlined">edit</span>
           </button>
           <button @click="removeGlyph(glyph.codePoint)" class="btn-icon" title="删除">
-            <span>🗑️</span>
+            <span class="material-symbols-outlined">delete</span>
           </button>
         </div>
       </div>
@@ -354,18 +354,15 @@ const handleEditInGrid = (glyph) => {
   justify-content: center;
   background: none;
   border: none;
-  cursor: pointer;
-  padding: 4px;
   border-radius: 4px;
-  transition: background-color 0.2s;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.2s ease;
 }
 
 .btn-icon:hover {
   background-color: #e9ecef;
-}
-
-.btn-icon:hover {
-  background: #f5f7fa;
+  color: #333;
 }
 
 .input-group {
