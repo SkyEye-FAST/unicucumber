@@ -79,9 +79,7 @@ const gridStyle = computed(() => ({
   gap: 0;
   padding-right: calc(var(--cell-size) * 0.5);
   margin: 5px auto;
-  /* 居中显示 */
   width: fit-content;
-  /* 根据内容自适应宽度 */
 }
 
 .header-row,
