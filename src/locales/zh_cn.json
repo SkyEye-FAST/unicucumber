@@ -87,7 +87,7 @@
     "hex_import": {
       "title": "发现重复的字形",
       "message": "以下字形已存在，请选择要更新的字形：",
-      "confirm": "更新选中",
+      "confirm": "更新选中字形",
       "cancel": "跳过"
     },
     "image_error": {

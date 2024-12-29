@@ -36,7 +36,7 @@
     },
     "duplicate": {
       "warning": "A glyph with code point U+{codePoint} already exists",
-      "update": "Update Existing",
+      "update": "Update Existing Glyph",
       "cancel": "Cancel"
     },
     "glyph": {
@@ -87,7 +87,7 @@
     "hex_import": {
       "title": "Duplicate Glyphs Found",
       "message": "The following glyphs already exist, please select which ones to update:",
-      "confirm": "Update Selected",
+      "confirm": "Update Selected Glyphs",
       "cancel": "Skip"
     },
     "image_error": {

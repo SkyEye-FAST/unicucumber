@@ -6,7 +6,7 @@
         <p>{{ message }}</p>
         <div v-if="type === 'list'" class="conflict-list">
           <div class="select-all-row">
-            <label>
+            <label class="checkbox-label">
               <input
                 type="checkbox"
                 :checked="isAllSelected"
@@ -15,15 +15,25 @@
               {{ $t('dialog.select_all') }}
             </label>
           </div>
-          <div
-            v-for="item in items"
-            :key="item.codePoint"
-            class="conflict-item"
-          >
-            <label>
-              <input type="checkbox" v-model="selectedItems" :value="item" />
-              U+{{ item.codePoint }}: {{ item.hexValue }}
-            </label>
+          <div class="conflict-items-container">
+            <div
+              v-for="item in items"
+              :key="item.codePoint"
+              class="conflict-item"
+            >
+              <label class="checkbox-label">
+                <input type="checkbox" v-model="selectedItems" :value="item" />
+                <div class="item-details">
+                  <div class="code-info">
+                    <span class="code-point">U+{{ item.codePoint }}</span>
+                    <span class="hex-value">{{ item.hexValue }}</span>
+                  </div>
+                  <div class="glyph-preview">
+                    {{ String.fromCodePoint(parseInt(item.codePoint, 16)) }}
+                  </div>
+                </div>
+              </label>
+            </div>
           </div>
         </div>
       </div>
@@ -149,16 +159,76 @@ const handleCancel = () => {
 }
 
 .conflict-list {
-  max-height: 200px;
+  max-height: 400px;
   overflow-y: auto;
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  padding: 8px;
-  margin: 8px 0;
+  padding: 12px;
+  margin: 12px 0;
+  background: var(--background-light);
+}
+
+.select-all-row {
+  padding: 8px 0;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.conflict-items-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
 }
 
 .conflict-item {
-  padding: 4px 0;
+  padding: 8px;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.conflict-item:hover {
+  background-color: var(--hover-color);
+}
+
+.item-details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+}
+
+.code-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.code-point {
+  font-family: monospace;
+  color: var(--text-secondary);
+}
+
+.hex-value {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+}
+
+.glyph-preview {
+  font-size: 1.5em;
+  padding: 4px 8px;
+  background: var(--background-light);
+  border-radius: 4px;
+  min-width: 40px;
+  text-align: center;
 }
 
 .btn-primary {
