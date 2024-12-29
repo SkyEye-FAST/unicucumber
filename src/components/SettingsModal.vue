@@ -15,10 +15,10 @@
         @change="$emit('update:cursorEffect', $event.target.checked)" />
     </div>
     <div class="setting-option">
-      <label for="glyphWidth">字形宽度</label>
+      <label for="glyphWidth">{{ $t('settings.glyph_width.label') }}</label>
       <select id="glyphWidth" :value="glyphWidth" @change="$emit('update:glyphWidth', parseInt($event.target.value))">
-        <option value="8">8 像素</option>
-        <option value="16">16 像素</option>
+        <option value="8">{{ $t('settings.glyph_width.8px') }}</option>
+        <option value="16">{{ $t('settings.glyph_width.16px') }}</option>
       </select>
     </div>
     <button @click="$emit('update:show', false)" class="close-button">

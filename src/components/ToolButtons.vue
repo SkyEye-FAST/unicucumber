@@ -31,8 +31,11 @@ const updateDrawValue = (value) => {
 }
 
 .tool-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-size: 1.5em;
-  padding: 5px 10px;
+  padding: 7px 10px;
   border: transparent 2px solid;
   background-color: var(--border-color);
   cursor: pointer;

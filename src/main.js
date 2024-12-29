@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createI18n } from 'vue-i18n'
 import App from './App.vue'
 import './styles/base.css';
+import './styles/font.css';
 
 import en from './locales/en.json'
 import zh_cn from './locales/zh_cn.json'

@@ -1,0 +1,17 @@
+@import url('https://fonts.font.im/css2?family=Noto+Sans:wght@400;700&family=Fira+Code:wght@400;500&display=swap');
+
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 48;
+}
+
+.material-symbols-outlined.bold {
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 400,
+    'GRAD' 200,
+    'opsz' 48;
+}

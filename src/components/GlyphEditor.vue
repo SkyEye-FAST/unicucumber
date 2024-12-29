@@ -9,20 +9,20 @@
 
     <div class="editor-actions">
       <div class="action-group">
-        <button class="action-button secondary" @click="handleClear" title="清空编辑器">
+        <button class="action-button secondary" @click="handleClear" :title="$t('editor.actions.clear.title')">
           <span class="material-symbols-outlined">mop</span>
-          清空
+          {{ $t('editor.actions.clear.button') }}
         </button>
-        <button class="action-button primary" @click="addToGlyphset" title="将当前字形添加到字形集">
+        <button class="action-button primary" @click="addToGlyphset" :title="$t('editor.actions.add_to_glyphset.title')">
           <span class="material-symbols-outlined">add_box</span>
-          添加到字形集
+          {{ $t('editor.actions.add_to_glyphset.button') }}
         </button>
       </div>
       <div class="history-controls">
-        <button class="icon-button" @click="handleUndo" :disabled="!canUndo" title="撤销(Ctrl+Z)">
+        <button class="icon-button" @click="handleUndo" :disabled="!canUndo" :title="$t('editor.actions.undo.title')">
           <span class="material-symbols-outlined">undo</span>
         </button>
-        <button class="icon-button" @click="handleRedo" :disabled="!canRedo" title="重做(Ctrl+Y)">
+        <button class="icon-button" @click="handleRedo" :disabled="!canRedo" :title="$t('editor.actions.redo.title')">
           <span class="material-symbols-outlined">redo</span>
         </button>
       </div>

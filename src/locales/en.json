@@ -8,6 +8,57 @@
       "single_button": "Left Draw & Erase"
     },
     "cursor_effect": "Cursor Effect:",
+    "glyph_width": {
+      "label": "Glyph Width:",
+      "8px": "8 pixels",
+      "16px": "16 pixels"
+    },
     "close": "Close"
+  },
+  "glyph_manager": {
+    "title": "Glyph Manager",
+    "search": "Search glyphs...",
+    "add": {
+      "code_point": "Enter Unicode code point (e.g. 4E00)",
+      "hex_value": "Enter glyph data (32 or 64 hex digits)",
+      "hex_preview": "Glyph data:",
+      "add_button": "Add Glyph",
+      "update_button": "Update Glyph",
+      "clear_button": "Clear"
+    },
+    "duplicate": {
+      "warning": "Code point U+{codePoint} already exists!",
+      "update": "Update Existing",
+      "cancel": "Cancel"
+    },
+    "glyph": {
+      "code_point": "Code point:",
+      "hex": "Hex:",
+      "edit": "Edit",
+      "delete": "Delete",
+      "edit_in_grid": "Click to edit glyph: U+{codePoint}"
+    }
+  },
+  "hex_input": {
+    "placeholder": "Enter glyph data (32 or 64 hex digits)",
+    "copy": "Copy"
+  },
+  "editor": {
+    "actions": {
+      "clear": {
+        "button": "Clear",
+        "title": "Clear editor"
+      },
+      "add_to_glyphset": {
+        "button": "Add to Glyph Set",
+        "title": "Add current glyph to glyph set"
+      },
+      "undo": {
+        "title": "Undo (Ctrl+Z)"
+      },
+      "redo": {
+        "title": "Redo (Ctrl+Y)"
+      }
+    }
   }
 }

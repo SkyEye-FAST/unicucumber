@@ -1,41 +1,41 @@
 <template>
   <div class="glyph-manager">
-    <h2 class="title">字形管理器</h2>
+    <h2 class="title">{{ $t('glyph_manager.title') }}</h2>
 
     <div class="search-box">
-      <input v-model="searchQuery" placeholder="搜索字形..." class="search-input" />
+      <input v-model="searchQuery" :placeholder="$t('glyph_manager.search')" class="search-input" />
     </div>
 
     <div class="add-glyph">
       <div v-if="duplicateGlyph" class="duplicate-warning">
-        <p>码点 {{ newGlyph.codePoint }} 已存在！</p>
+        <p>{{ $t('glyph_manager.duplicate.warning', { codePoint: newGlyph.codePoint }) }}</p>
         <div class="warning-actions">
           <button class="btn-warn" @click="updateExistingGlyph">
-            更新现有字形
+            {{ $t('glyph_manager.duplicate.update') }}
           </button>
           <button class="btn-cancel" @click="cancelAdd">
-            取消
+            {{ $t('glyph_manager.duplicate.cancel') }}
           </button>
         </div>
       </div>
 
       <template v-else>
         <div class="input-group">
-          <input v-model="newGlyph.codePoint" placeholder="输入Unicode码点 (例如: 4E00)" class="input"
+          <input v-model="newGlyph.codePoint" :placeholder="$t('glyph_manager.add.code_point')" class="input"
             @input="$event.target.value = $event.target.value.toUpperCase()" />
-          <input v-if="!prefillData" v-model="newGlyph.hexValue" placeholder="输入字形数据 (32位或64位十六进制)" class="input"
+          <input v-if="!prefillData" v-model="newGlyph.hexValue" :placeholder="$t('glyph_manager.add.hex_value')" class="input"
             @input="$event.target.value = $event.target.value.toUpperCase()" />
           <div v-else class="hex-preview">
-            <span class="hex-label">字形数据:</span>
+            <span class="hex-label">{{ $t('glyph_manager.add.hex_preview') }}</span>
             <span class="hex-value">{{ prefillData.hexValue }}</span>
           </div>
         </div>
         <div class="button-group">
           <button @click="handleAdd" class="btn-add" :disabled="!isValidInput" :title="getAddButtonTitle">
-            {{ editMode ? '更新字形' : '添加字形' }}
+            {{ editMode ? $t('glyph_manager.add.update_button') : $t('glyph_manager.add.add_button') }}
           </button>
           <button v-if="!editMode && (newGlyph.hexValue || prefillData)" @click="clearForm" class="btn-clear">
-            清除
+            {{ $t('glyph_manager.add.clear_button') }}
           </button>
         </div>
       </template>
@@ -43,24 +43,25 @@
 
     <div class="glyph-list">
       <div v-for="glyph in filteredGlyphs" :key="glyph.codePoint" class="glyph-card">
-        <div class="glyph-preview" @click="handleEditInGrid(glyph)" :title="'点击编辑字形: ' + glyph.codePoint">
+        <div class="glyph-preview" @click="handleEditInGrid(glyph)"
+          :title="$t('glyph_manager.glyph.edit_in_grid', { codePoint: glyph.codePoint })">
           {{ String.fromCodePoint(parseInt(glyph.codePoint, 16)) }}
         </div>
         <div class="glyph-info">
           <div class="info-row">
-            <span class="info-label">码点:</span>
-            <span class="info-value">{{ glyph.codePoint }}</span>
+            <span class="info-label">{{ $t('glyph_manager.glyph.code_point') }}</span>
+            <span class="info-value">U+{{ glyph.codePoint }}</span>
           </div>
           <div class="info-row">
-            <span class="info-label">Hex:</span>
+            <span class="info-label">{{ $t('glyph_manager.glyph.hex') }}</span>
             <span class="info-value">{{ glyph.hexValue }}</span>
           </div>
         </div>
         <div class="glyph-actions">
-          <button @click="editGlyph(glyph)" class="btn-icon" title="编辑">
+          <button @click="editGlyph(glyph)" class="btn-icon" :title="$t('glyph_manager.glyph.edit')">
             <span class="material-symbols-outlined">edit</span>
           </button>
-          <button @click="removeGlyph(glyph.codePoint)" class="btn-icon" title="删除">
+          <button @click="removeGlyph(glyph.codePoint)" class="btn-icon" :title="$t('glyph_manager.glyph.delete')">
             <span class="material-symbols-outlined">delete</span>
           </button>
         </div>
@@ -207,6 +208,7 @@ const handleEditInGrid = (glyph) => {
 
 <style scoped>
 .glyph-manager {
+  font-family: 'Noto Sans', sans-serif;
   padding: 16px;
   height: 100%;
   display: flex;
@@ -226,7 +228,8 @@ const handleEditInGrid = (glyph) => {
 }
 
 .search-input {
-  width: 100%;
+  font-family: 'Fira Code', monospace;
+  width: 90%;
   padding: 8px 12px;
   border: 1px solid var(--border-color);
   border-radius: 6px;
@@ -241,6 +244,7 @@ const handleEditInGrid = (glyph) => {
 }
 
 .input {
+  font-family: 'Fira Code', monospace;
   padding: 8px;
   border: 1px solid var(--border-color);
   border-radius: 4px;

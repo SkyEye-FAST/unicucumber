@@ -8,6 +8,57 @@
       "single_button": "左键绘制或擦除"
     },
     "cursor_effect": "光标效果：",
+    "glyph_width": {
+      "label": "字形宽度：",
+      "8px": "8像素",
+      "16px": "16像素"
+    },
     "close": "关闭"
+  },
+  "glyph_manager": {
+    "title": "字形管理器",
+    "search": "搜索字形...",
+    "add": {
+      "code_point": "输入Unicode码位 (例如：4E00)",
+      "hex_value": "输入16进制字形数据 (32或64位)",
+      "hex_preview": "字形数据:",
+      "add_button": "添加字形",
+      "update_button": "更新字形",
+      "clear_button": "清除"
+    },
+    "duplicate": {
+      "warning": "码位U+{codePoint}已存在！",
+      "update": "更新现有字形",
+      "cancel": "取消"
+    },
+    "glyph": {
+      "code_point": "码位:",
+      "hex": "Hex:",
+      "edit": "编辑",
+      "delete": "删除",
+      "edit_in_grid": "点击编辑字形：U+{codePoint}"
+    }
+  },
+  "hex_input": {
+    "placeholder": "输入16进制字形数据 (32或64位)",
+    "copy": "复制"
+  },
+  "editor": {
+    "actions": {
+      "clear": {
+        "button": "清空",
+        "title": "清空编辑器"
+      },
+      "add_to_glyphset": {
+        "button": "添加到字形集",
+        "title": "将当前字形添加到字形集"
+      },
+      "undo": {
+        "title": "撤销(Ctrl+Z)"
+      },
+      "redo": {
+        "title": "重做(Ctrl+Y)"
+      }
+    }
   }
 }

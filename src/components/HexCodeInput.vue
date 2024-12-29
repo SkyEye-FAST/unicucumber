@@ -1,8 +1,8 @@
 <template>
   <div class="hex-code-container">
     <input v-model="localHexCode" @input="updateHex" id="hexInput" class="hex-input" maxlength="64"
-      placeholder="Enter .hex format string (32 or 64 characters)" />
-    <button @click="copyHex" class="copy-button">
+      :placeholder="$t('hex_input.placeholder')" />
+    <button @click="copyHex" class="copy-button" :title="$t('hex_input.copy')">
       <span class="material-symbols-outlined">{{ copyIcon }}</span>
     </button>
   </div>
@@ -59,8 +59,11 @@ const copyHex = async () => {
 }
 
 .copy-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin-left: 5px;
-  padding: 6px 15px;
+  padding: 8px 15px;
   font-family: "Fira Code", monospace;
   font-size: 0.9em;
   background-color: var(--primary-color);

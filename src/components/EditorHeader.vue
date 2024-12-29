@@ -42,7 +42,7 @@ defineEmits(['openSettings', 'toggleSidebar']);
 
 .modal-buttons {
   display: flex;
-  margin-bottom: 5px;
+  margin: 5px;
   align-items: center;
   flex-direction: row;
 }
@@ -63,7 +63,7 @@ defineEmits(['openSettings', 'toggleSidebar']);
 }
 
 .github-link {
-  transform: translateY(0.1em);
+  transform: translateY(-0.1em);
 }
 
 .github-icon {
