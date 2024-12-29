@@ -34,7 +34,6 @@
 
 body {
   background-color: #f2f2f2;
-  font-family: 'Noto Sans', sans-serif;
 }
 
 .container {
@@ -43,14 +42,6 @@ body {
   align-items: center;
   background-color: var(--background-color);
   padding: 20px;
-}
-
-[lang='zh-cn'] body {
-  font-family: 'Noto Sans CJK SC', sans-serif;
-}
-
-[lang='zh-tw'] body {
-  font-family: 'Noto Sans CJK TC', sans-serif;
 }
 
 @media (orientation: portrait) and (max-width: 768px) {

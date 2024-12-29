@@ -21,3 +21,15 @@
     'GRAD' 200,
     'opsz' 48;
 }
+
+body {
+  font-family: 'Noto Sans', sans-serif;
+}
+
+[lang='zh-cn'] body {
+  font-family: 'Noto Sans CJK SC', 'Source Han Sans SC', sans-serif;
+}
+
+[lang='zh-tw'] body {
+  font-family: 'Noto Sans CJK TC', 'Source Han Sans TC', sans-serif;
+}
