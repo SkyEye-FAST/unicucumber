@@ -21,7 +21,6 @@
     "add": {
       "code_point": "输入Unicode码位 (例如：4E00)",
       "hex_value": "输入16进制字形数据 (32或64位)",
-      "hex_preview": "字形数据:",
       "add_button": "添加字形",
       "update_button": "更新字形",
       "clear_button": "清除"

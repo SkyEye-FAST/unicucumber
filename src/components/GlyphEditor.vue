@@ -109,8 +109,8 @@ const handleGridUpdate = (newGrid) => {
 };
 
 const handleClear = () => {
-  const newGrid = Array.from({ length: 16 }, () => Array(gridData.value[0].length).fill(0));
-  handleGridUpdate(newGrid);
+  resetGrid(gridData.value[0].length);
+  updateHexCode();
 };
 
 const handleUndo = () => {

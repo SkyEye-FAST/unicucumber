@@ -21,7 +21,6 @@
     "add": {
       "code_point": "Enter Unicode code point (e.g. 4E00)",
       "hex_value": "Enter glyph data (32 or 64 hex digits)",
-      "hex_preview": "Glyph data:",
       "add_button": "Add Glyph",
       "update_button": "Update Glyph",
       "clear_button": "Clear"

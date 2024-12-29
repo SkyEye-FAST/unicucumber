@@ -26,7 +26,6 @@
           <input v-if="!prefillData" v-model="newGlyph.hexValue" :placeholder="$t('glyph_manager.add.hex_value')" class="input"
             @input="$event.target.value = $event.target.value.toUpperCase()" />
           <div v-else class="hex-preview">
-            <span class="hex-label">{{ $t('glyph_manager.add.hex_preview') }}</span>
             <span class="hex-value">{{ prefillData.hexValue }}</span>
           </div>
         </div>
@@ -71,7 +70,7 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps, watch, nextTick } from 'vue';
+import { ref, computed, defineProps, watch, nextTick, onMounted } from 'vue';
 
 const props = defineProps({
   glyphs: {
@@ -95,6 +94,28 @@ const searchQuery = ref('');
 const editMode = ref(false);
 const duplicateGlyph = ref(null);
 
+const STORAGE_KEY = 'unicucumber_glyphs';
+
+const loadStoredGlyphs = () => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsedGlyphs = JSON.parse(stored);
+      props.onGlyphChange(parsedGlyphs);
+    }
+  } catch (error) {
+    console.error('Error loading glyphs from storage:', error);
+  }
+};
+
+const saveGlyphsToStorage = (glyphs) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(glyphs));
+  } catch (error) {
+    console.error('Error saving glyphs to storage:', error);
+  }
+};
+
 const isValidInput = computed(() => {
   const isValidCodePoint = /^[0-9A-Fa-f]{4,6}$/.test(newGlyph.value.codePoint);
   const hasValidHex = (props.prefillData && props.prefillData.hexValue) ||
@@ -115,15 +136,16 @@ const addGlyph = () => {
   if (!isValidInput.value) return;
 
   const hexValue = props.prefillData ? props.prefillData.hexValue : newGlyph.value.hexValue;
-
-  props.onGlyphChange([
+  const updatedGlyphs = [
     ...props.glyphs,
     {
       codePoint: newGlyph.value.codePoint,
       hexValue: hexValue
     }
-  ]);
+  ];
 
+  props.onGlyphChange(updatedGlyphs);
+  saveGlyphsToStorage(updatedGlyphs);
   clearForm();
 };
 
@@ -152,6 +174,7 @@ const updateExistingGlyph = () => {
   );
 
   props.onGlyphChange(updatedGlyphs);
+  saveGlyphsToStorage(updatedGlyphs);
   clearForm();
 };
 
@@ -188,7 +211,9 @@ const filteredGlyphs = computed(() => {
 });
 
 const removeGlyph = (codePoint) => {
-  props.onGlyphChange(props.glyphs.filter(glyph => glyph.codePoint !== codePoint));
+  const updatedGlyphs = props.glyphs.filter(glyph => glyph.codePoint !== codePoint);
+  props.onGlyphChange(updatedGlyphs);
+  saveGlyphsToStorage(updatedGlyphs);
 };
 
 const editGlyph = (glyph) => {
@@ -204,6 +229,11 @@ const handleEditInGrid = (glyph) => {
   });
   emit('edit-in-grid', glyph.hexValue);
 };
+
+// 组件挂载时加载数据
+onMounted(() => {
+  loadStoredGlyphs();
+});
 </script>
 
 <style scoped>
