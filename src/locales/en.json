@@ -36,7 +36,8 @@
       "edit": "Edit",
       "delete": "Delete",
       "edit_in_grid": "Click to edit glyph: U+{codePoint}"
-    }
+    },
+    "export": "Export Glyphs"
   },
   "hex_input": {
     "placeholder": "Enter glyph data (32 or 64 hex digits)",

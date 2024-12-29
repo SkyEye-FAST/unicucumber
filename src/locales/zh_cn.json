@@ -36,7 +36,8 @@
       "edit": "编辑",
       "delete": "删除",
       "edit_in_grid": "点击编辑字形：U+{codePoint}"
-    }
+    },
+    "export": "导出字形"
   },
   "hex_input": {
     "placeholder": "输入16进制字形数据 (32或64位)",

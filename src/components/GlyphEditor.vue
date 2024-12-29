@@ -212,7 +212,8 @@ onBeforeUnmount(() => {
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 1em;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -220,12 +221,12 @@ onBeforeUnmount(() => {
 }
 
 .action-button.primary {
-  background: var(--success-color);
+  background: var(--primary-color);
   color: white;
 }
 
 .action-button.primary:hover {
-  background: var(--success-hover);
+  background: var(--primary-dark);
 }
 
 .action-button.secondary {

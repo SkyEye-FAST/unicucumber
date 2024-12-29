@@ -1,8 +1,8 @@
 :root {
   --cell-size: 25px;
 
-  --primary-color: #4ea72e;
-  --primary-dark: #3d8b25;
+  --primary-color: #4caf50;
+  --primary-dark: #45a049;
   --primary-darker: #196b24;
 
   --background-color: #f2f2f2;
@@ -17,8 +17,6 @@
   --text-secondary: #666;
   --text-light: #444;
 
-  --success-color: #4caf50;
-  --success-hover: #45a049;
   --danger-color: #f44336;
   --danger-hover: #d32f2f;
   --warning-color: #ffc107;

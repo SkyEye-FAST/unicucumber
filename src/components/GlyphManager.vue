@@ -2,8 +2,14 @@
   <div class="glyph-manager">
     <h2 class="title">{{ $t('glyph_manager.title') }}</h2>
 
-    <div class="search-box">
-      <input v-model="searchQuery" :placeholder="$t('glyph_manager.search')" class="search-input" />
+    <div class="toolbar">
+      <div class="search-box">
+        <input v-model="searchQuery" :placeholder="$t('glyph_manager.search')" class="search-input" />
+      </div>
+      <button @click="exportToHex" class="btn-export" :disabled="!props.glyphs.length">
+        <span class="material-symbols-outlined">file_download</span>
+        {{ $t('glyph_manager.export') }}
+      </button>
     </div>
 
     <div class="add-glyph">
@@ -230,7 +236,23 @@ const handleEditInGrid = (glyph) => {
   emit('edit-in-grid', glyph.hexValue);
 };
 
-// 组件挂载时加载数据
+const exportToHex = () => {
+  const hexContent = props.glyphs
+    .map(glyph => `${glyph.codePoint}:${glyph.hexValue}`)
+    .join('\n');
+
+  const blob = new Blob([hexContent], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'glyphs.hex';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 onMounted(() => {
   loadStoredGlyphs();
 });
@@ -250,7 +272,7 @@ onMounted(() => {
   margin: 0;
   color: var(--text-color);
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: bold;
 }
 
 .search-box {
@@ -267,7 +289,7 @@ onMounted(() => {
 }
 
 .add-glyph {
-  border: 2px solid var(--success-color);
+  border: 2px solid var(--primary-color);
   padding: 16px;
   border-radius: 8px;
   background: var(--background-light);
@@ -282,13 +304,14 @@ onMounted(() => {
 }
 
 .btn-add {
-  padding: 8px;
-  background: var(--success-color);
+  padding: 8px 12px;
+  background: var(--primary-color);
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 0.9em;
 }
 
 .btn-add:disabled {
@@ -352,7 +375,7 @@ onMounted(() => {
 .info-label {
   flex: 0 0 auto;
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .info-value {
@@ -429,13 +452,14 @@ onMounted(() => {
 }
 
 .btn-clear {
-  padding: 8px 16px;
+  padding: 8px 20px;
   background: var(--danger-color);
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 0.9em;
 }
 
 .btn-clear:hover {
@@ -495,5 +519,33 @@ onMounted(() => {
 
 .btn-cancel:hover {
   background: var(--grey-hover);
+}
+
+.toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.btn-export {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 12px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-export:disabled {
+  background: var(--border-color);
+  cursor: not-allowed;
+}
+
+.btn-export:hover:not(:disabled) {
+  background: var(--primary-dark);
 }
 </style>

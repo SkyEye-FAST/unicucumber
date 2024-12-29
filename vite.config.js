@@ -31,7 +31,7 @@ export default defineConfig({
         name: 'UniCucumber',
         short_name: 'UniCucumber',
         display: 'standalone',
-        theme_color: '#4ea72e',
+        theme_color: '#4caf50',
         description: 'A simple webpage for editing Unifont glyphs in browsers.',
         icons: [
           {

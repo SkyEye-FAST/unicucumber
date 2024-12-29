@@ -67,6 +67,7 @@ const downloadFile = async (format) => {
 .download-button {
   font-family: 'Noto Sans', sans-serif;
   font-size: 1.2em;
+  font-weight: 600;
   margin: 0 16px;
   padding: 5px 0;
   border: transparent 2px solid;
