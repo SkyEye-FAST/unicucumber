@@ -67,7 +67,6 @@ const getCellStyle = (rowIndex, cellIndex) => {
     : {};
 };
 
-
 const gridStyle = computed(() => ({
   gridTemplateColumns: `var(--cell-size) repeat(${props.gridData[0].length}, var(--cell-size))`
 }));

@@ -39,11 +39,31 @@
           <button @click="handleAdd" class="btn-add" :disabled="!isValidInput" :title="getAddButtonTitle">
             {{ editMode ? $t('glyph_manager.add.update_button') : $t('glyph_manager.add.add_button') }}
           </button>
+          <button @click="importFromUnifont" class="btn-import" :disabled="!newGlyph.codePoint">
+            <span class="material-symbols-outlined">sync</span>
+            {{ $t('glyph_manager.import') }}
+          </button>
           <button v-if="!editMode && (newGlyph.hexValue || prefillData)" @click="clearForm" class="btn-clear">
             {{ $t('glyph_manager.add.clear_button') }}
           </button>
         </div>
       </template>
+    </div>
+
+    <div class="upload-section">
+      <div class="upload-buttons">
+        <button @click="triggerFileUpload('hex')" class="btn-upload">
+          <span class="material-symbols-outlined">upload_file</span>
+          {{ $t('glyph_manager.upload.hex_file') }}
+        </button>
+        <button @click="triggerFileUpload('image')" class="btn-upload">
+          <span class="material-symbols-outlined">image</span>
+          {{ $t('glyph_manager.upload.image_file') }}
+        </button>
+      </div>
+      <input type="file" ref="hexFileInput" @change="handleHexFileUpload" accept=".hex" style="display: none" />
+      <input type="file" ref="imageFileInput" @change="handleImageFileUpload" accept=".png,.jpg,.jpeg,.bmp"
+        style="display: none" />
     </div>
 
     <div class="glyph-list">
@@ -77,6 +97,8 @@
 
 <script setup>
 import { ref, computed, defineProps, watch, nextTick, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+const { t: $t } = useI18n();
 
 const props = defineProps({
   glyphs: {
@@ -99,6 +121,7 @@ const newGlyph = ref({ codePoint: '', hexValue: '' });
 const searchQuery = ref('');
 const editMode = ref(false);
 const duplicateGlyph = ref(null);
+const unifontMap = ref({});
 
 const STORAGE_KEY = 'unicucumber_glyphs';
 
@@ -259,8 +282,194 @@ const exportToHex = () => {
   URL.revokeObjectURL(url);
 };
 
+const loadUnifontData = async () => {
+  try {
+    const response = await fetch('/unifont-16.0.02.hex');
+    const text = await response.text();
+    const lines = text.split('\n');
+    const map = {};
+
+    for (const line of lines) {
+      if (line && line.includes(':')) {
+        const [code, hex] = line.split(':');
+        map[parseInt(code, 16)] = hex.trim();
+      }
+    }
+
+    unifontMap.value = map;
+  } catch (error) {
+    console.error('Error loading unifont data:', error);
+  }
+};
+
+const importFromUnifont = () => {
+  if (!newGlyph.value.codePoint) return;
+
+  const codePoint = parseInt(newGlyph.value.codePoint, 16);
+  const hexValue = unifontMap.value[codePoint];
+
+  if (hexValue) {
+    if (props.prefillData) {
+      emit('edit-in-grid', hexValue);
+    } else {
+      newGlyph.value.hexValue = hexValue;
+    }
+  }
+};
+
+const hexFileInput = ref(null);
+const imageFileInput = ref(null);
+
+const triggerFileUpload = (type) => {
+  if (type === 'hex') {
+    hexFileInput.value.click();
+  } else {
+    imageFileInput.value.click();
+  }
+};
+
+const handleHexFileUpload = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const text = await file.text();
+  const lines = text.split('\n');
+  const newGlyphs = [];
+
+  for (const line of lines) {
+    if (line && line.includes(':')) {
+      const [code, hex] = line.split(':');
+      newGlyphs.push({
+        codePoint: code.toUpperCase(),
+        hexValue: hex
+      });
+    }
+  }
+
+  if (newGlyphs.length > 0) {
+    const updatedGlyphs = [...props.glyphs, ...newGlyphs];
+    props.onGlyphChange(updatedGlyphs);
+    saveGlyphsToStorage(updatedGlyphs);
+  }
+
+  event.target.value = '';
+};
+
+const validateImageDimensions = (img) => {
+  return (
+    (img.width === 16 && img.height === 16) ||
+    (img.width === 8 && img.height === 16)
+  );
+};
+
+const validateMonochrome = (imageData) => {
+  for (let i = 0; i < imageData.data.length; i += 4) {
+    const r = imageData.data[i];
+    const g = imageData.data[i + 1];
+    const b = imageData.data[i + 2];
+    const a = imageData.data[i + 3];
+
+    if (a > 0) {
+      if (!(
+        (r === 0 && g === 0 && b === 0) ||
+        (r === 255 && g === 255 && b === 255)
+      )) {
+        return false;
+      }
+    }
+  }
+  return true;
+};
+
+const handleImageFileUpload = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const codePoint = file.name.split('.')[0].toUpperCase();
+  let useCodePoint = '';
+
+  if (/^[0-9A-F]{4,6}$/.test(codePoint)) {
+    useCodePoint = codePoint;
+  }
+
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  try {
+    const img = await loadImage(file);
+
+    if (!validateImageDimensions(img)) {
+      alert($t('glyph_manager.upload.invalid_dimensions'));
+      event.target.value = '';
+      return;
+    }
+
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    if (!validateMonochrome(imageData)) {
+      alert($t('glyph_manager.upload.not_monochrome'));
+      event.target.value = '';
+      return;
+    }
+
+    let hex = '';
+    for (let y = 0; y < 16; y++) {
+      let row = 0;
+      for (let x = 0; x < canvas.width; x++) {
+        const i = (y * canvas.width + x) * 4;
+        const isBlack = imageData.data[i] === 0 && imageData.data[i + 3] > 127;
+        row = (row << 1) | (isBlack ? 1 : 0);
+      }
+
+      hex += row.toString(16).padStart(2, '0').toUpperCase();
+    }
+
+    if (useCodePoint) {
+
+      const newGlyph = {
+        codePoint: useCodePoint,
+        hexValue: hex
+      };
+
+      const updatedGlyphs = [...props.glyphs, newGlyph];
+      props.onGlyphChange(updatedGlyphs);
+      saveGlyphsToStorage(updatedGlyphs);
+    } else {
+
+      newGlyph.value.hexValue = hex;
+
+      nextTick(() => {
+        const codePointInput = document.querySelector('.add-glyph input');
+        if (codePointInput) {
+          codePointInput.focus();
+        }
+      });
+    }
+
+  } catch (error) {
+    console.error('Error loading image:', error);
+    alert($t('glyph_manager.upload.image_error'));
+  }
+
+  event.target.value = '';
+};
+
+const loadImage = (file) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+};
+
 onMounted(() => {
   loadStoredGlyphs();
+  loadUnifontData();
 });
 </script>
 
@@ -551,6 +760,54 @@ onMounted(() => {
 }
 
 .btn-export:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+
+.upload-buttons {
+  display: flex;
+  gap: 1em;
+}
+
+.btn-upload {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 8px 16px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-upload:hover {
+  background: var(--primary-dark);
+}
+
+.material-symbols-outlined {
+  font-size: 20px;
+}
+
+.btn-import {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 12px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-import:disabled {
+  background: var(--border-color);
+  cursor: not-allowed;
+}
+
+.btn-import:hover:not(:disabled) {
   background: var(--primary-dark);
 }
 </style>

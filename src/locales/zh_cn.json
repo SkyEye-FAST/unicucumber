@@ -26,7 +26,7 @@
       "clear_button": "清除"
     },
     "duplicate": {
-      "warning": "码位U+{codePoint}已存在！",
+      "warning": "已存在码位为U+{codePoint}的字形！",
       "update": "更新现有字形",
       "cancel": "取消"
     },
@@ -37,7 +37,16 @@
       "delete": "删除",
       "edit_in_grid": "点击编辑字形：U+{codePoint}"
     },
-    "export": "导出字形"
+    "export": "导出字形",
+    "import": "从Unifont读取",
+    "upload": {
+      "hex_file": "上传Hex文件",
+      "image_file": "上传字形图片",
+      "image_name_hint": "文件名必须是4-6位16进制数，表示字符的Unicode码点",
+      "image_error": "图片加载失败",
+      "invalid_dimensions": "图片尺寸必须为8x16或16x16像素",
+      "not_monochrome": "图片必须为黑白色"
+    }
   },
   "hex_input": {
     "placeholder": "输入16进制字形数据 (32或64位)",
