@@ -60,6 +60,10 @@ const updateDrawValue = (value) => {
 }
 
 @media (orientation: portrait) and (max-width: 768px) {
+  .tool-buttons {
+    margin: 0.5rem 0 0.8rem;
+  }
+
   .tool-button {
     width: 7em;
   }
@@ -74,6 +78,7 @@ const updateDrawValue = (value) => {
 
 @media (orientation: portrait) and (min-width: 1024px) {
   .tool-button {
+    padding: 12px 24px;
     font-size: 3em;
     width: 8em;
   }

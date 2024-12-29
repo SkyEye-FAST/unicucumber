@@ -89,12 +89,13 @@ const copyHex = async () => {
 @media (orientation: portrait) and (max-width: 768px) {
   .hex-code-container {
     width: 20em;
+    margin-top: 10px;
   }
 }
 
 @media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
   .hex-code-container {
-    width: 35em;
+    width: 32em;
   }
 
   .hex-input {
@@ -104,23 +105,23 @@ const copyHex = async () => {
 
   .copy-button {
     padding: 10px 20px;
-    font-size: 1.5em;
+    font-size: 1.8em;
   }
 }
 
 @media (orientation: portrait) and (min-width: 1024px) {
   .hex-code-container {
-    width: 50em;
+    width: 48em;
   }
 
   .hex-input {
-    padding: 10px 0;
+    padding: 12px 0;
     font-size: 2.2em;
   }
 
   .copy-button {
-    padding: 10px 35px;
-    font-size: 2.2em;
+    padding: 15px 35px;
+    font-size: 2.5em;
   }
 }
 </style>

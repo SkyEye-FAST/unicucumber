@@ -58,6 +58,9 @@
 
     <div :class="['sidebar', { active: isSidebarActive }]">
       <div class="sidebar-resizer" @mousedown="startResize"></div>
+      <button class="btn-close-sidebar" @click="handleCloseSidebar">
+        <span class="material-symbols-outlined">close</span>
+      </button>
       <GlyphManager
         v-if="isSidebarActive"
         :glyphs="glyphs"
@@ -188,6 +191,10 @@ const handleKeydown = (e) => {
   }
 }
 
+const handleCloseSidebar = () => {
+  isSidebarActive.value = false
+}
+
 onMounted(() => {
   updateHexCode()
   document.addEventListener('contextmenu', preventDefault)
@@ -316,5 +323,109 @@ onBeforeUnmount(() => {
 
 .icon-button .material-symbols-outlined {
   font-size: 20px;
+}
+
+.btn-close-sidebar {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  z-index: 1001;
+}
+
+.btn-close-sidebar:hover {
+  background-color: var(--background-active);
+  color: var(--text-color);
+}
+
+@media (orientation: portrait) and (max-width: 768px) {
+  .btn-close-sidebar {
+    padding: 12px;
+  }
+
+  .btn-close-sidebar .material-symbols-outlined {
+    font-size: 24px;
+  }
+
+  .editor-actions {
+    margin: 1rem 0.2rem 0.8rem;
+    gap: 12px;
+  }
+
+  .action-button {
+    font-size: clamp(0.8em, 2vw, 1.2em);
+    padding: 10px;
+  }
+
+  .icon-button {
+    width: 42px;
+    height: 42px;
+  }
+
+  .history-controls {
+    gap: 8px;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
+  .editor-actions {
+    margin: 1.5rem 1.5rem 1rem;
+  }
+
+  .action-button {
+    font-size: clamp(1.5em, 2vw, 1.8em);
+    padding: 12px 24px;
+  }
+
+  .icon-button {
+    width: 60px;
+    height: 60px;
+  }
+
+  .icon-button .material-symbols-outlined {
+    font-size: 28px !important;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 1024px) {
+  .editor-actions {
+    margin: 1.5rem 1.5rem 1rem;
+  }
+
+  .action-button {
+    font-size: clamp(2em, 2vw, 2.5em);
+    padding: 16px 28px;
+  }
+
+  .action-button .material-symbols-outlined {
+    font-size: 44px !important;
+    transform: translateY(3px);
+  }
+
+  .action-group {
+    gap: 16px;
+  }
+
+  .history-controls {
+    gap: 12px;
+  }
+
+  .icon-button {
+    width: 80px;
+    height: 80px;
+  }
+
+  .icon-button .material-symbols-outlined {
+    font-size: 48px !important;
+  }
 }
 </style>

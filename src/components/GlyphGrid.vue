@@ -98,7 +98,6 @@ const gridStyle = computed(() => ({
   display: grid;
   gap: 0;
   padding-right: calc(var(--cell-size) * 0.5);
-  margin: 5px auto;
   width: fit-content;
 }
 

@@ -88,6 +88,10 @@ const downloadFile = async (format) => {
 }
 
 @media (orientation: portrait) and (max-width: 768px) {
+  .download-buttons {
+    margin: 20px 0 10px 0;
+  }
+
   .download-button {
     font-size: 1.2em;
     margin: 0 10px;
@@ -103,7 +107,7 @@ const downloadFile = async (format) => {
 
 @media (orientation: portrait) and (min-width: 1024px) {
   .download-button {
-    font-size: 2.2em;
+    font-size: 2.5em;
     width: 5em;
   }
 }
