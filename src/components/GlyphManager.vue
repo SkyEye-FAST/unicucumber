@@ -210,10 +210,16 @@ watch(() => props.prefillData, (newData) => {
 
 const filteredGlyphs = computed(() => {
   const query = searchQuery.value.toLowerCase();
-  return props.glyphs.filter(glyph =>
-    glyph.codePoint.toLowerCase().includes(query) ||
-    glyph.hexValue.toLowerCase().includes(query)
-  );
+  return props.glyphs
+    .filter(glyph =>
+      glyph.codePoint.toLowerCase().includes(query) ||
+      glyph.hexValue.toLowerCase().includes(query)
+    )
+    .sort((a, b) => {
+      const codePointA = parseInt(a.codePoint, 16);
+      const codePointB = parseInt(b.codePoint, 16);
+      return codePointA - codePointB;
+    });
 });
 
 const removeGlyph = (codePoint) => {
