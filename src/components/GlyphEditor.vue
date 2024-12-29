@@ -52,18 +52,17 @@ import { useSettings } from '@/composables/useSettings';
 import { useGridData } from '@/composables/useGridData';
 import { useHexCode } from '@/composables/useHexCode';
 import { useHistory } from '@/composables/useHistory';
+import { useSidebar } from '@/composables/useSidebar';
+import { hexToGrid } from '@/utils/hexUtils';
 
 const { drawMode, cursorEffect, showSettings, saveSettings, glyphWidth } = useSettings();
 const { gridData, resetGrid, updateGrid } = useGridData(glyphWidth.value);
 const { hexCode, updateHexCode, updateGridFromHex } = useHexCode(gridData, resetGrid);
+const { isSidebarActive, sidebarWidth, toggleSidebar, startResize } = useSidebar();
+
 const drawValue = ref(1);
-const isSidebarActive = ref(false);
 const glyphs = ref([]);
 const prefillData = ref(null);
-
-const toggleSidebar = () => {
-  isSidebarActive.value = !isSidebarActive.value;
-};
 
 const setGlyphs = (newGlyphs) => {
   glyphs.value = newGlyphs;
@@ -71,70 +70,12 @@ const setGlyphs = (newGlyphs) => {
 
 const preventDefault = (e) => e.preventDefault();
 
-const sidebarWidth = ref(400);
-const minWidth = 300;
-const maxWidth = 800;
-
-const startResize = (e) => {
-  const startX = e.clientX;
-  const startWidth = sidebarWidth.value;
-
-  const doResize = (e) => {
-    const newWidth = startWidth + (e.clientX - startX);
-    sidebarWidth.value = Math.min(Math.max(newWidth, minWidth), maxWidth);
-  };
-
-  const stopResize = () => {
-    window.removeEventListener('mousemove', doResize);
-    window.removeEventListener('mouseup', stopResize);
-  };
-
-  window.addEventListener('mousemove', doResize);
-  window.addEventListener('mouseup', stopResize);
-};
-
 const addToGlyphset = () => {
   prefillData.value = {
     hexValue: hexCode.value
   };
   isSidebarActive.value = true;
 };
-
-
-const hexToGrid = (hexStr) => {
-
-  const width = hexStr.length <= 32 ? 8 : 16;
-  const height = 16;
-
-
-  glyphWidth.value = width;
-
-
-  const binary = hexStr.split('')
-    .map(char => parseInt(char, 16).toString(2).padStart(4, '0'))
-    .join('');
-
-
-  const grid = [];
-  for (let i = 0; i < height; i++) {
-    const row = [];
-    for (let j = 0; j < width; j++) {
-      const index = i * width + j;
-      row.push(index < binary.length ? (binary[index] === '1' ? 1 : 0) : 0);
-    }
-    grid.push(row);
-  }
-
-  console.log('Loading glyph:', {
-    hexStr,
-    width,
-    binaryLength: binary.length,
-    grid
-  });
-
-  return grid;
-};
-
 
 const handleGlyphEdit = (hexValue) => {
   try {
@@ -154,15 +95,12 @@ const clearPrefillData = () => {
   prefillData.value = null;
 };
 
-
 watch(glyphWidth, (newWidth) => {
   updateGrid(newWidth);
   updateHexCode();
 });
 
-
 const { pushState, undo, redo, canUndo, canRedo } = useHistory(gridData.value);
-
 
 const handleGridUpdate = (newGrid) => {
   gridData.value = newGrid;
@@ -170,12 +108,10 @@ const handleGridUpdate = (newGrid) => {
   updateHexCode();
 };
 
-
 const handleClear = () => {
   const newGrid = Array.from({ length: 16 }, () => Array(gridData.value[0].length).fill(0));
   handleGridUpdate(newGrid);
 };
-
 
 const handleUndo = () => {
   const prevState = undo();
@@ -193,13 +129,11 @@ const handleRedo = () => {
   }
 };
 
-
 const updateCell = (rowIndex, cellIndex, value) => {
   const newGrid = gridData.value.map(row => [...row]);
   newGrid[rowIndex][cellIndex] = value;
   handleGridUpdate(newGrid);
 };
-
 
 const handleKeydown = (e) => {
   if (e.ctrlKey) {

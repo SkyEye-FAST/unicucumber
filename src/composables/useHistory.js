@@ -1,8 +1,5 @@
 import { ref } from 'vue'
-
-const deepCloneGrid = (grid) => {
-  return grid.map((row) => [...row])
-}
+import { deepCloneGrid } from '@/utils/hexUtils'
 
 export function useHistory(initialState) {
   const history = ref([deepCloneGrid(initialState)])

@@ -101,5 +101,4 @@ const downloadFile = async (format) => {
     width: 5em;
   }
 }
-
 </style>
