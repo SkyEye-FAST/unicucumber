@@ -72,12 +72,6 @@ defineEmits(['openSettings', 'toggleSidebar']);
   margin: 0 10px;
 }
 
-@-moz-document url-prefix() {
-  .github-icon {
-    vertical-align: middle;
-  }
-}
-
 @media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
   .modal-button {
     padding: 5px 10px;

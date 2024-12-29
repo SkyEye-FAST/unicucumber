@@ -226,7 +226,7 @@ onBeforeUnmount(() => {
 }
 
 .action-button.primary:hover {
-  background: var(--primary-dark);
+  background: var(--success-hover);
 }
 
 .action-button.secondary {

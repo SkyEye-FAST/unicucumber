@@ -286,7 +286,7 @@ onMounted(() => {
 }
 
 .search-input {
-  font-family: 'Fira Code', monospace;
+  font-family: 'Maple Mono NF CN', monospace;
   width: 90%;
   padding: 8px 12px;
   border: 1px solid var(--border-color);
@@ -302,7 +302,7 @@ onMounted(() => {
 }
 
 .input {
-  font-family: 'Fira Code', monospace;
+  font-family: 'Maple Mono NF CN', monospace;
   padding: 8px;
   border: 1px solid var(--border-color);
   border-radius: 4px;

@@ -2,7 +2,7 @@ import { ref } from 'vue'
 
 export function useSidebar() {
   const isSidebarActive = ref(false)
-  const sidebarWidth = ref(400)
+  const sidebarWidth = ref(450)
   const minWidth = 300
   const maxWidth = 800
 
