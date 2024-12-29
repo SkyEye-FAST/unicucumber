@@ -71,7 +71,7 @@ const downloadFile = async (format) => {
   padding: 5px 0;
   border: transparent 2px solid;
   background-color: var(--primary-color);
-  color: #fff;
+  color: white;
   cursor: pointer;
   width: 5em;
   transition: background-color 0.3s ease;

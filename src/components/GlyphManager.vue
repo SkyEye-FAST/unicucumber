@@ -361,7 +361,7 @@ const handleEditInGrid = (glyph) => {
 
 .input-group label {
   font-size: 0.9rem;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .input[readonly] {
@@ -411,7 +411,7 @@ const handleEditInGrid = (glyph) => {
 .add-glyph h3 {
   margin: 0 0 10px 0;
   font-size: 1rem;
-  color: #666;
+  color: var(--text-secondary)
 }
 
 .duplicate-warning {
