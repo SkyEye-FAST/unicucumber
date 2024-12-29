@@ -1,0 +1,106 @@
+{
+  "title": "UniCucumber - Unifont 網頁編輯器",
+  "settings": {
+    "title": "設定",
+    "draw_mode": {
+      "label": "繪製模式：",
+      "double_button": "左鍵繪製，右鍵擦除",
+      "single_button": "左鍵繪製或擦除"
+    },
+    "cursor_effect": "游標效果：",
+    "glyph_width": {
+      "label": "字形寬度：",
+      "8px": "8 像素",
+      "16px": "16 像素"
+    },
+    "close": "關閉"
+  },
+  "glyph_manager": {
+    "title": "字形管理器",
+    "search": "搜尋字形...",
+    "import": "從 Unifont 讀取",
+    "export": "匯出字形",
+    "upload": {
+      "hex_file": "上傳 Hex 檔案",
+      "image_file": "上傳字形圖片",
+      "image_error": "圖片載入失敗",
+      "invalid_dimensions": "圖片尺寸必須為 8x16 或 16x16 像素",
+      "not_monochrome": "圖片必須為黑白色"
+    },
+    "add": {
+      "code_point": "輸入 Unicode 碼位 (例如：4E00)",
+      "hex_value": "輸入 16 進制字形資料 (32 或 64 位)",
+      "add_button": "添加字形",
+      "update_button": "更新字形",
+      "clear_button": "清除"
+    },
+    "duplicate": {
+      "warning": "已存在碼位為 U+{codePoint} 的字形！",
+      "update": "更新現有字形",
+      "cancel": "取消"
+    },
+    "glyph": {
+      "code_point": "碼位：",
+      "hex": "Hex：",
+      "edit": "編輯",
+      "delete": "刪除",
+      "edit_in_grid": "點擊編輯字形：U+{codePoint}"
+    },
+    "validation": {
+      "enter_code_point": "請輸入 Unicode 碼位",
+      "invalid_code_point": "碼位必須是 4-6 位 16 進制數",
+      "invalid_hex": "請輸入有效的 16 進制字形資料 (32 或 64 位)",
+      "add_glyph": "添加字形"
+    },
+    "error": {
+      "loading_unifont": "載入 Unifont 資料出錯",
+      "loading_storage": "從存儲載入字形時出錯",
+      "saving_storage": "保存字形到存儲時出錯"
+    }
+  },
+  "hex_input": {
+    "placeholder": "輸入 16 進制字形資料 (32 或 64 位)",
+    "copy": "複製"
+  },
+  "editor": {
+    "actions": {
+      "clear": {
+        "button": "清空",
+        "title": "清空編輯器"
+      },
+      "add_to_glyphset": {
+        "button": "添加到字形集",
+        "title": "將當前字形添加到字形集"
+      },
+      "undo": {
+        "title": "撤銷(Ctrl+Z)"
+      },
+      "redo": {
+        "title": "重做(Ctrl+Y)"
+      }
+    }
+  },
+  "dialog": {
+    "select_all": "全選",
+    "confirm": "確定",
+    "cancel": "取消",
+    "hex_import": {
+      "title": "發現重複的字形",
+      "message": "以下字形已存在，請選擇要更新的字形：",
+      "confirm": "更新選中字形",
+      "cancel": "跳過"
+    },
+    "image_error": {
+      "title": "圖片載入錯誤",
+      "message": "載入圖片時出錯，請重試"
+    },
+    "dimension_error": {
+      "title": "圖片尺寸錯誤",
+      "message": "圖片尺寸必須為 16x16 或 8x16 像素"
+    },
+    "format_error": {
+      "title": "圖片格式錯誤",
+      "message": "圖片必須為黑白雙色"
+    }
+  }
+}

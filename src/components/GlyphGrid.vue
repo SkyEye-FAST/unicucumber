@@ -1,52 +1,74 @@
 <template>
-  <div class="grid-container">
+  <div class="grid-container" :style="gridStyle">
     <!-- Header row with column numbers -->
     <div class="header-row">
       <div class="corner-cell"></div>
-      <div v-for="colIndex in 16" :key="`col-${colIndex}`" class="header-cell"
-        :style="{ color: colIndex % 2 ? '#000' : '#f4005f' }">
+      <div
+        v-for="colIndex in gridData[0].length"
+        :key="`col-${colIndex}`"
+        class="header-cell"
+        :style="{
+          color: colIndex % 2 ? 'var(--text-color)' : 'var(--danger-color)',
+        }"
+      >
         {{ (colIndex - 1).toString(16).toUpperCase() }}
       </div>
     </div>
 
     <!-- Grid rows -->
-    <div v-for="(row, rowIndex) in gridData" :key="`row-${rowIndex}`" class="grid-row">
-      <div class="header-cell" :style="{ color: rowIndex % 2 ? '#f4005f' : '#000' }">
+    <div
+      v-for="(row, rowIndex) in gridData"
+      :key="`row-${rowIndex}`"
+      class="grid-row"
+    >
+      <div
+        class="header-cell"
+        :style="{
+          color: rowIndex % 2 ? 'var(--danger-color)' : 'var(--text-color)',
+        }"
+      >
         {{ rowIndex.toString(16).toUpperCase() }}
       </div>
-      <div v-for="(cell, cellIndex) in row" :key="`cell-${rowIndex}-${cellIndex}`"
-        :class="['cell', { filled: cell === 1 }]" :style="getCellStyle(rowIndex, cellIndex)"
-        @mousedown.prevent="startDrawing(rowIndex, cellIndex, $event)" @mouseover="handleHover(rowIndex, cellIndex)"
-        @mouseleave="clearHover" @mouseup="stopDrawing" @touchstart.prevent="handleTouchStart"
-        @touchmove.prevent="handleTouchMove">
-      </div>
+      <div
+        v-for="(cell, cellIndex) in row"
+        :key="`cell-${rowIndex}-${cellIndex}`"
+        :class="['cell', { filled: cell === 1 }]"
+        :style="getCellStyle(rowIndex, cellIndex)"
+        @mousedown.prevent="startDrawing(rowIndex, cellIndex, $event)"
+        @mouseover="handleHover(rowIndex, cellIndex)"
+        @mouseleave="clearHover"
+        @mouseup="stopDrawing"
+        @touchstart.prevent="handleTouchStart"
+        @touchmove.prevent="handleTouchMove"
+      ></div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { useDrawing } from '@/composables/useDrawing';
+import { computed } from 'vue'
+import { useDrawing } from '@/composables/useDrawing'
 
 const props = defineProps({
   gridData: {
     type: Array,
-    required: true
+    required: true,
   },
   drawMode: {
     type: String,
-    required: true
+    required: true,
   },
   drawValue: {
     type: Number,
-    required: true
+    required: true,
   },
   cursorEffect: {
     type: Boolean,
-    required: true
-  }
-});
+    required: true,
+  },
+})
 
-const emit = defineEmits(['update:cell']);
+const emit = defineEmits(['update:cell'])
 
 const {
   hoverCell,
@@ -55,24 +77,28 @@ const {
   handleHover,
   clearHover,
   handleTouchStart,
-  handleTouchMove
-} = useDrawing(props, emit);
+  handleTouchMove,
+} = useDrawing(props, emit)
 
 const getCellStyle = (rowIndex, cellIndex) => {
   return props.cursorEffect &&
     hoverCell.value.row === rowIndex &&
     hoverCell.value.col === cellIndex
     ? { backgroundColor: props.drawValue === 1 ? 'black' : 'white' }
-    : {};
-};
+    : {}
+}
+
+const gridStyle = computed(() => ({
+  gridTemplateColumns: `var(--cell-size) repeat(${props.gridData[0].length}, var(--cell-size))`,
+}))
 </script>
 
 <style scoped>
 .grid-container {
   display: grid;
-  grid-template-columns: var(--cell-size) repeat(16, var(--cell-size));
   gap: 0;
   padding-right: calc(var(--cell-size) * 0.5);
+  width: fit-content;
 }
 
 .header-row,
@@ -92,13 +118,13 @@ const getCellStyle = (rowIndex, cellIndex) => {
   align-items: center;
   justify-content: center;
   font-size: 1em;
-  font-family: "Fira Code", monospace;
+  font-family: 'Maple Mono NF CN', 'Fira Code', Consolas, monospace;
 }
 
 .cell {
   width: var(--cell-size);
   height: var(--cell-size);
-  background-color: #fff;
+  background-color: white;
   border: 0.5px solid var(--primary-darker);
   cursor: pointer;
 }

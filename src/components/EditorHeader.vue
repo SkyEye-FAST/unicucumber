@@ -7,6 +7,9 @@
     <button @click="$emit('openSettings')" class="modal-button">
       <span class="material-symbols-outlined bold">settings</span>
     </button>
+    <button @click="$emit('toggleSidebar')" class="modal-button">
+      <span class="material-symbols-outlined bold">glyphs</span>
+    </button>
     <a href="https://github.com/SkyEye-FAST/unicucumber" class="github-link">
       <img src="/github-icon.svg" alt="GitHub" class="github-icon" />
     </a>
@@ -14,7 +17,7 @@
 </template>
 
 <script setup>
-defineEmits(['openSettings']);
+defineEmits(['openSettings', 'toggleSidebar'])
 </script>
 
 <style scoped>
@@ -31,7 +34,7 @@ defineEmits(['openSettings']);
 }
 
 .title {
-  font-family: "Noto Sans", sans-serif;
+  font-family: 'Noto Sans', sans-serif;
   font-size: 2em;
   color: var(--primary-color);
   margin-bottom: 5px;
@@ -39,15 +42,15 @@ defineEmits(['openSettings']);
 
 .modal-buttons {
   display: flex;
-  margin-bottom: 5px;
+  margin: 5px;
   align-items: center;
   flex-direction: row;
 }
 
 .modal-button {
-  color: var(--primary-darker);
+  color: var(--primary-color);
   background-color: inherit;
-  font-size: 1.8em;
+  font-size: 1.5em;
   padding: 5px;
   margin: 0 10px;
   cursor: pointer;
@@ -55,20 +58,18 @@ defineEmits(['openSettings']);
   transition: color 0.3s ease;
 }
 
+.modal-button:hover {
+  color: var(--primary-dark);
+}
+
 .github-link {
-  transform: translateY(0.1em);
+  transform: translateY(-0.1em);
 }
 
 .github-icon {
   width: 1.4em;
   padding: 5px;
   margin: 0 10px;
-}
-
-@-moz-document url-prefix() {
-  .github-icon {
-    vertical-align: middle;
-  }
 }
 
 @media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {

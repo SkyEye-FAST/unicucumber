@@ -1,9 +1,17 @@
 <template>
   <div class="tool-buttons">
-    <button @click="updateDrawValue(1)" :class="{ active: modelValue === 1 }" class="tool-button">
+    <button
+      @click="updateDrawValue(1)"
+      :class="{ active: modelValue === 1 }"
+      class="tool-button"
+    >
       <span class="material-symbols-outlined">draw</span>
     </button>
-    <button @click="updateDrawValue(0)" :class="{ active: modelValue === 0 }" class="tool-button">
+    <button
+      @click="updateDrawValue(0)"
+      :class="{ active: modelValue === 0 }"
+      class="tool-button"
+    >
       <span class="material-symbols-outlined">ink_eraser</span>
     </button>
   </div>
@@ -13,26 +21,29 @@
 defineProps({
   modelValue: {
     type: Number,
-    required: true
-  }
-});
+    required: true,
+  },
+})
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue'])
 
 const updateDrawValue = (value) => {
-  emit('update:modelValue', value);
-};
+  emit('update:modelValue', value)
+}
 </script>
 
 <style scoped>
 .tool-buttons {
   display: flex;
-  margin: 30px 0 15px 0;
+  margin: 10px 0 15px 0;
 }
 
 .tool-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-size: 1.5em;
-  padding: 5px 10px;
+  padding: 7px 10px;
   border: transparent 2px solid;
   background-color: var(--border-color);
   cursor: pointer;
@@ -41,14 +52,18 @@ const updateDrawValue = (value) => {
 
 .tool-button.active {
   background: var(--primary-color);
-  color: #fff;
+  color: white;
 }
 
 .tool-button:hover {
-  border: #0c4461 2px solid;
+  border: var(--primary-darker) 2px solid;
 }
 
 @media (orientation: portrait) and (max-width: 768px) {
+  .tool-buttons {
+    margin: 0.5rem 0 0.8rem;
+  }
+
   .tool-button {
     width: 7em;
   }
@@ -62,9 +77,18 @@ const updateDrawValue = (value) => {
 }
 
 @media (orientation: portrait) and (min-width: 1024px) {
+  .tool-buttons {
+    margin: 1.2rem;
+  }
+
   .tool-button {
+    padding: 16px 24px;
     font-size: 3em;
     width: 8em;
+  }
+
+  .tool-button .material-symbols-outlined {
+    font-size: 1em !important;
   }
 }
 </style>

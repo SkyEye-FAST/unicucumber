@@ -1,31 +1,51 @@
 import { ref, watch } from 'vue'
-import { hexToBinary, binaryToHex } from '../utils/conversion'
+import { gridToHex } from '@/utils/hexUtils'
 
 export function useHexCode(gridData, resetGrid) {
-  const hexCode = ref('')
+  const hexCode = ref('0'.repeat(64))
 
   const updateHexCode = () => {
-    const binaryString = gridData.value
-      .flat()
-      .map((cell) => (cell === 1 ? '1' : '0'))
-      .join('')
-    hexCode.value = binaryToHex(binaryString)
+    if (!gridData.value || !gridData.value.length) return
+    hexCode.value = gridToHex(gridData.value)
   }
 
   const updateGridFromHex = () => {
-    if (!/^[0-9A-F]{32,64}$/i.test(hexCode.value)) {
+    if (
+      !/^[0-9A-Fa-f]{32}$/i.test(hexCode.value) &&
+      !/^[0-9A-Fa-f]{64}$/i.test(hexCode.value)
+    ) {
+      console.warn('Invalid hex code format, must be 32 or 64 characters')
       resetGrid()
       return
     }
-    const binaryString = hexToBinary(hexCode.value)
-    binaryString.split('').forEach((bit, index) => {
-      const row = Math.floor(index / 16)
-      const col = index % 16
-      gridData.value[row][col] = parseInt(bit, 10)
-    })
+
+    const width = hexCode.value.length <= 32 ? 8 : 16
+    const height = 16
+
+    const binary = hexCode.value
+      .split('')
+      .map((char) => parseInt(char, 16).toString(2).padStart(4, '0'))
+      .join('')
+
+    resetGrid(width)
+
+    for (let i = 0; i < height; i++) {
+      for (let j = 0; j < width; j++) {
+        const index = i * width + j
+        if (index < binary.length) {
+          gridData.value[i][j] = parseInt(binary[index], 10)
+        }
+      }
+    }
   }
 
-  watch(gridData, updateHexCode, { deep: true })
+  watch(
+    gridData,
+    () => {
+      updateHexCode()
+    },
+    { deep: true, immediate: true },
+  )
 
   return {
     hexCode,

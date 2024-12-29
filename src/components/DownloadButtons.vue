@@ -1,8 +1,13 @@
 <template>
   <div class="download-buttons">
-    <button v-for="format in downloadFormats" :key="format" @click="() => downloadFile(format)" class="download-button">
-      <span class="material-symbols-outlined">download</span><br>
-      <span style="font-size: smaller;">{{ format }}</span>
+    <button
+      v-for="format in downloadFormats"
+      :key="format"
+      @click="() => downloadFile(format)"
+      class="download-button"
+    >
+      <span class="material-symbols-outlined">download</span><br />
+      <span style="font-size: smaller">{{ format }}</span>
     </button>
   </div>
 </template>
@@ -11,51 +16,51 @@
 import {
   createCanvasFromGrid,
   convertToBMP,
-  createSVGFromGrid
-} from '../utils/exportUtils';
+  createSVGFromGrid,
+} from '../utils/exportUtils'
 
 const props = defineProps({
   gridData: {
     type: Array,
-    required: true
-  }
-});
+    required: true,
+  },
+})
 
-const downloadFormats = ['PNG', 'BMP', 'SVG'];
+const downloadFormats = ['PNG', 'BMP', 'SVG']
 
 const downloadFile = async (format) => {
-  let blob;
-  let filename;
+  let blob
+  let filename
 
   switch (format) {
     case 'PNG': {
-      const canvas = createCanvasFromGrid(props.gridData);
-      blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-      filename = 'glyph.png';
-      break;
+      const canvas = createCanvasFromGrid(props.gridData)
+      blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
+      filename = 'glyph.png'
+      break
     }
     case 'BMP': {
-      const canvas = createCanvasFromGrid(props.gridData);
-      const context = canvas.getContext('2d');
-      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      blob = await convertToBMP(imageData);
-      filename = 'glyph.bmp';
-      break;
+      const canvas = createCanvasFromGrid(props.gridData)
+      const context = canvas.getContext('2d')
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
+      blob = await convertToBMP(imageData)
+      filename = 'glyph.bmp'
+      break
     }
     case 'SVG': {
-      const svg = createSVGFromGrid(props.gridData);
-      blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-      filename = 'glyph.svg';
-      break;
+      const svg = createSVGFromGrid(props.gridData)
+      blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' })
+      filename = 'glyph.svg'
+      break
     }
   }
 
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(link.href);
-};
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = filename
+  link.click()
+  URL.revokeObjectURL(link.href)
+}
 </script>
 
 <style scoped>
@@ -67,11 +72,12 @@ const downloadFile = async (format) => {
 .download-button {
   font-family: 'Noto Sans', sans-serif;
   font-size: 1.2em;
+  font-weight: 600;
   margin: 0 16px;
-  padding: 5px 0;
+  padding: 8px 0;
   border: transparent 2px solid;
   background-color: var(--primary-color);
-  color: #fff;
+  color: white;
   cursor: pointer;
   width: 5em;
   transition: background-color 0.3s ease;
@@ -82,6 +88,10 @@ const downloadFile = async (format) => {
 }
 
 @media (orientation: portrait) and (max-width: 768px) {
+  .download-buttons {
+    margin: 20px 0 10px 0;
+  }
+
   .download-button {
     font-size: 1.2em;
     margin: 0 10px;
@@ -97,8 +107,12 @@ const downloadFile = async (format) => {
 
 @media (orientation: portrait) and (min-width: 1024px) {
   .download-button {
-    font-size: 2.2em;
+    font-size: 2.5em;
     width: 5em;
+  }
+
+  .download-button .material-symbols-outlined {
+    font-size: 1.5em !important;
   }
 }
 </style>

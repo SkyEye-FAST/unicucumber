@@ -21,18 +21,18 @@ You can try the demo at the following links:
 
 - [x] Responsive web design
 - [x] Mouse and touchscreen support
-- [ ] Undo and redo actions (TODO)
+- [x] Undo and redo actions
 - [ ] Copy and paste actions (TODO)
 - Multiple glyphs support
-  - [ ] A screen to list multiple glyphs (WIP)
-  - [ ] Glyph search and filter (TODO)
+  - [x] A screen to list multiple glyphs
+  - [x] Glyph search and filter
 - Hexadecimal format support
   - [x] Export single glyph as hexadecimal string
   - [x] Import single glyph from hexadecimal string
-  - [ ] Save and load multiple glyphs in `.hex` format (WIP)
+  - [x] Save and load multiple glyphs in `.hex` format
 - Image support
   - [x] Export single glyph as images (PNG, BMP, SVG, etc.)
-  - [ ] Import glyphs from image files (TODO)
+  - [x] Import glyphs from image files
   - [ ] Generate bitmaps like `unihex2bmp` in Unifont Utilities (TODO)
 - Font support
   - [ ] Export multiple glyphs as an OpenType font file (TODO)

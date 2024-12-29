@@ -1,19 +1,28 @@
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
-export function useGridData() {
-  const gridData = ref(Array.from({ length: 16 }, () => Array(16).fill(0)))
+export function useGridData(widthRef) {
+  const gridData = ref([])
 
-  const updateCell = (rowIndex, cellIndex, value) => {
-    gridData.value[rowIndex][cellIndex] = value
+  const resetGrid = (width = 16) => {
+    const size = typeof width === 'number' ? width : 16
+    gridData.value = Array.from({ length: 16 }, () => Array(size).fill(0))
   }
 
-  const resetGrid = () => {
-    gridData.value = Array.from({ length: 16 }, () => Array(16).fill(0))
+  const updateGrid = (newSize) => {
+    resetGrid(newSize)
   }
+
+  watch(
+    widthRef,
+    (newWidth) => {
+      updateGrid(newWidth)
+    },
+    { immediate: true },
+  )
 
   return {
     gridData,
-    updateCell,
     resetGrid,
+    updateGrid,
   }
 }

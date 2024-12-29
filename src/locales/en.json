@@ -8,6 +8,99 @@
       "single_button": "Left Draw & Erase"
     },
     "cursor_effect": "Cursor Effect:",
+    "glyph_width": {
+      "label": "Glyph Width:",
+      "8px": "8 pixels",
+      "16px": "16 pixels"
+    },
     "close": "Close"
+  },
+  "glyph_manager": {
+    "title": "Glyph Manager",
+    "search": "Search glyphs...",
+    "import": "Import from Unifont",
+    "upload": {
+      "hex_file": "Upload Hex File",
+      "image_file": "Upload Glyph Image",
+      "image_error": "Failed to load image",
+      "invalid_dimensions": "Image dimensions must be 8x16 or 16x16 pixels",
+      "not_monochrome": "Image must be black and white only"
+    },
+    "export": "Export Glyphs",
+    "add": {
+      "code_point": "Enter Unicode code point (e.g. 4E00)",
+      "hex_value": "Enter glyph data (32 or 64 hex digits)",
+      "add_button": "Add Glyph",
+      "update_button": "Update Glyph",
+      "clear_button": "Clear"
+    },
+    "duplicate": {
+      "warning": "A glyph with code point U+{codePoint} already exists",
+      "update": "Update Existing Glyph",
+      "cancel": "Cancel"
+    },
+    "glyph": {
+      "code_point": "Code point:",
+      "hex": "Hex:",
+      "edit": "Edit",
+      "delete": "Delete",
+      "edit_in_grid": "Click to edit glyph: U+{codePoint}"
+    },
+    "validation": {
+      "enter_code_point": "Please enter Unicode code point",
+      "invalid_code_point": "Code point must be 4-6 hex digits",
+      "invalid_hex": "Please enter valid glyph data (32 or 64 hex digits)",
+      "add_glyph": "Add glyph"
+    },
+    "error": {
+      "loading_unifont": "Error loading Unifont data",
+      "loading_storage": "Error loading glyphs from storage",
+      "saving_storage": "Error saving glyphs to storage"
+    }
+  },
+  "hex_input": {
+    "placeholder": "Enter glyph data (32 or 64 hex digits)",
+    "copy": "Copy"
+  },
+  "editor": {
+    "actions": {
+      "clear": {
+        "button": "Clear",
+        "title": "Clear editor"
+      },
+      "add_to_glyphset": {
+        "button": "Add to Glyph Set",
+        "title": "Add current glyph to glyph set"
+      },
+      "undo": {
+        "title": "Undo (Ctrl+Z)"
+      },
+      "redo": {
+        "title": "Redo (Ctrl+Y)"
+      }
+    }
+  },
+  "dialog": {
+    "select_all": "Select All",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "hex_import": {
+      "title": "Duplicate Glyphs Found",
+      "message": "The following glyphs already exist, please select which ones to update:",
+      "confirm": "Update Selected Glyphs",
+      "cancel": "Skip"
+    },
+    "image_error": {
+      "title": "Image Loading Error",
+      "message": "Failed to load image, please try again"
+    },
+    "dimension_error": {
+      "title": "Invalid Image Dimensions",
+      "message": "Image dimensions must be 16x16 or 8x16 pixels"
+    },
+    "format_error": {
+      "title": "Invalid Image Format",
+      "message": "Image must be black and white only"
+    }
   }
 }

@@ -1,20 +1,68 @@
 <template>
-  <div v-if="show" class="overlay" @click="$emit('update:show', false)"></div>
-  <div v-if="show" class="settings-modal">
+  <div
+    v-if="modelValue"
+    class="overlay"
+    @click="$emit('update:modelValue', false)"
+  ></div>
+  <div v-if="modelValue" class="settings-modal">
     <h2 class="modal-title">{{ $t('settings.title') }}</h2>
+
     <div class="setting-option">
       <label for="drawMode">{{ $t('settings.draw_mode.label') }}</label>
-      <select id="drawMode" :value="drawMode" @change="$emit('update:drawMode', $event.target.value)">
-        <option value="doubleButtonDraw">{{ $t('settings.draw_mode.double_button') }}</option>
-        <option value="singleButtonDraw">{{ $t('settings.draw_mode.single_button') }}</option>
+      <select
+        id="drawMode"
+        :value="settings.drawMode"
+        @change="
+          $emit('update:settings', {
+            ...settings,
+            drawMode: $event.target.value,
+          })
+        "
+      >
+        <option value="doubleButtonDraw">
+          {{ $t('settings.draw_mode.double_button') }}
+        </option>
+        <option value="singleButtonDraw">
+          {{ $t('settings.draw_mode.single_button') }}
+        </option>
       </select>
     </div>
+
     <div class="setting-option">
       <label for="cursorEffect">{{ $t('settings.cursor_effect') }}</label>
-      <input type="checkbox" id="cursorEffect" :checked="cursorEffect"
-        @change="$emit('update:cursorEffect', $event.target.checked)" />
+      <div class="checkbox-wrapper">
+        <input
+          type="checkbox"
+          id="cursorEffect"
+          :checked="settings.cursorEffect"
+          @change="
+            $emit('update:settings', {
+              ...settings,
+              cursorEffect: $event.target.checked,
+            })
+          "
+        />
+      </div>
     </div>
-    <button @click="$emit('update:show', false)" class="close-button">
+
+    <div class="setting-option">
+      <label for="glyphWidth">{{ $t('settings.glyph_width.label') }}</label>
+      <select
+        id="glyphWidth"
+        :value="settings.glyphWidth"
+        @change="
+          $emit('update:settings', {
+            ...settings,
+            glyphWidth: parseInt($event.target.value), // 确保转换为数字
+          })
+        "
+      >
+        <option :value="8">{{ $t('settings.glyph_width.8px') }}</option>
+        <option :value="16">{{ $t('settings.glyph_width.16px') }}</option>
+      </select>
+    </div>
+
+    <button @click="$emit('update:modelValue', false)" class="close-button">
       {{ $t('settings.close') }}
     </button>
   </div>
@@ -22,21 +70,17 @@
 
 <script setup>
 defineProps({
-  show: {
+  modelValue: {
     type: Boolean,
-    default: false
+    default: false,
   },
-  drawMode: {
-    type: String,
-    default: 'doubleButtonDraw'
+  settings: {
+    type: Object,
+    required: true,
   },
-  cursorEffect: {
-    type: Boolean,
-    default: false
-  }
-});
+})
 
-defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'save']);
+defineEmits(['update:modelValue', 'update:settings'])
 </script>
 
 <style scoped>
@@ -46,12 +90,11 @@ defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'save']);
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--modal-overlay);
   z-index: 998;
 }
 
 .settings-modal {
-  font-family: "Noto Sans", sans-serif;
   position: fixed;
   top: 50%;
   left: 50%;
@@ -59,7 +102,7 @@ defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'save']);
   background: white;
   padding: 5px 30px 25px;
   border-radius: 10px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 16px var(--shadow-color);
   z-index: 999;
   width: 20em;
   display: flex;
@@ -87,7 +130,8 @@ defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'save']);
 }
 
 #drawMode,
-#cursorEffect {
+#cursorEffect,
+#glyphWidth {
   padding: 5px;
   font-size: 1em;
   border: 1px solid var(--border-color);
@@ -101,8 +145,8 @@ defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'save']);
   padding: 10px 0;
   font-size: 1.1em;
   font-weight: bold;
-  color: #fff;
-  background-color: #ff5449;
+  color: white;
+  background-color: var(--danger-color);
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -110,14 +154,10 @@ defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'save']);
 }
 
 .close-button:hover {
-  background-color: #ff6b66;
+  background-color: var(--danger-hover);
 }
 
 @media (orientation: portrait) and (max-width: 768px) {
-  .settings-modal {
-    padding: 10px 20px 20px;
-  }
-
   .setting-option {
     margin: 10px;
   }
@@ -127,13 +167,16 @@ defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'save']);
     margin-left: 5px;
   }
 
-  #drawMode {
+  #drawMode,
+  #glyphWidth {
     font-size: 1.1em;
     padding: 10px 0;
+    margin-right: 10px;
   }
 
   #cursorEffect {
-    zoom: 150%;
+    transform: scale(1.5);
+    transform-origin: 0 0;
   }
 }
 
@@ -142,30 +185,30 @@ defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'save']);
     width: 40em;
   }
 
-  .setting-option {
-    margin: 20px 25px 20px;
-  }
-
   .modal-title {
-    font-size: 3em;
+    font-size: 2.5em;
   }
 
   .setting-option label {
-    font-size: 2em;
+    font-size: 1.8em;
     margin-left: 30px;
   }
 
-  #drawMode {
-    font-size: 2em;
-    padding: 10px 0;
+  #drawMode,
+  #glyphWidth {
+    font-size: 1.8em;
+    padding: 15px;
+    margin-right: 20px;
   }
 
   #cursorEffect {
-    zoom: 250%;
+    transform: scale(2.5);
+    transform-origin: 0 0;
+    margin-right: 10px;
   }
 
   .close-button {
-    font-size: 2em;
+    font-size: 1.8em;
     padding: 15px 0;
     margin-bottom: 30px;
   }
@@ -176,12 +219,8 @@ defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'save']);
     width: 45em;
   }
 
-  .setting-option {
-    margin: 20px 20px 20px;
-  }
-
   .modal-title {
-    font-size: 3.5em;
+    font-size: 3em;
   }
 
   .setting-option label {
@@ -189,17 +228,21 @@ defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'save']);
     margin-left: 30px;
   }
 
-  #drawMode {
+  #drawMode,
+  #glyphWidth {
     font-size: 2.2em;
-    padding: 10px 0;
+    padding: 20px;
+    margin-right: 20px;
   }
 
   #cursorEffect {
-    zoom: 300%;
+    transform: scale(3);
+    transform-origin: 0 0;
+    margin-right: 10px;
   }
 
   .close-button {
-    font-size: 2.5em;
+    font-size: 2em;
     padding: 15px 0;
     margin-bottom: 40px;
   }

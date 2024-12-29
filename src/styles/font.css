@@ -1,0 +1,35 @@
+@import url('https://fonts.font.im/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+/* Maple Mono NF CN */
+@import url('https://static.zeoseven.com/zsft/442/main/result.css');
+/* Noto Sans CJK SC */
+@import url('https://static.zeoseven.com/zsft/69/main/result.css');
+/* Noto Sans CJK TC */
+@import url('https://static.zeoseven.com/zsft/188/main/result.css');
+
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 48;
+}
+
+.material-symbols-outlined.bold {
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 400,
+    'GRAD' 200,
+    'opsz' 48;
+}
+
+body {
+  font-family: 'Noto Sans', sans-serif;
+}
+
+[lang='zh-cn'] body {
+  font-family: 'Noto Sans CJK SC', 'Source Han Sans SC', sans-serif;
+}
+
+[lang='zh-tw'] body {
+  font-family: 'Noto Sans CJK TC', 'Source Han Sans TC', sans-serif;
+}

@@ -1,35 +1,49 @@
 import { ref, watch } from 'vue'
 
+const SETTINGS_KEY = 'unicucumber_settings'
+
 export function useSettings() {
-  const getCursorEffect = () => {
-    try {
-      return JSON.parse(localStorage.getItem('cursorEffect')) ?? true
-    } catch {
-      return true
-    }
+  const defaultSettings = {
+    glyphWidth: 16,
+    drawMode: 'singleButtonDraw',
+    cursorEffect: true,
   }
 
-  const drawMode = ref(localStorage.getItem('drawMode') || 'singleButtonDraw')
-  const cursorEffect = ref(getCursorEffect())
+  const loadSettings = () => {
+    try {
+      const stored = localStorage.getItem(SETTINGS_KEY)
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        // 确保所有必需的设置都存在
+        return {
+          ...defaultSettings,
+          ...parsed,
+          glyphWidth: parsed?.glyphWidth === 8 ? 8 : 16, // 确保宽度值有效
+        }
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error)
+    }
+    return defaultSettings
+  }
+
+  const settings = ref(loadSettings())
   const showSettings = ref(false)
 
-  watch([drawMode, cursorEffect], () => {
-    try {
-      localStorage.setItem('drawMode', drawMode.value)
-      localStorage.setItem('cursorEffect', JSON.stringify(cursorEffect.value))
-    } catch (error) {
-      console.error('Failed to save settings:', error)
-    }
-  })
-
-  const saveSettings = () => {
-    showSettings.value = false
-  }
+  watch(
+    () => settings.value,
+    (newSettings) => {
+      try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings))
+      } catch (error) {
+        console.error('Error saving settings:', error)
+      }
+    },
+    { deep: true },
+  )
 
   return {
-    drawMode,
-    cursorEffect,
+    settings,
     showSettings,
-    saveSettings,
   }
 }
