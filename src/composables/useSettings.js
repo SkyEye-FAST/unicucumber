@@ -1,37 +1,38 @@
 import { ref, watch } from 'vue'
 
 export function useSettings() {
-  const getGlyphWidth = () => {
-    const width = parseInt(localStorage.getItem('glyphWidth')) || 16
-    return width === 8 || width === 16 ? width : 16
+  const getValidWidth = (width) => {
+    const parsed = parseInt(width)
+    return parsed === 8 || parsed === 16 ? parsed : 16
   }
 
-  const drawMode = ref(localStorage.getItem('drawMode') || 'singleButtonDraw')
-  const cursorEffect = ref(
-    JSON.parse(localStorage.getItem('cursorEffect') ?? 'true'),
-  )
-  const glyphWidth = ref(getGlyphWidth())
-  const showSettings = ref(false)
-
-  watch([drawMode, cursorEffect, glyphWidth], () => {
-    try {
-      localStorage.setItem('drawMode', drawMode.value)
-      localStorage.setItem('cursorEffect', JSON.stringify(cursorEffect.value))
-      localStorage.setItem('glyphWidth', glyphWidth.value.toString())
-    } catch (error) {
-      console.error('Failed to save settings:', error)
-    }
+  const settings = ref({
+    drawMode: localStorage.getItem('drawMode') || 'singleButtonDraw',
+    cursorEffect: JSON.parse(localStorage.getItem('cursorEffect') ?? 'true'),
+    glyphWidth: getValidWidth(localStorage.getItem('glyphWidth')),
   })
 
-  const saveSettings = () => {
-    showSettings.value = false
-  }
+  const showSettings = ref(false)
+
+  watch(
+    () => settings.value,
+    (newSettings) => {
+      try {
+        Object.entries(newSettings).forEach(([key, value]) => {
+          localStorage.setItem(
+            key,
+            typeof value === 'boolean' ? JSON.stringify(value) : value,
+          )
+        })
+      } catch (error) {
+        console.error('Failed to save settings:', error)
+      }
+    },
+    { deep: true },
+  )
 
   return {
-    drawMode,
-    cursorEffect,
-    glyphWidth,
+    settings,
     showSettings,
-    saveSettings,
   }
 }

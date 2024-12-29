@@ -4,19 +4,13 @@
       @openSettings="showSettings = true"
       @toggleSidebar="toggleSidebar"
     />
-    <SettingsModal
-      v-model:show="showSettings"
-      v-model:drawMode="drawMode"
-      v-model:cursorEffect="cursorEffect"
-      v-model:glyphWidth="glyphWidth"
-      @save="saveSettings"
-    />
+    <SettingsModal v-model="showSettings" v-model:settings="settings" />
 
     <GlyphGrid
       :gridData="gridData"
-      :drawMode="drawMode"
+      :drawMode="settings.drawMode"
       :drawValue="drawValue"
-      :cursorEffect="cursorEffect"
+      :cursorEffect="settings.cursorEffect"
       @update:cell="updateCell"
     />
 
@@ -77,7 +71,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
 import EditorHeader from './EditorHeader.vue'
 import SettingsModal from './SettingsModal.vue'
 import GlyphGrid from './GlyphGrid.vue'
@@ -92,9 +86,11 @@ import { useHistory } from '@/composables/useHistory'
 import { useSidebar } from '@/composables/useSidebar'
 import { hexToGrid } from '@/utils/hexUtils'
 
-const { drawMode, cursorEffect, showSettings, saveSettings, glyphWidth } =
-  useSettings()
-const { gridData, resetGrid, updateGrid } = useGridData(glyphWidth.value)
+const { settings, showSettings } = useSettings()
+
+const { gridData, resetGrid, updateGrid } = useGridData(
+  computed(() => settings.value.glyphWidth),
+)
 const { hexCode, updateHexCode, updateGridFromHex } = useHexCode(
   gridData,
   resetGrid,
@@ -137,10 +133,13 @@ const clearPrefillData = () => {
   prefillData.value = null
 }
 
-watch(glyphWidth, (newWidth) => {
-  updateGrid(newWidth)
-  updateHexCode()
-})
+watch(
+  () => settings.value.glyphWidth,
+  (newWidth) => {
+    updateGrid(newWidth)
+    updateHexCode()
+  },
+)
 
 const { pushState, undo, redo, canUndo, canRedo } = useHistory(gridData.value)
 
