@@ -62,7 +62,6 @@ defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'update:gl
 }
 
 .settings-modal {
-  font-family: "Noto Sans", sans-serif;
   position: fixed;
   top: 50%;
   left: 50%;

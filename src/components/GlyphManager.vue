@@ -29,8 +29,8 @@
         <div class="input-group">
           <input v-model="newGlyph.codePoint" :placeholder="$t('glyph_manager.add.code_point')" class="input"
             @input="$event.target.value = $event.target.value.toUpperCase()" />
-          <input v-if="!prefillData" v-model="newGlyph.hexValue" :placeholder="$t('glyph_manager.add.hex_value')" class="input"
-            @input="$event.target.value = $event.target.value.toUpperCase()" />
+          <input v-if="!prefillData" v-model="newGlyph.hexValue" :placeholder="$t('glyph_manager.add.hex_value')"
+            class="input" @input="$event.target.value = $event.target.value.toUpperCase()" />
           <div v-else class="hex-preview">
             <span class="hex-value">{{ prefillData.hexValue }}</span>
           </div>
@@ -266,7 +266,6 @@ onMounted(() => {
 
 <style scoped>
 .glyph-manager {
-  font-family: 'Noto Sans', sans-serif;
   padding: 16px;
   height: 100%;
   display: flex;

@@ -1,5 +1,10 @@
-@import url('https://fonts.font.im/css2?family=family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.font.im/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+/* Maple Mono NF CN */
 @import url('https://static.zeoseven.com/zsft/442/main/result.css');
+/* Noto Sans CJK SC */
+@import url('https://static.zeoseven.com/zsft/69/main/result.css');
+/* Noto Sans CJK TC */
+@import url('https://static.zeoseven.com/zsft/188/main/result.css');
 
 .material-symbols-outlined {
   font-variation-settings:
