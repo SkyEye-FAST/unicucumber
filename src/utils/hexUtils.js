@@ -23,3 +23,20 @@ export const hexToGrid = (hexStr) => {
 export const deepCloneGrid = (grid) => {
   return grid.map((row) => [...row])
 }
+
+export const gridToHex = (grid) => {
+  if (!grid || !grid.length) return ''
+
+  const binary = grid
+    .flat()
+    .map((cell) => (cell ? '1' : '0'))
+    .join('')
+
+  const hexStr = []
+  for (let i = 0; i < binary.length; i += 4) {
+    const chunk = binary.slice(i, i + 4)
+    hexStr.push(parseInt(chunk.padEnd(4, '0'), 2).toString(16))
+  }
+
+  return hexStr.join('').toUpperCase()
+}

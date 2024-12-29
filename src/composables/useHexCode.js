@@ -1,27 +1,12 @@
 import { ref, watch } from 'vue'
+import { gridToHex } from '@/utils/hexUtils'
 
 export function useHexCode(gridData, resetGrid) {
-  const hexCode = ref('')
+  const hexCode = ref('0'.repeat(64))
 
   const updateHexCode = () => {
-    const width = gridData.value[0].length
-
-    const binaryString = gridData.value
-      .map((row) =>
-        row
-          .slice(0, width)
-          .map((cell) => (cell === 1 ? '1' : '0'))
-          .join(''),
-      )
-      .join('')
-
-    const hex = []
-    for (let i = 0; i < binaryString.length; i += 4) {
-      const chunk = binaryString.slice(i, i + 4)
-      hex.push(parseInt(chunk.padEnd(4, '0'), 2).toString(16).toUpperCase())
-    }
-
-    hexCode.value = hex.join('')
+    if (!gridData.value || !gridData.value.length) return
+    hexCode.value = gridToHex(gridData.value)
   }
 
   const updateGridFromHex = () => {
@@ -54,7 +39,13 @@ export function useHexCode(gridData, resetGrid) {
     }
   }
 
-  watch(gridData, updateHexCode, { deep: true })
+  watch(
+    gridData,
+    () => {
+      updateHexCode()
+    },
+    { deep: true, immediate: true },
+  )
 
   return {
     hexCode,

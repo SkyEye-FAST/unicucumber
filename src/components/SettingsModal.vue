@@ -53,7 +53,7 @@
         @change="
           $emit('update:settings', {
             ...settings,
-            glyphWidth: $event.target.value,
+            glyphWidth: parseInt($event.target.value), // 确保转换为数字
           })
         "
       >
@@ -80,7 +80,7 @@ defineProps({
   },
 })
 
-defineEmits(['update:modelValue'])
+defineEmits(['update:modelValue', 'update:settings'])
 </script>
 
 <style scoped>

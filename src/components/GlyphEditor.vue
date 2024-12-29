@@ -4,7 +4,11 @@
       @openSettings="showSettings = true"
       @toggleSidebar="toggleSidebar"
     />
-    <SettingsModal v-model="showSettings" v-model:settings="settings" />
+    <SettingsModal
+      v-model="showSettings"
+      :settings="settings"
+      @update:settings="updateSettings"
+    />
 
     <GlyphGrid
       :gridData="gridData"
@@ -90,10 +94,8 @@ import { useSidebar } from '@/composables/useSidebar'
 import { hexToGrid } from '@/utils/hexUtils'
 
 const { settings, showSettings } = useSettings()
-
-const { gridData, resetGrid, updateGrid } = useGridData(
-  computed(() => settings.value.glyphWidth),
-)
+const width = computed(() => settings.value.glyphWidth)
+const { gridData, resetGrid, updateGrid } = useGridData(width)
 const { hexCode, updateHexCode, updateGridFromHex } = useHexCode(
   gridData,
   resetGrid,
@@ -195,7 +197,12 @@ const handleCloseSidebar = () => {
   isSidebarActive.value = false
 }
 
+const updateSettings = (newSettings) => {
+  Object.assign(settings.value, newSettings)
+}
+
 onMounted(() => {
+  resetGrid(settings.value.glyphWidth)
   updateHexCode()
   document.addEventListener('contextmenu', preventDefault)
   document.addEventListener('keydown', handleKeydown)
