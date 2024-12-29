@@ -994,4 +994,73 @@ onMounted(() => {
 .btn-import:hover:not(:disabled) {
   background: var(--primary-dark);
 }
+
+@media (orientation: portrait) and (min-width: 768px) {
+  .glyph-manager {
+    padding: 24px;
+    gap: 24px;
+  }
+
+  .title {
+    font-size: 2.5rem;
+  }
+
+  .search-box {
+    width: 65%;
+  }
+
+  .search-input {
+    font-size: 1.4rem;
+    padding: 16px;
+  }
+
+  .input {
+    font-size: 1.5rem;
+    padding: 12px;
+  }
+
+  .button-group {
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .btn-add,
+  .btn-import,
+  .btn-clear,
+  .btn-upload,
+  .btn-export {
+    font-size: 1.5rem;
+    padding: 12px 24px;
+  }
+
+  .glyph-card {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .glyph-preview {
+    flex: 0 0 80px;
+    width: 80px;
+    height: 80px;
+    font-size: 2.5rem;
+  }
+
+  .glyph-info {
+    font-size: 1.5rem;
+  }
+
+  .btn-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .btn-icon .material-symbols-outlined {
+    font-size: 36px !important;
+  }
+
+  .hex-preview {
+    padding: 12px 16px;
+    font-size: 1.8rem;
+  }
+}
 </style>

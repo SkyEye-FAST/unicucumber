@@ -77,10 +77,18 @@ const updateDrawValue = (value) => {
 }
 
 @media (orientation: portrait) and (min-width: 1024px) {
+  .tool-buttons {
+    margin: 1.2rem;
+  }
+
   .tool-button {
-    padding: 12px 24px;
+    padding: 16px 24px;
     font-size: 3em;
     width: 8em;
+  }
+
+  .tool-button .material-symbols-outlined {
+    font-size: 1em !important;
   }
 }
 </style>

@@ -112,15 +112,16 @@ const copyHex = async () => {
 @media (orientation: portrait) and (min-width: 1024px) {
   .hex-code-container {
     width: 48em;
+    margin: 1rem;
   }
 
   .hex-input {
-    padding: 12px 0;
+    padding: 16px 0;
     font-size: 2.2em;
   }
 
   .copy-button {
-    padding: 15px 35px;
+    padding: 16px 35px;
     font-size: 2.5em;
   }
 }

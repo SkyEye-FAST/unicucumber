@@ -74,7 +74,7 @@ const downloadFile = async (format) => {
   font-size: 1.2em;
   font-weight: 600;
   margin: 0 16px;
-  padding: 5px 0;
+  padding: 8px 0;
   border: transparent 2px solid;
   background-color: var(--primary-color);
   color: white;
@@ -109,6 +109,10 @@ const downloadFile = async (format) => {
   .download-button {
     font-size: 2.5em;
     width: 5em;
+  }
+
+  .download-button .material-symbols-outlined {
+    font-size: 1.5em !important;
   }
 }
 </style>

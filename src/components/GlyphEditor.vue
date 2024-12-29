@@ -243,7 +243,7 @@ onBeforeUnmount(() => {
 }
 
 .editor-actions {
-  margin: 1rem;
+  margin: 1.5rem 1rem 1rem;
   display: flex;
   gap: 16px;
   justify-content: center;
@@ -353,7 +353,21 @@ onBeforeUnmount(() => {
   }
 
   .btn-close-sidebar .material-symbols-outlined {
-    font-size: 24px;
+    font-size: 24px !important;
+  }
+
+  .sidebar {
+    width: 100%;
+  }
+
+  .sidebar-resizer {
+    display: none;
+  }
+
+  .btn-close-sidebar {
+    top: 12px;
+    right: 12px;
+    padding: 12px;
   }
 
   .editor-actions {
@@ -377,6 +391,20 @@ onBeforeUnmount(() => {
 }
 
 @media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
+  .btn-close-sidebar {
+    padding: 12px;
+  }
+
+  .btn-close-sidebar .material-symbols-outlined {
+    font-size: 36px !important;
+  }
+
+  .btn-close-sidebar {
+    top: 12px;
+    right: 12px;
+    padding: 12px;
+  }
+
   .editor-actions {
     margin: 1.5rem 1.5rem 1rem;
   }
@@ -398,7 +426,7 @@ onBeforeUnmount(() => {
 
 @media (orientation: portrait) and (min-width: 1024px) {
   .editor-actions {
-    margin: 1.5rem 1.5rem 1rem;
+    margin: 1.8rem 1.5rem 1rem;
   }
 
   .action-button {

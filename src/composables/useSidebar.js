@@ -2,15 +2,17 @@ import { ref } from 'vue'
 
 export function useSidebar() {
   const isSidebarActive = ref(false)
-  const sidebarWidth = ref(400)
-  const minWidth = 300
-  const maxWidth = 800
+  const sidebarWidth = ref(window.innerWidth >= 768 ? 800 : 400)
+  const minWidth = window.innerWidth >= 768 ? 500 : 300
+  const maxWidth = window.innerWidth >= 768 ? 1000 : 800
 
   const toggleSidebar = () => {
     isSidebarActive.value = !isSidebarActive.value
   }
 
   const startResize = (e) => {
+    if (window.innerWidth <= 768) return
+
     const startX = e.clientX
     const startWidth = sidebarWidth.value
 
