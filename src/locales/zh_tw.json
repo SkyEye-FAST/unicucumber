@@ -18,18 +18,18 @@
   "glyph_manager": {
     "title": "字形管理器",
     "search": "搜尋字形...",
-    "import": "從Unifont讀取",
+    "import": "從 Unifont 讀取",
     "export": "匯出字形",
     "upload": {
-      "hex_file": "上傳Hex檔案",
+      "hex_file": "上傳 Hex 檔案",
       "image_file": "上傳字形圖片",
       "image_error": "圖片載入失敗",
-      "invalid_dimensions": "圖片尺寸必須為8x16或16x16像素",
+      "invalid_dimensions": "圖片尺寸必須為 8x16 或 16x16 像素",
       "not_monochrome": "圖片必須為黑白色"
     },
     "add": {
-      "code_point": "輸入Unicode碼位 (例如：4E00)",
-      "hex_value": "輸入16進制字形資料 (32或64位)",
+      "code_point": "輸入 Unicode 碼位 (例如：4E00)",
+      "hex_value": "輸入 16 進制字形資料 (32 或 64 位)",
       "add_button": "添加字形",
       "update_button": "更新字形",
       "clear_button": "清除"
@@ -40,15 +40,26 @@
       "cancel": "取消"
     },
     "glyph": {
-      "code_point": "碼位:",
-      "hex": "Hex:",
+      "code_point": "碼位：",
+      "hex": "Hex：",
       "edit": "編輯",
       "delete": "刪除",
       "edit_in_grid": "點擊編輯字形：U+{codePoint}"
+    },
+    "validation": {
+      "enter_code_point": "請輸入 Unicode 碼位",
+      "invalid_code_point": "碼位必須是 4-6 位 16 進制數",
+      "invalid_hex": "請輸入有效的 16 進制字形資料 (32 或 64 位)",
+      "add_glyph": "添加字形"
+    },
+    "error": {
+      "loading_unifont": "載入 Unifont 資料出錯",
+      "loading_storage": "從存儲載入字形時出錯",
+      "saving_storage": "保存字形到存儲時出錯"
     }
   },
   "hex_input": {
-    "placeholder": "輸入16進制字形資料 (32或64位)",
+    "placeholder": "輸入 16 進制字形資料 (32 或 64 位)",
     "copy": "複製"
   },
   "editor": {

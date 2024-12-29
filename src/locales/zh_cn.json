@@ -45,6 +45,17 @@
       "edit": "编辑",
       "delete": "删除",
       "edit_in_grid": "点击编辑字形：U+{codePoint}"
+    },
+    "validation": {
+      "enter_code_point": "请输入Unicode码位",
+      "invalid_code_point": "码位必须是4-6位16进制数",
+      "invalid_hex": "请输入有效的16进制字形数据 (32或64位)",
+      "add_glyph": "添加字形"
+    },
+    "error": {
+      "loading_unifont": "加载Unifont数据出错",
+      "loading_storage": "从存储加载字形时出错",
+      "saving_storage": "保存字形到存储时出错"
     }
   },
   "hex_input": {

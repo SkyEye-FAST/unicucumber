@@ -220,7 +220,7 @@ const loadStoredGlyphs = () => {
       props.onGlyphChange(parsedGlyphs)
     }
   } catch (error) {
-    console.error('Error loading glyphs from storage:', error)
+    console.error($t('glyph_manager.error.loading_storage'), error)
   }
 }
 
@@ -228,7 +228,7 @@ const saveGlyphsToStorage = (glyphs) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(glyphs))
   } catch (error) {
-    console.error('Error saving glyphs to storage:', error)
+    console.error($t('glyph_manager.error.saving_storage'), error)
   }
 }
 
@@ -241,16 +241,17 @@ const isValidInput = computed(() => {
 })
 
 const getAddButtonTitle = computed(() => {
-  if (!newGlyph.value.codePoint) return '请输入Unicode码点'
+  if (!newGlyph.value.codePoint)
+    return $t('glyph_manager.validation.enter_code_point')
   if (!/^[0-9A-Fa-f]{4,6}$/.test(newGlyph.value.codePoint))
-    return '码点必须是4-6位十六进制数'
+    return $t('glyph_manager.validation.invalid_code_point')
   if (
     !props.prefillData &&
     !/^[0-9A-Fa-f]{32}$|^[0-9A-Fa-f]{64}$/.test(newGlyph.value.hexValue)
   ) {
-    return '请输入有效的字形数据 (32位或64位十六进制)'
+    return $t('glyph_manager.validation.invalid_hex')
   }
-  return '添加字形'
+  return $t('glyph_manager.validation.add_glyph')
 })
 
 const addGlyph = () => {
@@ -403,7 +404,7 @@ const loadUnifontData = async () => {
 
     unifontMap.value = map
   } catch (error) {
-    console.error('Error loading unifont data:', error)
+    console.error($t('glyph_manager.error.loading_unifont'), error)
   }
 }
 

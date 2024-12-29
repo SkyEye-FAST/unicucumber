@@ -45,6 +45,17 @@
       "edit": "Edit",
       "delete": "Delete",
       "edit_in_grid": "Click to edit glyph: U+{codePoint}"
+    },
+    "validation": {
+      "enter_code_point": "Please enter Unicode code point",
+      "invalid_code_point": "Code point must be 4-6 hex digits",
+      "invalid_hex": "Please enter valid glyph data (32 or 64 hex digits)",
+      "add_glyph": "Add glyph"
+    },
+    "error": {
+      "loading_unifont": "Error loading Unifont data",
+      "loading_storage": "Error loading glyphs from storage",
+      "saving_storage": "Error saving glyphs to storage"
     }
   },
   "hex_input": {
