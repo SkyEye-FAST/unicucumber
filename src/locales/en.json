@@ -68,5 +68,28 @@
         "title": "Redo (Ctrl+Y)"
       }
     }
+  },
+  "dialog": {
+    "select_all": "Select All",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "hex_import": {
+      "title": "Duplicate Glyphs Found",
+      "message": "The following glyphs already exist, please select which ones to update:",
+      "confirm": "Update Selected",
+      "cancel": "Skip"
+    },
+    "image_error": {
+      "title": "Image Loading Error",
+      "message": "Failed to load image, please try again"
+    },
+    "dimension_error": {
+      "title": "Invalid Image Dimensions",
+      "message": "Image dimensions must be 16x16 or 8x16 pixels"
+    },
+    "format_error": {
+      "title": "Invalid Image Format",
+      "message": "Image must be black and white only"
+    }
   }
 }

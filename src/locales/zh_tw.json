@@ -68,5 +68,28 @@
         "title": "重做(Ctrl+Y)"
       }
     }
+  },
+  "dialog": {
+    "select_all": "全選",
+    "confirm": "確定",
+    "cancel": "取消",
+    "hex_import": {
+      "title": "發現重複的字形",
+      "message": "以下字形已存在，請選擇要更新的字形：",
+      "confirm": "更新選中",
+      "cancel": "跳過"
+    },
+    "image_error": {
+      "title": "圖片載入錯誤",
+      "message": "載入圖片時出錯，請重試"
+    },
+    "dimension_error": {
+      "title": "圖片尺寸錯誤",
+      "message": "圖片尺寸必須為 16x16 或 8x16 像素"
+    },
+    "format_error": {
+      "title": "圖片格式錯誤",
+      "message": "圖片必須為黑白雙色"
+    }
   }
 }

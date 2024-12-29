@@ -164,12 +164,27 @@
         </div>
       </div>
     </div>
+
+    <DialogBox
+      v-model:show="dialog.show"
+      :title="dialog.title"
+      :message="dialog.message"
+      :type="dialog.type"
+      :items="dialog.items"
+      :show-cancel="dialog.showCancel"
+      :confirm-text="dialog.confirmText"
+      :cancel-text="dialog.cancelText"
+      :danger="dialog.danger"
+      @confirm="dialog.onConfirm"
+      @cancel="dialog.onCancel"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, defineProps, watch, nextTick, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import DialogBox from './DialogBox.vue'
 const { t: $t } = useI18n()
 
 const props = defineProps({
@@ -425,18 +440,52 @@ const handleHexFileUpload = async (event) => {
   const text = await file.text()
   const lines = text.split('\n')
   const newGlyphs = []
+  const conflicts = []
 
   for (const line of lines) {
     if (line && line.includes(':')) {
       const [code, hex] = line.split(':')
-      newGlyphs.push({
-        codePoint: code.toUpperCase(),
-        hexValue: hex,
-      })
+      const codePoint = code.toUpperCase()
+      const existing = findExistingGlyph(codePoint)
+
+      if (existing) {
+        conflicts.push({ codePoint, hexValue: hex.trim() })
+      } else {
+        newGlyphs.push({ codePoint, hexValue: hex.trim() })
+      }
     }
   }
 
-  if (newGlyphs.length > 0) {
+  if (conflicts.length > 0) {
+    dialog.value = {
+      show: true,
+      title: $t('dialog.hex_import.title'),
+      message: $t('dialog.hex_import.message'),
+      type: 'list',
+      items: conflicts,
+      confirmText: $t('dialog.hex_import.confirm'),
+      cancelText: $t('dialog.hex_import.cancel'),
+      onConfirm: (selectedItems) => {
+        const updatedGlyphs = props.glyphs.map((g) => {
+          const selected = selectedItems.find(
+            (s) => s.codePoint === g.codePoint,
+          )
+          return selected ? selected : g
+        })
+
+        const finalGlyphs = [...updatedGlyphs, ...newGlyphs]
+        props.onGlyphChange(finalGlyphs)
+        saveGlyphsToStorage(finalGlyphs)
+        dialog.value.show = false
+      },
+      onCancel: () => {
+        const finalGlyphs = [...props.glyphs, ...newGlyphs]
+        props.onGlyphChange(finalGlyphs)
+        saveGlyphsToStorage(finalGlyphs)
+        dialog.value.show = false
+      },
+    }
+  } else if (newGlyphs.length > 0) {
     const updatedGlyphs = [...props.glyphs, ...newGlyphs]
     props.onGlyphChange(updatedGlyphs)
     saveGlyphsToStorage(updatedGlyphs)
@@ -446,10 +495,24 @@ const handleHexFileUpload = async (event) => {
 }
 
 const validateImageDimensions = (img) => {
-  return (
+  if (
     (img.width === 16 && img.height === 16) ||
     (img.width === 8 && img.height === 16)
-  )
+  ) {
+    return true
+  }
+
+  dialog.value = {
+    show: true,
+    title: $t('glyph_manager.upload.invalid_dimensions'),
+    message: $t('glyph_manager.upload.invalid_dimensions'),
+    type: 'alert',
+    showCancel: false,
+    onConfirm: () => {
+      dialog.value.show = false
+    },
+  }
+  return false
 }
 
 const validateMonochrome = (imageData) => {
@@ -459,15 +522,24 @@ const validateMonochrome = (imageData) => {
     const b = imageData.data[i + 2]
     const a = imageData.data[i + 3]
 
-    if (a > 0) {
-      if (
-        !(
-          (r === 0 && g === 0 && b === 0) ||
-          (r === 255 && g === 255 && b === 255)
-        )
-      ) {
-        return false
+    if (
+      a > 0 &&
+      !(
+        (r === 0 && g === 0 && b === 0) ||
+        (r === 255 && g === 255 && b === 255)
+      )
+    ) {
+      dialog.value = {
+        show: true,
+        title: $t('glyph_manager.upload.not_monochrome'),
+        message: $t('glyph_manager.upload.not_monochrome'),
+        type: 'alert',
+        showCancel: false,
+        onConfirm: () => {
+          dialog.value.show = false
+        },
       }
+      return false
     }
   }
   return true
@@ -491,7 +563,6 @@ const handleImageFileUpload = async (event) => {
     const img = await loadImage(file)
 
     if (!validateImageDimensions(img)) {
-      alert($t('glyph_manager.upload.invalid_dimensions'))
       event.target.value = ''
       return
     }
@@ -503,7 +574,6 @@ const handleImageFileUpload = async (event) => {
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
 
     if (!validateMonochrome(imageData)) {
-      alert($t('glyph_manager.upload.not_monochrome'))
       event.target.value = ''
       return
     }
@@ -541,7 +611,16 @@ const handleImageFileUpload = async (event) => {
     }
   } catch (error) {
     console.error('Error loading image:', error)
-    alert($t('glyph_manager.upload.image_error'))
+    dialog.value = {
+      show: true,
+      title: $t('glyph_manager.upload.image_error'),
+      message: $t('glyph_manager.upload.image_error'),
+      type: 'alert',
+      showCancel: false,
+      onConfirm: () => {
+        dialog.value.show = false
+      },
+    }
   }
 
   event.target.value = ''
@@ -555,6 +634,20 @@ const loadImage = (file) => {
     img.src = URL.createObjectURL(file)
   })
 }
+
+const dialog = ref({
+  show: false,
+  title: '',
+  message: '',
+  type: 'alert',
+  items: [],
+  showCancel: true,
+  confirmText: $t('dialog.confirm'),
+  cancelText: $t('dialog.cancel'),
+  danger: false,
+  onConfirm: () => {},
+  onCancel: () => {},
+})
 
 onMounted(() => {
   loadStoredGlyphs()
