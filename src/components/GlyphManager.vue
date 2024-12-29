@@ -651,7 +651,8 @@ onMounted(() => {
   background: var(--background-light);
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease;
+  transform-origin: center;
 }
 
 .glyph-preview:hover {
