@@ -22,7 +22,6 @@
     "upload": {
       "hex_file": "Upload Hex File",
       "image_file": "Upload Glyph Image",
-      "image_name_hint": "File name must be 4-6 hex digits representing the Unicode code point",
       "image_error": "Failed to load image",
       "invalid_dimensions": "Image dimensions must be 8x16 or 16x16 pixels",
       "not_monochrome": "Image must be black and white only"

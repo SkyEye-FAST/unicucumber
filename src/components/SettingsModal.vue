@@ -4,19 +4,35 @@
     <h2 class="modal-title">{{ $t('settings.title') }}</h2>
     <div class="setting-option">
       <label for="drawMode">{{ $t('settings.draw_mode.label') }}</label>
-      <select id="drawMode" :value="drawMode" @change="$emit('update:drawMode', $event.target.value)">
-        <option value="doubleButtonDraw">{{ $t('settings.draw_mode.double_button') }}</option>
-        <option value="singleButtonDraw">{{ $t('settings.draw_mode.single_button') }}</option>
+      <select
+        id="drawMode"
+        :value="drawMode"
+        @change="$emit('update:drawMode', $event.target.value)"
+      >
+        <option value="doubleButtonDraw">
+          {{ $t('settings.draw_mode.double_button') }}
+        </option>
+        <option value="singleButtonDraw">
+          {{ $t('settings.draw_mode.single_button') }}
+        </option>
       </select>
     </div>
     <div class="setting-option">
       <label for="cursorEffect">{{ $t('settings.cursor_effect') }}</label>
-      <input type="checkbox" id="cursorEffect" :checked="cursorEffect"
-        @change="$emit('update:cursorEffect', $event.target.checked)" />
+      <input
+        type="checkbox"
+        id="cursorEffect"
+        :checked="cursorEffect"
+        @change="$emit('update:cursorEffect', $event.target.checked)"
+      />
     </div>
     <div class="setting-option">
       <label for="glyphWidth">{{ $t('settings.glyph_width.label') }}</label>
-      <select id="glyphWidth" :value="glyphWidth" @change="$emit('update:glyphWidth', parseInt($event.target.value))">
+      <select
+        id="glyphWidth"
+        :value="glyphWidth"
+        @change="$emit('update:glyphWidth', parseInt($event.target.value))"
+      >
         <option value="8">{{ $t('settings.glyph_width.8px') }}</option>
         <option value="16">{{ $t('settings.glyph_width.16px') }}</option>
       </select>
@@ -31,23 +47,29 @@
 defineProps({
   show: {
     type: Boolean,
-    default: false
+    default: false,
   },
   drawMode: {
     type: String,
-    default: 'doubleButtonDraw'
+    default: 'doubleButtonDraw',
   },
   cursorEffect: {
     type: Boolean,
-    default: false
+    default: false,
   },
   glyphWidth: {
     type: Number,
-    default: 16
-  }
-});
+    default: 16,
+  },
+})
 
-defineEmits(['update:show', 'update:drawMode', 'update:cursorEffect', 'update:glyphWidth', 'save']);
+defineEmits([
+  'update:show',
+  'update:drawMode',
+  'update:cursorEffect',
+  'update:glyphWidth',
+  'save',
+])
 </script>
 
 <style scoped>

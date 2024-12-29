@@ -4,9 +4,17 @@
 
     <div class="toolbar">
       <div class="search-box">
-        <input v-model="searchQuery" :placeholder="$t('glyph_manager.search')" class="search-input" />
+        <input
+          v-model="searchQuery"
+          :placeholder="$t('glyph_manager.search')"
+          class="search-input"
+        />
       </div>
-      <button @click="exportToHex" class="btn-export" :disabled="!props.glyphs.length">
+      <button
+        @click="exportToHex"
+        class="btn-export"
+        :disabled="!props.glyphs.length"
+      >
         <span class="material-symbols-outlined">file_download</span>
         {{ $t('glyph_manager.export') }}
       </button>
@@ -14,7 +22,13 @@
 
     <div class="add-glyph">
       <div v-if="duplicateGlyph" class="duplicate-warning">
-        <p>{{ $t('glyph_manager.duplicate.warning', { codePoint: newGlyph.codePoint }) }}</p>
+        <p>
+          {{
+            $t('glyph_manager.duplicate.warning', {
+              codePoint: newGlyph.codePoint,
+            })
+          }}
+        </p>
         <div class="warning-actions">
           <button class="btn-warn" @click="updateExistingGlyph">
             {{ $t('glyph_manager.duplicate.update') }}
@@ -27,23 +41,49 @@
 
       <template v-else>
         <div class="input-group">
-          <input v-model="newGlyph.codePoint" :placeholder="$t('glyph_manager.add.code_point')" class="input"
-            @input="$event.target.value = $event.target.value.toUpperCase()" />
-          <input v-if="!prefillData" v-model="newGlyph.hexValue" :placeholder="$t('glyph_manager.add.hex_value')"
-            class="input" @input="$event.target.value = $event.target.value.toUpperCase()" />
+          <input
+            v-model="newGlyph.codePoint"
+            :placeholder="$t('glyph_manager.add.code_point')"
+            class="input"
+            @input="$event.target.value = $event.target.value.toUpperCase()"
+          />
+          <input
+            v-if="!prefillData"
+            v-model="newGlyph.hexValue"
+            :placeholder="$t('glyph_manager.add.hex_value')"
+            class="input"
+            @input="$event.target.value = $event.target.value.toUpperCase()"
+          />
           <div v-else class="hex-preview">
             <span class="hex-value">{{ prefillData.hexValue }}</span>
           </div>
         </div>
         <div class="button-group">
-          <button @click="handleAdd" class="btn-add" :disabled="!isValidInput" :title="getAddButtonTitle">
-            {{ editMode ? $t('glyph_manager.add.update_button') : $t('glyph_manager.add.add_button') }}
+          <button
+            @click="handleAdd"
+            class="btn-add"
+            :disabled="!isValidInput"
+            :title="getAddButtonTitle"
+          >
+            {{
+              editMode
+                ? $t('glyph_manager.add.update_button')
+                : $t('glyph_manager.add.add_button')
+            }}
           </button>
-          <button @click="importFromUnifont" class="btn-import" :disabled="!newGlyph.codePoint">
+          <button
+            @click="importFromUnifont"
+            class="btn-import"
+            :disabled="!newGlyph.codePoint"
+          >
             <span class="material-symbols-outlined">sync</span>
             {{ $t('glyph_manager.import') }}
           </button>
-          <button v-if="!editMode && (newGlyph.hexValue || prefillData)" @click="clearForm" class="btn-clear">
+          <button
+            v-if="!editMode && (newGlyph.hexValue || prefillData)"
+            @click="clearForm"
+            class="btn-clear"
+          >
             {{ $t('glyph_manager.add.clear_button') }}
           </button>
         </div>
@@ -61,20 +101,44 @@
           {{ $t('glyph_manager.upload.image_file') }}
         </button>
       </div>
-      <input type="file" ref="hexFileInput" @change="handleHexFileUpload" accept=".hex" style="display: none" />
-      <input type="file" ref="imageFileInput" @change="handleImageFileUpload" accept=".png,.jpg,.jpeg,.bmp"
-        style="display: none" />
+      <input
+        type="file"
+        ref="hexFileInput"
+        @change="handleHexFileUpload"
+        accept=".hex"
+        style="display: none"
+      />
+      <input
+        type="file"
+        ref="imageFileInput"
+        @change="handleImageFileUpload"
+        accept=".png,.jpg,.jpeg,.bmp"
+        style="display: none"
+      />
     </div>
 
     <div class="glyph-list">
-      <div v-for="glyph in filteredGlyphs" :key="glyph.codePoint" class="glyph-card">
-        <div class="glyph-preview" @click="handleEditInGrid(glyph)"
-          :title="$t('glyph_manager.glyph.edit_in_grid', { codePoint: glyph.codePoint })">
+      <div
+        v-for="glyph in filteredGlyphs"
+        :key="glyph.codePoint"
+        class="glyph-card"
+      >
+        <div
+          class="glyph-preview"
+          @click="handleEditInGrid(glyph)"
+          :title="
+            $t('glyph_manager.glyph.edit_in_grid', {
+              codePoint: glyph.codePoint,
+            })
+          "
+        >
           {{ String.fromCodePoint(parseInt(glyph.codePoint, 16)) }}
         </div>
         <div class="glyph-info">
           <div class="info-row">
-            <span class="info-label">{{ $t('glyph_manager.glyph.code_point') }}</span>
+            <span class="info-label">{{
+              $t('glyph_manager.glyph.code_point')
+            }}</span>
             <span class="info-value">U+{{ glyph.codePoint }}</span>
           </div>
           <div class="info-row">
@@ -83,10 +147,18 @@
           </div>
         </div>
         <div class="glyph-actions">
-          <button @click="editGlyph(glyph)" class="btn-icon" :title="$t('glyph_manager.glyph.edit')">
+          <button
+            @click="editGlyph(glyph)"
+            class="btn-icon"
+            :title="$t('glyph_manager.glyph.edit')"
+          >
             <span class="material-symbols-outlined">edit</span>
           </button>
-          <button @click="removeGlyph(glyph.codePoint)" class="btn-icon" :title="$t('glyph_manager.glyph.delete')">
+          <button
+            @click="removeGlyph(glyph.codePoint)"
+            class="btn-icon"
+            :title="$t('glyph_manager.glyph.delete')"
+          >
             <span class="material-symbols-outlined">delete</span>
           </button>
         </div>
@@ -96,381 +168,398 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps, watch, nextTick, onMounted } from 'vue';
-import { useI18n } from 'vue-i18n';
-const { t: $t } = useI18n();
+import { ref, computed, defineProps, watch, nextTick, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+const { t: $t } = useI18n()
 
 const props = defineProps({
   glyphs: {
     type: Array,
-    required: true
+    required: true,
   },
   onGlyphChange: {
     type: Function,
-    required: true
+    required: true,
   },
   prefillData: {
     type: Object,
-    default: null
-  }
-});
+    default: null,
+  },
+})
 
-const emit = defineEmits(['edit-in-grid', 'clear-prefill']);
+const emit = defineEmits(['edit-in-grid', 'clear-prefill'])
 
-const newGlyph = ref({ codePoint: '', hexValue: '' });
-const searchQuery = ref('');
-const editMode = ref(false);
-const duplicateGlyph = ref(null);
-const unifontMap = ref({});
+const newGlyph = ref({ codePoint: '', hexValue: '' })
+const searchQuery = ref('')
+const editMode = ref(false)
+const duplicateGlyph = ref(null)
+const unifontMap = ref({})
 
-const STORAGE_KEY = 'unicucumber_glyphs';
+const STORAGE_KEY = 'unicucumber_glyphs'
 
 const loadStoredGlyphs = () => {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
-      const parsedGlyphs = JSON.parse(stored);
-      props.onGlyphChange(parsedGlyphs);
+      const parsedGlyphs = JSON.parse(stored)
+      props.onGlyphChange(parsedGlyphs)
     }
   } catch (error) {
-    console.error('Error loading glyphs from storage:', error);
+    console.error('Error loading glyphs from storage:', error)
   }
-};
+}
 
 const saveGlyphsToStorage = (glyphs) => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(glyphs));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(glyphs))
   } catch (error) {
-    console.error('Error saving glyphs to storage:', error);
+    console.error('Error saving glyphs to storage:', error)
   }
-};
+}
 
 const isValidInput = computed(() => {
-  const isValidCodePoint = /^[0-9A-Fa-f]{4,6}$/.test(newGlyph.value.codePoint);
-  const hasValidHex = (props.prefillData && props.prefillData.hexValue) ||
-    (/^[0-9A-Fa-f]{32}$|^[0-9A-Fa-f]{64}$/.test(newGlyph.value.hexValue));
-  return isValidCodePoint && hasValidHex;
-});
+  const isValidCodePoint = /^[0-9A-Fa-f]{4,6}$/.test(newGlyph.value.codePoint)
+  const hasValidHex =
+    (props.prefillData && props.prefillData.hexValue) ||
+    /^[0-9A-Fa-f]{32}$|^[0-9A-Fa-f]{64}$/.test(newGlyph.value.hexValue)
+  return isValidCodePoint && hasValidHex
+})
 
 const getAddButtonTitle = computed(() => {
-  if (!newGlyph.value.codePoint) return '请输入Unicode码点';
-  if (!/^[0-9A-Fa-f]{4,6}$/.test(newGlyph.value.codePoint)) return '码点必须是4-6位十六进制数';
-  if (!props.prefillData && !/^[0-9A-Fa-f]{32}$|^[0-9A-Fa-f]{64}$/.test(newGlyph.value.hexValue)) {
-    return '请输入有效的字形数据 (32位或64位十六进制)';
+  if (!newGlyph.value.codePoint) return '请输入Unicode码点'
+  if (!/^[0-9A-Fa-f]{4,6}$/.test(newGlyph.value.codePoint))
+    return '码点必须是4-6位十六进制数'
+  if (
+    !props.prefillData &&
+    !/^[0-9A-Fa-f]{32}$|^[0-9A-Fa-f]{64}$/.test(newGlyph.value.hexValue)
+  ) {
+    return '请输入有效的字形数据 (32位或64位十六进制)'
   }
-  return '添加字形';
-});
+  return '添加字形'
+})
 
 const addGlyph = () => {
-  if (!isValidInput.value) return;
+  if (!isValidInput.value) return
 
-  const hexValue = props.prefillData ? props.prefillData.hexValue : newGlyph.value.hexValue;
+  const hexValue = props.prefillData
+    ? props.prefillData.hexValue
+    : newGlyph.value.hexValue
   const updatedGlyphs = [
     ...props.glyphs,
     {
       codePoint: newGlyph.value.codePoint,
-      hexValue: hexValue
-    }
-  ];
+      hexValue: hexValue,
+    },
+  ]
 
-  props.onGlyphChange(updatedGlyphs);
-  saveGlyphsToStorage(updatedGlyphs);
-  clearForm();
-};
+  props.onGlyphChange(updatedGlyphs)
+  saveGlyphsToStorage(updatedGlyphs)
+  clearForm()
+}
 
 const findExistingGlyph = (codePoint) => {
-  return props.glyphs.find(g => g.codePoint.toLowerCase() === codePoint.toLowerCase());
-};
+  return props.glyphs.find(
+    (g) => g.codePoint.toLowerCase() === codePoint.toLowerCase(),
+  )
+}
 
 const handleAdd = () => {
-  if (!isValidInput.value) return;
+  if (!isValidInput.value) return
 
-  const existing = findExistingGlyph(newGlyph.value.codePoint);
+  const existing = findExistingGlyph(newGlyph.value.codePoint)
   if (existing && !editMode.value) {
-    duplicateGlyph.value = existing;
-    return;
+    duplicateGlyph.value = existing
+    return
   }
 
-  addGlyph();
-};
+  addGlyph()
+}
 
 const updateExistingGlyph = () => {
-  const hexValue = props.prefillData ? props.prefillData.hexValue : newGlyph.value.hexValue;
-  const updatedGlyphs = props.glyphs.map(g =>
+  const hexValue = props.prefillData
+    ? props.prefillData.hexValue
+    : newGlyph.value.hexValue
+  const updatedGlyphs = props.glyphs.map((g) =>
     g.codePoint.toLowerCase() === newGlyph.value.codePoint.toLowerCase()
       ? { ...g, hexValue }
-      : g
-  );
+      : g,
+  )
 
-  props.onGlyphChange(updatedGlyphs);
-  saveGlyphsToStorage(updatedGlyphs);
-  clearForm();
-};
+  props.onGlyphChange(updatedGlyphs)
+  saveGlyphsToStorage(updatedGlyphs)
+  clearForm()
+}
 
 const cancelAdd = () => {
-  duplicateGlyph.value = null;
-  clearForm();
-};
+  duplicateGlyph.value = null
+  clearForm()
+}
 
 const clearForm = () => {
-  newGlyph.value = { codePoint: '', hexValue: '' };
-  duplicateGlyph.value = null;
-  editMode.value = false;
+  newGlyph.value = { codePoint: '', hexValue: '' }
+  duplicateGlyph.value = null
+  editMode.value = false
 
-  emit('clear-prefill');
-};
+  emit('clear-prefill')
+}
 
-watch(() => props.prefillData, (newData) => {
-  if (newData) {
-    nextTick(() => {
-      const codePointInput = document.querySelector('.add-glyph input');
-      if (codePointInput) {
-        codePointInput.focus();
-      }
-    });
-  }
-}, { immediate: true });
+watch(
+  () => props.prefillData,
+  (newData) => {
+    if (newData) {
+      nextTick(() => {
+        const codePointInput = document.querySelector('.add-glyph input')
+        if (codePointInput) {
+          codePointInput.focus()
+        }
+      })
+    }
+  },
+  { immediate: true },
+)
 
 const filteredGlyphs = computed(() => {
-  const query = searchQuery.value.toLowerCase();
+  const query = searchQuery.value.toLowerCase()
   return props.glyphs
-    .filter(glyph =>
-      glyph.codePoint.toLowerCase().includes(query) ||
-      glyph.hexValue.toLowerCase().includes(query)
+    .filter(
+      (glyph) =>
+        glyph.codePoint.toLowerCase().includes(query) ||
+        glyph.hexValue.toLowerCase().includes(query),
     )
     .sort((a, b) => {
-      const codePointA = parseInt(a.codePoint, 16);
-      const codePointB = parseInt(b.codePoint, 16);
-      return codePointA - codePointB;
-    });
-});
+      const codePointA = parseInt(a.codePoint, 16)
+      const codePointB = parseInt(b.codePoint, 16)
+      return codePointA - codePointB
+    })
+})
 
 const removeGlyph = (codePoint) => {
-  const updatedGlyphs = props.glyphs.filter(glyph => glyph.codePoint !== codePoint);
-  props.onGlyphChange(updatedGlyphs);
-  saveGlyphsToStorage(updatedGlyphs);
-};
+  const updatedGlyphs = props.glyphs.filter(
+    (glyph) => glyph.codePoint !== codePoint,
+  )
+  props.onGlyphChange(updatedGlyphs)
+  saveGlyphsToStorage(updatedGlyphs)
+}
 
 const editGlyph = (glyph) => {
-  newGlyph.value = { ...glyph };
-  editMode.value = true;
-  removeGlyph(glyph.codePoint);
-};
+  newGlyph.value = { ...glyph }
+  editMode.value = true
+  removeGlyph(glyph.codePoint)
+}
 
 const handleEditInGrid = (glyph) => {
   console.log('Editing glyph:', {
     codePoint: glyph.codePoint,
-    hexValue: glyph.hexValue
-  });
-  emit('edit-in-grid', glyph.hexValue);
-};
+    hexValue: glyph.hexValue,
+  })
+  emit('edit-in-grid', glyph.hexValue)
+}
 
 const exportToHex = () => {
   const hexContent = props.glyphs
-    .map(glyph => `${glyph.codePoint}:${glyph.hexValue}`)
-    .join('\n');
+    .map((glyph) => `${glyph.codePoint}:${glyph.hexValue}`)
+    .join('\n')
 
-  const blob = new Blob([hexContent], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
+  const blob = new Blob([hexContent], { type: 'text/plain' })
+  const url = URL.createObjectURL(blob)
 
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'glyphs.hex';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-};
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'glyphs.hex'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
 
 const loadUnifontData = async () => {
   try {
-    const response = await fetch('/unifont-16.0.02.hex');
-    const text = await response.text();
-    const lines = text.split('\n');
-    const map = {};
+    const response = await fetch('/unifont-16.0.02.hex')
+    const text = await response.text()
+    const lines = text.split('\n')
+    const map = {}
 
     for (const line of lines) {
       if (line && line.includes(':')) {
-        const [code, hex] = line.split(':');
-        map[parseInt(code, 16)] = hex.trim();
+        const [code, hex] = line.split(':')
+        map[parseInt(code, 16)] = hex.trim()
       }
     }
 
-    unifontMap.value = map;
+    unifontMap.value = map
   } catch (error) {
-    console.error('Error loading unifont data:', error);
+    console.error('Error loading unifont data:', error)
   }
-};
+}
 
 const importFromUnifont = () => {
-  if (!newGlyph.value.codePoint) return;
+  if (!newGlyph.value.codePoint) return
 
-  const codePoint = parseInt(newGlyph.value.codePoint, 16);
-  const hexValue = unifontMap.value[codePoint];
+  const codePoint = parseInt(newGlyph.value.codePoint, 16)
+  const hexValue = unifontMap.value[codePoint]
 
   if (hexValue) {
     if (props.prefillData) {
-      emit('edit-in-grid', hexValue);
+      emit('edit-in-grid', hexValue)
     } else {
-      newGlyph.value.hexValue = hexValue;
+      newGlyph.value.hexValue = hexValue
     }
   }
-};
+}
 
-const hexFileInput = ref(null);
-const imageFileInput = ref(null);
+const hexFileInput = ref(null)
+const imageFileInput = ref(null)
 
 const triggerFileUpload = (type) => {
   if (type === 'hex') {
-    hexFileInput.value.click();
+    hexFileInput.value.click()
   } else {
-    imageFileInput.value.click();
+    imageFileInput.value.click()
   }
-};
+}
 
 const handleHexFileUpload = async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
+  const file = event.target.files[0]
+  if (!file) return
 
-  const text = await file.text();
-  const lines = text.split('\n');
-  const newGlyphs = [];
+  const text = await file.text()
+  const lines = text.split('\n')
+  const newGlyphs = []
 
   for (const line of lines) {
     if (line && line.includes(':')) {
-      const [code, hex] = line.split(':');
+      const [code, hex] = line.split(':')
       newGlyphs.push({
         codePoint: code.toUpperCase(),
-        hexValue: hex
-      });
+        hexValue: hex,
+      })
     }
   }
 
   if (newGlyphs.length > 0) {
-    const updatedGlyphs = [...props.glyphs, ...newGlyphs];
-    props.onGlyphChange(updatedGlyphs);
-    saveGlyphsToStorage(updatedGlyphs);
+    const updatedGlyphs = [...props.glyphs, ...newGlyphs]
+    props.onGlyphChange(updatedGlyphs)
+    saveGlyphsToStorage(updatedGlyphs)
   }
 
-  event.target.value = '';
-};
+  event.target.value = ''
+}
 
 const validateImageDimensions = (img) => {
   return (
     (img.width === 16 && img.height === 16) ||
     (img.width === 8 && img.height === 16)
-  );
-};
+  )
+}
 
 const validateMonochrome = (imageData) => {
   for (let i = 0; i < imageData.data.length; i += 4) {
-    const r = imageData.data[i];
-    const g = imageData.data[i + 1];
-    const b = imageData.data[i + 2];
-    const a = imageData.data[i + 3];
+    const r = imageData.data[i]
+    const g = imageData.data[i + 1]
+    const b = imageData.data[i + 2]
+    const a = imageData.data[i + 3]
 
     if (a > 0) {
-      if (!(
-        (r === 0 && g === 0 && b === 0) ||
-        (r === 255 && g === 255 && b === 255)
-      )) {
-        return false;
+      if (
+        !(
+          (r === 0 && g === 0 && b === 0) ||
+          (r === 255 && g === 255 && b === 255)
+        )
+      ) {
+        return false
       }
     }
   }
-  return true;
-};
+  return true
+}
 
 const handleImageFileUpload = async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
+  const file = event.target.files[0]
+  if (!file) return
 
-  const codePoint = file.name.split('.')[0].toUpperCase();
-  let useCodePoint = '';
+  const codePoint = file.name.split('.')[0].toUpperCase()
+  let useCodePoint = ''
 
   if (/^[0-9A-F]{4,6}$/.test(codePoint)) {
-    useCodePoint = codePoint;
+    useCodePoint = codePoint
   }
 
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
 
   try {
-    const img = await loadImage(file);
+    const img = await loadImage(file)
 
     if (!validateImageDimensions(img)) {
-      alert($t('glyph_manager.upload.invalid_dimensions'));
-      event.target.value = '';
-      return;
+      alert($t('glyph_manager.upload.invalid_dimensions'))
+      event.target.value = ''
+      return
     }
 
-    canvas.width = img.width;
-    canvas.height = img.height;
-    ctx.drawImage(img, 0, 0);
+    canvas.width = img.width
+    canvas.height = img.height
+    ctx.drawImage(img, 0, 0)
 
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
 
     if (!validateMonochrome(imageData)) {
-      alert($t('glyph_manager.upload.not_monochrome'));
-      event.target.value = '';
-      return;
+      alert($t('glyph_manager.upload.not_monochrome'))
+      event.target.value = ''
+      return
     }
 
-    let hex = '';
+    let hex = ''
     for (let y = 0; y < 16; y++) {
-      let row = 0;
+      let row = 0
       for (let x = 0; x < canvas.width; x++) {
-        const i = (y * canvas.width + x) * 4;
-        const isBlack = imageData.data[i] === 0 && imageData.data[i + 3] > 127;
-        row = (row << 1) | (isBlack ? 1 : 0);
+        const i = (y * canvas.width + x) * 4
+        const isBlack = imageData.data[i] === 0 && imageData.data[i + 3] > 127
+        row = (row << 1) | (isBlack ? 1 : 0)
       }
 
-      hex += row.toString(16).padStart(2, '0').toUpperCase();
+      hex += row.toString(16).padStart(2, '0').toUpperCase()
     }
 
     if (useCodePoint) {
-
       const newGlyph = {
         codePoint: useCodePoint,
-        hexValue: hex
-      };
+        hexValue: hex,
+      }
 
-      const updatedGlyphs = [...props.glyphs, newGlyph];
-      props.onGlyphChange(updatedGlyphs);
-      saveGlyphsToStorage(updatedGlyphs);
+      const updatedGlyphs = [...props.glyphs, newGlyph]
+      props.onGlyphChange(updatedGlyphs)
+      saveGlyphsToStorage(updatedGlyphs)
     } else {
-
-      newGlyph.value.hexValue = hex;
+      newGlyph.value.hexValue = hex
 
       nextTick(() => {
-        const codePointInput = document.querySelector('.add-glyph input');
+        const codePointInput = document.querySelector('.add-glyph input')
         if (codePointInput) {
-          codePointInput.focus();
+          codePointInput.focus()
         }
-      });
+      })
     }
-
   } catch (error) {
-    console.error('Error loading image:', error);
-    alert($t('glyph_manager.upload.image_error'));
+    console.error('Error loading image:', error)
+    alert($t('glyph_manager.upload.image_error'))
   }
 
-  event.target.value = '';
-};
+  event.target.value = ''
+}
 
 const loadImage = (file) => {
   return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = URL.createObjectURL(file);
-  });
-};
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = reject
+    img.src = URL.createObjectURL(file)
+  })
+}
 
 onMounted(() => {
-  loadStoredGlyphs();
-  loadUnifontData();
-});
+  loadStoredGlyphs()
+  loadUnifontData()
+})
 </script>
 
 <style scoped>
@@ -683,7 +772,7 @@ onMounted(() => {
 .add-glyph h3 {
   margin: 0 0 10px 0;
   font-size: 1rem;
-  color: var(--text-secondary)
+  color: var(--text-secondary);
 }
 
 .duplicate-warning {

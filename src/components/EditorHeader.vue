@@ -17,7 +17,7 @@
 </template>
 
 <script setup>
-defineEmits(['openSettings', 'toggleSidebar']);
+defineEmits(['openSettings', 'toggleSidebar'])
 </script>
 
 <style scoped>
@@ -34,7 +34,7 @@ defineEmits(['openSettings', 'toggleSidebar']);
 }
 
 .title {
-  font-family: "Noto Sans", sans-serif;
+  font-family: 'Noto Sans', sans-serif;
   font-size: 2em;
   color: var(--primary-color);
   margin-bottom: 5px;

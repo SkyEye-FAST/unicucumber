@@ -1,7 +1,13 @@
 <template>
   <div class="hex-code-container">
-    <input v-model="localHexCode" @input="updateHex" id="hexInput" class="hex-input" maxlength="64"
-      :placeholder="$t('hex_input.placeholder')" />
+    <input
+      v-model="localHexCode"
+      @input="updateHex"
+      id="hexInput"
+      class="hex-input"
+      maxlength="64"
+      :placeholder="$t('hex_input.placeholder')"
+    />
     <button @click="copyHex" class="copy-button" :title="$t('hex_input.copy')">
       <span class="material-symbols-outlined">{{ copyIcon }}</span>
     </button>
@@ -9,37 +15,40 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch } from 'vue'
 
 const props = defineProps({
   hexCode: {
     type: String,
-    required: true
-  }
-});
+    required: true,
+  },
+})
 
-const emit = defineEmits(['update:hexCode', 'update:grid', 'copy']);
+const emit = defineEmits(['update:hexCode', 'update:grid', 'copy'])
 
-const localHexCode = ref(props.hexCode);
-const copyIcon = ref('content_copy');
+const localHexCode = ref(props.hexCode)
+const copyIcon = ref('content_copy')
 
-watch(() => props.hexCode, (newValue) => {
-  localHexCode.value = newValue;
-});
+watch(
+  () => props.hexCode,
+  (newValue) => {
+    localHexCode.value = newValue
+  },
+)
 
 const updateHex = () => {
-  emit('update:hexCode', localHexCode.value);
-  emit('update:grid');
-};
+  emit('update:hexCode', localHexCode.value)
+  emit('update:grid')
+}
 
 const copyHex = async () => {
-  await navigator.clipboard.writeText(localHexCode.value);
-  copyIcon.value = 'check';
+  await navigator.clipboard.writeText(localHexCode.value)
+  copyIcon.value = 'check'
   setTimeout(() => {
-    copyIcon.value = 'content_copy';
-  }, 1500);
-  emit('copy');
-};
+    copyIcon.value = 'content_copy'
+  }, 1500)
+  emit('copy')
+}
 </script>
 
 <style scoped>
@@ -53,7 +62,7 @@ const copyHex = async () => {
 .hex-input {
   width: 100%;
   padding: 8px;
-  font-family: "Maple Mono NF CN", "Fira Code", Consolas, monospace;
+  font-family: 'Maple Mono NF CN', 'Fira Code', Consolas, monospace;
   font-size: 1em;
   border: 2px solid var(--text-color);
 }
@@ -64,7 +73,7 @@ const copyHex = async () => {
   align-items: center;
   margin-left: 5px;
   padding: 8px 15px;
-  font-family: "Maple Mono NF CN", "Fira Code", Consolas, monospace;
+  font-family: 'Maple Mono NF CN', 'Fira Code', Consolas, monospace;
   font-size: 0.9em;
   background-color: var(--primary-color);
   color: white;

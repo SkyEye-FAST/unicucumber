@@ -1,28 +1,59 @@
 <template>
   <div class="container">
-    <EditorHeader @openSettings="showSettings = true" @toggleSidebar="toggleSidebar" />
-    <SettingsModal v-model:show="showSettings" v-model:drawMode="drawMode" v-model:cursorEffect="cursorEffect"
-      v-model:glyphWidth="glyphWidth" @save="saveSettings" />
+    <EditorHeader
+      @openSettings="showSettings = true"
+      @toggleSidebar="toggleSidebar"
+    />
+    <SettingsModal
+      v-model:show="showSettings"
+      v-model:drawMode="drawMode"
+      v-model:cursorEffect="cursorEffect"
+      v-model:glyphWidth="glyphWidth"
+      @save="saveSettings"
+    />
 
-    <GlyphGrid :gridData="gridData" :drawMode="drawMode" :drawValue="drawValue" :cursorEffect="cursorEffect"
-      @update:cell="updateCell" />
+    <GlyphGrid
+      :gridData="gridData"
+      :drawMode="drawMode"
+      :drawValue="drawValue"
+      :cursorEffect="cursorEffect"
+      @update:cell="updateCell"
+    />
 
     <div class="editor-actions">
       <div class="action-group">
-        <button class="action-button secondary" @click="handleClear" :title="$t('editor.actions.clear.title')">
+        <button
+          class="action-button secondary"
+          @click="handleClear"
+          :title="$t('editor.actions.clear.title')"
+        >
           <span class="material-symbols-outlined">mop</span>
           {{ $t('editor.actions.clear.button') }}
         </button>
-        <button class="action-button primary" @click="addToGlyphset" :title="$t('editor.actions.add_to_glyphset.title')">
+        <button
+          class="action-button primary"
+          @click="addToGlyphset"
+          :title="$t('editor.actions.add_to_glyphset.title')"
+        >
           <span class="material-symbols-outlined">add_box</span>
           {{ $t('editor.actions.add_to_glyphset.button') }}
         </button>
       </div>
       <div class="history-controls">
-        <button class="icon-button" @click="handleUndo" :disabled="!canUndo" :title="$t('editor.actions.undo.title')">
+        <button
+          class="icon-button"
+          @click="handleUndo"
+          :disabled="!canUndo"
+          :title="$t('editor.actions.undo.title')"
+        >
           <span class="material-symbols-outlined">undo</span>
         </button>
-        <button class="icon-button" @click="handleRedo" :disabled="!canRedo" :title="$t('editor.actions.redo.title')">
+        <button
+          class="icon-button"
+          @click="handleRedo"
+          :disabled="!canRedo"
+          :title="$t('editor.actions.redo.title')"
+        >
           <span class="material-symbols-outlined">redo</span>
         </button>
       </div>
@@ -33,130 +64,141 @@
 
     <div :class="['sidebar', { active: isSidebarActive }]">
       <div class="sidebar-resizer" @mousedown="startResize"></div>
-      <GlyphManager v-if="isSidebarActive" :glyphs="glyphs" :onGlyphChange="setGlyphs" :prefillData="prefillData"
-        @edit-in-grid="handleGlyphEdit" @clear-prefill="clearPrefillData" />
+      <GlyphManager
+        v-if="isSidebarActive"
+        :glyphs="glyphs"
+        :onGlyphChange="setGlyphs"
+        :prefillData="prefillData"
+        @edit-in-grid="handleGlyphEdit"
+        @clear-prefill="clearPrefillData"
+      />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
-import EditorHeader from './EditorHeader.vue';
-import SettingsModal from './SettingsModal.vue';
-import GlyphGrid from './GlyphGrid.vue';
-import ToolButtons from './ToolButtons.vue';
-import HexCodeInput from './HexCodeInput.vue';
-import DownloadButtons from './DownloadButtons.vue';
-import GlyphManager from './GlyphManager.vue';
-import { useSettings } from '@/composables/useSettings';
-import { useGridData } from '@/composables/useGridData';
-import { useHexCode } from '@/composables/useHexCode';
-import { useHistory } from '@/composables/useHistory';
-import { useSidebar } from '@/composables/useSidebar';
-import { hexToGrid } from '@/utils/hexUtils';
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import EditorHeader from './EditorHeader.vue'
+import SettingsModal from './SettingsModal.vue'
+import GlyphGrid from './GlyphGrid.vue'
+import ToolButtons from './ToolButtons.vue'
+import HexCodeInput from './HexCodeInput.vue'
+import DownloadButtons from './DownloadButtons.vue'
+import GlyphManager from './GlyphManager.vue'
+import { useSettings } from '@/composables/useSettings'
+import { useGridData } from '@/composables/useGridData'
+import { useHexCode } from '@/composables/useHexCode'
+import { useHistory } from '@/composables/useHistory'
+import { useSidebar } from '@/composables/useSidebar'
+import { hexToGrid } from '@/utils/hexUtils'
 
-const { drawMode, cursorEffect, showSettings, saveSettings, glyphWidth } = useSettings();
-const { gridData, resetGrid, updateGrid } = useGridData(glyphWidth.value);
-const { hexCode, updateHexCode, updateGridFromHex } = useHexCode(gridData, resetGrid);
-const { isSidebarActive, sidebarWidth, toggleSidebar, startResize } = useSidebar();
+const { drawMode, cursorEffect, showSettings, saveSettings, glyphWidth } =
+  useSettings()
+const { gridData, resetGrid, updateGrid } = useGridData(glyphWidth.value)
+const { hexCode, updateHexCode, updateGridFromHex } = useHexCode(
+  gridData,
+  resetGrid,
+)
+const { isSidebarActive, sidebarWidth, toggleSidebar, startResize } =
+  useSidebar()
 
-const drawValue = ref(1);
-const glyphs = ref([]);
-const prefillData = ref(null);
+const drawValue = ref(1)
+const glyphs = ref([])
+const prefillData = ref(null)
 
 const setGlyphs = (newGlyphs) => {
-  glyphs.value = newGlyphs;
-};
+  glyphs.value = newGlyphs
+}
 
-const preventDefault = (e) => e.preventDefault();
+const preventDefault = (e) => e.preventDefault()
 
 const addToGlyphset = () => {
   prefillData.value = {
-    hexValue: hexCode.value
-  };
-  isSidebarActive.value = true;
-};
+    hexValue: hexCode.value,
+  }
+  isSidebarActive.value = true
+}
 
 const handleGlyphEdit = (hexValue) => {
   try {
-    const newGrid = hexToGrid(hexValue);
+    const newGrid = hexToGrid(hexValue)
 
-    updateGrid(newGrid[0].length);
+    updateGrid(newGrid[0].length)
 
-    gridData.value = newGrid;
+    gridData.value = newGrid
 
-    hexCode.value = hexValue;
+    hexCode.value = hexValue
   } catch (error) {
-    console.error('Error loading glyph:', error);
+    console.error('Error loading glyph:', error)
   }
-};
+}
 
 const clearPrefillData = () => {
-  prefillData.value = null;
-};
+  prefillData.value = null
+}
 
 watch(glyphWidth, (newWidth) => {
-  updateGrid(newWidth);
-  updateHexCode();
-});
+  updateGrid(newWidth)
+  updateHexCode()
+})
 
-const { pushState, undo, redo, canUndo, canRedo } = useHistory(gridData.value);
+const { pushState, undo, redo, canUndo, canRedo } = useHistory(gridData.value)
 
 const handleGridUpdate = (newGrid) => {
-  gridData.value = newGrid;
-  pushState(newGrid);
-  updateHexCode();
-};
+  gridData.value = newGrid
+  pushState(newGrid)
+  updateHexCode()
+}
 
 const handleClear = () => {
-  resetGrid(gridData.value[0].length);
-  updateHexCode();
-};
+  resetGrid(gridData.value[0].length)
+  updateHexCode()
+}
 
 const handleUndo = () => {
-  const prevState = undo();
+  const prevState = undo()
   if (prevState) {
-    gridData.value = prevState;
-    updateHexCode();
+    gridData.value = prevState
+    updateHexCode()
   }
-};
+}
 
 const handleRedo = () => {
-  const nextState = redo();
+  const nextState = redo()
   if (nextState) {
-    gridData.value = nextState;
-    updateHexCode();
+    gridData.value = nextState
+    updateHexCode()
   }
-};
+}
 
 const updateCell = (rowIndex, cellIndex, value) => {
-  const newGrid = gridData.value.map(row => [...row]);
-  newGrid[rowIndex][cellIndex] = value;
-  handleGridUpdate(newGrid);
-};
+  const newGrid = gridData.value.map((row) => [...row])
+  newGrid[rowIndex][cellIndex] = value
+  handleGridUpdate(newGrid)
+}
 
 const handleKeydown = (e) => {
   if (e.ctrlKey) {
     if (e.key === 'z') {
-      e.preventDefault();
-      handleUndo();
+      e.preventDefault()
+      handleUndo()
     } else if (e.key === 'y') {
-      e.preventDefault();
-      handleRedo();
+      e.preventDefault()
+      handleRedo()
     }
   }
-};
+}
 
 onMounted(() => {
-  updateHexCode();
-  document.addEventListener("contextmenu", preventDefault);
-  document.addEventListener('keydown', handleKeydown);
-});
+  updateHexCode()
+  document.addEventListener('contextmenu', preventDefault)
+  document.addEventListener('keydown', handleKeydown)
+})
 
 onBeforeUnmount(() => {
-  document.removeEventListener("contextmenu", preventDefault);
-  document.removeEventListener('keydown', handleKeydown);
-});
+  document.removeEventListener('contextmenu', preventDefault)
+  document.removeEventListener('keydown', handleKeydown)
+})
 </script>
 
 <style scoped>

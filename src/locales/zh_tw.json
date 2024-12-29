@@ -23,7 +23,6 @@
     "upload": {
       "hex_file": "上傳Hex檔案",
       "image_file": "上傳字形圖片",
-      "image_name_hint": "檔案名稱必須是4-6位16進制數，表示字符的Unicode碼位",
       "image_error": "圖片載入失敗",
       "invalid_dimensions": "圖片尺寸必須為8x16或16x16像素",
       "not_monochrome": "圖片必須為黑白色"

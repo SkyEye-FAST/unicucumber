@@ -1,9 +1,17 @@
 <template>
   <div class="tool-buttons">
-    <button @click="updateDrawValue(1)" :class="{ active: modelValue === 1 }" class="tool-button">
+    <button
+      @click="updateDrawValue(1)"
+      :class="{ active: modelValue === 1 }"
+      class="tool-button"
+    >
       <span class="material-symbols-outlined">draw</span>
     </button>
-    <button @click="updateDrawValue(0)" :class="{ active: modelValue === 0 }" class="tool-button">
+    <button
+      @click="updateDrawValue(0)"
+      :class="{ active: modelValue === 0 }"
+      class="tool-button"
+    >
       <span class="material-symbols-outlined">ink_eraser</span>
     </button>
   </div>
@@ -13,15 +21,15 @@
 defineProps({
   modelValue: {
     type: Number,
-    required: true
-  }
-});
+    required: true,
+  },
+})
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue'])
 
 const updateDrawValue = (value) => {
-  emit('update:modelValue', value);
-};
+  emit('update:modelValue', value)
+}
 </script>
 
 <style scoped>
