@@ -1,10 +1,13 @@
 import { ref } from 'vue'
 
 export function useSidebar() {
+  const isDesktop = window.innerWidth > 1025
+  const isTablet = window.innerWidth >= 768 && window.innerWidth <= 1025
+
   const isSidebarActive = ref(false)
-  const sidebarWidth = ref(window.innerWidth >= 768 ? 800 : 400)
-  const minWidth = window.innerWidth >= 768 ? 500 : 300
-  const maxWidth = window.innerWidth >= 768 ? 1000 : 800
+  const sidebarWidth = ref(isDesktop ? 450 : isTablet ? 800 : 400)
+  const minWidth = isDesktop ? 300 : isTablet ? 500 : 300
+  const maxWidth = isDesktop ? 600 : isTablet ? 1000 : 800
 
   const toggleSidebar = () => {
     isSidebarActive.value = !isSidebarActive.value
