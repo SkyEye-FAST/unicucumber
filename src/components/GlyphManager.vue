@@ -206,11 +206,8 @@ const editGlyph = (glyph) => {
 }
 
 const handleEditInGrid = (glyph) => {
-  console.log('Editing glyph:', {
-    codePoint: glyph.codePoint,
-    hexValue: glyph.hexValue,
-  })
-  emit('edit-in-grid', glyph.hexValue)
+  console.log('GlyphManager editing glyph:', glyph)
+  emit('edit-in-grid', glyph.hexValue, glyph)
 }
 
 const exportToHex = () => {
@@ -338,8 +335,8 @@ const validateImageDimensions = (img) => {
 
   dialog.value = {
     show: true,
-    title: $t('glyph_manager.upload.invalid_dimensions'),
-    message: $t('glyph_manager.upload.invalid_dimensions'),
+    title: $t('dialog.dimension_error.title'),
+    message: $t('dialog.dimension_error.message'),
     type: 'alert',
     showCancel: false,
     onConfirm: () => {
@@ -365,8 +362,8 @@ const validateMonochrome = (imageData) => {
     ) {
       dialog.value = {
         show: true,
-        title: $t('glyph_manager.upload.not_monochrome'),
-        message: $t('glyph_manager.upload.not_monochrome'),
+        title: $t('dialog.format_error.title'),
+        message: $t('dialog.format_error.message'),
         type: 'alert',
         showCancel: false,
         onConfirm: () => {
@@ -447,8 +444,8 @@ const handleImageFileUpload = async (event) => {
     console.error('Error loading image:', error)
     dialog.value = {
       show: true,
-      title: $t('glyph_manager.upload.image_error'),
-      message: $t('glyph_manager.upload.image_error'),
+      title: $t('dialog.image_error.title'),
+      message: $t('dialog.image_error.message'),
       type: 'alert',
       showCancel: false,
       onConfirm: () => {

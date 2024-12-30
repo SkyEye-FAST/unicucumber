@@ -14,6 +14,7 @@
       "16px": "16 像素"
     },
     "show_border": "顯示網格邊框",
+    "confirm_clear": "清空時需要確認",
     "close": "關閉"
   },
   "glyph_manager": {
@@ -23,10 +24,7 @@
     "export": "匯出字形",
     "upload": {
       "hex_file": "上傳 Hex 檔案",
-      "image_file": "上傳字形圖片",
-      "image_error": "圖片載入失敗",
-      "invalid_dimensions": "圖片尺寸必須為 8x16 或 16x16 像素",
-      "not_monochrome": "圖片必須為黑白色"
+      "image_file": "上傳字形圖片"
     },
     "add": {
       "code_point": "輸入 Unicode 碼位 (例如：4E00)",
@@ -97,11 +95,23 @@
     },
     "dimension_error": {
       "title": "圖片尺寸錯誤",
-      "message": "圖片尺寸必須為 16x16 或 8x16 像素"
+      "message": "圖片尺寸必須為 8x16 或 16x16 像素"
     },
     "format_error": {
       "title": "圖片格式錯誤",
-      "message": "圖片必須為黑白雙色"
+      "message": "圖片必須為黑白色"
+    },
+    "unsaved_changes": {
+      "title": "未儲存的變更",
+      "message": "目前字形有未儲存的變更，是否繼續？",
+      "confirm": "繼續",
+      "cancel": "取消"
+    },
+    "clear_confirm": {
+      "title": "確認清空",
+      "message": "是否確認清空目前網格？",
+      "confirm": "清空",
+      "cancel": "取消"
     }
   }
 }

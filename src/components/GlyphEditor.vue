@@ -4,6 +4,31 @@
       @openSettings="showSettings = true"
       @toggleSidebar="toggleSidebar"
     />
+
+    <div v-if="currentGlyph" class="current-glyph-info">
+      <span class="code-point"
+        >U+{{ currentGlyph.codePoint.toUpperCase() }}</span
+      >
+      <div class="glyph-preview">
+        <div class="preview-grid">
+          <div
+            v-for="(row, rowIndex) in gridData"
+            :key="`preview-row-${rowIndex}`"
+            class="preview-row"
+          >
+            <div
+              v-for="(cell, cellIndex) in row"
+              :key="`preview-cell-${rowIndex}-${cellIndex}`"
+              :class="['preview-cell', { filled: cell === 1 }]"
+            ></div>
+          </div>
+        </div>
+        <span class="unicode-char">
+          {{ String.fromCodePoint(parseInt(currentGlyph.codePoint, 16)) }}
+        </span>
+      </div>
+    </div>
+
     <SettingsModal
       v-model="showSettings"
       :settings="settings"
@@ -11,6 +36,7 @@
     />
 
     <GlyphGrid
+      ref="glyphGridRef"
       :gridData="gridData"
       :drawMode="settings.drawMode"
       :drawValue="drawValue"
@@ -75,11 +101,22 @@
         @clear-prefill="clearPrefillData"
       />
     </div>
+
+    <DialogBox
+      v-model:show="showDialog"
+      :title="dialogConfig.title"
+      :message="dialogConfig.message"
+      :confirm-text="dialogConfig.confirmText"
+      :cancel-text="dialogConfig.cancelText"
+      @confirm="dialogConfig.onConfirm"
+      @cancel="dialogConfig.onCancel"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, computed, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import EditorHeader from './EditorHeader.vue'
 import SettingsModal from './SettingsModal.vue'
 import GlyphGrid from './GlyphGrid.vue'
@@ -87,12 +124,14 @@ import ToolButtons from './ToolButtons.vue'
 import HexCodeInput from './HexCodeInput.vue'
 import DownloadButtons from './DownloadButtons.vue'
 import GlyphManager from './GlyphManager.vue'
+import DialogBox from './DialogBox.vue'
 import { useSettings } from '@/composables/useSettings'
 import { useGridData } from '@/composables/useGridData'
 import { useHexCode } from '@/composables/useHexCode'
 import { useHistory } from '@/composables/useHistory'
 import { useSidebar } from '@/composables/useSidebar'
 import { hexToGrid } from '@/utils/hexUtils'
+const { t: $t } = useI18n()
 
 const { settings, showSettings } = useSettings()
 const width = computed(() => settings.value.glyphWidth)
@@ -107,6 +146,13 @@ const { isSidebarActive, sidebarWidth, toggleSidebar, startResize } =
 const drawValue = ref(1)
 const glyphs = ref([])
 const prefillData = ref(null)
+const currentGlyph = ref(null)
+const hasUnsavedChanges = ref(false)
+const showDialog = ref(false)
+const dialogConfig = ref({})
+
+const glyphGridRef = ref(null)
+const gridFontRef = ref(null)
 
 const setGlyphs = (newGlyphs) => {
   glyphs.value = newGlyphs
@@ -121,18 +167,62 @@ const addToGlyphset = () => {
   isSidebarActive.value = true
 }
 
-const handleGlyphEdit = (hexValue) => {
+const showConfirmDialog = ({
+  title,
+  message,
+  confirmText,
+  cancelText,
+  onConfirm,
+  onCancel,
+}) => {
+  dialogConfig.value = {
+    title,
+    message,
+    confirmText,
+    cancelText,
+    onConfirm,
+    onCancel: onCancel || (() => (showDialog.value = false)),
+  }
+  showDialog.value = true
+}
+
+const handleGlyphEdit = (hexValue, glyph) => {
   try {
-    const newGrid = hexToGrid(hexValue)
-
-    updateGrid(newGrid[0].length)
-
-    gridData.value = newGrid
-
-    hexCode.value = hexValue
+    if (hasUnsavedChanges.value && currentGlyph.value) {
+      showConfirmDialog({
+        title: $t('dialog.unsaved_changes.title'),
+        message: $t('dialog.unsaved_changes.message'),
+        confirmText: $t('dialog.unsaved_changes.confirm'),
+        cancelText: $t('dialog.unsaved_changes.cancel'),
+        onConfirm: () => {
+          loadGlyph(hexValue, glyph)
+          showDialog.value = false
+        },
+      })
+    } else {
+      loadGlyph(hexValue, glyph)
+    }
   } catch (error) {
     console.error('Error loading glyph:', error)
   }
+}
+
+const loadGlyph = (hexValue, glyph) => {
+  if (!glyph || !glyph.codePoint) {
+    console.error('Invalid glyph data:', glyph)
+    return
+  }
+
+  console.log('Loading glyph:', glyph)
+  const newGrid = hexToGrid(hexValue)
+  updateGrid(newGrid[0].length)
+  gridData.value = newGrid
+  hexCode.value = hexValue
+  currentGlyph.value = {
+    codePoint: glyph.codePoint,
+    hexValue: hexValue,
+  }
+  hasUnsavedChanges.value = false
 }
 
 const clearPrefillData = () => {
@@ -153,11 +243,29 @@ const handleGridUpdate = (newGrid) => {
   gridData.value = newGrid
   pushState(newGrid)
   updateHexCode()
+  hasUnsavedChanges.value = currentGlyph.value !== null
 }
 
 const handleClear = () => {
-  resetGrid(gridData.value[0].length)
-  updateHexCode()
+  const doClear = () => {
+    resetGrid(gridData.value[0].length)
+    updateHexCode()
+    hasUnsavedChanges.value = false
+    currentGlyph.value = null
+    showDialog.value = false
+  }
+
+  if (settings.value.confirmClear) {
+    showConfirmDialog({
+      title: $t('dialog.clear_confirm.title'),
+      message: $t('dialog.clear_confirm.message'),
+      confirmText: $t('dialog.clear_confirm.confirm'),
+      cancelText: $t('dialog.clear_confirm.cancel'),
+      onConfirm: doClear,
+    })
+  } else {
+    doClear()
+  }
 }
 
 const handleUndo = () => {
@@ -202,11 +310,27 @@ const updateSettings = (newSettings) => {
   Object.assign(settings.value, newSettings)
 }
 
+watch(
+  () => currentGlyph.value,
+  (newGlyph) => {
+    console.log('Current glyph changed:', newGlyph)
+  },
+)
+
+const updateGridFontPreview = () => {
+  if (gridFontRef.value && glyphGridRef.value) {
+    gridFontRef.value.textContent = glyphGridRef.value.gridFontString
+  }
+}
+
+watch(() => gridData.value, updateGridFontPreview, { deep: true })
+
 onMounted(() => {
   resetGrid(settings.value.glyphWidth)
   updateHexCode()
   document.addEventListener('contextmenu', preventDefault)
   document.addEventListener('keydown', handleKeydown)
+  nextTick(updateGridFontPreview)
 })
 
 onBeforeUnmount(() => {
@@ -353,6 +477,95 @@ onBeforeUnmount(() => {
 .btn-close-sidebar:hover {
   background-color: var(--background-active);
   color: var(--text-color);
+}
+
+.current-glyph-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin: 0.2rem auto 0.5rem;
+  padding: 0.5rem 1.5rem;
+  background: var(--background-light);
+  border-radius: 4px;
+  max-width: fit-content;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.code-point {
+  font-family: monospace;
+  color: var(--text-secondary);
+  font-size: 1.3em;
+  font-weight: 500;
+}
+
+.glyph-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.unicode-char {
+  font-size: 1.8em;
+  border-radius: 4px;
+  min-width: 1.5em;
+  text-align: center;
+}
+
+.preview-grid {
+  display: inline-block;
+  border: 1px solid var(--border-color);
+  padding: 2px;
+  border-radius: 2px;
+}
+
+.preview-row {
+  display: flex;
+  height: 2px;
+}
+
+.preview-cell {
+  width: 2px;
+  height: 2px;
+  background-color: white;
+}
+
+.preview-cell.filled {
+  background-color: black;
+}
+
+@media (orientation: portrait) and (max-width: 768px) {
+  .preview-row {
+    height: 3px;
+  }
+  .preview-cell {
+    width: 3px;
+    height: 3px;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
+  .preview-row {
+    height: 4px;
+  }
+  .preview-cell {
+    width: 4px;
+    height: 4px;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 1024px) {
+  .preview-row {
+    height: 5px;
+  }
+  .preview-cell {
+    width: 5px;
+    height: 5px;
+  }
 }
 
 @media (orientation: portrait) and (max-width: 768px) {

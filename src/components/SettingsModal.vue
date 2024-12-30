@@ -53,7 +53,7 @@
         @change="
           $emit('update:settings', {
             ...settings,
-            glyphWidth: parseInt($event.target.value), // 确保转换为数字
+            glyphWidth: parseInt($event.target.value),
           })
         "
       >
@@ -77,6 +77,21 @@
           "
         />
       </div>
+    </div>
+
+    <div class="setting-option">
+      <label for="confirmClear">{{ $t('settings.confirm_clear') }} </label>
+      <input
+        type="checkbox"
+        id="confirmClear"
+        :checked="settings.confirmClear"
+        @change="
+          $emit('update:settings', {
+            ...settings,
+            confirmClear: $event.target.checked,
+          })
+        "
+      />
     </div>
 
     <button @click="$emit('update:modelValue', false)" class="close-button">
