@@ -22,8 +22,13 @@
     'opsz' 48;
 }
 
+:root {
+  --normal-font: 'Noto Sans', sans-serif;
+  --monospace-font: 'Maple Mono NF CN', 'Fira Code', Consolas, monospace;
+}
+
 body {
-  font-family: 'Noto Sans', sans-serif;
+  font-family: var(--normal-font);
 }
 
 [lang='zh-cn'] body {

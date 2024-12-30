@@ -118,7 +118,7 @@ const gridStyle = computed(() => ({
   align-items: center;
   justify-content: center;
   font-size: 1em;
-  font-family: 'Maple Mono NF CN', 'Fira Code', Consolas, monospace;
+  font-family: var(--monospace-font);
 }
 
 .cell {
