@@ -539,36 +539,6 @@ onBeforeUnmount(() => {
 }
 
 @media (orientation: portrait) and (max-width: 768px) {
-  .preview-row {
-    height: 3px;
-  }
-  .preview-cell {
-    width: 3px;
-    height: 3px;
-  }
-}
-
-@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
-  .preview-row {
-    height: 4px;
-  }
-  .preview-cell {
-    width: 4px;
-    height: 4px;
-  }
-}
-
-@media (orientation: portrait) and (min-width: 1024px) {
-  .preview-row {
-    height: 5px;
-  }
-  .preview-cell {
-    width: 5px;
-    height: 5px;
-  }
-}
-
-@media (orientation: portrait) and (max-width: 768px) {
   .btn-close-sidebar {
     padding: 12px;
   }
@@ -609,6 +579,10 @@ onBeforeUnmount(() => {
   .history-controls {
     gap: 8px;
   }
+
+  .unicode-char {
+    font-size: 2em;
+  }
 }
 
 @media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
@@ -643,6 +617,23 @@ onBeforeUnmount(() => {
   .icon-button .material-symbols-outlined {
     font-size: 28px !important;
   }
+
+  .preview-row {
+    height: 3px;
+  }
+
+  .preview-cell {
+    width: 3px;
+    height: 3px;
+  }
+
+  .code-point {
+    font-size: 1.8em;
+  }
+
+  .unicode-char {
+    font-size: 2.8em;
+  }
 }
 
 @media (orientation: portrait) and (min-width: 1024px) {
@@ -675,6 +666,23 @@ onBeforeUnmount(() => {
 
   .icon-button .material-symbols-outlined {
     font-size: 48px !important;
+  }
+
+  .preview-row {
+    height: 3px;
+  }
+
+  .preview-cell {
+    width: 3px;
+    height: 3px;
+  }
+
+  .code-point {
+    font-size: 2em;
+  }
+
+  .unicode-char {
+    font-size: 2.8em;
   }
 }
 </style>
