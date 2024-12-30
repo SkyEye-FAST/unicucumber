@@ -45,7 +45,7 @@
             v-model="newGlyph.codePoint"
             :placeholder="$t('glyph_manager.add.code_point')"
             class="input"
-            @input="$event.target.value = $event.target.value.toUpperCase()"
+            @input="handleCodePointInput"
           />
           <input
             v-if="!prefillData"
@@ -258,13 +258,14 @@ const addGlyph = () => {
   if (!isValidInput.value) return
 
   const hexValue = props.prefillData
-    ? props.prefillData.hexValue
-    : newGlyph.value.hexValue
+    ? props.prefillData.hexValue.toUpperCase()
+    : newGlyph.value.hexValue.toUpperCase()
+  const codePoint = newGlyph.value.codePoint.toUpperCase()
   const updatedGlyphs = [
     ...props.glyphs,
     {
-      codePoint: newGlyph.value.codePoint,
-      hexValue: hexValue,
+      codePoint,
+      hexValue,
     },
   ]
 
@@ -293,11 +294,12 @@ const handleAdd = () => {
 
 const updateExistingGlyph = () => {
   const hexValue = props.prefillData
-    ? props.prefillData.hexValue
-    : newGlyph.value.hexValue
+    ? props.prefillData.hexValue.toUpperCase()
+    : newGlyph.value.hexValue.toUpperCase()
+  const codePoint = newGlyph.value.codePoint.toUpperCase()
   const updatedGlyphs = props.glyphs.map((g) =>
-    g.codePoint.toLowerCase() === newGlyph.value.codePoint.toLowerCase()
-      ? { ...g, hexValue }
+    g.codePoint.toLowerCase() === codePoint.toLowerCase()
+      ? { ...g, codePoint, hexValue }
       : g,
   )
 
@@ -390,7 +392,7 @@ const exportToHex = () => {
 
 const loadUnifontData = async () => {
   try {
-    const response = await fetch('/unifont-16.0.02.hex')
+    const response = await fetch('/unifont_all-16.0.02.hex')
     const text = await response.text()
     const lines = text.split('\n')
     const map = {}
@@ -411,6 +413,7 @@ const loadUnifontData = async () => {
 const importFromUnifont = () => {
   if (!newGlyph.value.codePoint) return
 
+  newGlyph.value.codePoint = newGlyph.value.codePoint.toUpperCase()
   const codePoint = parseInt(newGlyph.value.codePoint, 16)
   const hexValue = unifontMap.value[codePoint]
 
@@ -447,12 +450,13 @@ const handleHexFileUpload = async (event) => {
     if (line && line.includes(':')) {
       const [code, hex] = line.split(':')
       const codePoint = code.toUpperCase()
+      const hexValue = hex.trim().toUpperCase()
       const existing = findExistingGlyph(codePoint)
 
       if (existing) {
-        conflicts.push({ codePoint, hexValue: hex.trim() })
+        conflicts.push({ codePoint, hexValue })
       } else {
-        newGlyphs.push({ codePoint, hexValue: hex.trim() })
+        newGlyphs.push({ codePoint, hexValue })
       }
     }
   }
@@ -594,14 +598,14 @@ const handleImageFileUpload = async (event) => {
     if (useCodePoint) {
       const newGlyph = {
         codePoint: useCodePoint,
-        hexValue: hex,
+        hexValue: hex.toUpperCase(),
       }
 
       const updatedGlyphs = [...props.glyphs, newGlyph]
       props.onGlyphChange(updatedGlyphs)
       saveGlyphsToStorage(updatedGlyphs)
     } else {
-      newGlyph.value.hexValue = hex
+      newGlyph.value.hexValue = hex.toUpperCase()
 
       nextTick(() => {
         const codePointInput = document.querySelector('.add-glyph input')
@@ -649,6 +653,10 @@ const dialog = ref({
   onConfirm: () => {},
   onCancel: () => {},
 })
+
+const handleCodePointInput = (event) => {
+  newGlyph.value.codePoint = event.target.value.toUpperCase()
+}
 
 onMounted(() => {
   loadStoredGlyphs()
