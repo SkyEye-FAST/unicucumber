@@ -177,6 +177,8 @@ defineEmits(['update:modelValue', 'update:settings'])
   #cursorEffect {
     transform: scale(1.5);
     transform-origin: 0 0;
+    margin-right: 1.5em;
+    margin-bottom: 10px;
   }
 }
 
@@ -204,7 +206,8 @@ defineEmits(['update:modelValue', 'update:settings'])
   #cursorEffect {
     transform: scale(2.5);
     transform-origin: 0 0;
-    margin-right: 10px;
+    margin-right: 8em;
+    margin-bottom: 1.5em;
   }
 
   .close-button {

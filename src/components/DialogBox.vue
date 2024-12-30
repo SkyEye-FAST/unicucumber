@@ -1,6 +1,6 @@
 <template>
   <div v-if="show" class="dialog-overlay">
-    <div class="dialog-box">
+    <div class="dialog-box" :style="{ maxWidth: dialogMaxWidth }">
       <h3 class="dialog-title">{{ title }}</h3>
       <div class="dialog-content">
         <p>{{ message }}</p>
@@ -117,6 +117,13 @@ const handleCancel = () => {
   emit('cancel')
   selectedItems.value = []
 }
+
+const dialogMaxWidth = computed(() => {
+  const viewportWidth = window.innerWidth
+  if (viewportWidth <= 480) return '95%'
+  if (viewportWidth <= 1024) return '90%'
+  return '800px'
+})
 </script>
 
 <style scoped>
@@ -131,14 +138,14 @@ const handleCancel = () => {
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 20px;
 }
 
 .dialog-box {
   background: white;
   border-radius: 8px;
   padding: 20px;
-  min-width: 300px;
-  max-width: 500px;
+  width: 100%;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -177,14 +184,15 @@ const handleCancel = () => {
 .checkbox-label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  cursor: pointer;
+  gap: 12px;
+  width: 100%;
 }
 
 .conflict-items-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 12px;
+  width: 100%;
 }
 
 .conflict-item {
@@ -204,12 +212,14 @@ const handleCancel = () => {
   align-items: center;
   justify-content: space-between;
   flex: 1;
+  min-width: 0;
 }
 
 .code-info {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .code-point {
@@ -220,41 +230,164 @@ const handleCancel = () => {
 .hex-value {
   font-size: 0.9em;
   color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .glyph-preview {
+  flex-shrink: 0;
   font-size: 1.5em;
-  padding: 4px 8px;
+  padding: 4px;
   background: var(--background-light);
   border-radius: 4px;
   min-width: 40px;
   text-align: center;
+  margin-left: 8px;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+  font-weight: bold;
+  padding: 8px 16px;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .btn-primary {
-  padding: 8px 16px;
   background: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
 }
 
 .btn-secondary {
-  padding: 8px 16px;
   background: var(--grey-color);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
 }
 
 .btn-danger {
-  padding: 8px 16px;
   background: var(--danger-color);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+}
+
+@media (min-width: 1025px) {
+  .dialog-box {
+    padding: 24px;
+  }
+
+  .conflict-items-container {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+
+  .conflict-list {
+    max-height: 70vh;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 1024px) {
+  input[type='checkbox'] {
+    transform: scale(1.8);
+    transform-origin: 0 0;
+  }
+
+  .item-details {
+    margin-left: 8px;
+  }
+
+  .dialog-box {
+    padding: 28px;
+  }
+
+  .dialog-title {
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+
+  .dialog-content {
+    font-size: 1.5rem;
+  }
+
+  .conflict-items-container {
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 16px;
+  }
+
+  .conflict-list {
+    max-height: 65vh;
+    padding: 16px;
+  }
+
+  .conflict-item {
+    padding: 12px;
+  }
+
+  .glyph-preview {
+    font-size: 1.8em;
+    min-width: 60px;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger {
+    padding: 10px 24px;
+    font-size: 1.5rem;
+  }
+
+  .checkbox-label {
+    gap: 16px;
+  }
+
+  .select-all-row {
+    padding: 12px 0;
+    margin-bottom: 12px;
+  }
+
+  .code-point,
+  .hex-value {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dialog-overlay {
+    padding: 16px;
+  }
+
+  .dialog-box {
+    padding: 16px;
+    margin: 16px;
+    width: 95%;
+  }
+
+  .dialog-title {
+    font-size: 1.3rem;
+  }
+
+  .dialog-actions {
+    flex-direction: column-reverse;
+    gap: 12px;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger {
+    font-size: 1.1rem;
+    width: 100%;
+    padding: 8px 12px;
+  }
+
+  .conflict-list {
+    padding: 8px;
+    margin: 8px 0;
+    max-height: 70vh;
+  }
+
+  .checkbox-label {
+    gap: 8px;
+  }
+
+  .glyph-preview {
+    font-size: 1.3em;
+    min-width: 32px;
+  }
 }
 </style>
