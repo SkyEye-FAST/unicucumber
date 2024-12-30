@@ -62,6 +62,23 @@
       </select>
     </div>
 
+    <div class="setting-option">
+      <label for="showBorder">{{ $t('settings.show_border') }}</label>
+      <div class="checkbox-wrapper">
+        <input
+          type="checkbox"
+          id="showBorder"
+          :checked="settings.showBorder"
+          @change="
+            $emit('update:settings', {
+              ...settings,
+              showBorder: $event.target.checked,
+            })
+          "
+        />
+      </div>
+    </div>
+
     <button @click="$emit('update:modelValue', false)" class="close-button">
       {{ $t('settings.close') }}
     </button>
@@ -177,6 +194,8 @@ defineEmits(['update:modelValue', 'update:settings'])
   #cursorEffect {
     transform: scale(1.5);
     transform-origin: 0 0;
+    margin-right: 1.5em;
+    margin-bottom: 10px;
   }
 }
 
@@ -204,7 +223,8 @@ defineEmits(['update:modelValue', 'update:settings'])
   #cursorEffect {
     transform: scale(2.5);
     transform-origin: 0 0;
-    margin-right: 10px;
+    margin-right: 8em;
+    margin-bottom: 1.5em;
   }
 
   .close-button {

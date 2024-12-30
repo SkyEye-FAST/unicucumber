@@ -62,7 +62,7 @@ const copyHex = async () => {
 .hex-input {
   width: 100%;
   padding: 8px;
-  font-family: 'Maple Mono NF CN', 'Fira Code', Consolas, monospace;
+  font-family: var(--monospace-font);
   font-size: 1em;
   border: 2px solid var(--text-color);
 }
@@ -73,7 +73,7 @@ const copyHex = async () => {
   align-items: center;
   margin-left: 5px;
   padding: 8px 15px;
-  font-family: 'Maple Mono NF CN', 'Fira Code', Consolas, monospace;
+  font-family: var(--monospace-font);
   font-size: 0.9em;
   background-color: var(--primary-color);
   color: white;

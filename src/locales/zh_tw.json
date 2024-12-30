@@ -3,16 +3,17 @@
   "settings": {
     "title": "設定",
     "draw_mode": {
-      "label": "繪製模式：",
+      "label": "繪製模式",
       "double_button": "左鍵繪製，右鍵擦除",
       "single_button": "左鍵繪製或擦除"
     },
-    "cursor_effect": "游標效果：",
+    "cursor_effect": "游標效果（滑鼠）",
     "glyph_width": {
-      "label": "字形寬度：",
+      "label": "字形寬度",
       "8px": "8 像素",
       "16px": "16 像素"
     },
+    "show_border": "顯示網格邊框",
     "close": "關閉"
   },
   "glyph_manager": {

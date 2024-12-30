@@ -43,6 +43,21 @@
       ></div>
     </div>
   </div>
+  <div class="preview-container">
+    <div class="preview-grid">
+      <div
+        v-for="(row, rowIndex) in gridData"
+        :key="`preview-row-${rowIndex}`"
+        class="preview-row"
+      >
+        <div
+          v-for="(cell, cellIndex) in row"
+          :key="`preview-cell-${rowIndex}-${cellIndex}`"
+          :class="['preview-cell', { filled: cell === 1 }]"
+        ></div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -63,6 +78,10 @@ const props = defineProps({
     required: true,
   },
   cursorEffect: {
+    type: Boolean,
+    required: true,
+  },
+  showBorder: {
     type: Boolean,
     required: true,
   },
@@ -118,14 +137,14 @@ const gridStyle = computed(() => ({
   align-items: center;
   justify-content: center;
   font-size: 1em;
-  font-family: 'Maple Mono NF CN', 'Fira Code', Consolas, monospace;
+  font-family: var(--monospace-font);
 }
 
 .cell {
   width: var(--cell-size);
   height: var(--cell-size);
   background-color: white;
-  border: 0.5px solid var(--primary-darker);
+  border: v-bind('showBorder ? "0.5px solid var(--primary-darker)" : "none"');
   cursor: pointer;
 }
 
@@ -152,6 +171,67 @@ const gridStyle = computed(() => ({
 @media (orientation: portrait) and (min-width: 1024px) {
   .header-cell {
     font-size: 2em;
+  }
+}
+
+/* 预览样式 */
+.preview-container {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+.preview-grid {
+  display: inline-block;
+  border: 1px solid var(--border-color);
+  padding: 2px;
+}
+
+.preview-row {
+  display: flex;
+  height: 2px;
+}
+
+.preview-cell {
+  width: 2px;
+  height: 2px;
+  background-color: white;
+}
+
+.preview-cell.filled {
+  background-color: black;
+}
+
+@media (orientation: portrait) and (max-width: 768px) {
+  .preview-row {
+    height: 3px;
+  }
+
+  .preview-cell {
+    width: 3px;
+    height: 3px;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
+  .preview-row {
+    height: 4px;
+  }
+
+  .preview-cell {
+    width: 4px;
+    height: 4px;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 1024px) {
+  .preview-row {
+    height: 5px;
+  }
+
+  .preview-cell {
+    width: 5px;
+    height: 5px;
   }
 }
 </style>

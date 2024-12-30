@@ -3,16 +3,17 @@
   "settings": {
     "title": "Settings",
     "draw_mode": {
-      "label": "Draw Mode:",
+      "label": "Draw Mode",
       "double_button": "Left Draw, Right Erase",
       "single_button": "Left Draw & Erase"
     },
-    "cursor_effect": "Cursor Effect:",
+    "cursor_effect": "Cursor Effect (Mouse)",
     "glyph_width": {
-      "label": "Glyph Width:",
+      "label": "Glyph Width",
       "8px": "8 pixels",
       "16px": "16 pixels"
     },
+    "show_border": "Show Grid Border",
     "close": "Close"
   },
   "glyph_manager": {

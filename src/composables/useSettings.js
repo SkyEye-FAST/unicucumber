@@ -7,6 +7,7 @@ export function useSettings() {
     glyphWidth: 16,
     drawMode: 'singleButtonDraw',
     cursorEffect: true,
+    showBorder: true,
   }
 
   const loadSettings = () => {
@@ -14,11 +15,10 @@ export function useSettings() {
       const stored = localStorage.getItem(SETTINGS_KEY)
       if (stored) {
         const parsed = JSON.parse(stored)
-        // 确保所有必需的设置都存在
         return {
           ...defaultSettings,
           ...parsed,
-          glyphWidth: parsed?.glyphWidth === 8 ? 8 : 16, // 确保宽度值有效
+          glyphWidth: parsed?.glyphWidth === 8 ? 8 : 16,
         }
       }
     } catch (error) {
