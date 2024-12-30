@@ -14,6 +14,7 @@
       "16px": "16 pixels"
     },
     "show_border": "Show Grid Border",
+    "confirm_clear": "Confirm Clear",
     "close": "Close"
   },
   "glyph_manager": {
@@ -22,10 +23,7 @@
     "import": "Import from Unifont",
     "upload": {
       "hex_file": "Upload Hex File",
-      "image_file": "Upload Glyph Image",
-      "image_error": "Failed to load image",
-      "invalid_dimensions": "Image dimensions must be 8x16 or 16x16 pixels",
-      "not_monochrome": "Image must be black and white only"
+      "image_file": "Upload Glyph Image"
     },
     "export": "Export Glyphs",
     "add": {
@@ -97,11 +95,23 @@
     },
     "dimension_error": {
       "title": "Invalid Image Dimensions",
-      "message": "Image dimensions must be 16x16 or 8x16 pixels"
+      "message": "Image dimensions must be 8x16 or 16x16 pixels"
     },
     "format_error": {
       "title": "Invalid Image Format",
       "message": "Image must be black and white only"
+    },
+    "unsaved_changes": {
+      "title": "Unsaved Changes",
+      "message": "There are unsaved changes to the current glyph. Do you want to continue?",
+      "confirm": "Continue",
+      "cancel": "Cancel"
+    },
+    "clear_confirm": {
+      "title": "Confirm Clear",
+      "message": "Are you sure you want to clear the current grid?",
+      "confirm": "Clear",
+      "cancel": "Cancel"
     }
   }
 }

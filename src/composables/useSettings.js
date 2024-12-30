@@ -8,6 +8,7 @@ export function useSettings() {
     drawMode: 'singleButtonDraw',
     cursorEffect: true,
     showBorder: true,
+    confirmClear: true,
   }
 
   const loadSettings = () => {

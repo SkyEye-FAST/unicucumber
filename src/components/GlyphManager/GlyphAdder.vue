@@ -94,8 +94,6 @@ const emit = defineEmits([
   'update',
 ])
 
-// ...existing validation code...
-
 const updateCodePoint = (event) => {
   emit('update:modelValue', {
     ...props.modelValue,

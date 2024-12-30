@@ -43,21 +43,6 @@
       ></div>
     </div>
   </div>
-  <div class="preview-container">
-    <div class="preview-grid">
-      <div
-        v-for="(row, rowIndex) in gridData"
-        :key="`preview-row-${rowIndex}`"
-        class="preview-row"
-      >
-        <div
-          v-for="(cell, cellIndex) in row"
-          :key="`preview-cell-${rowIndex}-${cellIndex}`"
-          :class="['preview-cell', { filled: cell === 1 }]"
-        ></div>
-      </div>
-    </div>
-  </div>
 </template>
 
 <script setup>
@@ -171,67 +156,6 @@ const gridStyle = computed(() => ({
 @media (orientation: portrait) and (min-width: 1024px) {
   .header-cell {
     font-size: 2em;
-  }
-}
-
-/* 预览样式 */
-.preview-container {
-  margin-top: 10px;
-  display: flex;
-  justify-content: center;
-}
-
-.preview-grid {
-  display: inline-block;
-  border: 1px solid var(--border-color);
-  padding: 2px;
-}
-
-.preview-row {
-  display: flex;
-  height: 2px;
-}
-
-.preview-cell {
-  width: 2px;
-  height: 2px;
-  background-color: white;
-}
-
-.preview-cell.filled {
-  background-color: black;
-}
-
-@media (orientation: portrait) and (max-width: 768px) {
-  .preview-row {
-    height: 3px;
-  }
-
-  .preview-cell {
-    width: 3px;
-    height: 3px;
-  }
-}
-
-@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
-  .preview-row {
-    height: 4px;
-  }
-
-  .preview-cell {
-    width: 4px;
-    height: 4px;
-  }
-}
-
-@media (orientation: portrait) and (min-width: 1024px) {
-  .preview-row {
-    height: 5px;
-  }
-
-  .preview-cell {
-    width: 5px;
-    height: 5px;
   }
 }
 </style>
