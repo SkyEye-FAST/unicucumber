@@ -62,6 +62,23 @@
       </select>
     </div>
 
+    <div class="setting-option">
+      <label for="showBorder">{{ $t('settings.show_border') }}</label>
+      <div class="checkbox-wrapper">
+        <input
+          type="checkbox"
+          id="showBorder"
+          :checked="settings.showBorder"
+          @change="
+            $emit('update:settings', {
+              ...settings,
+              showBorder: $event.target.checked,
+            })
+          "
+        />
+      </div>
+    </div>
+
     <button @click="$emit('update:modelValue', false)" class="close-button">
       {{ $t('settings.close') }}
     </button>

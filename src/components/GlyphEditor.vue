@@ -15,6 +15,7 @@
       :drawMode="settings.drawMode"
       :drawValue="drawValue"
       :cursorEffect="settings.cursorEffect"
+      :showBorder="settings.showBorder"
       @update:cell="updateCell"
     />
 
