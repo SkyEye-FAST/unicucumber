@@ -28,8 +28,8 @@
     },
     "add": {
       "code_point": "輸入 Unicode 碼位 (例如：4E00)",
-      "hex_value": "輸入 16 進制字形資料 (32 或 64 位)",
-      "add_button": "添加字形",
+      "hex_value": "輸入 16 進位字形資料 (32 或 64 位)",
+      "add_button": "新增字形",
       "update_button": "更新字形",
       "clear_button": "清除"
     },
@@ -43,22 +43,22 @@
       "hex": "Hex：",
       "edit": "編輯",
       "delete": "刪除",
-      "edit_in_grid": "點擊編輯字形：U+{codePoint}"
+      "edit_in_grid": "按一下編輯字形：U+{codePoint}"
     },
     "validation": {
       "enter_code_point": "請輸入 Unicode 碼位",
-      "invalid_code_point": "碼位必須是 4-6 位 16 進制數",
-      "invalid_hex": "請輸入有效的 16 進制字形資料 (32 或 64 位)",
-      "add_glyph": "添加字形"
+      "invalid_code_point": "碼位必須是 4-6 位 16 進位數",
+      "invalid_hex": "請輸入有效的 16 進位字形資料 (32 或 64 位)",
+      "add_glyph": "新增字形"
     },
     "error": {
       "loading_unifont": "載入 Unifont 資料出錯",
       "loading_storage": "從存儲載入字形時出錯",
-      "saving_storage": "保存字形到存儲時出錯"
+      "saving_storage": "儲存字形到存儲時出錯"
     }
   },
   "hex_input": {
-    "placeholder": "輸入 16 進制字形資料 (32 或 64 位)",
+    "placeholder": "輸入 16 進位字形資料 (32 或 64 位)",
     "copy": "複製"
   },
   "editor": {
@@ -68,11 +68,11 @@
         "title": "清空編輯器"
       },
       "add_to_glyphset": {
-        "button": "添加到字形集",
-        "title": "將當前字形添加到字形集"
+        "button": "加入字形集",
+        "title": "將目前的字形加入字形集"
       },
       "undo": {
-        "title": "撤銷(Ctrl+Z)"
+        "title": "復原(Ctrl+Z)"
       },
       "redo": {
         "title": "重做(Ctrl+Y)"
