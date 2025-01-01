@@ -185,9 +185,7 @@ defineEmits(['update:modelValue', 'update:settings'])
   color: var(--text-secondary);
 }
 
-#drawMode,
-#cursorEffect,
-#glyphWidth {
+.setting-option select {
   padding: 5px;
   font-size: 1em;
   border: 1px solid var(--border-color);
@@ -223,14 +221,13 @@ defineEmits(['update:modelValue', 'update:settings'])
     margin-left: 5px;
   }
 
-  #drawMode,
-  #glyphWidth {
+  .setting-option select {
     font-size: 1.1em;
     padding: 10px 0;
     margin-right: 10px;
   }
 
-  #cursorEffect {
+  .setting-option input[type='checkbox'] {
     transform: scale(1.5);
     transform-origin: 0 0;
     margin-right: 1.5em;
@@ -252,14 +249,13 @@ defineEmits(['update:modelValue', 'update:settings'])
     margin-left: 30px;
   }
 
-  #drawMode,
-  #glyphWidth {
+  .setting-option select {
     font-size: 1.8em;
     padding: 15px;
     margin-right: 20px;
   }
 
-  #cursorEffect {
+  .setting-option input[type='checkbox'] {
     transform: scale(2.5);
     transform-origin: 0 0;
     margin-right: 8em;
@@ -287,14 +283,13 @@ defineEmits(['update:modelValue', 'update:settings'])
     margin-left: 30px;
   }
 
-  #drawMode,
-  #glyphWidth {
+  .setting-option select {
     font-size: 2.2em;
     padding: 20px;
     margin-right: 20px;
   }
 
-  #cursorEffect {
+  .setting-option input[type='checkbox'] {
     transform: scale(3);
     transform-origin: 0 0;
     margin-right: 10px;
