@@ -63,6 +63,30 @@
     </div>
 
     <div class="setting-option">
+      <label for="glyphPreviewMode">{{
+        $t('settings.glyph_preview.label')
+      }}</label>
+      <select
+        id="glyphPreviewMode"
+        :value="settings.glyphPreviewMode"
+        @change="
+          $emit('update:settings', {
+            ...settings,
+            glyphPreviewMode: $event.target.value,
+          })
+        "
+      >
+        <option value="pixelOnly">
+          {{ $t('settings.glyph_preview.pixel_only') }}
+        </option>
+        <option value="browserOnly">
+          {{ $t('settings.glyph_preview.browser_only') }}
+        </option>
+        <option value="both">{{ $t('settings.glyph_preview.both') }}</option>
+      </select>
+    </div>
+
+    <div class="setting-option">
       <label for="showBorder">{{ $t('settings.show_border') }}</label>
       <div class="checkbox-wrapper">
         <input

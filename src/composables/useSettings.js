@@ -9,6 +9,7 @@ export function useSettings() {
     cursorEffect: true,
     showBorder: true,
     confirmClear: true,
+    glyphPreviewMode: 'pixelOnly',
   }
 
   const loadSettings = () => {

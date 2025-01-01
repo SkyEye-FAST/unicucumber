@@ -27,6 +27,7 @@
 
     <GlyphList
       :glyphs="filteredGlyphs"
+      :settings="settings"
       @edit="editGlyph"
       @remove="removeGlyph"
       @edit-in-grid="handleEditInGrid"
@@ -39,6 +40,7 @@
 <script setup>
 import { ref, computed, defineProps, watch, nextTick, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useSettings } from '@/composables/useSettings'
 import SearchToolbar from './GlyphManager/SearchToolbar.vue'
 import GlyphAdder from './GlyphManager/GlyphAdder.vue'
 import UploadSection from './GlyphManager/UploadSection.vue'
@@ -68,6 +70,8 @@ const searchQuery = ref('')
 const editMode = ref(false)
 const duplicateGlyph = ref(null)
 const unifontMap = ref({})
+
+const { settings } = useSettings()
 
 const STORAGE_KEY = 'unicucumber_glyphs'
 

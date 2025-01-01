@@ -13,6 +13,12 @@
       "8px": "8像素",
       "16px": "16像素"
     },
+    "glyph_preview": {
+      "label": "字形预览模式",
+      "pixel_only": "仅像素预览",
+      "browser_only": "仅浏览器显示",
+      "both": "双重预览"
+    },
     "show_border": "显示网格边框",
     "confirm_clear": "清空时需要确认",
     "close": "关闭"
