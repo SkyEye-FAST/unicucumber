@@ -41,7 +41,7 @@
 }
 
 /* Global Theme Transition */
-* {
+*:not(.tool-buttons, .tool-buttons *) {
   transition:
     background-color var(--theme-transition-time) var(--theme-transition-curve),
     border-color var(--theme-transition-time) var(--theme-transition-curve),
