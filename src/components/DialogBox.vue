@@ -390,4 +390,40 @@ const dialogMaxWidth = computed(() => {
     min-width: 32px;
   }
 }
+
+.dialog {
+  background-color: var(--dialog-background);
+  border: 1px solid var(--dialog-border);
+}
+
+.dialog-title {
+  color: var(--text-color);
+}
+
+.dialog-message {
+  color: var(--text-secondary);
+}
+
+.dialog-buttons button {
+  background-color: var(--button-background);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.dialog-buttons button:hover {
+  background-color: var(--button-hover);
+}
+
+.dialog-buttons button:active {
+  background-color: var(--button-active);
+}
+
+.dialog-buttons button.primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.dialog-buttons button.primary:hover {
+  background-color: var(--primary-dark);
+}
 </style>

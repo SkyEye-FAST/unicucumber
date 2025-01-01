@@ -97,6 +97,7 @@ defineEmits(['edit', 'remove', 'edit-in-grid'])
   display: flex;
   flex-direction: column;
   gap: 8px;
+  background-color: var(--background-color);
 }
 
 .glyph-card {
@@ -104,9 +105,10 @@ defineEmits(['edit', 'remove', 'edit-in-grid'])
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: white;
+  background: var(--background-light);
   border-radius: 8px;
-  box-shadow: 0 2px 4px var(--shadow-color);
+  box-shadow: 0 2px 4px var(--modal-shadow);
+  border: 1px solid var(--border-color);
 }
 
 .glyph-preview {
@@ -121,11 +123,12 @@ defineEmits(['edit', 'remove', 'edit-in-grid'])
   min-width: 40px;
   align-items: center;
   justify-content: center;
-  background: var(--background-light);
+  background: var(--background-color);
   border-radius: 4px;
   cursor: pointer;
   transition: transform 0.2s ease;
   transform-origin: center;
+  border: 1px solid var(--border-color);
 }
 
 .glyph-preview.dual-preview {
@@ -150,8 +153,9 @@ defineEmits(['edit', 'remove', 'edit-in-grid'])
 }
 
 .glyph-preview:hover {
-  background: var(--background-active);
+  background: var(--background-hover);
   transform: scale(1.05);
+  border-color: var(--border-hover);
 }
 
 .glyph-info {
@@ -182,6 +186,7 @@ defineEmits(['edit', 'remove', 'edit-in-grid'])
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--text-color);
 }
 
 .glyph-actions {
@@ -205,8 +210,8 @@ defineEmits(['edit', 'remove', 'edit-in-grid'])
 }
 
 .btn-icon:hover {
-  background-color: var(--background-active);
-  color: var(--text-color);
+  background-color: var(--background-hover);
+  color: var(--primary-color);
 }
 
 @media (orientation: portrait) and (min-width: 768px) {

@@ -10,6 +10,9 @@
     <button @click="$emit('toggleSidebar')" class="modal-button">
       <span class="material-symbols-outlined bold">glyphs</span>
     </button>
+    <button @click="toggleTheme" class="modal-button">
+      <span class="material-symbols-outlined bold">{{ isDark ? 'light_mode' : 'dark_mode' }}</span>
+    </button>
     <a href="https://github.com/SkyEye-FAST/unicucumber" class="github-link">
       <img src="/github-icon.svg" alt="GitHub" class="github-icon" />
     </a>
@@ -17,7 +20,14 @@
 </template>
 
 <script setup>
+import { inject } from 'vue'
+
+const isDark = inject('isDark')
 defineEmits(['openSettings', 'toggleSidebar'])
+
+const toggleTheme = () => {
+  isDark.value = !isDark.value
+}
 </script>
 
 <style scoped>
