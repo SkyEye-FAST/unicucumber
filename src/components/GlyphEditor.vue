@@ -151,11 +151,9 @@ const isDark = ref(false)
 provide('isDark', isDark)
 
 onMounted(() => {
-  // 检查系统主题
   isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
   updateTheme(isDark.value)
 
-  // 监听系统主题变化
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
     isDark.value = e.matches
     updateTheme(e.matches)

@@ -36,6 +36,7 @@ const updateDrawValue = (value) => {
 .tool-buttons {
   display: flex;
   margin: 10px 0 15px 0;
+  transition: none !important;
 }
 
 .tool-button {
@@ -45,9 +46,11 @@ const updateDrawValue = (value) => {
   font-size: 1.5em;
   padding: 7px 10px;
   border: transparent 2px solid;
-  background-color: var(--border-color);
+  background-color: var(--input-border);
+  color: var(--text-color);
   cursor: pointer;
   width: 8em;
+  transition: none !important;
 }
 
 .tool-button.active {
@@ -55,8 +58,9 @@ const updateDrawValue = (value) => {
   color: white;
 }
 
-.tool-button:hover {
-  border: var(--primary-darker) 2px solid;
+.tool-button:hover:not(.active) {
+  background-color: var(--background-hover);
+  border-color: var(--border-hover);
 }
 
 @media (orientation: portrait) and (max-width: 768px) {

@@ -34,6 +34,19 @@
   /* Effects */
   --shadow-color: rgba(0, 0, 0, 0.1);
   --modal-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Transitions */
+  --theme-transition-time: 0.3s;
+  --theme-transition-curve: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Global Theme Transition */
+* {
+  transition:
+    background-color var(--theme-transition-time) var(--theme-transition-curve),
+    border-color var(--theme-transition-time) var(--theme-transition-curve),
+    color var(--theme-transition-time) var(--theme-transition-curve),
+    box-shadow var(--theme-transition-time) var(--theme-transition-curve);
 }
 
 /* Base Styles */

@@ -22,17 +22,27 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 
-const isDark = ref(localStorage.getItem('theme') === 'dark')
+const isDark = ref(false)
 defineEmits(['openSettings', 'toggleSidebar'])
 
+const setTheme = (dark) => {
+  isDark.value = dark
+  localStorage.setItem('theme', dark ? 'dark' : 'light')
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
+}
+
 const toggleTheme = () => {
-  isDark.value = !isDark.value
-  localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
-  document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
+  setTheme(!isDark.value)
 }
 
 onMounted(() => {
-  document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
+  const savedTheme = localStorage.getItem('theme')
+  if (savedTheme) {
+    setTheme(savedTheme === 'dark')
+  } else {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    setTheme(prefersDark)
+  }
 })
 </script>
 
