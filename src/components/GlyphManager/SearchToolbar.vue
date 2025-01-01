@@ -56,6 +56,7 @@ defineEmits(['update:searchQuery', 'export'])
 }
 
 .btn-export {
+  font-family: var(--normal-font);
   display: flex;
   align-items: center;
   gap: 3px;

@@ -184,6 +184,7 @@ const getAddButtonTitle = computed(() => {
 }
 
 .btn-add {
+  font-family: var(--normal-font);
   padding: 8px 12px;
   background: var(--primary-color);
   color: white;
@@ -200,6 +201,7 @@ const getAddButtonTitle = computed(() => {
 }
 
 .btn-import {
+  font-family: var(--normal-font);
   display: flex;
   align-items: center;
   gap: 3px;
@@ -222,6 +224,7 @@ const getAddButtonTitle = computed(() => {
 }
 
 .btn-clear {
+  font-family: var(--normal-font);
   padding: 8px 20px;
   background: var(--danger-color);
   color: white;
@@ -237,6 +240,7 @@ const getAddButtonTitle = computed(() => {
 }
 
 .btn-warn {
+  font-family: var(--normal-font);
   padding: 8px 16px;
   background: var(--warning-color);
   color: black;
@@ -252,6 +256,7 @@ const getAddButtonTitle = computed(() => {
 }
 
 .btn-cancel {
+  font-family: var(--normal-font);
   padding: 8px 16px;
   background: var(--grey-color);
   color: white;
