@@ -65,6 +65,17 @@ const copyHex = async () => {
   font-family: var(--monospace-font);
   font-size: 1em;
   border: 2px solid var(--text-color);
+  background-color: var(--background-light);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.hex-input:focus {
+  border-color: var(--border-hover);
+}
+
+.hex-input.invalid {
+  border-color: var(--danger-color);
 }
 
 .copy-button {

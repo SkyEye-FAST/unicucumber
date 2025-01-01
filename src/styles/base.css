@@ -1,6 +1,8 @@
 :root {
+  /* Layout */
   --cell-size: 25px;
 
+  /* Colors - Light Theme Default */
   --primary-color: #4ea72e;
   --primary-dark: #45a049;
   --primary-darker: #196b24;
@@ -17,6 +19,7 @@
   --text-secondary: #666;
   --text-light: #444;
 
+  /* Status Colors */
   --danger-color: #f44336;
   --danger-hover: #d32f2f;
   --warning-color: #ffc107;
@@ -28,22 +31,38 @@
   --grey-color: #6c757d;
   --grey-hover: #5a6268;
 
+  /* Effects */
   --shadow-color: rgba(0, 0, 0, 0.1);
   --modal-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Transitions */
+  --theme-transition-time: 0.3s;
+  --theme-transition-curve: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Global Theme Transition */
+*:not(.tool-buttons, .tool-buttons *) {
+  transition:
+    background-color var(--theme-transition-time) var(--theme-transition-curve),
+    border-color var(--theme-transition-time) var(--theme-transition-curve),
+    color var(--theme-transition-time) var(--theme-transition-curve),
+    box-shadow var(--theme-transition-time) var(--theme-transition-curve);
+}
+
+/* Base Styles */
 body {
-  background-color: #f2f2f2;
+  background-color: var(--background-color);
+  color: var(--text-color);
 }
 
 .container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: var(--background-color);
   padding: 20px;
 }
 
+/* Responsive */
 @media (orientation: portrait) and (max-width: 768px) {
   :root {
     --cell-size: 21px;

@@ -171,14 +171,15 @@ defineEmits(['update:modelValue', 'update:settings'])
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: white;
+  background: var(--background-light);
   padding: 5px 30px 25px;
   border-radius: 10px;
-  box-shadow: 0 8px 16px var(--shadow-color);
+  box-shadow: 0 8px 16px var(--modal-shadow);
   z-index: 999;
   width: 20em;
   display: flex;
   flex-direction: column;
+  border: 1px solid var(--border-color);
 }
 
 .modal-title {
@@ -204,9 +205,15 @@ defineEmits(['update:modelValue', 'update:settings'])
 .setting-option select {
   padding: 5px;
   font-size: 1em;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--input-border);
   border-radius: 5px;
   width: 60%;
+  background-color: var(--input-background);
+  color: var(--text-color);
+}
+
+.setting-option select:focus {
+  border-color: var(--input-focus-border);
 }
 
 .font-input {
@@ -214,8 +221,18 @@ defineEmits(['update:modelValue', 'update:settings'])
   width: 60%;
   padding: 5px;
   font-size: 1em;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--input-border);
   border-radius: 5px;
+  background-color: var(--input-background);
+  color: var(--text-color);
+}
+
+.font-input:focus {
+  border-color: var(--input-focus-border);
+}
+
+.setting-option input[type='checkbox'] {
+  accent-color: var(--primary-color);
 }
 
 .close-button {
@@ -337,5 +354,38 @@ defineEmits(['update:modelValue', 'update:settings'])
     padding: 20px;
     margin-right: 20px;
   }
+}
+
+.modal {
+  background-color: var(--background-light);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.modal-content {
+  background-color: var(--background-color);
+}
+
+.settings-group {
+  border: 1px solid var(--border-color);
+  background-color: var(--background-light);
+}
+
+.settings-group h3 {
+  color: var(--text-color);
+}
+
+.form-group label {
+  color: var(--text-secondary);
+}
+
+select, input[type="number"] {
+  background-color: var(--background-light);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+select:focus, input[type="number"]:focus {
+  border-color: var(--border-hover);
 }
 </style>

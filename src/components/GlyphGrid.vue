@@ -131,6 +131,7 @@ const gridStyle = computed(() => ({
   background-color: white;
   border: v-bind('showBorder ? "0.5px solid var(--primary-darker)" : "none"');
   cursor: pointer;
+  transition: none !important;
 }
 
 .cell.filled {

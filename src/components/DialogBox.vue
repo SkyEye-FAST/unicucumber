@@ -133,7 +133,7 @@ const dialogMaxWidth = computed(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--modal-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -142,11 +142,12 @@ const dialogMaxWidth = computed(() => {
 }
 
 .dialog-box {
-  background: white;
+  background: var(--dialog-background);
+  border: 1px solid var(--dialog-border);
   border-radius: 8px;
   padding: 20px;
   width: 100%;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 12px var(--modal-shadow);
 }
 
 .dialog-title {
@@ -157,6 +158,7 @@ const dialogMaxWidth = computed(() => {
 
 .dialog-content {
   margin-bottom: 20px;
+  color: var(--text-color);
 }
 
 .dialog-actions {
@@ -172,7 +174,7 @@ const dialogMaxWidth = computed(() => {
   border-radius: 4px;
   padding: 12px;
   margin: 12px 0;
-  background: var(--background-light);
+  background: var(--glyph-card-background);
 }
 
 .select-all-row {
@@ -197,14 +199,14 @@ const dialogMaxWidth = computed(() => {
 
 .conflict-item {
   padding: 8px;
-  background: white;
-  border: 1px solid var(--border-color);
+  background: var(--glyph-card-background);
+  border: 1px solid var(--glyph-card-border);
   border-radius: 4px;
   transition: background-color 0.2s;
 }
 
 .conflict-item:hover {
-  background-color: var(--hover-color);
+  background-color: var(--glyph-preview-hover);
 }
 
 .item-details {
@@ -239,7 +241,8 @@ const dialogMaxWidth = computed(() => {
   flex-shrink: 0;
   font-size: 1.5em;
   padding: 4px;
-  background: var(--background-light);
+  background: var(--glyph-preview-background);
+  border: 1px solid var(--glyph-preview-border);
   border-radius: 4px;
   min-width: 40px;
   text-align: center;
@@ -267,6 +270,60 @@ const dialogMaxWidth = computed(() => {
 
 .btn-danger {
   background: var(--danger-color);
+}
+
+.dialog {
+  background-color: var(--dialog-background);
+  border: 1px solid var(--dialog-border);
+}
+
+.dialog-title {
+  color: var(--text-color);
+}
+
+.dialog-message {
+  color: var(--text-secondary);
+}
+
+.dialog-buttons button {
+  background-color: var(--button-background);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.dialog-buttons button:hover {
+  background-color: var(--button-hover);
+}
+
+.dialog-buttons button:active {
+  background-color: var(--button-active);
+}
+
+.dialog-buttons button.primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.dialog-buttons button.primary:hover {
+  background-color: var(--primary-dark);
+}
+
+[data-theme='dark'] .btn-secondary {
+  background: var(--background-active);
+  color: var(--text-color);
+}
+
+[data-theme='dark'] .conflict-item {
+  border-color: var(--glyph-card-border);
+}
+
+[data-theme='dark'] input[type='checkbox'] {
+  background-color: var(--checkbox-background);
+  border-color: var(--checkbox-border);
+}
+
+[data-theme='dark'] input[type='checkbox']:checked {
+  background-color: var(--checkbox-checked);
 }
 
 @media (min-width: 1025px) {

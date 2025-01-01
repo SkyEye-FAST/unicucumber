@@ -1,0 +1,160 @@
+:root {
+  /* Light Theme Variables */
+  --primary-color: #4ea72e;
+  --primary-dark: #45a049;
+  --primary-darker: #196b24;
+
+  --background-color: #f2f2f2;
+  --background-light: #f8f9fa;
+  --background-hover: #f5f5f5;
+  --background-active: #e9ecef;
+
+  --border-color: #404040;
+  --border-hover: #505050;
+
+  --text-color: #333;
+  --text-secondary: #666;
+  --text-light: #444;
+
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --modal-overlay: rgba(0, 0, 0, 0.5);
+
+  --input-background: #fff;
+  --input-border: #ddd;
+  --input-focus-border: #bbb;
+
+  --dialog-background: #fff;
+  --dialog-border: #ddd;
+
+  --scrollbar-thumb: #ccc;
+  --scrollbar-track: #f2f2f2;
+
+  --glyph-card-background: #fff;
+  --glyph-card-border: #ddd;
+  --glyph-card-shadow: rgba(0, 0, 0, 0.1);
+  --glyph-preview-background: #f8f9fa;
+  --glyph-preview-border: #ddd;
+  --glyph-preview-hover: #f5f5f5;
+  --glyph-preview-border-hover: #bbb;
+  --glyph-action-hover: #f5f5f5;
+  --glyph-action-color: #666;
+  --glyph-action-hover-color: #4ea72e;
+
+  --modal-background: #fff;
+  --modal-border: #ddd;
+  --modal-shadow: rgba(0, 0, 0, 0.1);
+
+  --select-background: #fff;
+  --select-border: #ddd;
+  --select-color: #333;
+
+  --checkbox-background: #fff;
+  --checkbox-border: #ddd;
+  --checkbox-checked: #4ea72e;
+}
+
+[data-theme='dark'] {
+  /* Primary Colors */
+  --primary-color: #5ebd3e;
+  --primary-dark: #55b359;
+  --primary-darker: #297b34;
+
+  /* Backgrounds */
+  --background-color: #1e1e1e;
+  --background-light: #2d2d2d;
+  --background-hover: #333333;
+  --background-active: #404040;
+
+  /* Borders & Dividers */
+  --border-color: #404040;
+  --border-hover: #505050;
+
+  /* Text Colors */
+  --text-color: #e0e0e0;
+  --text-secondary: #b0b0b0;
+  --text-light: #cccccc;
+
+  /* Effects */
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --modal-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Input Elements */
+  --input-background: #333333;
+  --input-border: #404040;
+  --input-focus-border: #505050;
+
+  /* Dialog Elements */
+  --dialog-background: #2d2d2d;
+  --dialog-border: #404040;
+
+  /* Scrollbar */
+  --scrollbar-thumb: #505050;
+  --scrollbar-track: #2d2d2d;
+
+  /* Glyph Card */
+  --glyph-card-background: #2d2d2d;
+  --glyph-card-border: #404040;
+  --glyph-card-shadow: rgba(0, 0, 0, 0.4);
+  --glyph-preview-background: #333333;
+  --glyph-preview-border: #404040;
+  --glyph-preview-hover: #383838;
+  --glyph-preview-border-hover: #505050;
+  --glyph-action-hover: #383838;
+  --glyph-action-color: #b0b0b0;
+  --glyph-action-hover-color: #5ebd3e;
+
+  --modal-background: #2d2d2d;
+  --modal-border: #404040;
+  --modal-shadow: rgba(0, 0, 0, 0.4);
+
+  --select-background: #333333;
+  --select-border: #404040;
+  --select-color: #e0e0e0;
+
+  --checkbox-background: #333333;
+  --checkbox-border: #505050;
+  --checkbox-checked: #5ebd3e;
+}
+
+/* Dark Theme Overrides */
+[data-theme="dark"] body {
+  background-color: var(--background-color);
+}
+
+[data-theme="dark"] .title span {
+  color: var(--text-color) !important;
+}
+
+/* Scrollbar Styles */
+[data-theme='dark'] ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
+}
+
+/* Form Elements */
+[data-theme='dark'] input,
+[data-theme='dark'] select,
+[data-theme='dark'] textarea {
+  background-color: var(--input-background);
+  border-color: var(--input-border);
+  color: var(--text-color);
+}
+
+[data-theme='dark'] input:focus,
+[data-theme='dark'] select:focus,
+[data-theme='dark'] textarea:focus {
+  border-color: var(--input-focus-border);
+}

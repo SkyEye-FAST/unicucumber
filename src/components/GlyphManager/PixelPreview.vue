@@ -155,4 +155,16 @@ canvas {
   background: white;
   flex: none;
 }
+
+.preview-grid {
+  background-color: var(--background-light);
+}
+
+.preview-cell {
+  border: 1px solid var(--border-color);
+}
+
+.preview-cell.filled {
+  background-color: var(--text-color);
+}
 </style>

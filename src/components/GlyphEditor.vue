@@ -107,7 +107,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch, computed, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, computed, nextTick, provide } from 'vue'
 import { useI18n } from 'vue-i18n'
 import EditorHeader from './EditorHeader.vue'
 import SettingsModal from './SettingsModal.vue'
@@ -146,6 +146,33 @@ const dialogConfig = ref({})
 
 const glyphGridRef = ref(null)
 const gridFontRef = ref(null)
+
+const isDark = ref(false)
+provide('isDark', isDark)
+
+onMounted(() => {
+  isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
+  updateTheme(isDark.value)
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    isDark.value = e.matches
+    updateTheme(e.matches)
+  })
+
+  resetGrid(settings.value.glyphWidth)
+  updateHexCode()
+  document.addEventListener('contextmenu', preventDefault)
+  document.addEventListener('keydown', handleKeydown)
+  nextTick(updateGridFontPreview)
+})
+
+const updateTheme = (dark) => {
+  if (dark) {
+    document.documentElement.setAttribute('data-theme', 'dark')
+  } else {
+    document.documentElement.removeAttribute('data-theme')
+  }
+}
 
 const setGlyphs = (newGlyphs) => {
   glyphs.value = newGlyphs
@@ -318,14 +345,6 @@ const updateGridFontPreview = () => {
 
 watch(() => gridData.value, updateGridFontPreview, { deep: true })
 
-onMounted(() => {
-  resetGrid(settings.value.glyphWidth)
-  updateHexCode()
-  document.addEventListener('contextmenu', preventDefault)
-  document.addEventListener('keydown', handleKeydown)
-  nextTick(updateGridFontPreview)
-})
-
 onBeforeUnmount(() => {
   document.removeEventListener('contextmenu', preventDefault)
   document.removeEventListener('keydown', handleKeydown)
@@ -427,7 +446,7 @@ onBeforeUnmount(() => {
   padding: 0;
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  background: white;
+  background: var(--background-light);
   cursor: pointer;
   color: var(--text-secondary);
   display: flex;
@@ -498,7 +517,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem;
-  background: white;
+  background: var(--background-light);
   border-radius: 4px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
@@ -656,5 +675,9 @@ onBeforeUnmount(() => {
   .unicode-char {
     font-size: 2.8em;
   }
+}
+
+[data-theme="dark"] .github-icon {
+  filter: invert(1);
 }
 </style>
