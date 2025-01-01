@@ -63,6 +63,46 @@
     </div>
 
     <div class="setting-option">
+      <label for="glyphPreviewMode">{{
+        $t('settings.glyph_preview.label')
+      }}</label>
+      <select
+        id="glyphPreviewMode"
+        :value="settings.glyphPreviewMode"
+        @change="
+          $emit('update:settings', {
+            ...settings,
+            glyphPreviewMode: $event.target.value,
+          })
+        "
+      >
+        <option value="pixelOnly">
+          {{ $t('settings.glyph_preview.pixel_only') }}
+        </option>
+        <option value="browserOnly">
+          {{ $t('settings.glyph_preview.browser_only') }}
+        </option>
+        <option value="both">{{ $t('settings.glyph_preview.both') }}</option>
+      </select>
+    </div>
+
+    <div class="setting-option">
+      <label for="browserFont">{{ $t('settings.browser_preview_font') }}</label>
+      <input
+        type="text"
+        id="browserFont"
+        class="font-input"
+        :value="settings.browserPreviewFont"
+        @change="
+          $emit('update:settings', {
+            ...settings,
+            browserFont: $event.target.value,
+          })
+        "
+      />
+    </div>
+
+    <div class="setting-option">
       <label for="showBorder">{{ $t('settings.show_border') }}</label>
       <div class="checkbox-wrapper">
         <input
@@ -161,14 +201,21 @@ defineEmits(['update:modelValue', 'update:settings'])
   color: var(--text-secondary);
 }
 
-#drawMode,
-#cursorEffect,
-#glyphWidth {
+.setting-option select {
   padding: 5px;
   font-size: 1em;
   border: 1px solid var(--border-color);
   border-radius: 5px;
   width: 60%;
+}
+
+.font-input {
+  font-family: var(--monospace-font);
+  width: 60%;
+  padding: 5px;
+  font-size: 1em;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
 }
 
 .close-button {
@@ -199,14 +246,13 @@ defineEmits(['update:modelValue', 'update:settings'])
     margin-left: 5px;
   }
 
-  #drawMode,
-  #glyphWidth {
+  .setting-option select {
     font-size: 1.1em;
     padding: 10px 0;
     margin-right: 10px;
   }
 
-  #cursorEffect {
+  .setting-option input[type='checkbox'] {
     transform: scale(1.5);
     transform-origin: 0 0;
     margin-right: 1.5em;
@@ -228,14 +274,13 @@ defineEmits(['update:modelValue', 'update:settings'])
     margin-left: 30px;
   }
 
-  #drawMode,
-  #glyphWidth {
+  .setting-option select {
     font-size: 1.8em;
     padding: 15px;
     margin-right: 20px;
   }
 
-  #cursorEffect {
+  .setting-option input[type='checkbox'] {
     transform: scale(2.5);
     transform-origin: 0 0;
     margin-right: 8em;
@@ -246,6 +291,12 @@ defineEmits(['update:modelValue', 'update:settings'])
     font-size: 1.8em;
     padding: 15px 0;
     margin-bottom: 30px;
+  }
+
+  .font-input {
+    font-size: 1.8em;
+    padding: 15px;
+    margin-right: 20px;
   }
 }
 
@@ -263,14 +314,13 @@ defineEmits(['update:modelValue', 'update:settings'])
     margin-left: 30px;
   }
 
-  #drawMode,
-  #glyphWidth {
+  .setting-option select {
     font-size: 2.2em;
     padding: 20px;
     margin-right: 20px;
   }
 
-  #cursorEffect {
+  .setting-option input[type='checkbox'] {
     transform: scale(3);
     transform-origin: 0 0;
     margin-right: 10px;
@@ -280,6 +330,12 @@ defineEmits(['update:modelValue', 'update:settings'])
     font-size: 2em;
     padding: 15px 0;
     margin-bottom: 40px;
+  }
+
+  .font-input {
+    font-size: 2.2em;
+    padding: 20px;
+    margin-right: 20px;
   }
 }
 </style>

@@ -10,19 +10,11 @@
         >U+{{ currentGlyph.codePoint.toUpperCase() }}</span
       >
       <div class="glyph-preview">
-        <div class="preview-grid">
-          <div
-            v-for="(row, rowIndex) in gridData"
-            :key="`preview-row-${rowIndex}`"
-            class="preview-row"
-          >
-            <div
-              v-for="(cell, cellIndex) in row"
-              :key="`preview-cell-${rowIndex}-${cellIndex}`"
-              :class="['preview-cell', { filled: cell === 1 }]"
-            ></div>
-          </div>
-        </div>
+        <PixelPreview
+          :hexValue="hexCode"
+          :width="settings.glyphWidth"
+          display-mode="editor"
+        />
         <span class="unicode-char">
           {{ String.fromCodePoint(parseInt(currentGlyph.codePoint, 16)) }}
         </span>
@@ -125,6 +117,7 @@ import HexCodeInput from './HexCodeInput.vue'
 import DownloadButtons from './DownloadButtons.vue'
 import GlyphManager from './GlyphManager.vue'
 import DialogBox from './DialogBox.vue'
+import PixelPreview from './GlyphManager/PixelPreview.vue'
 import { useSettings } from '@/composables/useSettings'
 import { useGridData } from '@/composables/useGridData'
 import { useHexCode } from '@/composables/useHexCode'
@@ -515,28 +508,6 @@ onBeforeUnmount(() => {
   border-radius: 4px;
   min-width: 1.5em;
   text-align: center;
-}
-
-.preview-grid {
-  display: inline-block;
-  border: 1px solid var(--border-color);
-  padding: 2px;
-  border-radius: 2px;
-}
-
-.preview-row {
-  display: flex;
-  height: 2px;
-}
-
-.preview-cell {
-  width: 2px;
-  height: 2px;
-  background-color: white;
-}
-
-.preview-cell.filled {
-  background-color: black;
 }
 
 @media (orientation: portrait) and (max-width: 768px) {

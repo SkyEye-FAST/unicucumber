@@ -3,12 +3,24 @@
     <div v-for="glyph in glyphs" :key="glyph.codePoint" class="glyph-card">
       <div
         class="glyph-preview"
+        :class="{ 'dual-preview': showPixelPreview && showBrowserPreview }"
         @click="$emit('edit-in-grid', glyph)"
         :title="
           $t('glyph_manager.glyph.edit_in_grid', { codePoint: glyph.codePoint })
         "
       >
-        {{ String.fromCodePoint(parseInt(glyph.codePoint, 16)) }}
+        <template v-if="showPixelPreview">
+          <PixelPreview
+            :hex-value="glyph.hexValue"
+            :width="glyph.hexValue.length === 32 ? 8 : 16"
+            class="pixel-preview"
+          />
+        </template>
+        <template v-if="showBrowserPreview">
+          <div class="browser-preview">
+            {{ String.fromCodePoint(parseInt(glyph.codePoint, 16)) }}
+          </div>
+        </template>
       </div>
       <div class="glyph-info">
         <div class="info-row">
@@ -44,14 +56,36 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
+import { computed, watch, nextTick } from 'vue'
+import PixelPreview from './PixelPreview.vue'
+
 const { t: $t } = useI18n()
 
-defineProps({
+const props = defineProps({
   glyphs: {
     type: Array,
     required: true,
   },
+  settings: {
+    type: Object,
+    required: true,
+  },
 })
+
+const showPixelPreview = computed(() => {
+  return ['pixelOnly', 'both'].includes(props.settings.glyphPreviewMode)
+})
+
+const showBrowserPreview = computed(() => {
+  return ['browserOnly', 'both'].includes(props.settings.glyphPreviewMode)
+})
+
+watch(
+  () => props.settings.glyphPreviewMode,
+  () => {
+    nextTick()
+  },
+)
 
 defineEmits(['edit', 'remove', 'edit-in-grid'])
 </script>
@@ -77,10 +111,14 @@ defineEmits(['edit', 'remove', 'edit-in-grid'])
 
 .glyph-preview {
   flex: 0 0 40px;
-  font-size: 1.5rem;
   width: 40px;
   height: 40px;
+  position: relative;
   display: flex;
+  flex-direction: row;
+  gap: 4px;
+  padding: 4px;
+  min-width: 40px;
   align-items: center;
   justify-content: center;
   background: var(--background-light);
@@ -88,6 +126,27 @@ defineEmits(['edit', 'remove', 'edit-in-grid'])
   cursor: pointer;
   transition: transform 0.2s ease;
   transform-origin: center;
+}
+
+.glyph-preview.dual-preview {
+  width: 80px;
+  min-width: auto;
+}
+
+.pixel-preview,
+.browser-preview {
+  position: static;
+  transform: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  width: max-content;
+}
+
+.browser-preview {
+  font-family: v-bind('settings.browserFont');
+  font-size: 24px;
 }
 
 .glyph-preview:hover {
@@ -161,6 +220,20 @@ defineEmits(['edit', 'remove', 'edit-in-grid'])
     width: 80px;
     height: 80px;
     font-size: 2.5rem;
+    min-width: auto;
+  }
+
+  .glyph-preview.dual-preview {
+    width: 160px;
+  }
+
+  .pixel-preview,
+  .browser-preview {
+    height: 64px;
+  }
+
+  .browser-preview {
+    font-size: 48px;
   }
 
   .glyph-info {

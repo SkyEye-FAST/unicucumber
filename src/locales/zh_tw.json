@@ -13,6 +13,13 @@
       "8px": "8 像素",
       "16px": "16 像素"
     },
+    "glyph_preview": {
+      "label": "字形預覽模式",
+      "pixel_only": "僅像素預覽",
+      "browser_only": "僅瀏覽器顯示",
+      "both": "雙重預覽"
+    },
+    "browser_preview_font": "字形預覽字體",
     "show_border": "顯示網格邊框",
     "confirm_clear": "清空時需要確認",
     "close": "關閉"

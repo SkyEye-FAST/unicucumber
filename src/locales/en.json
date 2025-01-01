@@ -13,6 +13,13 @@
       "8px": "8 pixels",
       "16px": "16 pixels"
     },
+    "glyph_preview": {
+      "label": "Glyph Preview Mode",
+      "pixel_only": "Pixel Only",
+      "browser_only": "Browser Only",
+      "both": "Both"
+    },
+    "browser_preview_font": "Glyph Preview Font",
     "show_border": "Show Grid Border",
     "confirm_clear": "Confirm Clear",
     "close": "Close"
