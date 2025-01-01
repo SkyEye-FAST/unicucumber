@@ -56,6 +56,7 @@ defineEmits(['hex-upload', 'image-upload'])
 }
 
 .btn-upload {
+  font-family: var(--normal-font);
   display: flex;
   align-items: center;
   gap: 0.5em;

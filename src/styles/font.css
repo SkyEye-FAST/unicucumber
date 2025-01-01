@@ -32,9 +32,11 @@ body {
 }
 
 [lang='zh-cn'] body {
+  --normal-font: 'Noto Sans CJK SC', 'Source Han Sans SC', sans-serif;
   font-family: 'Noto Sans CJK SC', 'Source Han Sans SC', sans-serif;
 }
 
 [lang='zh-tw'] body {
+  --normal-font: 'Noto Sans CJK TC', 'Source Han Sans TC', sans-serif;
   font-family: 'Noto Sans CJK TC', 'Source Han Sans TC', sans-serif;
 }

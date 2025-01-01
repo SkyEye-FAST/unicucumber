@@ -388,6 +388,7 @@ onBeforeUnmount(() => {
 }
 
 .action-button {
+  font-family: var(--normal-font);
   padding: 8px 16px;
   border: none;
   border-radius: 4px;
