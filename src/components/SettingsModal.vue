@@ -87,6 +87,22 @@
     </div>
 
     <div class="setting-option">
+      <label for="browserFont">{{ $t('settings.browser_preview_font') }}</label>
+      <input
+        type="text"
+        id="browserFont"
+        class="font-input"
+        :value="settings.browserPreviewFont"
+        @change="
+          $emit('update:settings', {
+            ...settings,
+            browserFont: $event.target.value,
+          })
+        "
+      />
+    </div>
+
+    <div class="setting-option">
       <label for="showBorder">{{ $t('settings.show_border') }}</label>
       <div class="checkbox-wrapper">
         <input
@@ -193,6 +209,15 @@ defineEmits(['update:modelValue', 'update:settings'])
   width: 60%;
 }
 
+.font-input {
+  font-family: var(--monospace-font);
+  width: 60%;
+  padding: 5px;
+  font-size: 1em;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+}
+
 .close-button {
   margin: 20px auto 0;
   width: 60%;
@@ -267,6 +292,12 @@ defineEmits(['update:modelValue', 'update:settings'])
     padding: 15px 0;
     margin-bottom: 30px;
   }
+
+  .font-input {
+    font-size: 1.8em;
+    padding: 15px;
+    margin-right: 20px;
+  }
 }
 
 @media (orientation: portrait) and (min-width: 1024px) {
@@ -299,6 +330,12 @@ defineEmits(['update:modelValue', 'update:settings'])
     font-size: 2em;
     padding: 15px 0;
     margin-bottom: 40px;
+  }
+
+  .font-input {
+    font-size: 2.2em;
+    padding: 20px;
+    margin-right: 20px;
   }
 }
 </style>

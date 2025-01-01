@@ -19,6 +19,7 @@
       "browser_only": "Browser Only",
       "both": "Both"
     },
+    "browser_preview_font": "Glyph Preview Font",
     "show_border": "Show Grid Border",
     "confirm_clear": "Confirm Clear",
     "close": "Close"

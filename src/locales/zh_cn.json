@@ -19,6 +19,7 @@
       "browser_only": "仅浏览器显示",
       "both": "双重预览"
     },
+    "browser_preview_font": "字形预览字体",
     "show_border": "显示网格边框",
     "confirm_clear": "清空时需要确认",
     "close": "关闭"
