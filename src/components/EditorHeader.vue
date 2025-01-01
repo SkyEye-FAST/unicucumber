@@ -20,14 +20,20 @@
 </template>
 
 <script setup>
-import { inject } from 'vue'
+import { ref, onMounted } from 'vue'
 
-const isDark = inject('isDark')
+const isDark = ref(localStorage.getItem('theme') === 'dark')
 defineEmits(['openSettings', 'toggleSidebar'])
 
 const toggleTheme = () => {
   isDark.value = !isDark.value
+  localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
+  document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
 }
+
+onMounted(() => {
+  document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
+})
 </script>
 
 <style scoped>
