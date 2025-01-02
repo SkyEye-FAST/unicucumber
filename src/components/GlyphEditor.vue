@@ -107,7 +107,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch, computed, nextTick, provide } from 'vue'
+import {
+  ref,
+  onMounted,
+  onBeforeUnmount,
+  watch,
+  computed,
+  nextTick,
+  provide,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 import EditorHeader from './EditorHeader.vue'
 import SettingsModal from './SettingsModal.vue'
@@ -123,6 +131,7 @@ import { useGridData } from '@/composables/useGridData'
 import { useHexCode } from '@/composables/useHexCode'
 import { useHistory } from '@/composables/useHistory'
 import { useSidebar } from '@/composables/useSidebar'
+import { useTheme } from '@/composables/useTheme'
 import { hexToGrid } from '@/utils/hexUtils'
 const { t: $t } = useI18n()
 
@@ -147,32 +156,15 @@ const dialogConfig = ref({})
 const glyphGridRef = ref(null)
 const gridFontRef = ref(null)
 
-const isDark = ref(false)
+const { isDark } = useTheme()
 provide('isDark', isDark)
 
 onMounted(() => {
-  isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
-  updateTheme(isDark.value)
-
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    isDark.value = e.matches
-    updateTheme(e.matches)
-  })
-
-  resetGrid(settings.value.glyphWidth)
-  updateHexCode()
+  updateGridFontPreview()
   document.addEventListener('contextmenu', preventDefault)
   document.addEventListener('keydown', handleKeydown)
   nextTick(updateGridFontPreview)
 })
-
-const updateTheme = (dark) => {
-  if (dark) {
-    document.documentElement.setAttribute('data-theme', 'dark')
-  } else {
-    document.documentElement.removeAttribute('data-theme')
-  }
-}
 
 const setGlyphs = (newGlyphs) => {
   glyphs.value = newGlyphs
@@ -233,7 +225,6 @@ const loadGlyph = (hexValue, glyph) => {
     return
   }
 
-  console.log('Loading glyph:', glyph)
   const newGrid = hexToGrid(hexValue)
   updateGrid(newGrid[0].length)
   gridData.value = newGrid
@@ -257,7 +248,8 @@ watch(
   },
 )
 
-const { pushState, undo, redo, canUndo, canRedo } = useHistory(gridData.value)
+const { pushState, undo, redo, canUndo, canRedo, clearAndInitHistory } =
+  useHistory(gridData.value)
 
 const handleGridUpdate = (newGrid) => {
   gridData.value = newGrid
@@ -330,13 +322,6 @@ const updateSettings = (newSettings) => {
   Object.assign(settings.value, newSettings)
 }
 
-watch(
-  () => currentGlyph.value,
-  (newGlyph) => {
-    console.log('Current glyph changed:', newGlyph)
-  },
-)
-
 const updateGridFontPreview = () => {
   if (gridFontRef.value && glyphGridRef.value) {
     gridFontRef.value.textContent = glyphGridRef.value.gridFontString
@@ -349,6 +334,16 @@ onBeforeUnmount(() => {
   document.removeEventListener('contextmenu', preventDefault)
   document.removeEventListener('keydown', handleKeydown)
 })
+
+watch(
+  () => currentGlyph.value,
+  (newGlyph) => {
+    if (newGlyph) {
+      clearAndInitHistory(gridData.value)
+    }
+  },
+  { deep: true },
+)
 </script>
 
 <style scoped>
@@ -677,7 +672,7 @@ onBeforeUnmount(() => {
   }
 }
 
-[data-theme="dark"] .github-icon {
+[data-theme='dark'] .github-icon {
   filter: invert(1);
 }
 </style>

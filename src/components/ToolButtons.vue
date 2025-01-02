@@ -46,7 +46,7 @@ const updateDrawValue = (value) => {
   font-size: 1.5em;
   padding: 7px 10px;
   border: transparent 2px solid;
-  background-color: var(--input-border);
+  background-color: var(--border-color);
   color: var(--text-color);
   cursor: pointer;
   width: 8em;

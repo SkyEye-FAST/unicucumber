@@ -1,6 +1,39 @@
 <template>
   <div class="glyph-list">
+    <div class="select-all-row">
+      <div class="selection-controls">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            :checked="isAllSelected"
+            @change="toggleSelectAll"
+          />
+          {{ $t('glyph_manager.select_all') }}
+        </label>
+        <button
+          v-if="selectedGlyphs.length > 0"
+          @click="handleBatchDelete"
+          class="btn-danger batch-delete"
+          :title="$t('glyph_manager.batch_delete')"
+        >
+          <span class="material-symbols-outlined">delete</span>
+          {{
+            $t('glyph_manager.delete_selected', {
+              count: selectedGlyphs.length,
+            })
+          }}
+        </button>
+      </div>
+    </div>
     <div v-for="glyph in glyphs" :key="glyph.codePoint" class="glyph-card">
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          v-model="selectedGlyphs"
+          :value="glyph"
+          @change="emitSelectionChange"
+        />
+      </label>
       <div
         class="glyph-preview"
         :class="{ 'dual-preview': showPixelPreview && showBrowserPreview }"
@@ -56,7 +89,7 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
-import { computed, watch, nextTick } from 'vue'
+import { computed, watch, nextTick, ref, defineEmits } from 'vue'
 import PixelPreview from './PixelPreview.vue'
 
 const { t: $t } = useI18n()
@@ -71,6 +104,14 @@ const props = defineProps({
     required: true,
   },
 })
+
+const emit = defineEmits([
+  'edit',
+  'remove',
+  'edit-in-grid',
+  'selection-change',
+  'batch-delete',
+])
 
 const showPixelPreview = computed(() => {
   return ['pixelOnly', 'both'].includes(props.settings.glyphPreviewMode)
@@ -87,7 +128,35 @@ watch(
   },
 )
 
-defineEmits(['edit', 'remove', 'edit-in-grid'])
+const selectedGlyphs = ref([])
+
+const isAllSelected = computed(() => {
+  return (
+    props.glyphs.length > 0 &&
+    selectedGlyphs.value.length === props.glyphs.length
+  )
+})
+
+const toggleSelectAll = () => {
+  if (isAllSelected.value) {
+    selectedGlyphs.value = []
+  } else {
+    selectedGlyphs.value = [...props.glyphs]
+  }
+  emitSelectionChange()
+}
+
+const emitSelectionChange = () => {
+  emit('selection-change', selectedGlyphs.value)
+}
+
+const handleBatchDelete = () => {
+  emit(
+    'batch-delete',
+    selectedGlyphs.value.map((glyph) => glyph.codePoint),
+  )
+  selectedGlyphs.value = []
+}
 </script>
 
 <style scoped>
@@ -96,7 +165,7 @@ defineEmits(['edit', 'remove', 'edit-in-grid'])
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   background-color: var(--background-color);
 }
 
@@ -214,6 +283,54 @@ defineEmits(['edit', 'remove', 'edit-in-grid'])
   color: var(--primary-color);
 }
 
+.select-all-row {
+  padding: 8px 12px;
+  background: var(--background-light);
+  border: 1px solid var(--border-color);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.checkbox-label input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.selection-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.btn-danger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: none;
+  background-color: var(--danger-color);
+  color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.btn-danger:hover {
+  background-color: var(--danger-hover);
+}
+
+.batch-delete .material-symbols-outlined {
+  font-size: 1.2rem;
+}
+
 @media (orientation: portrait) and (min-width: 768px) {
   .glyph-card {
     padding: 16px;
@@ -252,6 +369,32 @@ defineEmits(['edit', 'remove', 'edit-in-grid'])
 
   .btn-icon .material-symbols-outlined {
     font-size: 36px !important;
+  }
+
+  .select-all-row {
+    padding: 12px 16px;
+  }
+
+  .checkbox-label input[type='checkbox'] {
+    width: 24px;
+    height: 24px;
+  }
+
+  .btn-danger {
+    padding: 8px 16px;
+    font-size: 1.5rem;
+  }
+
+  .batch-delete .material-symbols-outlined {
+    font-size: 1.5rem;
+  }
+
+  .select-all-row .selection-controls {
+    gap: 16px;
+  }
+
+  .checkbox-label {
+    font-size: 1.5rem;
   }
 }
 </style>

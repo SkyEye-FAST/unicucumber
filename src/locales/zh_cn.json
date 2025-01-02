@@ -22,13 +22,21 @@
     "browser_preview_font": "字形预览字体",
     "show_border": "显示网格边框",
     "confirm_clear": "清空时需要确认",
-    "close": "关闭"
+    "close": "关闭",
+    "font_edit": {
+      "title": "编辑预览字体",
+      "save": "保存",
+      "cancel": "取消"
+    }
   },
   "glyph_manager": {
     "title": "字形管理器",
     "search": "搜索字形...",
     "import": "从Unifont读取",
     "export": "导出字形",
+    "select_all": "全选",
+    "delete_selected": "删除选中的 {count} 项",
+    "batch_delete": "批量删除",
     "upload": {
       "hex_file": "上传Hex文件",
       "image_file": "上传字形图片"
@@ -118,6 +126,12 @@
       "title": "确认清空",
       "message": "是否确认清空当前网格？",
       "confirm": "清空",
+      "cancel": "取消"
+    },
+    "batch_delete": {
+      "title": "批量删除字形",
+      "message": "确定要删除选中的 {count} 个字形吗？",
+      "confirm": "删除",
       "cancel": "取消"
     }
   }
