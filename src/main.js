@@ -2,9 +2,9 @@ import { createApp } from 'vue'
 import { createI18n } from 'vue-i18n'
 import { watch } from 'vue'
 import App from './App.vue'
-import './styles/base.css';
-import './styles/font.css';
-import './styles/theme.css';
+import './styles/base.css'
+import './styles/font.css'
+import './styles/theme.css'
 
 import en from './locales/en.json'
 import zh_cn from './locales/zh_cn.json'
@@ -24,15 +24,15 @@ const i18n = createI18n({
 })
 
 const updateHtmlLang = (locale) => {
-  document.documentElement.lang = locale.replace('_', '-').toLowerCase();
-};
+  document.documentElement.lang = locale.replace('_', '-').toLowerCase()
+}
 
-i18n.global.locale.value = navigator.language || navigator.userLanguage || 'en';
-updateHtmlLang(i18n.global.locale.value);
+i18n.global.locale.value = navigator.language || navigator.userLanguage || 'en'
+updateHtmlLang(i18n.global.locale.value)
 
 watch(i18n.global.locale, (newLocale) => {
-  updateHtmlLang(newLocale);
-});
+  updateHtmlLang(newLocale)
+})
 
 const app = createApp(App)
 document.title = i18n.global.t(`title`)
