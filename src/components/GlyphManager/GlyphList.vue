@@ -382,10 +382,18 @@ const handleBatchDelete = () => {
 
   .btn-danger {
     padding: 8px 16px;
-    font-size: 1.2rem;
+    font-size: 1.5rem;
   }
 
   .batch-delete .material-symbols-outlined {
+    font-size: 1.5rem;
+  }
+
+  .select-all-row .selection-controls {
+    gap: 16px;
+  }
+
+  .checkbox-label {
     font-size: 1.5rem;
   }
 }

@@ -22,7 +22,12 @@
     "browser_preview_font": "Glyph Preview Font",
     "show_border": "Show Grid Border",
     "confirm_clear": "Confirm Clear",
-    "close": "Close"
+    "close": "Close",
+    "font_edit": {
+      "title": "Edit Preview Font",
+      "save": "Save",
+      "cancel": "Cancel"
+    }
   },
   "glyph_manager": {
     "title": "Glyph Manager",

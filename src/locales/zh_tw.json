@@ -22,7 +22,12 @@
     "browser_preview_font": "字形預覽字體",
     "show_border": "顯示網格邊框",
     "confirm_clear": "清空時需要確認",
-    "close": "關閉"
+    "close": "關閉",
+    "font_edit": {
+      "title": "編輯預覽字體",
+      "save": "儲存",
+      "cancel": "取消"
+    }
   },
   "glyph_manager": {
     "title": "字形管理器",
