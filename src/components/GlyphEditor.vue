@@ -107,7 +107,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch, computed, nextTick, provide } from 'vue'
+import {
+  ref,
+  onMounted,
+  onBeforeUnmount,
+  watch,
+  computed,
+  nextTick,
+  provide,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 import EditorHeader from './EditorHeader.vue'
 import SettingsModal from './SettingsModal.vue'
@@ -123,6 +131,7 @@ import { useGridData } from '@/composables/useGridData'
 import { useHexCode } from '@/composables/useHexCode'
 import { useHistory } from '@/composables/useHistory'
 import { useSidebar } from '@/composables/useSidebar'
+import { useTheme } from '@/composables/useTheme'
 import { hexToGrid } from '@/utils/hexUtils'
 const { t: $t } = useI18n()
 
@@ -147,32 +156,15 @@ const dialogConfig = ref({})
 const glyphGridRef = ref(null)
 const gridFontRef = ref(null)
 
-const isDark = ref(false)
+const { isDark } = useTheme()
 provide('isDark', isDark)
 
 onMounted(() => {
-  isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
-  updateTheme(isDark.value)
-
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    isDark.value = e.matches
-    updateTheme(e.matches)
-  })
-
-  resetGrid(settings.value.glyphWidth)
-  updateHexCode()
+  updateGridFontPreview()
   document.addEventListener('contextmenu', preventDefault)
   document.addEventListener('keydown', handleKeydown)
   nextTick(updateGridFontPreview)
 })
-
-const updateTheme = (dark) => {
-  if (dark) {
-    document.documentElement.setAttribute('data-theme', 'dark')
-  } else {
-    document.documentElement.removeAttribute('data-theme')
-  }
-}
 
 const setGlyphs = (newGlyphs) => {
   glyphs.value = newGlyphs
@@ -677,7 +669,7 @@ onBeforeUnmount(() => {
   }
 }
 
-[data-theme="dark"] .github-icon {
+[data-theme='dark'] .github-icon {
   filter: invert(1);
 }
 </style>

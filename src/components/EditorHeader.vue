@@ -11,7 +11,9 @@
       <span class="material-symbols-outlined bold">glyphs</span>
     </button>
     <button @click="toggleTheme" class="modal-button">
-      <span class="material-symbols-outlined bold">{{ isDark ? 'light_mode' : 'dark_mode' }}</span>
+      <span class="material-symbols-outlined bold">{{
+        isDark ? 'light_mode' : 'dark_mode'
+      }}</span>
     </button>
     <a href="https://github.com/SkyEye-FAST/unicucumber" class="github-link">
       <img src="/github-icon.svg" alt="GitHub" class="github-icon" />
@@ -20,29 +22,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
+import { useTheme } from '@/composables/useTheme'
 
-const isDark = ref(false)
+const { isDark, toggleTheme, initTheme } = useTheme()
 defineEmits(['openSettings', 'toggleSidebar'])
 
-const setTheme = (dark) => {
-  isDark.value = dark
-  localStorage.setItem('theme', dark ? 'dark' : 'light')
-  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
-}
-
-const toggleTheme = () => {
-  setTheme(!isDark.value)
-}
-
 onMounted(() => {
-  const savedTheme = localStorage.getItem('theme')
-  if (savedTheme) {
-    setTheme(savedTheme === 'dark')
-  } else {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    setTheme(prefersDark)
-  }
+  initTheme()
 })
 </script>
 
