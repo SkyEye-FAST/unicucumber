@@ -31,6 +31,7 @@
       @edit="editGlyph"
       @remove="removeGlyph"
       @edit-in-grid="handleEditInGrid"
+      @batch-delete="handleBatchDelete"
     />
 
     <DialogBox v-model:show="dialog.show" v-bind="dialog" />
@@ -483,6 +484,29 @@ const dialog = ref({
   onConfirm: () => {},
   onCancel: () => {},
 })
+
+const handleBatchDelete = (codePoints) => {
+  dialog.value = {
+    show: true,
+    title: $t('dialog.batch_delete.title'),
+    message: $t('dialog.batch_delete.message', { count: codePoints.length }),
+    type: 'confirm',
+    danger: true,
+    confirmText: $t('dialog.batch_delete.confirm'),
+    cancelText: $t('dialog.batch_delete.cancel'),
+    onConfirm: () => {
+      const updatedGlyphs = props.glyphs.filter(
+        (glyph) => !codePoints.includes(glyph.codePoint),
+      )
+      props.onGlyphChange(updatedGlyphs)
+      saveGlyphsToStorage(updatedGlyphs)
+      dialog.value.show = false
+    },
+    onCancel: () => {
+      dialog.value.show = false
+    },
+  }
+}
 
 onMounted(() => {
   loadStoredGlyphs()

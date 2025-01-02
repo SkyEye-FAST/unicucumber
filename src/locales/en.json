@@ -28,11 +28,14 @@
     "title": "Glyph Manager",
     "search": "Search glyphs...",
     "import": "Import from Unifont",
+    "export": "Export Glyphs",
+    "select_all": "Select All",
+    "delete_selected": "Delete Selected {count}",
+    "batch_delete": "Batch Delete",
     "upload": {
       "hex_file": "Upload Hex File",
       "image_file": "Upload Glyph Image"
     },
-    "export": "Export Glyphs",
     "add": {
       "code_point": "Enter Unicode code point (e.g. 4E00)",
       "hex_value": "Enter glyph data (32 or 64 hex digits)",
@@ -118,6 +121,12 @@
       "title": "Confirm Clear",
       "message": "Are you sure you want to clear the current grid?",
       "confirm": "Clear",
+      "cancel": "Cancel"
+    },
+    "delete_confirm": {
+      "title": "Confirm Delete",
+      "message": "Are you sure you want to delete the selected glyph?",
+      "confirm": "Delete",
       "cancel": "Cancel"
     }
   }
