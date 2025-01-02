@@ -211,7 +211,6 @@ const editGlyph = (glyph) => {
 }
 
 const handleEditInGrid = (glyph) => {
-  console.log('GlyphManager editing glyph:', glyph)
   emit('edit-in-grid', glyph.hexValue, glyph)
 }
 

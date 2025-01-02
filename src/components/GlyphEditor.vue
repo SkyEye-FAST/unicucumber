@@ -225,7 +225,6 @@ const loadGlyph = (hexValue, glyph) => {
     return
   }
 
-  console.log('Loading glyph:', glyph)
   const newGrid = hexToGrid(hexValue)
   updateGrid(newGrid[0].length)
   gridData.value = newGrid
@@ -249,7 +248,8 @@ watch(
   },
 )
 
-const { pushState, undo, redo, canUndo, canRedo } = useHistory(gridData.value)
+const { pushState, undo, redo, canUndo, canRedo, clearAndInitHistory } =
+  useHistory(gridData.value)
 
 const handleGridUpdate = (newGrid) => {
   gridData.value = newGrid
@@ -322,13 +322,6 @@ const updateSettings = (newSettings) => {
   Object.assign(settings.value, newSettings)
 }
 
-watch(
-  () => currentGlyph.value,
-  (newGlyph) => {
-    console.log('Current glyph changed:', newGlyph)
-  },
-)
-
 const updateGridFontPreview = () => {
   if (gridFontRef.value && glyphGridRef.value) {
     gridFontRef.value.textContent = glyphGridRef.value.gridFontString
@@ -341,6 +334,16 @@ onBeforeUnmount(() => {
   document.removeEventListener('contextmenu', preventDefault)
   document.removeEventListener('keydown', handleKeydown)
 })
+
+watch(
+  () => currentGlyph.value,
+  (newGlyph) => {
+    if (newGlyph) {
+      clearAndInitHistory(gridData.value)
+    }
+  },
+  { deep: true },
+)
 </script>
 
 <style scoped>

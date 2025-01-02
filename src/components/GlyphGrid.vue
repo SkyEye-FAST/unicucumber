@@ -46,8 +46,9 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useDrawing } from '@/composables/useDrawing'
+import { useHistory } from '@/composables/useHistory'
 
 const props = defineProps({
   gridData: {
@@ -83,6 +84,17 @@ const {
   handleTouchStart,
   handleTouchMove,
 } = useDrawing(props, emit)
+
+const { history, currentIndex, pushState, undo, redo, initHistory } =
+  useHistory(props.gridData)
+
+watch(
+  () => props.gridData,
+  (newData) => {
+    initHistory(newData)
+  },
+  { immediate: true },
+)
 
 const getCellStyle = (rowIndex, cellIndex) => {
   return props.cursorEffect &&

@@ -30,11 +30,41 @@ export function useHistory(initialState) {
   const canUndo = () => currentIndex.value > 0
   const canRedo = () => currentIndex.value < history.value.length - 1
 
+  const resetHistory = (newState) => {
+    history.value = [deepCloneGrid(newState)]
+    currentIndex.value = 0
+  }
+
+  const clearHistory = () => {
+    history.value = []
+    currentIndex.value = 0
+  }
+
+  const initHistory = (newState) => {
+    clearHistory()
+    history.value = [deepCloneGrid(newState)]
+    currentIndex.value = 0
+  }
+
+  const clearAndInitHistory = (newState) => {
+    // 完全清空历史记录
+    history.value = []
+    currentIndex.value = 0
+    // 使用新状态初始化
+    history.value = [deepCloneGrid(newState)]
+  }
+
   return {
+    history,
+    currentIndex,
     pushState,
     undo,
     redo,
     canUndo,
     canRedo,
+    resetHistory,
+    clearHistory,
+    initHistory,
+    clearAndInitHistory,
   }
 }
