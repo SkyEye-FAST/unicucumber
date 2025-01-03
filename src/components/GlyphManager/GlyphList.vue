@@ -50,7 +50,7 @@
           />
         </template>
         <template v-if="showBrowserPreview">
-          <div class="browser-preview">
+          <div class="browser-preview" :style="browserPreviewStyle">
             {{ String.fromCodePoint(parseInt(glyph.codePoint, 16)) }}
           </div>
         </template>
@@ -89,7 +89,7 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
-import { computed, watch, nextTick, ref, defineEmits } from 'vue'
+import { computed, watch, nextTick, ref } from 'vue'
 import PixelPreview from './PixelPreview.vue'
 
 const { t: $t } = useI18n()
@@ -157,6 +157,12 @@ const handleBatchDelete = () => {
   )
   selectedGlyphs.value = []
 }
+
+const browserPreviewStyle = computed(() => {
+  return {
+    fontFamily: props.settings.browserPreviewFont,
+  }
+})
 </script>
 
 <style scoped>
@@ -217,8 +223,7 @@ const handleBatchDelete = () => {
 }
 
 .browser-preview {
-  font-family: v-bind('settings.browserFont');
-  font-size: 24px;
+  font-size: 32px;
 }
 
 .glyph-preview:hover {

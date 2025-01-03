@@ -205,7 +205,6 @@ const handleGlyphEdit = (hexValue, glyph) => {
         title: $t('dialog.unsaved_changes.title'),
         message: $t('dialog.unsaved_changes.message'),
         confirmText: $t('dialog.unsaved_changes.confirm'),
-        cancelText: $t('dialog.unsaved_changes.cancel'),
         onConfirm: () => {
           loadGlyph(hexValue, glyph)
           showDialog.value = false
@@ -272,7 +271,6 @@ const handleClear = () => {
       title: $t('dialog.clear_confirm.title'),
       message: $t('dialog.clear_confirm.message'),
       confirmText: $t('dialog.clear_confirm.confirm'),
-      cancelText: $t('dialog.clear_confirm.cancel'),
       onConfirm: doClear,
     })
   } else {

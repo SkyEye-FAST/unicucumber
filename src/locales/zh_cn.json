@@ -22,7 +22,9 @@
     "browser_preview_font": "字形预览字体",
     "show_border": "显示网格边框",
     "confirm_clear": "清空时需要确认",
-    "close": "关闭",
+    "reset": "重置为默认",
+    "reset_confirm": "确定要将所有设置重置为默认值吗？",
+    "close": "保存并关闭",
     "font_edit": {
       "title": "编辑预览字体",
       "save": "保存",
@@ -119,20 +121,22 @@
     "unsaved_changes": {
       "title": "未保存的更改",
       "message": "当前字形有未保存的更改，是否继续？",
-      "confirm": "继续",
-      "cancel": "取消"
+      "confirm": "继续"
     },
     "clear_confirm": {
       "title": "确认清空",
       "message": "是否确认清空当前网格？",
-      "confirm": "清空",
-      "cancel": "取消"
+      "confirm": "清空"
     },
     "batch_delete": {
       "title": "批量删除字形",
       "message": "确定要删除选中的 {count} 个字形吗？",
-      "confirm": "删除",
-      "cancel": "取消"
+      "confirm": "删除"
+    },
+    "settings_reset": {
+      "title": "重置设置",
+      "message": "确定要将所有设置重置为默认值吗？",
+      "confirm": "重置"
     }
   }
 }
