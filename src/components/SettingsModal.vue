@@ -125,9 +125,14 @@
       />
     </div>
 
-    <button @click="$emit('update:modelValue', false)" class="close-button">
-      {{ $t('settings.close') }}
-    </button>
+    <div class="button-group">
+      <button @click="showResetConfirm" class="reset-button">
+        {{ $t('settings.reset') }}
+      </button>
+      <button @click="$emit('update:modelValue', false)" class="close-button">
+        {{ $t('settings.close') }}
+      </button>
+    </div>
 
     <div v-if="showFontEdit" class="font-edit-modal">
       <div class="font-edit-content">
@@ -149,10 +154,23 @@
       </div>
     </div>
   </div>
+
+  <DialogBox
+    :show="showResetDialog"
+    :title="$t('dialog.settings_reset.title')"
+    :message="$t('dialog.settings_reset.message')"
+    :confirmText="$t('dialog.settings_reset.confirm')"
+    @confirm="confirmReset"
+    @cancel="showResetDialog = false"
+  />
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import { useSettings } from '../composables/useSettings'
+import DialogBox from './DialogBox.vue'
+
+const { defaultSettings } = useSettings()
 
 const props = defineProps({
   modelValue: {
@@ -181,6 +199,17 @@ const saveFontEdit = () => {
     browserPreviewFont: tempFont.value,
   })
   showFontEdit.value = false
+}
+
+const showResetDialog = ref(false)
+
+const showResetConfirm = () => {
+  showResetDialog.value = true
+}
+
+const confirmReset = () => {
+  emit('update:settings', { ...defaultSettings })
+  showResetDialog.value = false
 }
 </script>
 
@@ -275,7 +304,7 @@ const saveFontEdit = () => {
   font-size: 1.1em;
   font-weight: bold;
   color: white;
-  background-color: var(--danger-color);
+  background-color: var(--primary-color);
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -283,7 +312,7 @@ const saveFontEdit = () => {
 }
 
 .close-button:hover {
-  background-color: var(--danger-hover);
+  background-color: var(--primary-dark);
 }
 
 .modal {
@@ -405,6 +434,35 @@ input[type='number']:focus {
   background-color: var(--danger-hover);
 }
 
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.reset-button {
+  width: 40%;
+  padding: 10px 0;
+  font-size: 1.1em;
+  font-weight: bold;
+  color: white;
+  background-color: var(--danger-color);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.reset-button:hover {
+  background-color: var(--danger-hover);
+}
+
+.close-button {
+  width: 40%;
+  margin: 0;
+}
+
 @media (orientation: portrait) and (max-width: 768px) {
   .setting-option {
     margin: 10px;
@@ -502,6 +560,11 @@ input[type='number']:focus {
     padding: 15px;
     margin-right: 20px;
   }
+
+  .reset-button {
+    font-size: 1.8em;
+    padding: 15px 0;
+  }
 }
 
 @media (orientation: portrait) and (min-width: 1024px) {
@@ -561,6 +624,11 @@ input[type='number']:focus {
     font-size: 2.2em;
     padding: 20px;
     margin-right: 20px;
+  }
+
+  .reset-button {
+    font-size: 2em;
+    padding: 15px 0;
   }
 }
 </style>

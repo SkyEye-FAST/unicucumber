@@ -39,7 +39,7 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps, watch, nextTick, onMounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSettings } from '@/composables/useSettings'
 import SearchToolbar from './GlyphManager/SearchToolbar.vue'
@@ -492,7 +492,6 @@ const handleBatchDelete = (codePoints) => {
     type: 'confirm',
     danger: true,
     confirmText: $t('dialog.batch_delete.confirm'),
-    cancelText: $t('dialog.batch_delete.cancel'),
     onConfirm: () => {
       const updatedGlyphs = props.glyphs.filter(
         (glyph) => !codePoints.includes(glyph.codePoint),

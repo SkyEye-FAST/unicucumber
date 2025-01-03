@@ -22,7 +22,7 @@
     "browser_preview_font": "Glyph Preview Font",
     "show_border": "Show Grid Border",
     "confirm_clear": "Confirm Clear",
-    "close": "Close",
+    "close": "Save & Close",
     "font_edit": {
       "title": "Edit Preview Font",
       "save": "Save",
@@ -119,20 +119,22 @@
     "unsaved_changes": {
       "title": "Unsaved Changes",
       "message": "There are unsaved changes to the current glyph. Do you want to continue?",
-      "confirm": "Continue",
-      "cancel": "Cancel"
+      "confirm": "Continue"
     },
     "clear_confirm": {
       "title": "Confirm Clear",
       "message": "Are you sure you want to clear the current grid?",
-      "confirm": "Clear",
-      "cancel": "Cancel"
+      "confirm": "Clear"
     },
-    "delete_confirm": {
+    "batch_delete": {
       "title": "Confirm Delete",
-      "message": "Are you sure you want to delete the selected glyph?",
-      "confirm": "Delete",
-      "cancel": "Cancel"
+      "message": "Are you sure to delete the selected {count} glyphs?",
+      "confirm": "Delete"
+    },
+    "settings_reset": {
+      "title": "Reset Settings",
+      "message": "Are you sure you want to reset all settings to default?",
+      "confirm": "Reset"
     }
   }
 }
