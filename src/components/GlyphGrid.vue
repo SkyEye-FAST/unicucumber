@@ -32,14 +32,19 @@
       <div
         v-for="(cell, cellIndex) in row"
         :key="`cell-${rowIndex}-${cellIndex}`"
-        :class="['cell', { filled: cell === 1 }]"
+        :class="[
+          'cell',
+          {
+            filled: cell === 1,
+            selected: isInSelection(rowIndex, cellIndex),
+            'selected-filled': isInSelection(rowIndex, cellIndex) && cell === 1,
+          },
+        ]"
         :style="getCellStyle(rowIndex, cellIndex)"
         @mousedown.prevent="startDrawing(rowIndex, cellIndex, $event)"
         @mouseover="handleHover(rowIndex, cellIndex)"
         @mouseleave="clearHover"
         @mouseup="stopDrawing"
-        @touchstart.prevent="handleTouchStart"
-        @touchmove.prevent="handleTouchMove"
       ></div>
     </div>
   </div>
@@ -71,9 +76,24 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
+  moveMode: {
+    type: Boolean,
+    default: false,
+  },
+  clipboardData: {
+    type: Object,
+    default: null,
+  },
 })
 
-const emit = defineEmits(['update:cell'])
+const emit = defineEmits([
+  'update:cell',
+  'copy-selection',
+  'move-selection',
+  'selection-complete',
+  'paste-complete',
+  'move-to',
+])
 
 const {
   hoverCell,
@@ -83,6 +103,12 @@ const {
   clearHover,
   handleTouchStart,
   handleTouchMove,
+  selectionStart,
+  selectionEnd,
+  isSelecting,
+  copySelection,
+  pasteSelection,
+  moveSelection,
 } = useDrawing(props, emit)
 
 const { history, currentIndex, pushState, undo, redo, initHistory } =
@@ -104,9 +130,67 @@ const getCellStyle = (rowIndex, cellIndex) => {
     : {}
 }
 
+const isInSelection = (rowIndex, cellIndex) => {
+  if (!selectionStart.value || !selectionEnd.value) return false
+
+  const minRow = Math.min(selectionStart.value.row, selectionEnd.value.row)
+  const maxRow = Math.max(selectionStart.value.row, selectionEnd.value.row)
+  const minCol = Math.min(selectionStart.value.col, selectionEnd.value.col)
+  const maxCol = Math.max(selectionStart.value.col, selectionEnd.value.col)
+
+  return (
+    rowIndex >= minRow &&
+    rowIndex <= maxRow &&
+    cellIndex >= minCol &&
+    cellIndex <= maxCol
+  )
+}
+
 const gridStyle = computed(() => ({
   gridTemplateColumns: `var(--cell-size) repeat(${props.gridData[0].length}, var(--cell-size))`,
 }))
+
+const handleCopySelection = () => {
+  const selection = copySelection()
+  if (selection) {
+    emit('copy-selection', selection)
+  }
+  return selection
+}
+
+const handleMoveSelection = () => {
+  const selection = moveSelection()
+  if (selection) {
+    emit('move-selection', selection)
+  }
+  return selection
+}
+
+const getCellIndex = (target) => {
+  const cellIndex = Array.from(target.parentNode.children).indexOf(target) - 1
+  const rowIndex =
+    Array.from(target.parentNode.parentNode.children).indexOf(
+      target.parentNode,
+    ) - 1
+  return { rowIndex, cellIndex }
+}
+
+defineExpose({
+  handleCopySelection,
+  handleMoveSelection,
+  getCellIndex,
+  pasteSelection,
+  moveSelection,
+  clearSelection: () => {
+    selectionStart.value = null
+    selectionEnd.value = null
+    isSelecting.value = false
+  },
+  getSelectionArea: () => ({
+    start: selectionStart.value,
+    end: selectionEnd.value,
+  }),
+})
 </script>
 
 <style scoped>
@@ -148,6 +232,16 @@ const gridStyle = computed(() => ({
 
 .cell.filled {
   background-color: black;
+}
+
+.cell.selected {
+  background-color: rgba(0, 123, 255, 0.2) !important;
+  border: 1px solid rgba(0, 123, 255, 0.8) !important;
+}
+
+.cell.selected-filled {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+  border: 1px solid rgba(0, 123, 255, 0.8) !important;
 }
 
 @media (orientation: portrait) and (max-width: 768px) {

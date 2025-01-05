@@ -14,6 +14,22 @@
     >
       <span class="material-symbols-outlined">ink_eraser</span>
     </button>
+    <button
+      @click="updateDrawValue(2)"
+      :class="{ active: modelValue === 2 }"
+      class="tool-button"
+    >
+      <span class="material-symbols-outlined">select</span>
+    </button>
+    <button
+      v-if="selectedRegion"
+      @click="$emit('move-selection')"
+      :class="{ 'tool-button': true, active: moveMode }"
+      title="移动选区"
+      @mousedown.prevent
+    >
+      <span class="material-symbols-outlined">open_with</span>
+    </button>
   </div>
 </template>
 
@@ -23,9 +39,25 @@ defineProps({
     type: Number,
     required: true,
   },
+  copyMode: {
+    type: Boolean,
+    default: false,
+  },
+  moveMode: {
+    type: Boolean,
+    default: false,
+  },
+  selectedRegion: {
+    type: Object,
+    default: null,
+  },
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits([
+  'update:modelValue',
+  'copy-selection',
+  'move-selection',
+])
 
 const updateDrawValue = (value) => {
   emit('update:modelValue', value)

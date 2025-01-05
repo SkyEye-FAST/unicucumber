@@ -34,11 +34,41 @@
       :drawValue="drawValue"
       :cursorEffect="settings.cursorEffect"
       :showBorder="settings.showBorder"
+      :moveMode="moveMode"
+      :clipboardData="clipboardData"
       @update:cell="updateCell"
+      @selection-complete="handleSelectionComplete"
+      @paste-complete="handlePasteComplete"
+      @move-to="handleMoveTo"
     />
 
     <div class="editor-actions">
       <div class="action-group">
+        <button
+          v-if="selectedRegion"
+          class="action-button"
+          @click="handleCut"
+          title="剪切 (Ctrl+X)"
+        >
+          <span class="material-symbols-outlined">content_cut</span>
+        </button>
+        <button
+          v-if="selectedRegion"
+          class="action-button"
+          @click="handleCopy"
+          title="复制 (Ctrl+C)"
+        >
+          <span class="material-symbols-outlined">content_copy</span>
+        </button>
+        <button
+          v-if="clipboardData"
+          class="action-button"
+          @click.stop="handlePasteButtonClick"
+          :class="{ 'paste-mode': pasteMode }"
+          :title="pasteMode ? '点击网格位置以粘贴' : '粘贴 (Ctrl+V)'"
+        >
+          <span class="material-symbols-outlined">content_paste</span>
+        </button>
         <button
           class="action-button secondary"
           @click="handleClear"
@@ -75,7 +105,14 @@
         </button>
       </div>
     </div>
-    <ToolButtons v-model:modelValue="drawValue" />
+    <ToolButtons
+      v-model:modelValue="drawValue"
+      :copyMode="copyMode"
+      :moveMode="moveMode"
+      :selectedRegion="selectedRegion"
+      @copy-selection="handleCopySelection"
+      @move-selection="handleMoveSelection"
+    />
     <HexCodeInput v-model:hexCode="hexCode" @update:grid="updateGridFromHex" />
     <DownloadButtons :gridData="gridData" />
 
@@ -159,12 +196,221 @@ const gridFontRef = ref(null)
 const { isDark } = useTheme()
 provide('isDark', isDark)
 
+const mousePosition = ref({ x: 0, y: 0 })
+
 onMounted(() => {
   updateGridFontPreview()
   document.addEventListener('contextmenu', preventDefault)
   document.addEventListener('keydown', handleKeydown)
+  document.addEventListener('mousemove', updateMousePosition)
   nextTick(updateGridFontPreview)
 })
+
+onBeforeUnmount(() => {
+  document.removeEventListener('contextmenu', preventDefault)
+  document.removeEventListener('keydown', handleKeydown)
+  document.removeEventListener('mousemove', updateMousePosition)
+})
+
+const updateMousePosition = (e) => {
+  mousePosition.value = { x: e.clientX, y: e.clientY }
+}
+
+const selectedRegion = ref(null)
+const clipboardData = ref(null)
+
+const copyMode = ref(false)
+const moveMode = ref(false)
+const pasteMode = ref(false)
+
+const handleSelectionComplete = (start, end) => {
+  selectedRegion.value = { start, end }
+}
+
+const handleCopySelection = () => {
+  if (!selectedRegion.value) return
+  moveMode.value = false
+  copyMode.value = true
+
+  const selection = glyphGridRef.value.handleCopySelection()
+  if (selection) {
+    clipboardData.value = selection
+
+    try {
+      const jsonString = JSON.stringify(selection)
+      navigator.clipboard.writeText(jsonString)
+    } catch (error) {
+      console.error('Failed to write to clipboard:', error)
+    }
+  }
+}
+
+const emit = defineEmits([
+  'update:modelValue',
+  'selection-complete',
+  'paste-complete',
+])
+
+const handleMoveSelection = async () => {
+  if (!selectedRegion.value) return
+
+  drawValue.value = 2
+  const selection = glyphGridRef.value?.handleCopySelection()
+  if (selection) {
+    const result = glyphGridRef.value.moveSelection()
+    if (result) {
+      clipboardData.value = selection
+      copyMode.value = false
+      moveMode.value = true
+      pushState(gridData.value)
+    }
+  }
+}
+
+const handleKeydown = (e) => {
+  if (e.ctrlKey) {
+    if (e.key === 'z') {
+      e.preventDefault()
+      handleUndo()
+    } else if (e.key === 'y') {
+      e.preventDefault()
+      handleRedo()
+    } else if (e.key === 'x' && selectedRegion.value) {
+      e.preventDefault()
+      handleCut()
+    } else if (e.key === 'c' && selectedRegion.value) {
+      e.preventDefault()
+      handleCopy()
+    } else if (e.key === 'v' && clipboardData.value) {
+      e.preventDefault()
+      handlePaste(e)
+    }
+  }
+}
+
+const handleCut = () => {
+  if (!selectedRegion.value) return
+  const selection = glyphGridRef.value.handleCopySelection()
+  if (selection) {
+    clipboardData.value = selection
+    try {
+      const jsonString = JSON.stringify(selection)
+      navigator.clipboard.writeText(jsonString)
+    } catch (error) {
+      console.error('Failed to write to clipboard:', error)
+    }
+    const result = glyphGridRef.value.moveSelection()
+    if (result) {
+      pushState(gridData.value)
+    }
+  }
+}
+
+const handleCopy = () => {
+  if (!selectedRegion.value) return
+  const selection = glyphGridRef.value?.handleCopySelection()
+  if (selection) {
+    clipboardData.value = selection
+    copyMode.value = true
+    moveMode.value = false
+    try {
+      const jsonString = JSON.stringify(selection)
+      navigator.clipboard.writeText(jsonString)
+    } catch (error) {
+      console.error('Failed to write to clipboard:', error)
+    }
+  }
+}
+
+const handlePasteButtonClick = () => {
+  pasteMode.value = true
+  document.addEventListener('click', handlePasteClick, {
+    capture: true,
+    once: true,
+  })
+}
+
+const handlePasteClick = (e) => {
+  e.stopPropagation()
+
+  if (e.target.classList.contains('cell')) {
+    const { rowIndex, cellIndex } = glyphGridRef.value.getCellIndex(e.target)
+    pasteAtPosition(rowIndex, cellIndex)
+  }
+
+  pasteMode.value = false
+}
+
+const pasteAtPosition = (targetRow, targetCol) => {
+  console.log('Attempting to paste at:', targetRow, targetCol)
+  if (targetRow < 0 || targetCol < 0) return
+
+  if (clipboardData.value) {
+    console.log('Using clipboard data:', clipboardData.value)
+    glyphGridRef.value.pasteSelection(targetRow, targetCol, clipboardData.value)
+    pushState(gridData.value)
+  }
+}
+
+const handlePaste = (event) => {
+  if (!clipboardData.value) return
+
+  const target = document.elementFromPoint(
+    mousePosition.value.x,
+    mousePosition.value.y,
+  )
+
+  if (target?.classList.contains('cell')) {
+    const { rowIndex, cellIndex } = glyphGridRef.value.getCellIndex(target)
+    pasteAtPosition(rowIndex, cellIndex)
+  }
+}
+
+const handlePasteComplete = () => {
+  moveMode.value = false
+  clipboardData.value = null
+  pushState(gridData.value)
+}
+
+const handleMoveTo = (row, col) => {
+  if (!clipboardData.value) return
+
+  pasteAtPosition(row, col)
+  moveMode.value = false
+  clipboardData.value = null
+
+  selectedRegion.value = {
+    start: { row, col },
+    end: {
+      row: row + clipboardData.value.data.length - 1,
+      col: col + clipboardData.value.data[0].length - 1,
+    },
+  }
+  pushState(gridData.value)
+}
+
+const clearSelection = () => {
+  glyphGridRef.value?.clearSelection()
+  selectedRegion.value = null
+  clipboardData.value = null
+  copyMode.value = false
+  moveMode.value = false
+}
+
+watch(drawValue, (newValue, oldValue) => {
+  if (oldValue === 2 && newValue !== 2) {
+    clearSelection()
+  }
+})
+
+watch(
+  () => selectedRegion.value,
+  () => {
+    if (selectedRegion.value) {
+      pushState(gridData.value)
+    }
+  },
+)
 
 const setGlyphs = (newGlyphs) => {
   glyphs.value = newGlyphs
@@ -300,18 +546,6 @@ const updateCell = (rowIndex, cellIndex, value) => {
   handleGridUpdate(newGrid)
 }
 
-const handleKeydown = (e) => {
-  if (e.ctrlKey) {
-    if (e.key === 'z') {
-      e.preventDefault()
-      handleUndo()
-    } else if (e.key === 'y') {
-      e.preventDefault()
-      handleRedo()
-    }
-  }
-}
-
 const handleCloseSidebar = () => {
   isSidebarActive.value = false
 }
@@ -331,6 +565,10 @@ watch(() => gridData.value, updateGridFontPreview, { deep: true })
 onBeforeUnmount(() => {
   document.removeEventListener('contextmenu', preventDefault)
   document.removeEventListener('keydown', handleKeydown)
+  document.removeEventListener('click', handlePasteClick, true)
+  if (pasteMode.value) {
+    pasteMode.value = false
+  }
 })
 
 watch(
@@ -426,6 +664,11 @@ watch(
 
 .action-button .material-symbols-outlined {
   font-size: 20px;
+}
+
+.action-button.paste-mode {
+  background-color: var(--info-color);
+  color: white;
 }
 
 .history-controls {
