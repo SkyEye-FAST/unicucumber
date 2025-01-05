@@ -298,8 +298,8 @@ const confirmReset = () => {
 }
 
 .close-button {
-  margin: 20px auto 0;
-  width: 60%;
+  margin: 0;
+  width: 40%;
   padding: 10px 0;
   font-size: 1.1em;
   font-weight: bold;
@@ -458,11 +458,6 @@ input[type='number']:focus {
   background-color: var(--danger-hover);
 }
 
-.close-button {
-  width: 40%;
-  margin: 0;
-}
-
 @media (orientation: portrait) and (max-width: 768px) {
   .setting-option {
     margin: 10px;
@@ -529,7 +524,8 @@ input[type='number']:focus {
     margin-bottom: 1.5em;
   }
 
-  .close-button {
+  .close-button,
+  .reset-button {
     font-size: 1.8em;
     padding: 15px 0;
     margin-bottom: 30px;
@@ -560,11 +556,6 @@ input[type='number']:focus {
     padding: 15px;
     margin-right: 20px;
   }
-
-  .reset-button {
-    font-size: 1.8em;
-    padding: 15px 0;
-  }
 }
 
 @media (orientation: portrait) and (min-width: 1024px) {
@@ -594,7 +585,8 @@ input[type='number']:focus {
     margin-right: 40px;
   }
 
-  .close-button {
+  .close-button,
+  .reset-button {
     font-size: 2em;
     padding: 15px 0;
     margin-bottom: 40px;
@@ -624,11 +616,6 @@ input[type='number']:focus {
     font-size: 2.2em;
     padding: 20px;
     margin-right: 20px;
-  }
-
-  .reset-button {
-    font-size: 2em;
-    padding: 15px 0;
   }
 }
 </style>
