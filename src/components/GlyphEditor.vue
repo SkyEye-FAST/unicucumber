@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" @mousedown="handleContainerClick">
     <EditorHeader
       @openSettings="showSettings = true"
       @toggleSidebar="toggleSidebar"
@@ -39,6 +39,7 @@
       @update:cell="updateCell"
       @selection-complete="handleSelectionComplete"
       @paste-complete="handlePasteComplete"
+      @preview-move="handlePreviewMove"
       @move-to="handleMoveTo"
     />
 
@@ -111,7 +112,6 @@
       :moveMode="moveMode"
       :selectedRegion="selectedRegion"
       @copy-selection="handleCopySelection"
-      @move-selection="handleMoveSelection"
     />
     <HexCodeInput v-model:hexCode="hexCode" @update:grid="updateGridFromHex" />
     <DownloadButtons :gridData="gridData" />
@@ -221,6 +221,15 @@ const clipboardData = ref(null)
 
 const copyMode = ref(false)
 const moveMode = ref(false)
+
+watch(
+  [drawValue, selectedRegion],
+  ([newDrawValue, newSelectedRegion]) => {
+    moveMode.value = newDrawValue === 2 && newSelectedRegion !== null
+  },
+  { immediate: true },
+)
+
 const pasteMode = ref(false)
 
 const handleSelectionComplete = (start, end) => {
@@ -251,22 +260,6 @@ const emit = defineEmits([
   'paste-complete',
 ])
 
-const handleMoveSelection = async () => {
-  if (!selectedRegion.value) return
-
-  drawValue.value = 2
-  const selection = glyphGridRef.value?.handleCopySelection()
-  if (selection) {
-    const result = glyphGridRef.value.moveSelection()
-    if (result) {
-      clipboardData.value = selection
-      copyMode.value = false
-      moveMode.value = true
-      pushState(gridData.value)
-    }
-  }
-}
-
 const handleKeydown = (e) => {
   if (e.ctrlKey) {
     if (e.key === 'z') {
@@ -290,19 +283,31 @@ const handleKeydown = (e) => {
 
 const handleCut = () => {
   if (!selectedRegion.value) return
-  const selection = glyphGridRef.value.handleCopySelection()
+  const selection = glyphGridRef.value?.handleCopySelection()
   if (selection) {
     clipboardData.value = selection
+    copyMode.value = true
+    moveMode.value = false
     try {
       const jsonString = JSON.stringify(selection)
       navigator.clipboard.writeText(jsonString)
     } catch (error) {
       console.error('Failed to write to clipboard:', error)
     }
-    const result = glyphGridRef.value.moveSelection()
-    if (result) {
-      pushState(gridData.value)
+
+    const { start, end } = selectedRegion.value
+    const minRow = Math.min(start.row, end.row)
+    const maxRow = Math.max(start.row, end.row)
+    const minCol = Math.min(start.col, end.col)
+    const maxCol = Math.max(start.col, end.col)
+
+    for (let i = minRow; i <= maxRow; i++) {
+      for (let j = minCol; j <= maxCol; j++) {
+        updateCell(i, j, 0)
+      }
     }
+
+    pushState(gridData.value)
   }
 }
 
@@ -580,6 +585,38 @@ watch(
   },
   { deep: true },
 )
+
+const handlePreviewMove = ({ row, col, data }) => {
+  const preview = document.querySelectorAll('.cell.preview')
+  preview.forEach((cell) => cell.classList.remove('preview'))
+
+  if (data) {
+    data.forEach((rowData, i) => {
+      rowData.forEach((value, j) => {
+        const cell = document.querySelector(
+          `.cell[data-row="${row + i}"][data-col="${col + j}"]`,
+        )
+        if (cell && value === 1) {
+          cell.classList.add('preview')
+        }
+      })
+    })
+  }
+}
+
+const handleContainerClick = (event) => {
+  if (
+    event.target.classList.contains('container') ||
+    event.target.classList.contains('editor-actions') ||
+    event.target.classList.contains('tool-buttons')
+  ) {
+    event.stopPropagation()
+    if (glyphGridRef.value) {
+      glyphGridRef.value.clearSelection()
+      selectedRegion.value = null
+    }
+  }
+}
 </script>
 
 <style scoped>

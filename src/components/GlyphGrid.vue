@@ -38,9 +38,16 @@
             filled: cell === 1,
             selected: isInSelection(rowIndex, cellIndex),
             'selected-filled': isInSelection(rowIndex, cellIndex) && cell === 1,
+            dragging: isDragging && isInSelection(rowIndex, cellIndex),
           },
         ]"
-        :style="getCellStyle(rowIndex, cellIndex)"
+        :data-row="rowIndex"
+        :data-col="cellIndex"
+        :style="[
+          getCellStyle(rowIndex, cellIndex),
+          isDragging && moveMode ? { cursor: 'move' } : null,
+          { border: showBorder ? '0.1px solid var(--primary-darker)' : 'none' },
+        ]"
         @mousedown.prevent="startDrawing(rowIndex, cellIndex, $event)"
         @mouseover="handleHover(rowIndex, cellIndex)"
         @mouseleave="clearHover"
@@ -51,7 +58,7 @@
 </template>
 
 <script setup>
-import { computed, watch } from 'vue'
+import { computed, watch, ref } from 'vue'
 import { useDrawing } from '@/composables/useDrawing'
 import { useHistory } from '@/composables/useHistory'
 
@@ -89,10 +96,11 @@ const props = defineProps({
 const emit = defineEmits([
   'update:cell',
   'copy-selection',
-  'move-selection',
   'selection-complete',
   'paste-complete',
+  'preview-move',
   'move-to',
+  'drag-complete',
 ])
 
 const {
@@ -109,6 +117,7 @@ const {
   copySelection,
   pasteSelection,
   moveSelection,
+  isDragging,
 } = useDrawing(props, emit)
 
 const { history, currentIndex, pushState, undo, redo, initHistory } =
@@ -149,19 +158,10 @@ const isInSelection = (rowIndex, cellIndex) => {
 const gridStyle = computed(() => ({
   gridTemplateColumns: `var(--cell-size) repeat(${props.gridData[0].length}, var(--cell-size))`,
 }))
-
 const handleCopySelection = () => {
   const selection = copySelection()
   if (selection) {
     emit('copy-selection', selection)
-  }
-  return selection
-}
-
-const handleMoveSelection = () => {
-  const selection = moveSelection()
-  if (selection) {
-    emit('move-selection', selection)
   }
   return selection
 }
@@ -175,12 +175,16 @@ const getCellIndex = (target) => {
   return { rowIndex, cellIndex }
 }
 
+const previewMovePosition = ref(null)
+
+const handlePreviewMove = (row, col) => {
+  previewMovePosition.value = { row, col }
+}
+
 defineExpose({
   handleCopySelection,
-  handleMoveSelection,
   getCellIndex,
   pasteSelection,
-  moveSelection,
   clearSelection: () => {
     selectionStart.value = null
     selectionEnd.value = null
@@ -225,9 +229,9 @@ defineExpose({
   width: var(--cell-size);
   height: var(--cell-size);
   background-color: white;
-  border: v-bind('showBorder ? "0.5px solid var(--primary-darker)" : "none"');
   cursor: pointer;
   transition: none !important;
+  box-sizing: border-box;
 }
 
 .cell.filled {
@@ -236,12 +240,38 @@ defineExpose({
 
 .cell.selected {
   background-color: rgba(0, 123, 255, 0.2) !important;
-  border: 1px solid rgba(0, 123, 255, 0.8) !important;
+  border: 0.1px solid rgba(0, 123, 255, 0.8) !important;
+  z-index: 1;
 }
 
 .cell.selected-filled {
   background-color: rgba(0, 0, 0, 0.8) !important;
-  border: 1px solid rgba(0, 123, 255, 0.8) !important;
+  border: 0.1px solid rgba(0, 123, 255, 0.8) !important;
+  z-index: 1;
+}
+
+.cell.dragging {
+  opacity: 0.4;
+  position: relative;
+  cursor: move;
+  z-index: 2;
+  background-color: var(--primary-color) !important;
+  border: 0.1px solid var(--primary-color) !important;
+}
+
+.cell.preview {
+  border: 2px solid var(--primary-color) !important;
+  background-color: rgba(0, 123, 255, 0.2) !important;
+  z-index: 3;
+}
+
+.cell.preview.filled {
+  background-color: rgba(0, 123, 255, 0.5) !important;
+}
+
+.cell.is-dragging {
+  cursor: move;
+  opacity: 0.7;
 }
 
 @media (orientation: portrait) and (max-width: 768px) {

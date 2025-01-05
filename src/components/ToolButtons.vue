@@ -21,15 +21,6 @@
     >
       <span class="material-symbols-outlined">select</span>
     </button>
-    <button
-      v-if="selectedRegion"
-      @click="$emit('move-selection')"
-      :class="{ 'tool-button': true, active: moveMode }"
-      title="移动选区"
-      @mousedown.prevent
-    >
-      <span class="material-symbols-outlined">open_with</span>
-    </button>
   </div>
 </template>
 
@@ -53,11 +44,7 @@ defineProps({
   },
 })
 
-const emit = defineEmits([
-  'update:modelValue',
-  'copy-selection',
-  'move-selection',
-])
+const emit = defineEmits(['update:modelValue'])
 
 const updateDrawValue = (value) => {
   emit('update:modelValue', value)
@@ -81,7 +68,7 @@ const updateDrawValue = (value) => {
   background-color: var(--border-color);
   color: var(--text-color);
   cursor: pointer;
-  width: 8em;
+  width: 6em;
   transition: none !important;
 }
 
@@ -101,14 +88,14 @@ const updateDrawValue = (value) => {
   }
 
   .tool-button {
-    width: 7em;
+    width: 5em;
   }
 }
 
 @media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
   .tool-button {
     font-size: 2em;
-    width: 8em;
+    width: 6em;
   }
 }
 
@@ -120,7 +107,7 @@ const updateDrawValue = (value) => {
   .tool-button {
     padding: 16px 24px;
     font-size: 3em;
-    width: 8em;
+    width: 6em;
   }
 
   .tool-button .material-symbols-outlined {
