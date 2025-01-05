@@ -49,7 +49,7 @@
           v-if="selectedRegion"
           class="action-button"
           @click="handleCut"
-          title="剪切 (Ctrl+X)"
+          :title="$t('glyph_editor.cut_title')"
         >
           <span class="material-symbols-outlined">content_cut</span>
         </button>
@@ -57,7 +57,7 @@
           v-if="selectedRegion"
           class="action-button"
           @click="handleCopy"
-          title="复制 (Ctrl+C)"
+          :title="$t('glyph_editor.copy_title')"
         >
           <span class="material-symbols-outlined">content_copy</span>
         </button>
@@ -66,7 +66,11 @@
           class="action-button"
           @click.stop="handlePasteButtonClick"
           :class="{ 'paste-mode': pasteMode }"
-          :title="pasteMode ? '点击网格位置以粘贴' : '粘贴 (Ctrl+V)'"
+          :title="
+            pasteMode
+              ? $t('glyph_editor.paste_hint')
+              : $t('glyph_editor.paste_title')
+          "
         >
           <span class="material-symbols-outlined">content_paste</span>
         </button>

@@ -22,6 +22,7 @@
     "browser_preview_font": "字形預覽字體",
     "show_border": "顯示網格邊框",
     "confirm_clear": "清空時需要確認",
+    "reset": "重設為預設值",
     "close": "儲存並關閉",
     "font_edit": {
       "title": "編輯預覽字體",
@@ -93,6 +94,15 @@
         "title": "重做(Ctrl+Y)"
       }
     }
+  },
+  "glyph_editor": {
+    "paste_hint": "點擊網格位置以貼上",
+    "cut_title": "剪下 (Ctrl+X)",
+    "copy_title": "複製 (Ctrl+C)",
+    "paste_title": "貼上 (Ctrl+V)",
+    "move_hint": "移動到網格位置",
+    "code_point": "碼位：U+{value}",
+    "glyph_data": "字形資料"
   },
   "dialog": {
     "select_all": "全選",
