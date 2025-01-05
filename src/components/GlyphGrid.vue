@@ -58,7 +58,7 @@
 </template>
 
 <script setup>
-import { computed, watch, ref } from 'vue'
+import { computed, watch } from 'vue'
 import { useDrawing } from '@/composables/useDrawing'
 import { useHistory } from '@/composables/useHistory'
 
@@ -109,19 +109,15 @@ const {
   stopDrawing,
   handleHover,
   clearHover,
-  handleTouchStart,
-  handleTouchMove,
   selectionStart,
   selectionEnd,
   isSelecting,
   copySelection,
   pasteSelection,
-  moveSelection,
   isDragging,
 } = useDrawing(props, emit)
 
-const { history, currentIndex, pushState, undo, redo, initHistory } =
-  useHistory(props.gridData)
+const { initHistory } = useHistory(props.gridData)
 
 watch(
   () => props.gridData,
@@ -173,12 +169,6 @@ const getCellIndex = (target) => {
       target.parentNode,
     ) - 1
   return { rowIndex, cellIndex }
-}
-
-const previewMovePosition = ref(null)
-
-const handlePreviewMove = (row, col) => {
-  previewMovePosition.value = { row, col }
 }
 
 defineExpose({

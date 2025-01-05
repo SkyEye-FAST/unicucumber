@@ -258,11 +258,7 @@ const handleCopySelection = () => {
   }
 }
 
-const emit = defineEmits([
-  'update:modelValue',
-  'selection-complete',
-  'paste-complete',
-])
+defineEmits(['update:modelValue', 'selection-complete', 'paste-complete'])
 
 const handleKeydown = (e) => {
   if (e.ctrlKey) {
@@ -361,7 +357,7 @@ const pasteAtPosition = (targetRow, targetCol) => {
   }
 }
 
-const handlePaste = (event) => {
+const handlePaste = () => {
   if (!clipboardData.value) return
 
   const target = document.elementFromPoint(
