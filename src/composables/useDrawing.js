@@ -101,7 +101,7 @@ export function useDrawing(props, emit) {
 
   const handleTouchMove = (event) => {
     const touch = event.touches[0]
-    const target = document.elementFromPoint(touch.clientX, clientY)
+    const target = document.elementFromPoint(touch.clientX, touch.clientY)
     if (target?.classList.contains('cell')) {
       const { rowIndex, cellIndex } = getCellIndex(target)
       if (rowIndex >= 0 && cellIndex >= 0) {

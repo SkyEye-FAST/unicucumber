@@ -387,8 +387,8 @@ const handleMoveTo = (row, col) => {
   selectedRegion.value = {
     start: { row, col },
     end: {
-      row: row + clipboardData.value.data.length - 1,
-      col: col + clipboardData.value.data[0].length - 1,
+      row: row + (clipboardData.value?.data.length || 0) - 1,
+      col: col + (clipboardData.value?.data[0].length || 0) - 1,
     },
   }
   pushState(gridData.value)
@@ -882,15 +882,6 @@ const handleContainerClick = (event) => {
     font-size: 28px !important;
   }
 
-  .preview-row {
-    height: 3px;
-  }
-
-  .preview-cell {
-    width: 3px;
-    height: 3px;
-  }
-
   .code-point {
     font-size: 1.8em;
   }
@@ -932,15 +923,6 @@ const handleContainerClick = (event) => {
     font-size: 48px !important;
   }
 
-  .preview-row {
-    height: 3px;
-  }
-
-  .preview-cell {
-    width: 3px;
-    height: 3px;
-  }
-
   .code-point {
     font-size: 2em;
   }
@@ -948,9 +930,5 @@ const handleContainerClick = (event) => {
   .unicode-char {
     font-size: 2.8em;
   }
-}
-
-[data-theme='dark'] .github-icon {
-  filter: invert(1);
 }
 </style>

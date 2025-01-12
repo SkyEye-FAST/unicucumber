@@ -290,7 +290,7 @@ const confirmReset = () => {
 .font-input:focus {
   border-color: var(--input-focus-border);
   outline: none;
-  box-shadow: 0 0 0 2px var(--primary-color-transparent);
+  box-shadow: 0 0 0 2px var(--primary-color);
 }
 
 .setting-option input[type='checkbox'] {
@@ -313,21 +313,6 @@ const confirmReset = () => {
 
 .close-button:hover {
   background-color: var(--primary-dark);
-}
-
-.modal {
-  background-color: var(--background-light);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-}
-
-.modal-content {
-  background-color: var(--background-color);
-}
-
-.settings-group {
-  border: 1px solid var(--border-color);
-  background-color: var(--background-light);
 }
 
 .settings-group h3 {

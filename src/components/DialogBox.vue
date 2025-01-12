@@ -23,15 +23,15 @@
             >
               <label class="checkbox-label">
                 <input type="checkbox" v-model="selectedItems" :value="item" />
-                <div class="item-details">
-                  <div class="code-info">
+                <span class="item-details">
+                  <span class="code-info">
                     <span class="code-point">U+{{ item.codePoint }}</span>
                     <span class="hex-value">{{ item.hexValue }}</span>
-                  </div>
-                  <div class="glyph-preview">
+                  </span>
+                  <span class="glyph-preview">
                     {{ String.fromCodePoint(parseInt(item.codePoint, 16)) }}
-                  </div>
-                </div>
+                  </span>
+                </span>
               </label>
             </div>
           </div>
@@ -272,40 +272,8 @@ const dialogMaxWidth = computed(() => {
   background: var(--danger-color);
 }
 
-.dialog {
-  background-color: var(--dialog-background);
-  border: 1px solid var(--dialog-border);
-}
-
 .dialog-title {
   color: var(--text-color);
-}
-
-.dialog-message {
-  color: var(--text-secondary);
-}
-
-.dialog-buttons button {
-  background-color: var(--button-background);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-}
-
-.dialog-buttons button:hover {
-  background-color: var(--button-hover);
-}
-
-.dialog-buttons button:active {
-  background-color: var(--button-active);
-}
-
-.dialog-buttons button.primary {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-.dialog-buttons button.primary:hover {
-  background-color: var(--primary-dark);
 }
 
 [data-theme='dark'] .btn-secondary {
