@@ -800,7 +800,7 @@ const handleContainerClick = (event) => {
   font-size: 1.8em;
   border-radius: 4px;
   text-align: center;
-  transition: none;
+  transition: none !important;
 }
 
 .copyright-text {

@@ -131,7 +131,14 @@ const getCellStyle = (rowIndex, cellIndex) => {
   return props.cursorEffect &&
     hoverCell.value.row === rowIndex &&
     hoverCell.value.col === cellIndex
-    ? { backgroundColor: props.drawValue === 1 ? 'black' : 'white' }
+    ? {
+        backgroundColor:
+          props.drawValue === 2
+            ? 'var(--grid-selection-bg)'
+            : props.drawValue === 1
+              ? 'black'
+              : 'white',
+      }
     : {}
 }
 
@@ -222,41 +229,72 @@ defineExpose({
   cursor: pointer;
   transition: none !important;
   box-sizing: border-box;
+  position: relative;
 }
 
 .cell.filled {
   background-color: black;
 }
 
-.cell.selected {
-  background-color: rgba(0, 123, 255, 0.2) !important;
-  border: 0.1px solid rgba(0, 123, 255, 0.8) !important;
-  z-index: 1;
+.cell.selected::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: white;
+  mix-blend-mode: lighten;
+  z-index: 2;
 }
 
-.cell.selected-filled {
-  background-color: rgba(0, 0, 0, 0.8) !important;
-  border: 0.1px solid rgba(0, 123, 255, 0.8) !important;
-  z-index: 1;
+.cell.selected::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--grid-selection-bg);
+  mix-blend-mode: multiply;
+  z-index: 2;
+  border: 0.1px solid var(--grid-selection-border);
+}
+
+.cell.selected-filled::before {
+  background-color: var(--grid-selection-filled);
 }
 
 .cell.dragging {
-  opacity: 0.4;
   position: relative;
   cursor: move;
-  z-index: 2;
-  background-color: var(--primary-color) !important;
-  border: 0.1px solid var(--primary-color) !important;
+  z-index: 3;
+  background-color: white !important;
+}
+
+.cell.dragging.filled {
+  background-color: black !important;
+}
+
+.cell.dragging::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--grid-dragging-bg);
+  border: 1px solid var(--grid-dragging-border);
+  box-shadow: var(--grid-dragging-shadow);
+  opacity: 0.3;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .cell.preview {
   border: 2px solid var(--primary-color) !important;
-  background-color: rgba(0, 123, 255, 0.2) !important;
+  background-color: var(--grid-selection-bg) !important;
   z-index: 3;
-}
-
-.cell.preview.filled {
-  background-color: rgba(0, 123, 255, 0.5) !important;
 }
 
 .cell.is-dragging {

@@ -123,6 +123,7 @@ export function useDrawing(props, emit) {
       const row = []
       for (let j = minCol; j <= maxCol; j++) {
         row.push(props.gridData[i][j])
+        updateCell(i, j, 0)
       }
       selectedData.push(row)
     }
@@ -208,19 +209,11 @@ export function useDrawing(props, emit) {
       }
 
       emit('selection-complete', selectionStart.value, selectionEnd.value)
-      isDragging.value = false
-      draggedData.value = null
-      emit('drag-complete')
-    } else {
-      const { position, data } = draggedData.value
-      data.forEach((row, i) => {
-        row.forEach((value, j) => {
-          updateCell(position.minRow + i, position.minCol + j, value)
-        })
-      })
-      isDragging.value = false
-      draggedData.value = null
     }
+
+    isDragging.value = false
+    draggedData.value = null
+    emit('drag-complete')
   }
 
   const copySelection = () => {
