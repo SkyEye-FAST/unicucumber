@@ -955,8 +955,4 @@ const handleContainerClick = (event) => {
     font-size: 1.8em;
   }
 }
-
-[data-theme='dark'] .github-icon {
-  filter: invert(1);
-}
 </style>
