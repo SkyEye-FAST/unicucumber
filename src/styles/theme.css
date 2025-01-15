@@ -117,11 +117,11 @@
 }
 
 /* Dark Theme Overrides */
-[data-theme="dark"] body {
+[data-theme='dark'] body {
   background-color: var(--background-color);
 }
 
-[data-theme="dark"] .title span {
+[data-theme='dark'] .title span {
   color: var(--text-color) !important;
 }
 

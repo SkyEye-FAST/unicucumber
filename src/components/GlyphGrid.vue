@@ -85,8 +85,7 @@ const {
   handleTouchMove,
 } = useDrawing(props, emit)
 
-const { history, currentIndex, pushState, undo, redo, initHistory } =
-  useHistory(props.gridData)
+const { initHistory } = useHistory(props.gridData)
 
 watch(
   () => props.gridData,

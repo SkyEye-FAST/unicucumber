@@ -103,9 +103,7 @@
       @confirm="dialogConfig.onConfirm"
       @cancel="dialogConfig.onCancel"
     />
-    <div class="copyright-text">
-      Copyright (C) 2024-2025 SkyEye_FAST
-    </div>
+    <div class="copyright-text">Copyright (C) 2024-2025 SkyEye_FAST</div>
   </div>
 </template>
 
