@@ -144,7 +144,7 @@
       @confirm="dialogConfig.onConfirm"
       @cancel="dialogConfig.onCancel"
     />
-    <div class="copyright-text">Copyright (C) 2024-2025 SkyEye_FAST</div>
+    <div class="copyright-text">Copyright © 2024-2025 SkyEye_FAST</div>
   </div>
 </template>
 
@@ -770,9 +770,9 @@ const handleContainerClick = (event) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1.5rem;
+  gap: 1rem;
   margin: 0.2rem auto 0.5rem;
-  padding: 0.5rem 1.5rem;
+  padding: 0.3rem 1.2rem;
   background: var(--background-light);
   border-radius: 4px;
   max-width: fit-content;
@@ -782,15 +782,15 @@ const handleContainerClick = (event) => {
 .code-point {
   font-family: monospace;
   color: var(--text-secondary);
-  font-size: 1.3em;
-  font-weight: 500;
+  font-size: 1.3rem;
+  font-weight: 600;
 }
 
 .glyph-preview {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem;
+  padding: 0.2rem 0.5rem;
   background: var(--background-light);
   border-radius: 4px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -799,8 +799,8 @@ const handleContainerClick = (event) => {
 .unicode-char {
   font-size: 1.8em;
   border-radius: 4px;
-  min-width: 1.5em;
   text-align: center;
+  transition: none;
 }
 
 .copyright-text {

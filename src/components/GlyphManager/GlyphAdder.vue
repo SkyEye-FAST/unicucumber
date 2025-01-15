@@ -247,7 +247,7 @@ const getAddButtonTitle = computed(() => {
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
   transition: background-color 0.2s;
 }
 
@@ -263,7 +263,7 @@ const getAddButtonTitle = computed(() => {
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
   transition: background-color 0.2s;
 }
 
@@ -282,7 +282,7 @@ const getAddButtonTitle = computed(() => {
 .duplicate-warning p {
   color: var(--warning-text);
   margin: 0 0 12px 0;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .warning-actions {

@@ -77,7 +77,7 @@
         </button>
         <button
           @click="$emit('remove', glyph.codePoint)"
-          class="btn-icon"
+          class="btn-icon danger"
           :title="$t('glyph_manager.glyph.delete')"
         >
           <span class="material-symbols-outlined">delete</span>
@@ -284,8 +284,11 @@ const browserPreviewStyle = computed(() => {
 }
 
 .btn-icon:hover {
-  background-color: var(--background-hover);
   color: var(--primary-color);
+}
+
+.btn-icon.danger:hover {
+  color: var(--danger-color);
 }
 
 .select-all-row {
