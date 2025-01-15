@@ -1,6 +1,11 @@
 {
   "name": "unicucumber",
+  "description": "A project for editing Unifont glyphs in browsers",
   "version": "0.5.0",
+  "author": "SkyEye_FAST <skyeyefast@foxmail.com>",
+  "license": "GPL-3.0-or-later",
+  "homepage": "https://github.com/SkyEye-FAST/unicucumber",
+  "readme": "README.md",
   "private": true,
   "type": "module",
   "scripts": {

@@ -47,8 +47,10 @@ export function useHistory(initialState) {
   }
 
   const clearAndInitHistory = (newState) => {
+    // 完全清空历史记录
     history.value = []
     currentIndex.value = 0
+    // 使用新状态初始化
     history.value = [deepCloneGrid(newState)]
   }
 

@@ -144,6 +144,7 @@
       @confirm="dialogConfig.onConfirm"
       @cancel="dialogConfig.onCancel"
     />
+    <div class="copyright-text">Copyright (C) 2024-2025 SkyEye_FAST</div>
   </div>
 </template>
 
@@ -802,6 +803,15 @@ const handleContainerClick = (event) => {
   text-align: center;
 }
 
+.copyright-text {
+  font-family: 'Noto Sans', sans-serif;
+  text-align: center;
+  padding: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 1em;
+  margin-top: auto;
+}
+
 @media (orientation: portrait) and (max-width: 768px) {
   .btn-close-sidebar {
     padding: 12px;
@@ -847,6 +857,10 @@ const handleContainerClick = (event) => {
   .unicode-char {
     font-size: 2em;
   }
+
+  .copyright-text {
+    font-size: 0.8em;
+  }
 }
 
 @media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
@@ -889,6 +903,11 @@ const handleContainerClick = (event) => {
   .unicode-char {
     font-size: 2.8em;
   }
+
+  .copyright-text {
+    padding: 1rem;
+    font-size: 1.2em;
+  }
 }
 
 @media (orientation: portrait) and (min-width: 1024px) {
@@ -930,5 +949,14 @@ const handleContainerClick = (event) => {
   .unicode-char {
     font-size: 2.8em;
   }
+
+  .copyright-text {
+    padding: 1rem;
+    font-size: 1.8em;
+  }
+}
+
+[data-theme='dark'] .github-icon {
+  filter: invert(1);
 }
 </style>
