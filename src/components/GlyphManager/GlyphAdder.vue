@@ -33,9 +33,7 @@
           :placeholder="$t('glyph_manager.add.hex_value')"
           class="input"
         />
-        <div v-else class="hex-preview">
-          <span class="hex-value">{{ prefillData.hexValue }}</span>
-        </div>
+        <div v-else class="hex-preview">{{ prefillData.hexValue }}</div>
       </div>
 
       <div class="button-group">
@@ -72,7 +70,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { t: $t } = useI18n()
 
@@ -129,6 +127,19 @@ const getAddButtonTitle = computed(() => {
   }
   return $t('glyph_manager.validation.add_glyph')
 })
+
+watch(
+  () => props.prefillData,
+  (newData) => {
+    if (newData) {
+      emit('update:modelValue', {
+        codePoint: newData.codePoint || '',
+        hexValue: newData.hexValue,
+      })
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <style scoped>
@@ -174,7 +185,10 @@ const getAddButtonTitle = computed(() => {
   padding: 8px 12px;
   border-radius: 4px;
   margin-top: 4px;
-  font-family: monospace;
+  font-family: var(--monospace-font);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .button-group {

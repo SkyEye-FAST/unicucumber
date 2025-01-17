@@ -5,18 +5,24 @@
       @toggleSidebar="toggleSidebar"
     />
 
-    <div v-if="currentGlyph" class="current-glyph-info">
-      <span class="code-point"
-        >U+{{ currentGlyph.codePoint.toUpperCase() }}</span
-      >
+    <div class="current-glyph-info">
+      <div class="code-point-input">
+        <span>U+</span>
+        <input
+          v-model="currentCodePoint"
+          @input="handleCodePointInput"
+          maxlength="6"
+          pattern="[0-9A-Fa-f]{4,6}"
+        />
+      </div>
       <div class="glyph-preview">
         <PixelPreview
           :hexValue="hexCode"
           :width="settings.glyphWidth"
           display-mode="editor"
         />
-        <span class="unicode-char">
-          {{ String.fromCodePoint(parseInt(currentGlyph.codePoint, 16)) }}
+        <span class="unicode-char" :style="unicodePreviewStyle">
+          {{ String.fromCodePoint(parseInt(currentCodePoint || '0000', 16)) }}
         </span>
       </div>
     </div>
@@ -190,7 +196,10 @@ const { isSidebarActive, sidebarWidth, toggleSidebar, startResize } =
 const drawValue = ref(1)
 const glyphs = ref([])
 const prefillData = ref(null)
-const currentGlyph = ref(null)
+const currentGlyph = ref({
+  codePoint: '0000',
+  hexValue: '',
+})
 const hasUnsavedChanges = ref(false)
 const showDialog = ref(false)
 const dialogConfig = ref({})
@@ -427,6 +436,7 @@ const preventDefault = (e) => e.preventDefault()
 const addToGlyphset = () => {
   prefillData.value = {
     hexValue: hexCode.value,
+    codePoint: currentCodePoint.value,
   }
   isSidebarActive.value = true
 }
@@ -484,6 +494,7 @@ const loadGlyph = (hexValue, glyph) => {
     codePoint: glyph.codePoint,
     hexValue: hexValue,
   }
+  currentCodePoint.value = glyph.codePoint
   hasUnsavedChanges.value = false
 }
 
@@ -514,7 +525,11 @@ const handleClear = () => {
     resetGrid(gridData.value[0].length)
     updateHexCode()
     hasUnsavedChanges.value = false
-    currentGlyph.value = null
+    currentCodePoint.value = '0000'
+    currentGlyph.value = {
+      codePoint: '0000',
+      hexValue: '',
+    }
     showDialog.value = false
   }
 
@@ -618,6 +633,38 @@ const handleContainerClick = (event) => {
     }
   }
 }
+
+const currentCodePoint = ref('0000')
+
+const handleCodePointInput = (event) => {
+  let value = event.target.value.toUpperCase()
+
+  value = value.replace(/[^0-9A-F]/g, '')
+
+  if (value.length > 6) {
+    value = value.slice(0, 6)
+  }
+
+  event.target.value = value
+  currentCodePoint.value = value
+
+  if (value.length >= 4) {
+    if (currentGlyph.value) {
+      currentGlyph.value.codePoint = value
+    } else {
+      currentGlyph.value = {
+        codePoint: value,
+        hexValue: hexCode.value,
+      }
+    }
+  }
+}
+
+const unicodePreviewStyle = computed(() => {
+  return {
+    fontFamily: settings.value.browserPreviewFont,
+  }
+})
 </script>
 
 <style scoped>
@@ -776,11 +823,12 @@ const handleContainerClick = (event) => {
   background: var(--background-light);
   border-radius: 4px;
   max-width: fit-content;
+  height: 3rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .code-point {
-  font-family: monospace;
+  font-family: var(--monospace-font);
   color: var(--text-secondary);
   font-size: 1.3rem;
   font-weight: 600;
@@ -810,6 +858,39 @@ const handleContainerClick = (event) => {
   color: var(--text-secondary);
   font-size: 1em;
   margin-top: auto;
+}
+
+.code-point-input {
+  display: flex;
+  align-items: center;
+  font-family: var(--monospace-font);
+  color: var(--text-secondary);
+  font-size: 1.3rem;
+  font-weight: 600;
+  background: var(--background-hover);
+  border-radius: 4px;
+  padding: 0.2rem;
+}
+
+.code-point-input span {
+  padding: 0 0.2rem;
+}
+
+.code-point-input input {
+  width: 3.8em;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  outline: none;
+  padding: 0.2rem 0.1rem;
+}
+
+.code-point-input input:focus {
+  background: var(--background-active);
+  border-radius: 2px;
 }
 
 @media (orientation: portrait) and (max-width: 768px) {
@@ -860,6 +941,14 @@ const handleContainerClick = (event) => {
 
   .copyright-text {
     font-size: 0.8em;
+  }
+
+  .code-point-input {
+    font-size: 1.8em;
+  }
+
+  .code-point-input input {
+    width: 5em;
   }
 }
 
@@ -953,6 +1042,10 @@ const handleContainerClick = (event) => {
   .copyright-text {
     padding: 1rem;
     font-size: 1.8em;
+  }
+
+  .code-point-input {
+    font-size: 2em;
   }
 }
 </style>

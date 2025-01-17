@@ -53,7 +53,9 @@ export function useSettings() {
     confirmClear: true,
     glyphPreviewMode: 'pixelOnly',
     browserPreviewFont: fontList
-      .map((font) => (font.includes(' ') ? `"${font}"` : font))
+      .map((font) =>
+        font.includes(' ') || font.includes('-') ? `"${font}"` : font,
+      )
       .join(', '),
   }
 

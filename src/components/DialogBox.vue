@@ -225,7 +225,7 @@ const dialogMaxWidth = computed(() => {
 }
 
 .code-point {
-  font-family: monospace;
+  font-family: var(--monospace-font);
   color: var(--text-secondary);
 }
 
