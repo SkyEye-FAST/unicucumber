@@ -480,14 +480,19 @@ const handleGlyphEdit = (hexValue, glyph) => {
   }
 }
 
-const loadGlyph = (hexValue, glyph) => {
+const loadGlyph = async (hexValue, glyph) => {
   if (!glyph || !glyph.codePoint) {
     console.error('Invalid glyph data:', glyph)
     return
   }
 
   const newGrid = hexToGrid(hexValue)
-  updateGrid(newGrid[0].length)
+  const newWidth = newGrid[0].length
+
+  settings.value.glyphWidth = newWidth === 8 ? 8 : 16
+  await nextTick()
+  updateGrid(newWidth)
+  await nextTick()
   gridData.value = newGrid
   hexCode.value = hexValue
   currentGlyph.value = {
@@ -496,6 +501,8 @@ const loadGlyph = (hexValue, glyph) => {
   }
   currentCodePoint.value = glyph.codePoint
   hasUnsavedChanges.value = false
+  await nextTick()
+  updateGridFontPreview()
 }
 
 const clearPrefillData = () => {
