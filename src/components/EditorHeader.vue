@@ -89,10 +89,7 @@ onMounted(() => {
 .github-icon {
   width: 1.5em;
   height: 1.5em;
-  mask-image: url('/github-icon.svg');
-  mask-size: contain;
-  mask-repeat: no-repeat;
-  mask-position: center;
+  mask: url('/github-icon.svg') center / contain no-repeat;
   background-color: var(--text-secondary);
 }
 

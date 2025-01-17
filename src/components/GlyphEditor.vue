@@ -938,9 +938,6 @@ const showZiToolsLink = computed(() => {
 .zi-tools-icon {
   width: 24px;
   height: 24px;
-  mask-image: url('/zi-tools.svg');
-  mask-size: contain;
-  mask-repeat: no-repeat;
 }
 
 [data-theme='dark'] .zi-tools-icon {
