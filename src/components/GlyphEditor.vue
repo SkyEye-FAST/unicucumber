@@ -6,6 +6,16 @@
     />
 
     <div class="current-glyph-info">
+      <a
+        v-if="showZiToolsLink"
+        :href="ziToolsUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="zi-tools-link"
+        :title="$t('editor.actions.open_in_zitools')"
+      >
+        <img src="/zi-tools.svg" alt="zi.tools" class="zi-tools-icon" />
+      </a>
       <div class="code-point-input">
         <span>U+</span>
         <input
@@ -181,6 +191,7 @@ import { useHistory } from '@/composables/useHistory'
 import { useSidebar } from '@/composables/useSidebar'
 import { useTheme } from '@/composables/useTheme'
 import { hexToGrid } from '@/utils/hexUtils'
+import { isCJKChar } from '@/utils/charUtils'
 const { t: $t } = useI18n()
 
 const { settings, showSettings } = useSettings()
@@ -672,6 +683,18 @@ const unicodePreviewStyle = computed(() => {
     fontFamily: settings.value.browserPreviewFont,
   }
 })
+
+const ziToolsUrl = computed(() => {
+  const codePoint = parseInt(currentCodePoint.value || '0000', 16)
+  const char = String.fromCodePoint(codePoint)
+  return `https://zi.tools/zi/${char}`
+})
+
+const showZiToolsLink = computed(() => {
+  const codePoint = parseInt(currentCodePoint.value || '0000', 16)
+  const char = String.fromCodePoint(codePoint)
+  return isCJKChar(char)
+})
 </script>
 
 <style scoped>
@@ -900,6 +923,30 @@ const unicodePreviewStyle = computed(() => {
   border-radius: 2px;
 }
 
+.zi-tools-link {
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.zi-tools-link:hover {
+  background-color: var(--background-active);
+}
+
+.zi-tools-icon {
+  width: 24px;
+  height: 24px;
+  mask-image: url('/zi-tools.svg');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+}
+
+[data-theme='dark'] .zi-tools-icon {
+  filter: invert(1);
+}
+
 @media (orientation: portrait) and (max-width: 768px) {
   .btn-close-sidebar {
     padding: 12px;
@@ -957,6 +1004,11 @@ const unicodePreviewStyle = computed(() => {
   .code-point-input input {
     width: 5em;
   }
+
+  .zi-tools-icon {
+    width: 32px;
+    height: 32px;
+  }
 }
 
 @media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
@@ -1003,6 +1055,11 @@ const unicodePreviewStyle = computed(() => {
   .copyright-text {
     padding: 1rem;
     font-size: 1.2em;
+  }
+
+  .zi-tools-icon {
+    width: 36px;
+    height: 36px;
   }
 }
 

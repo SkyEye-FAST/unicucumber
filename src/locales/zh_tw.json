@@ -92,7 +92,8 @@
       },
       "redo": {
         "title": "重做(Ctrl+Y)"
-      }
+      },
+      "open_in_zitools": "在 zi.tools 中打開"
     }
   },
   "glyph_editor": {

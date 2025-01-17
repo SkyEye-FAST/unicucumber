@@ -101,7 +101,8 @@
       },
       "redo": {
         "title": "重做(Ctrl+Y)"
-      }
+      },
+      "open_in_zitools": "在zi.tools中打开"
     }
   },
   "dialog": {
