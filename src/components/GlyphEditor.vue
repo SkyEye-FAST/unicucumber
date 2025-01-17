@@ -124,7 +124,7 @@
       @copy-selection="handleCopySelection"
     />
     <HexCodeInput v-model:hexCode="hexCode" @update:grid="updateGridFromHex" />
-    <DownloadButtons :gridData="gridData" />
+    <DownloadButtons :gridData="gridData" :codepoint="currentCodePoint" />
 
     <div :class="['sidebar', { active: isSidebarActive }]">
       <div class="sidebar-resizer" @mousedown="startResize"></div>
