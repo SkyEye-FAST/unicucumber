@@ -1,12 +1,12 @@
-<div align="center">
+<center><h1>
 <img src="https://raw.githubusercontent.com/SkyEye-FAST/unicucumber/master/public/icon.png">
 
-# UniCucumber
+UniCucumber
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![GitHub stars](https://img.shields.io/github/stars/SkyEye-FAST/unicucumber)](https://github.com/SkyEye-FAST/unicucumber/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/SkyEye-FAST/unicucumber)](https://github.com/SkyEye-FAST/unicucumber/issues)
-</div>
+</h1></center>
 
 This is a project for editing Unifont glyphs in browsers.
 
