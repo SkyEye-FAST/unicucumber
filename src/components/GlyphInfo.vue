@@ -387,8 +387,34 @@ code.encoding-value {
     font-size: 2em;
   }
 
-  .encoding-info-btn .material-icons {
-    font-size: 20px;
+  .encoding-info-btn {
+    font-size: 2em;
+  }
+
+  .encoding-info-panel {
+    max-width: 95vw;
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+    padding: 0.3rem;
+  }
+
+  .encoding-row {
+    padding: 0.25rem 0.4rem;
+  }
+
+  .encoding-label {
+    font-size: 0.85rem;
+  }
+
+  .encoding-value {
+    font-size: 0.85rem;
+    padding: 0.1rem 0.2rem;
+  }
+
+  .unicode-name {
+    font-size: 0.9rem;
+    padding: 0.25rem;
+    margin-bottom: 0.25rem;
   }
 }
 
@@ -409,11 +435,37 @@ code.encoding-value {
   }
 
   .unicode-char {
-    font-size: 3em;
+    font-size: 2.5em;
   }
 
-  .encoding-info-btn .material-icons {
-    font-size: 32px;
+  .encoding-info-btn {
+    font-size: 2em;
+  }
+
+  .encoding-info-panel {
+    max-width: 90vw;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+    padding: 0.8rem;
+  }
+
+  .encoding-row {
+    padding: 0.4rem 0.6rem;
+  }
+
+  .encoding-label {
+    font-size: 1.2rem;
+  }
+
+  .encoding-value {
+    font-size: 1.2rem;
+    padding: 0.15rem 0.4rem;
+  }
+
+  .unicode-name {
+    font-size: 1.4rem;
+    padding: 0.4rem;
+    margin-bottom: 0.4rem;
   }
 }
 
@@ -435,11 +487,38 @@ code.encoding-value {
   }
 
   .unicode-char {
-    font-size: 3.2em;
+    font-size: 3em;
   }
 
-  .encoding-info-btn .material-icons {
+  .encoding-info-btn {
     font-size: 42px;
+  }
+
+  .encoding-info-panel {
+    max-width: 85vw;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+
+  .encoding-row {
+    padding: 0.5rem 0.8rem;
+  }
+
+  .encoding-label {
+    font-size: 1.6rem;
+  }
+
+  .encoding-value {
+    font-size: 1.6rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .unicode-name {
+    font-size: 1.8rem;
+    padding: 0.6rem;
+    margin-bottom: 0.6rem;
   }
 }
 </style>
