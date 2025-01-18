@@ -42,6 +42,7 @@
 
     <Transition name="slide">
       <div v-if="showingEncodingInfo" class="encoding-info-panel">
+        <div class="unicode-name">{{ unicodeNameStr }}</div>
         <div
           v-for="(value, key) in encodingInfo"
           :key="key"
@@ -67,6 +68,7 @@ import { useI18n } from 'vue-i18n'
 import PixelPreview from './GlyphManager/PixelPreview.vue'
 import { isCJKChar } from '@/utils/charUtils'
 import iconvLite from 'iconv-lite/lib/index.js'
+import { unicodeName } from 'unicode-name'
 
 const { t: $t } = useI18n()
 
@@ -150,18 +152,22 @@ const convertEncoding = (char, encoding) => {
   }
 }
 
+const unicodeNameStr = computed(() => {
+  const codePoint = parseInt(props.modelValue || '0000', 16)
+  const char = String.fromCodePoint(codePoint)
+  return unicodeName(char) || '—'
+})
+
 const encodingInfo = computed(() => {
   const codePoint = parseInt(props.modelValue || '0000', 16)
   const char = String.fromCodePoint(codePoint)
 
   return {
-    Unicode: `${props.modelValue}`,
-    UTF8: Array.from(new TextEncoder().encode(char))
-      .map((b) => b.toString(16).toUpperCase().padStart(2, '0'))
-      .join(' '),
-    UTF16: Array.from(char)
-      .map((c) => c.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0'))
-      .join(' '),
+    NCR: `&#${codePoint};`,
+    ASCII: char.charCodeAt(0) < 128 ? char.charCodeAt(0) : '—',
+    UTF8: convertEncoding(char, 'utf8'),
+    UTF16: convertEncoding(char, 'utf16be'),
+    UTF32: convertEncoding(char, 'utf32be'),
     GBK: convertEncoding(char, 'gbk'),
     GB18030: convertEncoding(char, 'gb18030'),
     Big5: convertEncoding(char, 'big5'),
@@ -313,7 +319,7 @@ const encodingInfo = computed(() => {
   color: var(--text-secondary);
   font-weight: 500;
   font-size: 0.9rem;
-  margin-right: 0.8rem; /* 稍微增加右边距来平衡移除冒号后的视觉效果 */
+  margin-right: 0.8rem;
 }
 
 .encoding-value {
@@ -326,6 +332,15 @@ const encodingInfo = computed(() => {
 
 code.encoding-value {
   background: var(--background-active);
+}
+
+.unicode-name {
+  font-weight: bold;
+  padding: 0.3rem 0.5rem;
+  margin-bottom: 0.3rem;
+  border-bottom: 1px solid var(--border-color);
+  text-align: center;
+  grid-column: 1 / -1;
 }
 
 .slide-enter-active,
