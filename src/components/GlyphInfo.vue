@@ -165,9 +165,9 @@ const encodingInfo = computed(() => {
   return {
     NCR: `&#${codePoint};`,
     ASCII: char.charCodeAt(0) < 128 ? char.charCodeAt(0) : '—',
-    UTF8: convertEncoding(char, 'utf8'),
-    UTF16: convertEncoding(char, 'utf16be'),
-    UTF32: convertEncoding(char, 'utf32be'),
+    'UTF-8': convertEncoding(char, 'utf8'),
+    'UTF-16': convertEncoding(char, 'utf16be'),
+    'UTF-32': convertEncoding(char, 'utf32be'),
     GBK: convertEncoding(char, 'gbk'),
     GB18030: convertEncoding(char, 'gb18030'),
     Big5: convertEncoding(char, 'big5'),
@@ -316,6 +316,7 @@ const encodingInfo = computed(() => {
 }
 
 .encoding-label {
+  font-family: 'Noto Sans', sans-serif;
   color: var(--text-secondary);
   font-weight: 500;
   font-size: 0.9rem;
@@ -331,10 +332,12 @@ const encodingInfo = computed(() => {
 }
 
 code.encoding-value {
+  font-family: var(--monospace-font);
   background: var(--background-active);
 }
 
 .unicode-name {
+  font-family: 'Noto Sans', sans-serif;
   font-weight: bold;
   padding: 0.3rem 0.5rem;
   margin-bottom: 0.3rem;
