@@ -16,7 +16,7 @@
       }}</span>
     </button>
     <a href="https://github.com/SkyEye-FAST/unicucumber" class="github-link">
-      <img src="/github-icon.svg" alt="GitHub" class="github-icon" />
+      <div class="github-icon"></div>
     </a>
   </div>
 </template>
@@ -54,35 +54,47 @@ onMounted(() => {
 }
 
 .modal-buttons {
+  background-color: var(--background-light);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  box-shadow: 0 2px 4px var(--modal-shadow);
   display: flex;
+  padding-top: 5px;
   margin: 5px;
   align-items: center;
   flex-direction: row;
 }
 
 .modal-button {
-  color: var(--primary-color);
+  color: var(--text-secondary);
   background-color: inherit;
   font-size: 1.5em;
   padding: 5px;
   margin: 0 10px;
   cursor: pointer;
   border: none;
-  transition: color 0.3s ease;
+  border-radius: 4px;
 }
 
 .modal-button:hover {
-  color: var(--primary-dark);
+  color: var(--primary-color);
 }
 
 .github-link {
-  transform: translateY(-0.1em);
+  margin: 0 10px;
+  padding: 5px;
+  transform: translateY(-0.2em);
 }
 
 .github-icon {
-  width: 1.4em;
-  padding: 5px;
-  margin: 0 10px;
+  width: 1.5em;
+  height: 1.5em;
+  mask: url('/github-icon.svg') center / contain no-repeat;
+  background-color: var(--text-secondary);
+}
+
+.github-icon:hover {
+  background-color: var(--primary-color);
 }
 
 @media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {

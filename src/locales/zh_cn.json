@@ -23,7 +23,6 @@
     "show_border": "显示网格边框",
     "confirm_clear": "清空时需要确认",
     "reset": "重置为默认",
-    "reset_confirm": "确定要将所有设置重置为默认值吗？",
     "close": "保存并关闭",
     "font_edit": {
       "title": "编辑预览字体",
@@ -74,6 +73,15 @@
       "saving_storage": "保存字形到存储时出错"
     }
   },
+  "glyph_editor": {
+    "paste_hint": "点击网格位置以粘贴",
+    "cut_title": "剪切 (Ctrl+X)",
+    "copy_title": "复制 (Ctrl+C)",
+    "paste_title": "粘贴 (Ctrl+V)",
+    "move_hint": "移动到网格位置",
+    "code_point": "码位：U+{value}",
+    "glyph_data": "字形数据"
+  },
   "hex_input": {
     "placeholder": "输入16进制字形数据 (32或64位)",
     "copy": "复制"
@@ -93,7 +101,9 @@
       },
       "redo": {
         "title": "重做(Ctrl+Y)"
-      }
+      },
+      "open_in_zitools": "在zi.tools中打开",
+      "show_encoding_info": "显示编码信息"
     }
   },
   "dialog": {

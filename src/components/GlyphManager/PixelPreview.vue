@@ -53,7 +53,7 @@ const getCanvasWidth = computed(() => {
       return props.width === 8 ? '24px' : '48px'
     }
     if (
-      window.matchMedia('(orientation: portrait) and (min-width: 1024px)')
+      window.matchMedia('(orientation: portrait) and (min-width: 1023px)')
         .matches
     ) {
       return props.width === 8 ? '32px' : '64px'
@@ -67,7 +67,7 @@ const getCanvasWidth = computed(() => {
       return props.width === 8 ? '32px' : '64px'
     }
     if (
-      window.matchMedia('(orientation: portrait) and (min-width: 1024px)')
+      window.matchMedia('(orientation: portrait) and (min-width: 1023px)')
         .matches
     ) {
       return props.width === 8 ? '48px' : '96px'

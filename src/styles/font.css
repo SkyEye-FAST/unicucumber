@@ -1,6 +1,9 @@
+/* Noto Sans */
 @import url('https://fonts.font.im/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
-/* Maple Mono NF CN */
-@import url('https://static.zeoseven.com/zsft/442/main/result.css');
+/* Fira Code */
+@import url('https://cdn.jsdelivr.net/npm/firacode@latest/distr/fira_code.css');
+/* Sarasa Mono SC */
+@import url('https://static.zeoseven.com/zsft/159/main/result.css');
 /* Noto Sans CJK SC */
 @import url('https://static.zeoseven.com/zsft/69/main/result.css');
 /* Noto Sans CJK TC */
@@ -30,7 +33,7 @@
 
 :root {
   --normal-font: 'Noto Sans', sans-serif;
-  --monospace-font: 'Maple Mono NF CN', 'Fira Code', Consolas, monospace;
+  --monospace-font: 'Fira Code', 'Sarasa Mono SC', Consolas, monospace;
 }
 
 body {

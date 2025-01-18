@@ -24,6 +24,10 @@ const props = defineProps({
     type: Array,
     required: true,
   },
+  codepoint: {
+    type: String,
+    default: '',
+  },
 })
 
 const downloadFormats = ['PNG', 'BMP', 'SVG']
@@ -31,12 +35,13 @@ const downloadFormats = ['PNG', 'BMP', 'SVG']
 const downloadFile = async (format) => {
   let blob
   let filename
+  const baseFilename = props.codepoint ? `${props.codepoint}` : 'glyph'
 
   switch (format) {
     case 'PNG': {
       const canvas = createCanvasFromGrid(props.gridData)
       blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
-      filename = 'glyph.png'
+      filename = `${baseFilename}.png`
       break
     }
     case 'BMP': {
@@ -44,13 +49,13 @@ const downloadFile = async (format) => {
       const context = canvas.getContext('2d')
       const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
       blob = await convertToBMP(imageData)
-      filename = 'glyph.bmp'
+      filename = `${baseFilename}.bmp`
       break
     }
     case 'SVG': {
       const svg = createSVGFromGrid(props.gridData)
       blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' })
-      filename = 'glyph.svg'
+      filename = `${baseFilename}.svg`
       break
     }
   }

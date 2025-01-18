@@ -14,6 +14,13 @@
     >
       <span class="material-symbols-outlined">ink_eraser</span>
     </button>
+    <button
+      @click="updateDrawValue(2)"
+      :class="{ active: modelValue === 2 }"
+      class="tool-button"
+    >
+      <span class="material-symbols-outlined">select</span>
+    </button>
   </div>
 </template>
 
@@ -22,6 +29,18 @@ defineProps({
   modelValue: {
     type: Number,
     required: true,
+  },
+  copyMode: {
+    type: Boolean,
+    default: false,
+  },
+  moveMode: {
+    type: Boolean,
+    default: false,
+  },
+  selectedRegion: {
+    type: Object,
+    default: null,
   },
 })
 
@@ -49,7 +68,7 @@ const updateDrawValue = (value) => {
   background-color: var(--border-color);
   color: var(--text-color);
   cursor: pointer;
-  width: 8em;
+  width: 6em;
   transition: none !important;
 }
 
@@ -69,14 +88,14 @@ const updateDrawValue = (value) => {
   }
 
   .tool-button {
-    width: 7em;
+    width: 5em;
   }
 }
 
 @media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
   .tool-button {
     font-size: 2em;
-    width: 8em;
+    width: 6em;
   }
 }
 
@@ -88,7 +107,7 @@ const updateDrawValue = (value) => {
   .tool-button {
     padding: 16px 24px;
     font-size: 3em;
-    width: 8em;
+    width: 6em;
   }
 
   .tool-button .material-symbols-outlined {

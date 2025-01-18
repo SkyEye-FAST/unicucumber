@@ -14,6 +14,16 @@
   --grey-color: #6c757d;
   --grey-hover: #5a6268;
 
+  /* Grid Colors */
+  --grid-selection-bg: rgba(0, 123, 255, 0.2);
+  --grid-selection-border: rgba(0, 123, 255, 0.8);
+  --grid-selection-filled: rgba(0, 0, 0, 0.8);
+  --grid-dragging-opacity: 1;
+  --grid-dragging-bg: rgba(255, 255, 255, 1);
+  --grid-dragging-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+  --grid-dragging-border: rgba(0, 123, 255, 0.6);
+  --grid-preview-filled: rgba(0, 123, 255, 0.5);
+
   /* Effects */
   --shadow-color: rgba(0, 0, 0, 0.1);
   --modal-overlay: rgba(0, 0, 0, 0.5);
@@ -24,7 +34,13 @@
 }
 
 /* Global Theme Transition */
-*:not(.tool-buttons, .tool-buttons *) {
+*:not(
+    .tool-buttons,
+    .tool-buttons *,
+    .modal-button,
+    .glyph-preview *,
+    .unicode-char
+  ) {
   transition:
     background-color var(--theme-transition-time) var(--theme-transition-curve),
     border-color var(--theme-transition-time) var(--theme-transition-curve),
