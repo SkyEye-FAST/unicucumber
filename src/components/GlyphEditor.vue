@@ -848,20 +848,13 @@ const showZiToolsLink = computed(() => {
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  margin: 0.2rem auto 0.5rem;
+  margin: 0.2rem 0 0.5rem;
   padding: 0.3rem 1.2rem;
   background: var(--background-light);
   border-radius: 4px;
   max-width: fit-content;
   height: 3rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.code-point {
-  font-family: var(--monospace-font);
-  color: var(--text-secondary);
-  font-size: 1.3rem;
-  font-weight: 600;
 }
 
 .glyph-preview {
@@ -875,7 +868,7 @@ const showZiToolsLink = computed(() => {
 }
 
 .unicode-char {
-  font-size: 1.8em;
+  font-size: 2em;
   border-radius: 4px;
   text-align: center;
   transition: none !important;
@@ -994,17 +987,23 @@ const showZiToolsLink = computed(() => {
     font-size: 0.8em;
   }
 
+  .current-glyph-info {
+    gap: 0.5rem;
+    height: 2rem;
+    padding: 0.6rem 0.8rem;
+  }
+
   .code-point-input {
-    font-size: 1.8em;
+    font-size: 1.2rem;
   }
 
   .code-point-input input {
-    width: 5em;
+    width: 4em;
   }
 
   .zi-tools-icon {
-    width: 32px;
-    height: 32px;
+    width: 24px;
+    height: auto;
   }
 }
 
@@ -1041,17 +1040,27 @@ const showZiToolsLink = computed(() => {
     font-size: 28px !important;
   }
 
-  .code-point {
-    font-size: 1.8em;
-  }
-
   .unicode-char {
-    font-size: 2.8em;
+    font-size: 3em;
   }
 
   .copyright-text {
     padding: 1rem;
     font-size: 1.2em;
+  }
+
+  .current-glyph-info {
+    gap: 1.2rem;
+    height: 3rem;
+    padding: 0.8rem 1.2rem;
+  }
+
+  .code-point-input {
+    font-size: 2rem;
+  }
+
+  .code-point-input input {
+    width: 4em;
   }
 
   .zi-tools-icon {
@@ -1092,12 +1101,8 @@ const showZiToolsLink = computed(() => {
     font-size: 48px !important;
   }
 
-  .code-point {
-    font-size: 2em;
-  }
-
   .unicode-char {
-    font-size: 2.8em;
+    font-size: 3.2em;
   }
 
   .copyright-text {
@@ -1107,6 +1112,26 @@ const showZiToolsLink = computed(() => {
 
   .code-point-input {
     font-size: 2em;
+  }
+
+  .current-glyph-info {
+    gap: 1.2rem;
+    height: 5rem;
+    padding: 0.6rem 2rem;
+    margin: 0.5rem 0 1rem;
+  }
+
+  .code-point-input {
+    font-size: 2.6rem;
+  }
+
+  .code-point-input input {
+    width: 4em;
+  }
+
+  .zi-tools-icon {
+    width: 48px;
+    height: 48px;
   }
 }
 </style>
