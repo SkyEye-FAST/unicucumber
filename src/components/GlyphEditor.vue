@@ -5,37 +5,12 @@
       @toggleSidebar="toggleSidebar"
     />
 
-    <div class="current-glyph-info">
-      <a
-        v-if="showZiToolsLink"
-        :href="ziToolsUrl"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="zi-tools-link"
-        :title="$t('editor.actions.open_in_zitools')"
-      >
-        <img src="/zi-tools.svg" alt="zi.tools" class="zi-tools-icon" />
-      </a>
-      <div class="code-point-input">
-        <span>U+</span>
-        <input
-          v-model="currentCodePoint"
-          @input="handleCodePointInput"
-          maxlength="6"
-          pattern="[0-9A-Fa-f]{4,6}"
-        />
-      </div>
-      <div class="glyph-preview">
-        <PixelPreview
-          :hexValue="hexCode"
-          :width="settings.glyphWidth"
-          display-mode="editor"
-        />
-        <span class="unicode-char" :style="unicodePreviewStyle">
-          {{ String.fromCodePoint(parseInt(currentCodePoint || '0000', 16)) }}
-        </span>
-      </div>
-    </div>
+    <GlyphInfo
+      v-model="currentCodePoint"
+      :hexValue="hexCode"
+      :width="settings.glyphWidth"
+      :browserPreviewFont="settings.browserPreviewFont"
+    />
 
     <SettingsModal
       v-model="showSettings"
@@ -176,6 +151,7 @@ import {
 } from 'vue'
 import { useI18n } from 'vue-i18n'
 import EditorHeader from './EditorHeader.vue'
+import GlyphInfo from './GlyphInfo.vue'
 import SettingsModal from './SettingsModal.vue'
 import GlyphGrid from './GlyphGrid.vue'
 import ToolButtons from './ToolButtons.vue'
@@ -183,7 +159,6 @@ import HexCodeInput from './HexCodeInput.vue'
 import DownloadButtons from './DownloadButtons.vue'
 import GlyphManager from './GlyphManager.vue'
 import DialogBox from './DialogBox.vue'
-import PixelPreview from './GlyphManager/PixelPreview.vue'
 import { useSettings } from '@/composables/useSettings'
 import { useGridData } from '@/composables/useGridData'
 import { useHexCode } from '@/composables/useHexCode'
@@ -191,7 +166,6 @@ import { useHistory } from '@/composables/useHistory'
 import { useSidebar } from '@/composables/useSidebar'
 import { useTheme } from '@/composables/useTheme'
 import { hexToGrid } from '@/utils/hexUtils'
-import { isCJKChar } from '@/utils/charUtils'
 const { t: $t } = useI18n()
 
 const { settings, showSettings } = useSettings()
@@ -222,6 +196,8 @@ const { isDark } = useTheme()
 provide('isDark', isDark)
 
 const mousePosition = ref({ x: 0, y: 0 })
+
+const currentCodePoint = ref('0000')
 
 onMounted(() => {
   updateGridFontPreview()
@@ -651,50 +627,6 @@ const handleContainerClick = (event) => {
     }
   }
 }
-
-const currentCodePoint = ref('0000')
-
-const handleCodePointInput = (event) => {
-  let value = event.target.value.toUpperCase()
-
-  value = value.replace(/[^0-9A-F]/g, '')
-
-  if (value.length > 6) {
-    value = value.slice(0, 6)
-  }
-
-  event.target.value = value
-  currentCodePoint.value = value
-
-  if (value.length >= 4) {
-    if (currentGlyph.value) {
-      currentGlyph.value.codePoint = value
-    } else {
-      currentGlyph.value = {
-        codePoint: value,
-        hexValue: hexCode.value,
-      }
-    }
-  }
-}
-
-const unicodePreviewStyle = computed(() => {
-  return {
-    fontFamily: settings.value.browserPreviewFont,
-  }
-})
-
-const ziToolsUrl = computed(() => {
-  const codePoint = parseInt(currentCodePoint.value || '0000', 16)
-  const char = String.fromCodePoint(codePoint)
-  return `https://zi.tools/zi/${char}`
-})
-
-const showZiToolsLink = computed(() => {
-  const codePoint = parseInt(currentCodePoint.value || '0000', 16)
-  const char = String.fromCodePoint(codePoint)
-  return isCJKChar(char)
-})
 </script>
 
 <style scoped>
@@ -843,37 +775,6 @@ const showZiToolsLink = computed(() => {
   color: var(--text-color);
 }
 
-.current-glyph-info {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin: 0.2rem 0 0.5rem;
-  padding: 0.3rem 1.2rem;
-  background: var(--background-light);
-  border-radius: 4px;
-  max-width: fit-content;
-  height: 3rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.glyph-preview {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.2rem 0.5rem;
-  background: var(--background-light);
-  border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.unicode-char {
-  font-size: 2em;
-  border-radius: 4px;
-  text-align: center;
-  transition: none !important;
-}
-
 .copyright-text {
   font-family: 'Noto Sans', sans-serif;
   text-align: center;
@@ -881,60 +782,6 @@ const showZiToolsLink = computed(() => {
   color: var(--text-secondary);
   font-size: 1em;
   margin-top: auto;
-}
-
-.code-point-input {
-  display: flex;
-  align-items: center;
-  font-family: var(--monospace-font);
-  color: var(--text-secondary);
-  font-size: 1.3rem;
-  font-weight: 600;
-  background: var(--background-hover);
-  border-radius: 4px;
-  padding: 0.2rem;
-}
-
-.code-point-input span {
-  padding: 0 0.2rem;
-}
-
-.code-point-input input {
-  width: 3.8em;
-  background: transparent;
-  border: none;
-  color: inherit;
-  font-family: inherit;
-  font-size: inherit;
-  font-weight: inherit;
-  outline: none;
-  padding: 0.2rem 0.1rem;
-}
-
-.code-point-input input:focus {
-  background: var(--background-active);
-  border-radius: 2px;
-}
-
-.zi-tools-link {
-  display: flex;
-  align-items: center;
-  padding: 4px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.zi-tools-link:hover {
-  background-color: var(--background-active);
-}
-
-.zi-tools-icon {
-  width: 24px;
-  height: 24px;
-}
-
-[data-theme='dark'] .zi-tools-icon {
-  filter: invert(1);
 }
 
 @media (orientation: portrait) and (max-width: 768px) {
@@ -979,31 +826,8 @@ const showZiToolsLink = computed(() => {
     gap: 8px;
   }
 
-  .unicode-char {
-    font-size: 2em;
-  }
-
   .copyright-text {
     font-size: 0.8em;
-  }
-
-  .current-glyph-info {
-    gap: 0.5rem;
-    height: 2rem;
-    padding: 0.6rem 0.8rem;
-  }
-
-  .code-point-input {
-    font-size: 1.2rem;
-  }
-
-  .code-point-input input {
-    width: 4em;
-  }
-
-  .zi-tools-icon {
-    width: 24px;
-    height: auto;
   }
 }
 
@@ -1040,32 +864,9 @@ const showZiToolsLink = computed(() => {
     font-size: 28px !important;
   }
 
-  .unicode-char {
-    font-size: 3em;
-  }
-
   .copyright-text {
     padding: 1rem;
     font-size: 1.2em;
-  }
-
-  .current-glyph-info {
-    gap: 1.2rem;
-    height: 3rem;
-    padding: 0.8rem 1.2rem;
-  }
-
-  .code-point-input {
-    font-size: 2rem;
-  }
-
-  .code-point-input input {
-    width: 4em;
-  }
-
-  .zi-tools-icon {
-    width: 36px;
-    height: 36px;
   }
 }
 
@@ -1101,37 +902,9 @@ const showZiToolsLink = computed(() => {
     font-size: 48px !important;
   }
 
-  .unicode-char {
-    font-size: 3.2em;
-  }
-
   .copyright-text {
     padding: 1rem;
     font-size: 1.8em;
-  }
-
-  .code-point-input {
-    font-size: 2em;
-  }
-
-  .current-glyph-info {
-    gap: 1.2rem;
-    height: 5rem;
-    padding: 0.6rem 2rem;
-    margin: 0.5rem 0 1rem;
-  }
-
-  .code-point-input {
-    font-size: 2.6rem;
-  }
-
-  .code-point-input input {
-    width: 4em;
-  }
-
-  .zi-tools-icon {
-    width: 48px;
-    height: 48px;
   }
 }
 </style>
