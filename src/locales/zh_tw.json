@@ -93,7 +93,8 @@
       "redo": {
         "title": "重做(Ctrl+Y)"
       },
-      "open_in_zitools": "在 zi.tools 中打開"
+      "open_in_zitools": "在 zi.tools 中打開",
+      "show_encoding_info": "顯示編碼資訊"
     }
   },
   "glyph_editor": {

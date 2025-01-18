@@ -102,7 +102,8 @@
       "redo": {
         "title": "重做(Ctrl+Y)"
       },
-      "open_in_zitools": "在zi.tools中打开"
+      "open_in_zitools": "在zi.tools中打开",
+      "show_encoding_info": "显示编码信息"
     }
   },
   "dialog": {

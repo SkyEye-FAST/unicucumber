@@ -93,7 +93,8 @@
       "redo": {
         "title": "Redo (Ctrl+Y)"
       },
-      "open_in_zitools": "Open in zi.tools"
+      "open_in_zitools": "Open in zi.tools",
+      "show_encoding_info": "Show Encoding Info"
     }
   },
   "glyph_editor": {

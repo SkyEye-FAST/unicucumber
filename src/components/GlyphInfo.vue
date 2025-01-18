@@ -1,38 +1,72 @@
 <template>
-  <div class="current-glyph-info">
-    <a
-      v-if="showZiToolsLink"
-      :href="ziToolsUrl"
-      target="_blank"
-      rel="noopener noreferrer"
-      class="zi-tools-link"
-      :title="$t('editor.actions.open_in_zitools')"
-    >
-      <img src="/zi-tools.svg" alt="zi.tools" class="zi-tools-icon" />
-    </a>
-    <div class="code-point-input">
-      <span>U+</span>
-      <input
-        v-model="localModelValue"
-        @input="handleInput"
-        maxlength="6"
-        pattern="[0-9A-Fa-f]{4,6}"
-      />
+  <div class="glyph-info-wrapper">
+    <div class="current-glyph-info">
+      <a
+        v-if="showZiToolsLink"
+        :href="ziToolsUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="zi-tools-link"
+        :title="$t('editor.actions.open_in_zitools')"
+      >
+        <img src="/zi-tools.svg" alt="zi.tools" class="zi-tools-icon" />
+      </a>
+      <button
+        class="encoding-info-btn"
+        @click="toggleEncodingInfo"
+        :title="$t('editor.actions.show_encoding_info')"
+        :class="{ active: showingEncodingInfo }"
+      >
+        <span class="material-symbols-outlined">info</span>
+      </button>
+      <div class="code-point-input">
+        <span>U+</span>
+        <input
+          v-model="localModelValue"
+          @input="handleInput"
+          maxlength="6"
+          pattern="[0-9A-Fa-f]{4,6}"
+        />
+      </div>
+      <div class="glyph-preview">
+        <PixelPreview
+          :hexValue="hexValue"
+          :width="width"
+          display-mode="editor"
+        />
+        <span class="unicode-char" :style="previewStyle">
+          {{ String.fromCodePoint(parseInt(modelValue || '0000', 16)) }}
+        </span>
+      </div>
     </div>
-    <div class="glyph-preview">
-      <PixelPreview :hexValue="hexValue" :width="width" display-mode="editor" />
-      <span class="unicode-char" :style="previewStyle">
-        {{ String.fromCodePoint(parseInt(modelValue || '0000', 16)) }}
-      </span>
-    </div>
+
+    <Transition name="slide">
+      <div v-if="showingEncodingInfo" class="encoding-info-panel">
+        <div
+          v-for="(value, key) in encodingInfo"
+          :key="key"
+          class="encoding-row"
+        >
+          <span class="encoding-label">{{ key }}</span>
+          <template v-if="value === '—'">
+            <span class="encoding-value">{{ value }}</span>
+          </template>
+          <template v-else>
+            <code class="encoding-value">{{ value }}</code>
+          </template>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
 import { ref, watch, computed } from 'vue'
+import { Buffer } from 'buffer'
 import { useI18n } from 'vue-i18n'
 import PixelPreview from './GlyphManager/PixelPreview.vue'
 import { isCJKChar } from '@/utils/charUtils'
+import iconvLite from 'iconv-lite/lib/index.js'
 
 const { t: $t } = useI18n()
 
@@ -90,6 +124,50 @@ const showZiToolsLink = computed(() => {
   const codePoint = parseInt(props.modelValue || '0000', 16)
   const char = String.fromCodePoint(codePoint)
   return isCJKChar(char)
+})
+
+const showingEncodingInfo = ref(false)
+
+const toggleEncodingInfo = () => {
+  showingEncodingInfo.value = !showingEncodingInfo.value
+}
+
+const convertEncoding = (char, encoding) => {
+  try {
+    const buffer = Buffer.from(char)
+    const encoded = iconvLite.encode(buffer, encoding)
+    if (char === '?' && encoded.length === 1 && encoded[0] === 0x3f) {
+      return '3F'
+    }
+    if (encoded.every((b) => b === 0x3f)) {
+      return '—'
+    }
+    return Array.from(encoded)
+      .map((b) => b.toString(16).toUpperCase().padStart(2, '0'))
+      .join(' ')
+  } catch {
+    return '—'
+  }
+}
+
+const encodingInfo = computed(() => {
+  const codePoint = parseInt(props.modelValue || '0000', 16)
+  const char = String.fromCodePoint(codePoint)
+
+  return {
+    Unicode: `${props.modelValue}`,
+    UTF8: Array.from(new TextEncoder().encode(char))
+      .map((b) => b.toString(16).toUpperCase().padStart(2, '0'))
+      .join(' '),
+    UTF16: Array.from(char)
+      .map((c) => c.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0'))
+      .join(' '),
+    GBK: convertEncoding(char, 'gbk'),
+    GB18030: convertEncoding(char, 'gb18030'),
+    Big5: convertEncoding(char, 'big5'),
+    Shift_JIS: convertEncoding(char, 'shift-jis'),
+    'EUC-KR': convertEncoding(char, 'euc-kr'),
+  }
 })
 </script>
 
@@ -179,6 +257,94 @@ const showZiToolsLink = computed(() => {
   filter: invert(1);
 }
 
+.encoding-info-btn {
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: background-color 0.2s;
+}
+
+.encoding-info-btn:hover {
+  background-color: var(--background-active);
+}
+
+.encoding-info-btn .material-icons {
+  font-size: 24px;
+}
+
+.glyph-info-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.encoding-info-btn.active {
+  background-color: var(--background-active);
+}
+
+.encoding-info-panel {
+  width: 100%;
+  max-width: 500px;
+  padding: 0.5rem;
+  background: var(--background-light);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.3rem;
+}
+
+.encoding-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  background: var(--background-hover);
+}
+
+.encoding-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.9rem;
+  margin-right: 0.8rem; /* 稍微增加右边距来平衡移除冒号后的视觉效果 */
+}
+
+.encoding-value {
+  font-family: var(--monospace-font);
+  font-size: 0.9rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 2px;
+  color: var(--text-primary);
+}
+
+code.encoding-value {
+  background: var(--background-active);
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateY(-20px);
+  opacity: 0;
+}
+
+@media (orientation: portrait) {
+  .encoding-info-panel {
+    font-size: 0.9rem;
+  }
+}
+
 @media (orientation: portrait) and (max-width: 768px) {
   .current-glyph-info {
     gap: 0.5rem;
@@ -202,6 +368,10 @@ const showZiToolsLink = computed(() => {
   .unicode-char {
     font-size: 2em;
   }
+
+  .encoding-info-btn .material-icons {
+    font-size: 20px;
+  }
 }
 
 @media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
@@ -222,6 +392,10 @@ const showZiToolsLink = computed(() => {
 
   .unicode-char {
     font-size: 3em;
+  }
+
+  .encoding-info-btn .material-icons {
+    font-size: 32px;
   }
 }
 
@@ -244,6 +418,10 @@ const showZiToolsLink = computed(() => {
 
   .unicode-char {
     font-size: 3.2em;
+  }
+
+  .encoding-info-btn .material-icons {
+    font-size: 42px;
   }
 }
 </style>
