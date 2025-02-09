@@ -46,7 +46,11 @@
         :style="[
           getCellStyle(rowIndex, cellIndex),
           isDragging && moveMode ? { cursor: 'move' } : null,
-          { border: showBorder ? '1px solid var(--primary-darker)' : 'none' },
+          {
+            boxShadow: showBorder
+              ? 'inset 0 0 0 0.2px var(--primary-darker)'
+              : 'none',
+          },
         ]"
         @mousedown.prevent="startDrawing(rowIndex, cellIndex, $event)"
         @contextmenu.prevent
@@ -260,7 +264,7 @@ defineExpose({
   background-color: var(--grid-selection-bg);
   mix-blend-mode: multiply;
   z-index: 2;
-  border: 1px solid var(--grid-selection-border);
+  box-shadow: inset 0 0 0 0.5px var(--grid-selection-border);
 }
 
 .cell.selected-filled::before {
@@ -286,15 +290,14 @@ defineExpose({
   right: 0;
   bottom: 0;
   background-color: var(--grid-dragging-bg);
-  border: 1px solid var(--grid-dragging-border);
-  box-shadow: var(--grid-dragging-shadow);
+  box-shadow: inset 0 0 0 0.2px var(--primary-color-50);
   opacity: 0.3;
   z-index: 1;
   pointer-events: none;
 }
 
 .cell.preview {
-  border: 2px solid var(--primary-color) !important;
+  box-shadow: inset 0 0 0 1px var(--primary-color) !important;
   background-color: var(--grid-selection-bg) !important;
   z-index: 3;
 }
@@ -306,7 +309,7 @@ defineExpose({
 
 @media (orientation: portrait) and (max-width: 768px) {
   .cell {
-    border-width: 0.2px;
+    box-shadow: inset 0 0 0 0.2px var(--primary-color-30);
   }
 }
 
@@ -316,7 +319,7 @@ defineExpose({
   }
 
   .cell {
-    border-width: 0.3px;
+    box-shadow: inset 0 0 0 0.3px var(--primary-color-30);
   }
 }
 
