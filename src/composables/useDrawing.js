@@ -123,8 +123,19 @@ export function useDrawing(props, emit) {
     }
   }
 
+  const isInSelection = (row, col) => {
+    if (!selectionStart.value || !selectionEnd.value) return false
+    const minRow = Math.min(selectionStart.value.row, selectionEnd.value.row)
+    const maxRow = Math.max(selectionStart.value.row, selectionEnd.value.row)
+    const minCol = Math.min(selectionStart.value.col, selectionEnd.value.col)
+    const maxCol = Math.max(selectionStart.value.col, selectionEnd.value.col)
+    return row >= minRow && row <= maxRow && col >= minCol && col <= maxCol
+  }
+
   const startDragging = (rowIndex, cellIndex, event) => {
     if (!props.moveMode || !selectionStart.value || !selectionEnd.value) return
+
+    if (!isInSelection(rowIndex, cellIndex)) return
 
     const minRow = Math.min(selectionStart.value.row, selectionEnd.value.row)
     const maxRow = Math.max(selectionStart.value.row, selectionEnd.value.row)
@@ -136,14 +147,23 @@ export function useDrawing(props, emit) {
       const row = []
       for (let j = minCol; j <= maxCol; j++) {
         row.push(props.gridData[i][j])
-        updateCell(i, j, 0)
       }
       selectedData.push(row)
     }
 
     isDragging.value = true
-    dragStart.value = { x: event.clientX, y: event.clientY }
-    dragOffset.value = { row: minRow, col: minCol }
+    dragStart.value = {
+      x: event.clientX,
+      y: event.clientY,
+      originRow: minRow,
+      originCol: minCol,
+    }
+
+    dragOffset.value = {
+      row: rowIndex - minRow,
+      col: cellIndex - minCol,
+    }
+
     draggedData.value = {
       data: selectedData,
       width: maxCol - minCol + 1,
@@ -162,11 +182,12 @@ export function useDrawing(props, emit) {
         '--cell-size',
       ),
     )
+
     const deltaX = Math.round((event.clientX - dragStart.value.x) / cellSize)
     const deltaY = Math.round((event.clientY - dragStart.value.y) / cellSize)
 
-    const targetRow = dragOffset.value.row + deltaY
-    const targetCol = dragOffset.value.col + deltaX
+    const targetRow = dragStart.value.originRow + deltaY
+    const targetCol = dragStart.value.originCol + deltaX
 
     if (
       targetRow >= 0 &&
@@ -178,6 +199,7 @@ export function useDrawing(props, emit) {
         row: targetRow,
         col: targetCol,
         data: draggedData.value.data,
+        isDragging: true,
       })
     }
   }
@@ -190,11 +212,12 @@ export function useDrawing(props, emit) {
         '--cell-size',
       ),
     )
+
     const deltaX = Math.round((event.clientX - dragStart.value.x) / cellSize)
     const deltaY = Math.round((event.clientY - dragStart.value.y) / cellSize)
 
-    const targetRow = dragOffset.value.row + deltaY
-    const targetCol = dragOffset.value.col + deltaX
+    const targetRow = dragStart.value.originRow + deltaY
+    const targetCol = dragStart.value.originCol + deltaX
 
     if (
       targetRow >= 0 &&
@@ -205,13 +228,13 @@ export function useDrawing(props, emit) {
       const { minRow, maxRow, minCol, maxCol } = draggedData.value.position
       for (let i = minRow; i <= maxRow; i++) {
         for (let j = minCol; j <= maxCol; j++) {
-          updateCell(i, j, 0)
+          emit('update:cell', i, j, 0)
         }
       }
 
       draggedData.value.data.forEach((row, i) => {
         row.forEach((value, j) => {
-          updateCell(targetRow + i, targetCol + j, value)
+          emit('update:cell', targetRow + i, targetCol + j, value)
         })
       })
 

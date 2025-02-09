@@ -3,7 +3,7 @@
     <button
       @click="updateDrawValue(1)"
       :class="{ active: modelValue === 1 }"
-      :disabled="disabled"
+      :disabled="disabled && modelValue !== 2"
       class="tool-button"
     >
       <span class="material-symbols-outlined">draw</span>
@@ -11,7 +11,7 @@
     <button
       @click="updateDrawValue(0)"
       :class="{ active: modelValue === 0 }"
-      :disabled="disabled"
+      :disabled="disabled && modelValue !== 2"
       class="tool-button"
     >
       <span class="material-symbols-outlined">ink_eraser</span>
@@ -27,7 +27,8 @@
 </template>
 
 <script setup>
-defineProps({
+const emit = defineEmits(['update:modelValue'])
+const { disabled } = defineProps({
   modelValue: {
     type: Number,
     required: true,
@@ -50,10 +51,10 @@ defineProps({
   },
 })
 
-const emit = defineEmits(['update:modelValue'])
-
 const updateDrawValue = (value) => {
-  emit('update:modelValue', value)
+  if (value === 2 || !disabled) {
+    emit('update:modelValue', value)
+  }
 }
 </script>
 

@@ -21,7 +21,7 @@
     <GlyphGrid
       ref="glyphGridRef"
       :gridData="gridData"
-      :drawMode="settings.drawMode"
+      :drawMode="currentDrawMode"
       :drawValue="drawValue"
       :cursorEffect="settings.cursorEffect"
       :showBorder="settings.showBorder"
@@ -107,7 +107,7 @@
       :copyMode="copyMode"
       :moveMode="moveMode"
       :selectedRegion="selectedRegion"
-      :disabled="settings.drawMode === 'doubleButtonDraw'"
+      :disabled="shouldDisableTools"
       @copy-selection="handleCopySelection"
     />
     <HexCodeInput v-model:hexCode="hexCode" @update:grid="updateGridFromHex" />
@@ -182,8 +182,21 @@ const { isSidebarActive, sidebarWidth, toggleSidebar, startResize } =
 
 const drawValue = ref(1)
 
+const shouldDisableTools = computed(() => {
+  return settings.value.drawMode === 'doubleButtonDraw' && drawValue.value !== 2
+})
+
+const currentDrawMode = computed(() => {
+  return drawValue.value === 2 ? 'singleButtonDraw' : settings.value.drawMode
+})
+
 const updateDrawValue = (value) => {
+  if (value === drawValue.value) return
   drawValue.value = value
+
+  if (value !== 2) {
+    clearSelection()
+  }
 }
 
 defineExpose({
@@ -403,18 +416,14 @@ const handleMoveTo = (row, col) => {
 }
 
 const clearSelection = () => {
-  glyphGridRef.value?.clearSelection()
+  if (glyphGridRef.value) {
+    glyphGridRef.value.clearSelection()
+  }
   selectedRegion.value = null
   clipboardData.value = null
   copyMode.value = false
   moveMode.value = false
 }
-
-watch(drawValue, (newValue, oldValue) => {
-  if (oldValue === 2 && newValue !== 2) {
-    clearSelection()
-  }
-})
 
 watch(
   () => selectedRegion.value,

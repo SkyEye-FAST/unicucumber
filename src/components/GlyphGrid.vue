@@ -15,6 +15,37 @@
       </div>
     </div>
 
+    <!-- Selection Overlay -->
+    <div
+      class="selection-overlay"
+      v-if="selectionStart || isDragging"
+      :style="{
+        gridColumnStart: 2,
+        gridTemplateColumns: `repeat(${gridData[0].length}, var(--cell-size))`,
+      }"
+    >
+      <div class="overlay-content">
+        <div
+          v-for="(row, rowIndex) in gridData"
+          :key="`overlay-row-${rowIndex}`"
+          class="overlay-row"
+        >
+          <div
+            v-for="(cell, cellIndex) in row"
+            :key="`overlay-cell-${rowIndex}-${cellIndex}`"
+            :class="[
+              'overlay-cell',
+              {
+                'overlay-selected': isInSelection(rowIndex, cellIndex),
+                'overlay-dragging':
+                  isDragging && isInSelection(rowIndex, cellIndex),
+              },
+            ]"
+          ></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Grid rows -->
     <div
       v-for="(row, rowIndex) in gridData"
@@ -206,6 +237,7 @@ defineExpose({
   gap: 0;
   padding-right: calc(var(--cell-size) * 0.5);
   width: fit-content;
+  position: relative;
 }
 
 .header-row,
@@ -240,6 +272,13 @@ defineExpose({
 
 .cell.filled {
   background-color: black;
+}
+
+.cell.selected::before,
+.cell.selected::after,
+.cell.selected-filled::before,
+.cell.dragging::before {
+  display: none;
 }
 
 .cell.selected::before {
@@ -305,6 +344,43 @@ defineExpose({
 .cell.is-dragging {
   cursor: move;
   opacity: 0.7;
+}
+
+.selection-overlay {
+  position: absolute;
+  top: var(--cell-size);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 2;
+  display: grid;
+}
+
+.overlay-content {
+  display: contents;
+}
+
+.overlay-row {
+  display: contents;
+}
+
+.overlay-cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  position: relative;
+  box-sizing: border-box;
+}
+
+.overlay-selected {
+  background-color: var(--grid-selection-bg);
+  box-shadow: inset 0 0 0 1px var(--grid-selection-border);
+  opacity: 0.3;
+}
+
+.overlay-dragging {
+  background-color: var(--grid-dragging-bg);
+  opacity: 0.4;
 }
 
 @media (orientation: portrait) and (max-width: 768px) {
