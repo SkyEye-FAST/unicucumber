@@ -2,6 +2,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 
 export function useDrawing(props, emit) {
   const isDrawing = ref(false)
+  const buttonValue = ref(1)
   const hoverCell = ref({ row: -1, col: -1 })
   const selectionStart = ref(null)
   const selectionEnd = ref(null)
@@ -27,6 +28,15 @@ export function useDrawing(props, emit) {
     event.preventDefault()
     event.stopPropagation()
 
+    if (props.drawMode === 'doubleButtonDraw') {
+      isDrawing.value = true
+      const newValue = event.button === 2 ? 0 : 1
+      emit('update:drawValue', newValue)
+      buttonValue.value = newValue
+      updateCell(rowIndex, cellIndex, newValue)
+      return
+    }
+
     if (props.moveMode && selectionStart.value && selectionEnd.value) {
       startDragging(rowIndex, cellIndex, event)
       return
@@ -44,13 +54,12 @@ export function useDrawing(props, emit) {
     selectionEnd.value = null
 
     isDrawing.value = true
-    const value =
-      props.drawMode === 'doubleButtonDraw'
-        ? event.button === 2
-          ? 0
-          : 1
-        : props.drawValue
-    updateCell(rowIndex, cellIndex, value)
+    if (props.drawMode === 'doubleButtonDraw') {
+      buttonValue.value = event.button === 2 ? 0 : 1
+      updateCell(rowIndex, cellIndex, buttonValue.value)
+    } else {
+      updateCell(rowIndex, cellIndex, props.drawValue)
+    }
   }
 
   const stopDrawing = () => {
@@ -69,7 +78,11 @@ export function useDrawing(props, emit) {
 
     hoverCell.value = { row: rowIndex, col: cellIndex }
     if (isDrawing.value) {
-      updateCell(rowIndex, cellIndex, props.drawValue)
+      const value =
+        props.drawMode === 'doubleButtonDraw'
+          ? buttonValue.value
+          : props.drawValue
+      updateCell(rowIndex, cellIndex, value)
     }
   }
 

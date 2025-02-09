@@ -28,6 +28,7 @@
       :moveMode="moveMode"
       :clipboardData="clipboardData"
       @update:cell="updateCell"
+      @update:drawValue="updateDrawValue"
       @selection-complete="handleSelectionComplete"
       @paste-complete="handlePasteComplete"
       @preview-move="handlePreviewMove"
@@ -106,6 +107,7 @@
       :copyMode="copyMode"
       :moveMode="moveMode"
       :selectedRegion="selectedRegion"
+      :disabled="settings.drawMode === 'doubleButtonDraw'"
       @copy-selection="handleCopySelection"
     />
     <HexCodeInput v-model:hexCode="hexCode" @update:grid="updateGridFromHex" />
@@ -179,6 +181,15 @@ const { isSidebarActive, sidebarWidth, toggleSidebar, startResize } =
   useSidebar()
 
 const drawValue = ref(1)
+
+const updateDrawValue = (value) => {
+  drawValue.value = value
+}
+
+defineExpose({
+  updateDrawValue,
+})
+
 const glyphs = ref([])
 const prefillData = ref(null)
 const currentGlyph = ref({

@@ -3,6 +3,7 @@
     <button
       @click="updateDrawValue(1)"
       :class="{ active: modelValue === 1 }"
+      :disabled="disabled"
       class="tool-button"
     >
       <span class="material-symbols-outlined">draw</span>
@@ -10,6 +11,7 @@
     <button
       @click="updateDrawValue(0)"
       :class="{ active: modelValue === 0 }"
+      :disabled="disabled"
       class="tool-button"
     >
       <span class="material-symbols-outlined">ink_eraser</span>
@@ -41,6 +43,10 @@ defineProps({
   selectedRegion: {
     type: Object,
     default: null,
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
   },
 })
 
@@ -80,6 +86,12 @@ const updateDrawValue = (value) => {
 .tool-button:hover:not(.active) {
   background-color: var(--background-hover);
   border-color: var(--border-hover);
+}
+
+.tool-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 @media (orientation: portrait) and (max-width: 768px) {

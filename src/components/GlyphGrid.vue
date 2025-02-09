@@ -46,9 +46,10 @@
         :style="[
           getCellStyle(rowIndex, cellIndex),
           isDragging && moveMode ? { cursor: 'move' } : null,
-          { border: showBorder ? '0.1px solid var(--primary-darker)' : 'none' },
+          { border: showBorder ? '1px solid var(--primary-darker)' : 'none' },
         ]"
         @mousedown.prevent="startDrawing(rowIndex, cellIndex, $event)"
+        @contextmenu.prevent
         @mouseover="handleHover(rowIndex, cellIndex)"
         @mouseleave="clearHover"
         @mouseup="stopDrawing"
@@ -95,6 +96,7 @@ const props = defineProps({
 
 const emit = defineEmits([
   'update:cell',
+  'update:drawValue',
   'copy-selection',
   'selection-complete',
   'paste-complete',
@@ -258,7 +260,7 @@ defineExpose({
   background-color: var(--grid-selection-bg);
   mix-blend-mode: multiply;
   z-index: 2;
-  border: 0.1px solid var(--grid-selection-border);
+  border: 1px solid var(--grid-selection-border);
 }
 
 .cell.selected-filled::before {
