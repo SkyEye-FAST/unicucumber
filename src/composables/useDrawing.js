@@ -11,7 +11,7 @@ export function useDrawing(props, emit) {
   const dragStart = ref({ x: 0, y: 0 })
   const dragOffset = ref({ row: 0, col: 0 })
   const draggedData = ref(null)
-  const drawBuffer = ref([]) // 存储一次绘制中的所有变化
+  const drawBuffer = ref([])
 
   onMounted(() => {
     document.addEventListener('mouseup', stopDrawing)
@@ -30,7 +30,7 @@ export function useDrawing(props, emit) {
     event.stopPropagation()
 
     isDrawing.value = true
-    drawBuffer.value = [] // 清空缓冲区
+    drawBuffer.value = []
 
     if (props.drawMode === 'doubleButtonDraw') {
       isDrawing.value = true
