@@ -68,6 +68,7 @@ const updateDrawValue = (value) => {
   display: flex;
   margin: 10px 0 15px 0;
   transition: none !important;
+  width: 24rem;
 }
 
 .tool-button {
@@ -75,12 +76,12 @@ const updateDrawValue = (value) => {
   justify-content: center;
   align-items: center;
   font-size: 1.5em;
-  padding: 7px 10px;
+  padding: 7px 0;
+  flex: 1;
   border: transparent 2px solid;
   background-color: var(--border-color);
   color: var(--text-color);
   cursor: pointer;
-  width: 6em;
   transition: none !important;
 }
 
@@ -102,18 +103,25 @@ const updateDrawValue = (value) => {
 
 @media (orientation: portrait) and (max-width: 768px) {
   .tool-buttons {
+    width: 20rem;
     margin: 0.5rem 0 0.8rem;
   }
 
   .tool-button {
-    width: 5em;
+    padding: 7px 12px;
+    min-width: 3.5em;
   }
 }
 
 @media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
+  .tool-buttons {
+    width: 24rem;
+  }
+
   .tool-button {
     font-size: 2em;
-    width: 6em;
+    padding: 10px 20px;
+    min-width: 4em;
   }
 }
 
@@ -125,7 +133,7 @@ const updateDrawValue = (value) => {
   .tool-button {
     padding: 16px 24px;
     font-size: 3em;
-    width: 6em;
+    min-width: 4em;
   }
 
   .tool-button .material-symbols-outlined {
