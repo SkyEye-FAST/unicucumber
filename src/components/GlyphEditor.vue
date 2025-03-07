@@ -108,6 +108,7 @@
       :moveMode="moveMode"
       :selectedRegion="selectedRegion"
       :disabled="shouldDisableTools"
+      :enableSelection="settings.enableSelection"
       @copy-selection="handleCopySelection"
     />
     <HexCodeInput v-model:hexCode="hexCode" @update:grid="updateGridFromHex" />
@@ -194,10 +195,27 @@ const updateDrawValue = (value) => {
   if (value === drawValue.value) return
   drawValue.value = value
 
+  if (value === 2 && !settings.value.enableSelection) {
+    drawValue.value = 1
+    return
+  }
+
   if (value !== 2) {
     clearSelection()
   }
 }
+
+watch(
+  () => settings.value.enableSelection,
+  (newValue) => {
+    if (!newValue) {
+      clearSelection()
+      if (drawValue.value === 2) {
+        drawValue.value = 1
+      }
+    }
+  }
+)
 
 defineExpose({
   updateDrawValue,

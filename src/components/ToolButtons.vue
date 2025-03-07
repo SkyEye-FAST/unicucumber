@@ -17,6 +17,7 @@
       <span class="material-symbols-outlined">ink_eraser</span>
     </button>
     <button
+      v-if="enableSelection"
       @click="updateDrawValue(2)"
       :class="{ active: modelValue === 2 }"
       class="tool-button"
@@ -28,7 +29,7 @@
 
 <script setup>
 const emit = defineEmits(['update:modelValue'])
-const { disabled } = defineProps({
+const { disabled, enableSelection } = defineProps({
   modelValue: {
     type: Number,
     required: true,
@@ -46,6 +47,10 @@ const { disabled } = defineProps({
     default: null,
   },
   disabled: {
+    type: Boolean,
+    default: false,
+  },
+  enableSelection: {
     type: Boolean,
     default: false,
   },
