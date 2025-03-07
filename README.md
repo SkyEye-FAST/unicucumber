@@ -43,26 +43,40 @@ You can try the demo at the following links:
 
 To use this project, you need to have Node.js installed on your computer. Then, follow these steps:
 
-1. Clone this repository:
+1. Install pnpm (if not already installed). See <https://pnpm.io/installation> for more information.
 
-    ``` shell
+    You can use another package manager instead.
+
+2. Clone this repository:
+
+    ```shell
     git clone https://github.com/SkyEye-FAST/unicucumber.git
     ```
 
-2. Install dependencies:
+3. Install dependencies:
 
-    ``` shell
+    ```shell
     cd unicucumber
-    npm install
+    pnpm install
     ```
 
-3. Start the development server:
+4. Start the development server:
 
-    ``` shell
-    npm run dev
+    ```shell
+    pnpm dev
     ```
 
-4. Open your browser and go to `http://localhost:5173/`.
+5. Open your browser and go to `http://localhost:5173/`.
+
+### Production Build
+
+To build for production:
+
+```shell
+pnpm build
+```
+
+The built files will be in the `dist` directory.
 
 ## License
 
