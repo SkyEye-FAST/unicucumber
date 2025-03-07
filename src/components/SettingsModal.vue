@@ -125,6 +125,21 @@
       />
     </div>
 
+    <div class="setting-option">
+      <label for="enableSelection">{{ $t('settings.enable_selection') }}</label>
+      <input
+        type="checkbox"
+        id="enableSelection"
+        :checked="settings.enableSelection"
+        @change="
+          $emit('update:settings', {
+            ...settings,
+            enableSelection: $event.target.checked,
+          })
+        "
+      />
+    </div>
+
     <div class="button-group">
       <button @click="showResetConfirm" class="reset-button">
         {{ $t('settings.reset') }}

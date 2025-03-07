@@ -1,152 +1,153 @@
 {
-  "title": "UniCucumber - Unifont 網頁編輯器",
-  "settings": {
-    "title": "設定",
-    "draw_mode": {
-      "label": "繪製模式",
-      "double_button": "左鍵繪製，右鍵擦除",
-      "single_button": "左鍵繪製或擦除"
+  "dialog": {
+    "batch_delete": {
+      "confirm": "刪除",
+      "message": "是否確認刪除選中的 {count} 項字形？",
+      "title": "確認刪除"
     },
-    "cursor_effect": "游標效果（滑鼠）",
-    "glyph_width": {
-      "label": "字形寬度",
-      "8px": "8 像素",
-      "16px": "16 像素"
+    "cancel": "取消",
+    "clear_confirm": {
+      "confirm": "清空",
+      "message": "是否確認清空目前網格？",
+      "title": "確認清空"
     },
-    "glyph_preview": {
-      "label": "字形預覽模式",
-      "pixel_only": "僅像素預覽",
-      "browser_only": "僅瀏覽器顯示",
-      "both": "雙重預覽"
+    "confirm": "確定",
+    "dimension_error": {
+      "message": "圖片尺寸必須為 8x16 或 16x16 像素",
+      "title": "圖片尺寸錯誤"
     },
-    "browser_preview_font": "字形預覽字體",
-    "show_border": "顯示網格邊框",
-    "confirm_clear": "清空時需要確認",
-    "reset": "重設為預設值",
-    "close": "儲存並關閉",
-    "font_edit": {
-      "title": "編輯預覽字體",
-      "save": "儲存",
-      "cancel": "取消"
-    }
-  },
-  "glyph_manager": {
-    "title": "字形管理器",
-    "search": "搜尋字形...",
-    "import": "從 Unifont 讀取",
-    "export": "匯出字形",
+    "format_error": {
+      "message": "圖片必須為黑白色",
+      "title": "圖片格式錯誤"
+    },
+    "hex_import": {
+      "cancel": "跳過",
+      "confirm": "更新選中字形",
+      "message": "以下字形已存在，請選擇要更新的字形：",
+      "title": "發現重複的字形"
+    },
+    "image_error": {
+      "message": "載入圖片時出錯，請重試",
+      "title": "圖片載入錯誤"
+    },
     "select_all": "全選",
-    "delete_selected": "刪除選中的 {count} 項",
-    "batch_delete": "批量刪除",
-    "upload": {
-      "hex_file": "上傳 Hex 檔案",
-      "image_file": "上傳字形圖片"
+    "settings_reset": {
+      "confirm": "重設",
+      "message": "是否確認重設所有設定為預設值？",
+      "title": "重設設定"
     },
-    "add": {
-      "code_point": "輸入 Unicode 碼位 (例如：4E00)",
-      "hex_value": "輸入 16 進位字形資料 (32 或 64 位)",
-      "add_button": "新增字形",
-      "update_button": "更新字形",
-      "clear_button": "清除"
-    },
-    "duplicate": {
-      "warning": "已存在碼位為 U+{codePoint} 的字形！",
-      "update": "更新現有字形",
-      "cancel": "取消"
-    },
-    "glyph": {
-      "code_point": "碼位：",
-      "hex": "Hex：",
-      "edit": "編輯",
-      "delete": "刪除",
-      "edit_in_grid": "按一下編輯字形：U+{codePoint}"
-    },
-    "validation": {
-      "enter_code_point": "請輸入 Unicode 碼位",
-      "invalid_code_point": "碼位必須是 4-6 位 16 進位數",
-      "invalid_hex": "請輸入有效的 16 進位字形資料 (32 或 64 位)",
-      "add_glyph": "新增字形"
-    },
-    "error": {
-      "loading_unifont": "載入 Unifont 資料出錯",
-      "loading_storage": "從存儲載入字形時出錯",
-      "saving_storage": "儲存字形到存儲時出錯"
+    "unsaved_changes": {
+      "confirm": "繼續",
+      "message": "目前字形有未儲存的變更，是否繼續？",
+      "title": "未儲存的變更"
     }
-  },
-  "hex_input": {
-    "placeholder": "輸入 16 進位字形資料 (32 或 64 位)",
-    "copy": "複製"
   },
   "editor": {
     "actions": {
-      "clear": {
-        "button": "清空",
-        "title": "清空編輯器"
-      },
       "add_to_glyphset": {
         "button": "加入字形集",
         "title": "將目前的字形加入字形集"
       },
-      "undo": {
-        "title": "復原(Ctrl+Z)"
+      "clear": {
+        "button": "清空",
+        "title": "清空編輯器"
       },
+      "open_in_zitools": "在 zi.tools 中打開",
       "redo": {
         "title": "重做(Ctrl+Y)"
       },
-      "open_in_zitools": "在 zi.tools 中打開",
-      "show_encoding_info": "顯示編碼資訊"
+      "show_encoding_info": "顯示編碼資訊",
+      "undo": {
+        "title": "復原(Ctrl+Z)"
+      }
     }
   },
   "glyph_editor": {
-    "paste_hint": "點擊網格位置以貼上",
-    "cut_title": "剪下 (Ctrl+X)",
-    "copy_title": "複製 (Ctrl+C)",
-    "paste_title": "貼上 (Ctrl+V)",
-    "move_hint": "移動到網格位置",
     "code_point": "碼位：U+{value}",
-    "glyph_data": "字形資料"
+    "copy_title": "複製 (Ctrl+C)",
+    "cut_title": "剪下 (Ctrl+X)",
+    "glyph_data": "字形資料",
+    "move_hint": "移動到網格位置",
+    "paste_hint": "點擊網格位置以貼上",
+    "paste_title": "貼上 (Ctrl+V)"
   },
-  "dialog": {
+  "glyph_manager": {
+    "add": {
+      "add_button": "新增字形",
+      "clear_button": "清除",
+      "code_point": "輸入 Unicode 碼位 (例如：4E00)",
+      "hex_value": "輸入 16 進位字形資料 (32 或 64 位)",
+      "update_button": "更新字形"
+    },
+    "batch_delete": "批量刪除",
+    "delete_selected": "刪除選中的 {count} 項",
+    "duplicate": {
+      "cancel": "取消",
+      "update": "更新現有字形",
+      "warning": "已存在碼位為 U+{codePoint} 的字形！"
+    },
+    "error": {
+      "loading_storage": "從存儲載入字形時出錯",
+      "loading_unifont": "載入 Unifont 資料出錯",
+      "saving_storage": "儲存字形到存儲時出錯"
+    },
+    "export": "匯出字形",
+    "glyph": {
+      "code_point": "碼位：",
+      "delete": "刪除",
+      "edit": "編輯",
+      "edit_in_grid": "按一下編輯字形：U+{codePoint}",
+      "hex": "Hex："
+    },
+    "import": "從 Unifont 讀取",
+    "search": "搜尋字形...",
     "select_all": "全選",
-    "confirm": "確定",
-    "cancel": "取消",
-    "hex_import": {
-      "title": "發現重複的字形",
-      "message": "以下字形已存在，請選擇要更新的字形：",
-      "confirm": "更新選中字形",
-      "cancel": "跳過"
+    "title": "字形管理器",
+    "upload": {
+      "hex_file": "上傳 Hex 檔案",
+      "image_file": "上傳字形圖片"
     },
-    "image_error": {
-      "title": "圖片載入錯誤",
-      "message": "載入圖片時出錯，請重試"
-    },
-    "dimension_error": {
-      "title": "圖片尺寸錯誤",
-      "message": "圖片尺寸必須為 8x16 或 16x16 像素"
-    },
-    "format_error": {
-      "title": "圖片格式錯誤",
-      "message": "圖片必須為黑白色"
-    },
-    "unsaved_changes": {
-      "title": "未儲存的變更",
-      "message": "目前字形有未儲存的變更，是否繼續？",
-      "confirm": "繼續"
-    },
-    "clear_confirm": {
-      "title": "確認清空",
-      "message": "是否確認清空目前網格？",
-      "confirm": "清空"
-    },
-    "batch_delete": {
-      "title": "確認刪除",
-      "message": "是否確認刪除選中的 {count} 項字形？",
-      "confirm": "刪除"
-    },
-    "settings_reset": {
-      "title": "重設設定",
-      "message": "是否確認重設所有設定為預設值？",
-      "confirm": "重設"
+    "validation": {
+      "add_glyph": "新增字形",
+      "enter_code_point": "請輸入 Unicode 碼位",
+      "invalid_code_point": "碼位必須是 4-6 位 16 進位數",
+      "invalid_hex": "請輸入有效的 16 進位字形資料 (32 或 64 位)"
     }
-  }
+  },
+  "hex_input": {
+    "copy": "複製",
+    "placeholder": "輸入 16 進位字形資料 (32 或 64 位)"
+  },
+  "settings": {
+    "browser_preview_font": "字形預覽字體",
+    "close": "儲存並關閉",
+    "confirm_clear": "清空時需要確認",
+    "cursor_effect": "游標效果（滑鼠）",
+    "draw_mode": {
+      "double_button": "左鍵繪製，右鍵擦除",
+      "label": "繪製模式",
+      "single_button": "左鍵繪製或擦除"
+    },
+    "enable_selection": "啟用選擇功能（Beta）",
+    "font_edit": {
+      "cancel": "取消",
+      "save": "儲存",
+      "title": "編輯預覽字體"
+    },
+    "glyph_preview": {
+      "both": "雙重預覽",
+      "browser_only": "僅瀏覽器顯示",
+      "label": "字形預覽模式",
+      "pixel_only": "僅像素預覽"
+    },
+    "glyph_width": {
+      "16px": "16 像素",
+      "8px": "8 像素",
+      "label": "字形寬度"
+    },
+    "reset": "重設為預設值",
+    "show_border": "顯示網格邊框",
+    "title": "設定"
+  },
+  "title": "UniCucumber - Unifont 網頁編輯器"
 }

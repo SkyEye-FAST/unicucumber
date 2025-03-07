@@ -15,6 +15,37 @@
       </div>
     </div>
 
+    <!-- Selection Overlay -->
+    <div
+      class="selection-overlay"
+      v-if="selectionStart || isDragging"
+      :style="{
+        gridColumnStart: 2,
+        gridTemplateColumns: `repeat(${gridData[0].length}, var(--cell-size))`,
+      }"
+    >
+      <div class="overlay-content">
+        <div
+          v-for="(row, rowIndex) in gridData"
+          :key="`overlay-row-${rowIndex}`"
+          class="overlay-row"
+        >
+          <div
+            v-for="(cell, cellIndex) in row"
+            :key="`overlay-cell-${rowIndex}-${cellIndex}`"
+            :class="[
+              'overlay-cell',
+              {
+                'overlay-selected': isInSelection(rowIndex, cellIndex),
+                'overlay-dragging':
+                  isDragging && isInSelection(rowIndex, cellIndex),
+              },
+            ]"
+          ></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Grid rows -->
     <div
       v-for="(row, rowIndex) in gridData"
@@ -35,9 +66,15 @@
         :class="['cell', { filled: cell === 1 }]"
         :style="[
           getCellStyle(rowIndex, cellIndex),
-          { border: showBorder ? '0.1px solid var(--primary-darker)' : 'none' },
+          isDragging && moveMode ? { cursor: 'move' } : null,
+          {
+            boxShadow: showBorder
+              ? 'inset 0 0 0 0.2px var(--primary-darker)'
+              : 'none',
+          },
         ]"
         @mousedown.prevent="startDrawing(rowIndex, cellIndex, $event)"
+        @contextmenu.prevent
         @mouseover="handleHover(rowIndex, cellIndex)"
         @mouseleave="clearHover"
         @mouseup="stopDrawing"
@@ -76,7 +113,16 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update:cell'])
+const emit = defineEmits([
+  'update:cell',
+  'update:drawValue',
+  'copy-selection',
+  'selection-complete',
+  'paste-complete',
+  'preview-move',
+  'move-to',
+  'drag-complete', // 添加新的事件
+])
 
 const {
   hoverCell,
@@ -117,6 +163,7 @@ const gridStyle = computed(() => ({
   gap: 0;
   padding-right: calc(var(--cell-size) * 0.5);
   width: fit-content;
+  position: relative;
 }
 
 .header-row,
@@ -151,9 +198,118 @@ const gridStyle = computed(() => ({
   background-color: black;
 }
 
+.cell.selected::before,
+.cell.selected::after,
+.cell.selected-filled::before,
+.cell.dragging::before {
+  display: none;
+}
+
+.cell.selected::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: white;
+  mix-blend-mode: lighten;
+  z-index: 2;
+}
+
+.cell.selected::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--grid-selection-bg);
+  mix-blend-mode: multiply;
+  z-index: 2;
+  box-shadow: inset 0 0 0 0.5px var(--grid-selection-border);
+}
+
+.cell.selected-filled::before {
+  background-color: var(--grid-selection-filled);
+}
+
+.cell.dragging {
+  position: relative;
+  cursor: move;
+  z-index: 3;
+  background-color: white !important;
+}
+
+.cell.dragging.filled {
+  background-color: black !important;
+}
+
+.cell.dragging::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--grid-dragging-bg);
+  box-shadow: inset 0 0 0 0.2px var(--primary-color-50);
+  opacity: 0.3;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.cell.preview {
+  box-shadow: inset 0 0 0 1px var(--primary-color) !important;
+  background-color: var(--grid-selection-bg) !important;
+  z-index: 3;
+}
+
+.cell.is-dragging {
+  cursor: move;
+  opacity: 0.7;
+}
+
+.selection-overlay {
+  position: absolute;
+  top: var(--cell-size);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 2;
+  display: grid;
+}
+
+.overlay-content {
+  display: contents;
+}
+
+.overlay-row {
+  display: contents;
+}
+
+.overlay-cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  position: relative;
+  box-sizing: border-box;
+}
+
+.overlay-selected {
+  background-color: var(--grid-selection-bg);
+  box-shadow: inset 0 0 0 1px var(--grid-selection-border);
+  opacity: 0.3;
+}
+
+.overlay-dragging {
+  background-color: var(--grid-dragging-bg);
+  opacity: 0.4;
+}
+
 @media (orientation: portrait) and (max-width: 768px) {
   .cell {
-    border-width: 0.2px;
+    box-shadow: inset 0 0 0 0.2px var(--primary-color-30);
   }
 }
 
@@ -163,7 +319,7 @@ const gridStyle = computed(() => ({
   }
 
   .cell {
-    border-width: 0.3px;
+    box-shadow: inset 0 0 0 0.3px var(--primary-color-30);
   }
 }
 

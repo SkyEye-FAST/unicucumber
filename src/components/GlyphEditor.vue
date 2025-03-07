@@ -21,11 +21,17 @@
     <GlyphGrid
       ref="glyphGridRef"
       :gridData="gridData"
-      :drawMode="settings.drawMode"
+      :drawMode="currentDrawMode"
       :drawValue="drawValue"
       :cursorEffect="settings.cursorEffect"
       :showBorder="settings.showBorder"
       @update:cell="updateCell"
+      @update:drawValue="updateDrawValue"
+      @selection-complete="handleSelectionComplete"
+      @paste-complete="handlePasteComplete"
+      @preview-move="handlePreviewMove"
+      @move-to="handleMoveTo"
+      @draw-complete="handleDrawComplete"
     />
 
     <div class="editor-actions">
@@ -66,7 +72,15 @@
         </button>
       </div>
     </div>
-    <ToolButtons v-model:modelValue="drawValue" />
+    <ToolButtons
+      v-model:modelValue="drawValue"
+      :copyMode="copyMode"
+      :moveMode="moveMode"
+      :selectedRegion="selectedRegion"
+      :disabled="shouldDisableTools"
+      :enableSelection="settings.enableSelection"
+      @copy-selection="handleCopySelection"
+    />
     <HexCodeInput v-model:hexCode="hexCode" @update:grid="updateGridFromHex" />
     <DownloadButtons :gridData="gridData" :codepoint="currentCodePoint" />
 
@@ -138,6 +152,45 @@ const { isSidebarActive, sidebarWidth, toggleSidebar, startResize } =
   useSidebar()
 
 const drawValue = ref(1)
+
+const shouldDisableTools = computed(() => {
+  return settings.value.drawMode === 'doubleButtonDraw' && drawValue.value !== 2
+})
+
+const currentDrawMode = computed(() => {
+  return drawValue.value === 2 ? 'singleButtonDraw' : settings.value.drawMode
+})
+
+const updateDrawValue = (value) => {
+  if (value === drawValue.value) return
+  drawValue.value = value
+
+  if (value === 2 && !settings.value.enableSelection) {
+    drawValue.value = 1
+    return
+  }
+
+  if (value !== 2) {
+    clearSelection()
+  }
+}
+
+watch(
+  () => settings.value.enableSelection,
+  (newValue) => {
+    if (!newValue) {
+      clearSelection()
+      if (drawValue.value === 2) {
+        drawValue.value = 1
+      }
+    }
+  },
+)
+
+defineExpose({
+  updateDrawValue,
+})
+
 const glyphs = ref([])
 const prefillData = ref(null)
 const currentGlyph = ref({
@@ -162,6 +215,209 @@ onMounted(() => {
   document.addEventListener('keydown', handleKeydown)
   nextTick(updateGridFontPreview)
 })
+
+onBeforeUnmount(() => {
+  document.removeEventListener('contextmenu', preventDefault)
+  document.removeEventListener('keydown', handleKeydown)
+  document.removeEventListener('mousemove', updateMousePosition)
+})
+
+const updateMousePosition = (e) => {
+  mousePosition.value = { x: e.clientX, y: e.clientY }
+}
+
+const selectedRegion = ref(null)
+const clipboardData = ref(null)
+
+const copyMode = ref(false)
+const moveMode = ref(false)
+
+watch(
+  [drawValue, selectedRegion],
+  ([newDrawValue, newSelectedRegion]) => {
+    moveMode.value = newDrawValue === 2 && newSelectedRegion !== null
+  },
+  { immediate: true },
+)
+
+const pasteMode = ref(false)
+
+const handleSelectionComplete = (start, end) => {
+  selectedRegion.value = { start, end }
+}
+
+const handleCopySelection = () => {
+  if (!selectedRegion.value) return
+  moveMode.value = false
+  copyMode.value = true
+
+  const selection = glyphGridRef.value.handleCopySelection()
+  if (selection) {
+    clipboardData.value = selection
+
+    try {
+      const jsonString = JSON.stringify(selection)
+      navigator.clipboard.writeText(jsonString)
+    } catch (error) {
+      console.error('Failed to write to clipboard:', error)
+    }
+  }
+}
+
+defineEmits(['update:modelValue', 'selection-complete', 'paste-complete'])
+
+const handleKeydown = (e) => {
+  if (e.ctrlKey) {
+    if (e.key === 'z') {
+      e.preventDefault()
+      handleUndo()
+    } else if (e.key === 'y') {
+      e.preventDefault()
+      handleRedo()
+    } else if (e.key === 'x' && selectedRegion.value) {
+      e.preventDefault()
+      handleCut()
+    } else if (e.key === 'c' && selectedRegion.value) {
+      e.preventDefault()
+      handleCopy()
+    } else if (e.key === 'v' && clipboardData.value) {
+      e.preventDefault()
+      handlePaste(e)
+    }
+  }
+}
+
+const handleCut = () => {
+  if (!selectedRegion.value) return
+  const selection = glyphGridRef.value?.handleCopySelection()
+  if (selection) {
+    clipboardData.value = selection
+    copyMode.value = true
+    moveMode.value = false
+    try {
+      const jsonString = JSON.stringify(selection)
+      navigator.clipboard.writeText(jsonString)
+    } catch (error) {
+      console.error('Failed to write to clipboard:', error)
+    }
+
+    const { start, end } = selectedRegion.value
+    const minRow = Math.min(start.row, end.row)
+    const maxRow = Math.max(start.row, end.row)
+    const minCol = Math.min(start.col, end.col)
+    const maxCol = Math.max(start.col, end.col)
+
+    for (let i = minRow; i <= maxRow; i++) {
+      for (let j = minCol; j <= maxCol; j++) {
+        updateCell(i, j, 0)
+      }
+    }
+
+    pushState(gridData.value, 'cut')
+  }
+}
+
+const handleCopy = () => {
+  if (!selectedRegion.value) return
+  const selection = glyphGridRef.value?.handleCopySelection()
+  if (selection) {
+    clipboardData.value = selection
+    copyMode.value = true
+    moveMode.value = false
+    try {
+      const jsonString = JSON.stringify(selection)
+      navigator.clipboard.writeText(jsonString)
+    } catch (error) {
+      console.error('Failed to write to clipboard:', error)
+    }
+  }
+}
+
+const handlePasteButtonClick = () => {
+  pasteMode.value = true
+  document.addEventListener('click', handlePasteClick, {
+    capture: true,
+    once: true,
+  })
+}
+
+const handlePasteClick = (e) => {
+  e.stopPropagation()
+
+  if (e.target.classList.contains('cell')) {
+    const { rowIndex, cellIndex } = glyphGridRef.value.getCellIndex(e.target)
+    pasteAtPosition(rowIndex, cellIndex)
+  }
+
+  pasteMode.value = false
+}
+
+const pasteAtPosition = (targetRow, targetCol) => {
+  console.log('Attempting to paste at:', targetRow, targetCol)
+  if (targetRow < 0 || targetCol < 0) return
+
+  if (clipboardData.value) {
+    console.log('Using clipboard data:', clipboardData.value)
+    glyphGridRef.value.pasteSelection(targetRow, targetCol, clipboardData.value)
+    pushState(gridData.value)
+  }
+}
+
+const handlePaste = () => {
+  if (!clipboardData.value) return
+
+  const target = document.elementFromPoint(
+    mousePosition.value.x,
+    mousePosition.value.y,
+  )
+
+  if (target?.classList.contains('cell')) {
+    const { rowIndex, cellIndex } = glyphGridRef.value.getCellIndex(target)
+    pasteAtPosition(rowIndex, cellIndex)
+  }
+}
+
+const handlePasteComplete = () => {
+  moveMode.value = false
+  clipboardData.value = null
+  pushState(gridData.value, 'paste')
+}
+
+const handleMoveTo = (row, col) => {
+  if (!clipboardData.value) return
+
+  pasteAtPosition(row, col)
+  moveMode.value = false
+  clipboardData.value = null
+
+  selectedRegion.value = {
+    start: { row, col },
+    end: {
+      row: row + (clipboardData.value?.data.length || 0) - 1,
+      col: col + (clipboardData.value?.data[0].length || 0) - 1,
+    },
+  }
+  pushState(gridData.value, 'move')
+}
+
+const clearSelection = () => {
+  if (glyphGridRef.value) {
+    glyphGridRef.value.clearSelection()
+  }
+  selectedRegion.value = null
+  clipboardData.value = null
+  copyMode.value = false
+  moveMode.value = false
+}
+
+watch(
+  () => selectedRegion.value,
+  () => {
+    if (selectedRegion.value) {
+      pushState(gridData.value)
+    }
+  },
+)
 
 const setGlyphs = (newGlyphs) => {
   glyphs.value = newGlyphs
@@ -256,9 +512,9 @@ watch(
 const { pushState, undo, redo, canUndo, canRedo, clearAndInitHistory } =
   useHistory(gridData.value)
 
-const handleGridUpdate = (newGrid) => {
+const handleGridUpdate = (newGrid, action) => {
   gridData.value = newGrid
-  pushState(newGrid)
+  pushState(newGrid, action)
   updateHexCode()
   hasUnsavedChanges.value = currentGlyph.value !== null
 }
@@ -273,6 +529,7 @@ const handleClear = () => {
       codePoint: '0000',
       hexValue: '',
     }
+    pushState(gridData.value, 'clear-grid')
     showDialog.value = false
   }
 
@@ -310,18 +567,6 @@ const updateCell = (rowIndex, cellIndex, value) => {
   handleGridUpdate(newGrid)
 }
 
-const handleKeydown = (e) => {
-  if (e.ctrlKey) {
-    if (e.key === 'z') {
-      e.preventDefault()
-      handleUndo()
-    } else if (e.key === 'y') {
-      e.preventDefault()
-      handleRedo()
-    }
-  }
-}
-
 const handleCloseSidebar = () => {
   isSidebarActive.value = false
 }
@@ -352,6 +597,47 @@ watch(
   },
   { deep: true },
 )
+
+const handlePreviewMove = ({ row, col, data }) => {
+  const preview = document.querySelectorAll('.cell.preview')
+  preview.forEach((cell) => cell.classList.remove('preview'))
+
+  if (data) {
+    data.forEach((rowData, i) => {
+      rowData.forEach((value, j) => {
+        const cell = document.querySelector(
+          `.cell[data-row="${row + i}"][data-col="${col + j}"]`,
+        )
+        if (cell && value === 1) {
+          cell.classList.add('preview')
+        }
+      })
+    })
+  }
+}
+
+const handleContainerClick = (event) => {
+  if (
+    event.target.classList.contains('container') ||
+    event.target.classList.contains('editor-actions') ||
+    event.target.classList.contains('tool-buttons')
+  ) {
+    event.stopPropagation()
+    if (glyphGridRef.value) {
+      glyphGridRef.value.clearSelection()
+      selectedRegion.value = null
+    }
+  }
+}
+
+// 处理绘制完成事件
+const handleDrawComplete = (changes) => {
+  const action = {
+    type: 'draw',
+    changes: changes,
+  }
+  pushState(gridData.value, action)
+}
 </script>
 
 <style scoped>
