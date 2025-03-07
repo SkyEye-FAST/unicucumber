@@ -546,13 +546,6 @@ watch(
 const { pushState, undo, redo, canUndo, canRedo, clearAndInitHistory } =
   useHistory(gridData.value)
 
-const handleGridUpdate = (newGrid, action) => {
-  gridData.value = newGrid
-  pushState(newGrid, action)
-  updateHexCode()
-  hasUnsavedChanges.value = currentGlyph.value !== null
-}
-
 const handleClear = () => {
   const doClear = () => {
     resetGrid(gridData.value[0].length)
