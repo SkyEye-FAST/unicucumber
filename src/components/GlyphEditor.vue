@@ -33,6 +33,7 @@
       @paste-complete="handlePasteComplete"
       @preview-move="handlePreviewMove"
       @move-to="handleMoveTo"
+      @draw-complete="handleDrawComplete"
     />
 
     <div class="editor-actions">
@@ -214,7 +215,7 @@ watch(
         drawValue.value = 1
       }
     }
-  }
+  },
 )
 
 defineExpose({
@@ -346,7 +347,7 @@ const handleCut = () => {
       }
     }
 
-    pushState(gridData.value)
+    pushState(gridData.value, 'cut')
   }
 }
 
@@ -413,7 +414,7 @@ const handlePaste = () => {
 const handlePasteComplete = () => {
   moveMode.value = false
   clipboardData.value = null
-  pushState(gridData.value)
+  pushState(gridData.value, 'paste')
 }
 
 const handleMoveTo = (row, col) => {
@@ -430,7 +431,7 @@ const handleMoveTo = (row, col) => {
       col: col + (clipboardData.value?.data[0].length || 0) - 1,
     },
   }
-  pushState(gridData.value)
+  pushState(gridData.value, 'move')
 }
 
 const clearSelection = () => {
@@ -545,9 +546,9 @@ watch(
 const { pushState, undo, redo, canUndo, canRedo, clearAndInitHistory } =
   useHistory(gridData.value)
 
-const handleGridUpdate = (newGrid) => {
+const handleGridUpdate = (newGrid, action) => {
   gridData.value = newGrid
-  pushState(newGrid)
+  pushState(newGrid, action)
   updateHexCode()
   hasUnsavedChanges.value = currentGlyph.value !== null
 }
@@ -562,6 +563,7 @@ const handleClear = () => {
       codePoint: '0000',
       hexValue: '',
     }
+    pushState(gridData.value, 'clear-grid')
     showDialog.value = false
   }
 
@@ -596,7 +598,8 @@ const handleRedo = () => {
 const updateCell = (rowIndex, cellIndex, value) => {
   const newGrid = gridData.value.map((row) => [...row])
   newGrid[rowIndex][cellIndex] = value
-  handleGridUpdate(newGrid)
+  gridData.value = newGrid
+  // 移除这里的pushState调用，统一在绘制完成时处理
 }
 
 const handleCloseSidebar = () => {
@@ -664,6 +667,15 @@ const handleContainerClick = (event) => {
       selectedRegion.value = null
     }
   }
+}
+
+// 处理绘制完成事件
+const handleDrawComplete = (changes) => {
+  const action = {
+    type: 'draw',
+    changes: changes,
+  }
+  pushState(gridData.value, action)
 }
 </script>
 

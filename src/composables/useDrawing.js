@@ -11,6 +11,7 @@ export function useDrawing(props, emit) {
   const dragStart = ref({ x: 0, y: 0 })
   const dragOffset = ref({ row: 0, col: 0 })
   const draggedData = ref(null)
+  const drawBuffer = ref([]) // 存储一次绘制中的所有变化
 
   onMounted(() => {
     document.addEventListener('mouseup', stopDrawing)
@@ -28,12 +29,16 @@ export function useDrawing(props, emit) {
     event.preventDefault()
     event.stopPropagation()
 
+    isDrawing.value = true
+    drawBuffer.value = [] // 清空缓冲区
+
     if (props.drawMode === 'doubleButtonDraw') {
       isDrawing.value = true
       const newValue = event.button === 2 ? 0 : 1
       emit('update:drawValue', newValue)
       buttonValue.value = newValue
       updateCell(rowIndex, cellIndex, newValue)
+      drawBuffer.value.push({ row: rowIndex, col: cellIndex, value: newValue })
       return
     }
 
@@ -57,13 +62,27 @@ export function useDrawing(props, emit) {
     if (props.drawMode === 'doubleButtonDraw') {
       buttonValue.value = event.button === 2 ? 0 : 1
       updateCell(rowIndex, cellIndex, buttonValue.value)
+      drawBuffer.value.push({
+        row: rowIndex,
+        col: cellIndex,
+        value: buttonValue.value,
+      })
     } else {
       updateCell(rowIndex, cellIndex, props.drawValue)
+      drawBuffer.value.push({
+        row: rowIndex,
+        col: cellIndex,
+        value: props.drawValue,
+      })
     }
   }
 
   const stopDrawing = () => {
+    if (isDrawing.value && drawBuffer.value.length > 0) {
+      emit('draw-complete', drawBuffer.value)
+    }
     isDrawing.value = false
+    drawBuffer.value = []
     if (isSelecting.value) {
       isSelecting.value = false
       emit('selection-complete', selectionStart.value, selectionEnd.value)
@@ -83,6 +102,7 @@ export function useDrawing(props, emit) {
           ? buttonValue.value
           : props.drawValue
       updateCell(rowIndex, cellIndex, value)
+      drawBuffer.value.push({ row: rowIndex, col: cellIndex, value })
     }
   }
 
