@@ -599,7 +599,6 @@ const updateCell = (rowIndex, cellIndex, value) => {
   const newGrid = gridData.value.map((row) => [...row])
   newGrid[rowIndex][cellIndex] = value
   gridData.value = newGrid
-  // 移除这里的pushState调用，统一在绘制完成时处理
 }
 
 const handleCloseSidebar = () => {
@@ -669,7 +668,6 @@ const handleContainerClick = (event) => {
   }
 }
 
-// 处理绘制完成事件
 const handleDrawComplete = (changes) => {
   const action = {
     type: 'draw',

@@ -137,7 +137,7 @@ const emit = defineEmits([
   'paste-complete',
   'preview-move',
   'move-to',
-  'drag-complete', // 添加新的事件
+  'drag-complete',
 ])
 
 const {
