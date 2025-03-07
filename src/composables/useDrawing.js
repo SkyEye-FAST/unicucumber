@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 
 export function useDrawing(props, emit) {
   const isDrawing = ref(false)
@@ -90,6 +90,12 @@ export function useDrawing(props, emit) {
   }
 
   const handleHover = (rowIndex, cellIndex) => {
+    if (isSelecting.value) {
+      selectionEnd.value = { row: rowIndex, col: cellIndex }
+      return
+    }
+
+    hoverCell.value = { row: rowIndex, col: cellIndex }
     if (isDrawing.value) {
       const value =
         props.drawMode === 'doubleButtonDraw'
@@ -331,6 +337,7 @@ export function useDrawing(props, emit) {
 
   return {
     isDrawing,
+    isDragging,
     hoverCell,
     startDrawing,
     stopDrawing,
@@ -338,5 +345,10 @@ export function useDrawing(props, emit) {
     clearHover,
     handleTouchStart,
     handleTouchMove,
+    selectionStart,
+    selectionEnd,
+    isSelecting,
+    copySelection,
+    pasteSelection,
   }
 }

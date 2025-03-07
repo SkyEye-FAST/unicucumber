@@ -63,7 +63,17 @@
       <div
         v-for="(cell, cellIndex) in row"
         :key="`cell-${rowIndex}-${cellIndex}`"
-        :class="['cell', { filled: cell === 1 }]"
+        :class="[
+          'cell',
+          {
+            filled: cell === 1,
+            selected: isInSelection(rowIndex, cellIndex),
+            'selected-filled': isInSelection(rowIndex, cellIndex) && cell === 1,
+            dragging: isDragging && isInSelection(rowIndex, cellIndex),
+          },
+        ]"
+        :data-row="rowIndex"
+        :data-col="cellIndex"
         :style="[
           getCellStyle(rowIndex, cellIndex),
           isDragging && moveMode ? { cursor: 'move' } : null,
@@ -78,8 +88,6 @@
         @mouseover="handleHover(rowIndex, cellIndex)"
         @mouseleave="clearHover"
         @mouseup="stopDrawing"
-        @touchstart.prevent="handleTouchStart"
-        @touchmove.prevent="handleTouchMove"
       ></div>
     </div>
   </div>
@@ -111,6 +119,14 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
+  moveMode: {
+    type: Boolean,
+    default: false,
+  },
+  clipboardData: {
+    type: Object,
+    default: null,
+  },
 })
 
 const emit = defineEmits([
@@ -130,8 +146,12 @@ const {
   stopDrawing,
   handleHover,
   clearHover,
-  handleTouchStart,
-  handleTouchMove,
+  selectionStart,
+  selectionEnd,
+  isSelecting,
+  copySelection,
+  pasteSelection,
+  isDragging,
 } = useDrawing(props, emit)
 
 const { initHistory } = useHistory(props.gridData)
@@ -148,13 +168,67 @@ const getCellStyle = (rowIndex, cellIndex) => {
   return props.cursorEffect &&
     hoverCell.value.row === rowIndex &&
     hoverCell.value.col === cellIndex
-    ? { backgroundColor: props.drawValue === 1 ? 'black' : 'white' }
+    ? {
+        backgroundColor:
+          props.drawValue === 2
+            ? 'var(--grid-selection-bg)'
+            : props.drawValue === 1
+              ? 'black'
+              : 'white',
+      }
     : {}
+}
+
+const isInSelection = (rowIndex, cellIndex) => {
+  if (!selectionStart.value || !selectionEnd.value) return false
+
+  const minRow = Math.min(selectionStart.value.row, selectionEnd.value.row)
+  const maxRow = Math.max(selectionStart.value.row, selectionEnd.value.row)
+  const minCol = Math.min(selectionStart.value.col, selectionEnd.value.col)
+  const maxCol = Math.max(selectionStart.value.col, selectionEnd.value.col)
+
+  return (
+    rowIndex >= minRow &&
+    rowIndex <= maxRow &&
+    cellIndex >= minCol &&
+    cellIndex <= maxCol
+  )
 }
 
 const gridStyle = computed(() => ({
   gridTemplateColumns: `var(--cell-size) repeat(${props.gridData[0].length}, var(--cell-size))`,
 }))
+const handleCopySelection = () => {
+  const selection = copySelection()
+  if (selection) {
+    emit('copy-selection', selection)
+  }
+  return selection
+}
+
+const getCellIndex = (target) => {
+  const cellIndex = Array.from(target.parentNode.children).indexOf(target) - 1
+  const rowIndex =
+    Array.from(target.parentNode.parentNode.children).indexOf(
+      target.parentNode,
+    ) - 1
+  return { rowIndex, cellIndex }
+}
+
+defineExpose({
+  handleCopySelection,
+  getCellIndex,
+  pasteSelection,
+  clearSelection: () => {
+    selectionStart.value = null
+    selectionEnd.value = null
+    isSelecting.value = false
+  },
+  getSelectionArea: () => ({
+    start: selectionStart.value,
+    end: selectionEnd.value,
+  }),
+})
 </script>
 
 <style scoped>
@@ -192,6 +266,8 @@ const gridStyle = computed(() => ({
   background-color: white;
   cursor: pointer;
   transition: none !important;
+  box-sizing: border-box;
+  position: relative;
 }
 
 .cell.filled {

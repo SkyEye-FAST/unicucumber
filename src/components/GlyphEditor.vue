@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" @mousedown="handleContainerClick">
     <EditorHeader
       @openSettings="showSettings = true"
       @toggleSidebar="toggleSidebar"
@@ -25,6 +25,8 @@
       :drawValue="drawValue"
       :cursorEffect="settings.cursorEffect"
       :showBorder="settings.showBorder"
+      :moveMode="moveMode"
+      :clipboardData="clipboardData"
       @update:cell="updateCell"
       @update:drawValue="updateDrawValue"
       @selection-complete="handleSelectionComplete"
@@ -36,6 +38,35 @@
 
     <div class="editor-actions">
       <div class="action-group">
+        <button
+          v-if="selectedRegion"
+          class="action-button"
+          @click="handleCut"
+          :title="$t('glyph_editor.cut_title')"
+        >
+          <span class="material-symbols-outlined">content_cut</span>
+        </button>
+        <button
+          v-if="selectedRegion"
+          class="action-button"
+          @click="handleCopy"
+          :title="$t('glyph_editor.copy_title')"
+        >
+          <span class="material-symbols-outlined">content_copy</span>
+        </button>
+        <button
+          v-if="clipboardData"
+          class="action-button"
+          @click.stop="handlePasteButtonClick"
+          :class="{ 'paste-mode': pasteMode }"
+          :title="
+            pasteMode
+              ? $t('glyph_editor.paste_hint')
+              : $t('glyph_editor.paste_title')
+          "
+        >
+          <span class="material-symbols-outlined">content_paste</span>
+        </button>
         <button
           class="action-button secondary"
           @click="handleClear"
@@ -207,12 +238,15 @@ const gridFontRef = ref(null)
 const { isDark } = useTheme()
 provide('isDark', isDark)
 
+const mousePosition = ref({ x: 0, y: 0 })
+
 const currentCodePoint = ref('0000')
 
 onMounted(() => {
   updateGridFontPreview()
   document.addEventListener('contextmenu', preventDefault)
   document.addEventListener('keydown', handleKeydown)
+  document.addEventListener('mousemove', updateMousePosition)
   nextTick(updateGridFontPreview)
 })
 
@@ -579,6 +613,10 @@ watch(() => gridData.value, updateGridFontPreview, { deep: true })
 onBeforeUnmount(() => {
   document.removeEventListener('contextmenu', preventDefault)
   document.removeEventListener('keydown', handleKeydown)
+  document.removeEventListener('click', handlePasteClick, true)
+  if (pasteMode.value) {
+    pasteMode.value = false
+  }
 })
 
 watch(
@@ -714,6 +752,11 @@ const handleDrawComplete = (changes) => {
 
 .action-button .material-symbols-outlined {
   font-size: 20px;
+}
+
+.action-button.paste-mode {
+  background-color: var(--info-color);
+  color: white;
 }
 
 .history-controls {
