@@ -17,12 +17,14 @@ export function useDrawing(props, emit) {
     document.addEventListener('mouseup', stopDrawing)
     document.addEventListener('mousemove', handleDragMove)
     document.addEventListener('mouseup', stopDragging)
+    document.addEventListener('touchend', handleTouchEnd)
   })
 
   onBeforeUnmount(() => {
     document.removeEventListener('mouseup', stopDrawing)
     document.removeEventListener('mousemove', handleDragMove)
     document.removeEventListener('mouseup', stopDragging)
+    document.removeEventListener('touchend', handleTouchEnd)
   })
 
   const startDrawing = (rowIndex, cellIndex, event) => {
@@ -124,23 +126,34 @@ export function useDrawing(props, emit) {
   }
 
   const handleTouchStart = (event) => {
+    event.preventDefault()
     const touch = event.touches[0]
     const target = document.elementFromPoint(touch.clientX, touch.clientY)
     if (target?.classList.contains('cell')) {
       const { rowIndex, cellIndex } = getCellIndex(target)
-      startDrawing(rowIndex, cellIndex, event)
+      startDrawing(rowIndex, cellIndex, {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        button: 0, // 模拟左键点击
+      })
     }
   }
 
   const handleTouchMove = (event) => {
+    event.preventDefault()
     const touch = event.touches[0]
     const target = document.elementFromPoint(touch.clientX, touch.clientY)
     if (target?.classList.contains('cell')) {
       const { rowIndex, cellIndex } = getCellIndex(target)
       if (rowIndex >= 0 && cellIndex >= 0) {
-        updateCell(rowIndex, cellIndex, props.drawValue)
+        handleHover(rowIndex, cellIndex)
       }
     }
+  }
+
+  const handleTouchEnd = (event) => {
+    event.preventDefault()
+    stopDrawing()
   }
 
   const isInSelection = (row, col) => {
@@ -345,6 +358,7 @@ export function useDrawing(props, emit) {
     clearHover,
     handleTouchStart,
     handleTouchMove,
+    handleTouchEnd,
     selectionStart,
     selectionEnd,
     isSelecting,

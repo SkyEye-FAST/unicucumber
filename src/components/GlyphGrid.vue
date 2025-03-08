@@ -1,5 +1,11 @@
 <template>
-  <div class="grid-container" :style="gridStyle">
+  <div
+    class="grid-container"
+    :style="gridStyle"
+    @touchstart="handleTouchStart"
+    @touchmove="handleTouchMove"
+    @touchend="handleTouchEnd"
+  >
     <!-- Header row with column numbers -->
     <div class="header-row">
       <div class="corner-cell"></div>
@@ -137,6 +143,7 @@ const emit = defineEmits([
   'paste-complete',
   'preview-move',
   'move-to',
+  'draw-complete',
   'drag-complete',
 ])
 
@@ -152,6 +159,9 @@ const {
   copySelection,
   pasteSelection,
   isDragging,
+  handleTouchStart,
+  handleTouchMove,
+  handleTouchEnd,
 } = useDrawing(props, emit)
 
 const { initHistory } = useHistory(props.gridData)
@@ -238,6 +248,10 @@ defineExpose({
   padding-right: calc(var(--cell-size) * 0.5);
   width: fit-content;
   position: relative;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .header-row,
