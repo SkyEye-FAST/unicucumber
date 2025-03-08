@@ -11,7 +11,7 @@
   ></canvas>
 </template>
 
-<script setup>
+<script lang="ts" setup>
 import { ref, onMounted, watch, computed } from 'vue'
 
 const props = defineProps({
@@ -29,7 +29,7 @@ const props = defineProps({
   },
 })
 
-const canvas = ref(null)
+const canvas = ref<HTMLCanvasElement | null>(null)
 
 const isTablet = computed(() => {
   return window.matchMedia(
@@ -114,12 +114,12 @@ const drawGlyph = () => {
   const ctx = canvas.value.getContext('2d', {
     alpha: false,
     willReadFrequently: false,
-  })
+  }) as CanvasRenderingContext2D
 
   const bits = new Uint8Array(props.width * 16)
-  const bytes = props.hexValue
-    .match(/.{1,2}/g)
-    .map((byte) => parseInt(byte, 16))
+  const bytes = (props.hexValue.match(/.{1,2}/g) ?? []).map((byte) =>
+    parseInt(byte, 16),
+  )
 
   for (let i = 0; i < bytes.length; i++) {
     const byte = bytes[i]

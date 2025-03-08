@@ -87,31 +87,35 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { computed, watch, nextTick, ref } from 'vue'
 import PixelPreview from './PixelPreview.vue'
 
+interface Glyph {
+  codePoint: string
+  hexValue: string
+}
+
+interface Settings {
+  glyphPreviewMode: 'pixelOnly' | 'browserOnly' | 'both'
+  browserPreviewFont: string
+}
+
 const { t: $t } = useI18n()
 
-const props = defineProps({
-  glyphs: {
-    type: Array,
-    required: true,
-  },
-  settings: {
-    type: Object,
-    required: true,
-  },
-})
+const props = defineProps<{
+  glyphs: Glyph[]
+  settings: Settings
+}>()
 
-const emit = defineEmits([
-  'edit',
-  'remove',
-  'edit-in-grid',
-  'selection-change',
-  'batch-delete',
-])
+const emit = defineEmits<{
+  (event: 'edit', glyph: Glyph): void
+  (event: 'remove', codePoint: string): void
+  (event: 'edit-in-grid', glyph: Glyph): void
+  (event: 'selection-change', selectedGlyphs: Glyph[]): void
+  (event: 'batch-delete', codePoints: string[]): void
+}>()
 
 const showPixelPreview = computed(() => {
   return ['pixelOnly', 'both'].includes(props.settings.glyphPreviewMode)
@@ -128,7 +132,7 @@ watch(
   },
 )
 
-const selectedGlyphs = ref([])
+const selectedGlyphs = ref<Glyph[]>([])
 
 const isAllSelected = computed(() => {
   return (

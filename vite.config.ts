@@ -2,6 +2,7 @@ import { fileURLToPath, URL } from 'node:url'
 import { resolve, dirname } from 'node:path'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import vueDevTools from 'vite-plugin-vue-devtools'
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
@@ -9,6 +10,7 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills'
 export default defineConfig({
   plugins: [
     vue(),
+    vueDevTools(),
     nodePolyfills(),
     VueI18nPlugin({
       include: resolve(

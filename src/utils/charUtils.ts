@@ -1,5 +1,10 @@
-export function isCJKChar(char) {
+interface CJKCharFunction {
+  (char: string): boolean
+}
+
+export const isCJKChar: CJKCharFunction = function (char) {
   const code = char.codePointAt(0)
+  if (code === undefined) return false
   return (
     (code >= 0x4e00 && code <= 0x9fff) || // CJK Unified Ideographs
     (code >= 0x3400 && code <= 0x4dbf) || // CJK Extension A
