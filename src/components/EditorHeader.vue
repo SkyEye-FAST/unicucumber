@@ -21,7 +21,7 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup lang="ts">
 import { onMounted } from 'vue'
 import { useTheme } from '@/composables/useTheme'
 

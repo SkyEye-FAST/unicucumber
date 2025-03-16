@@ -27,7 +27,7 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup lang="ts">
 const emit = defineEmits(['update:modelValue'])
 const { disabled, enableSelection } = defineProps({
   modelValue: {

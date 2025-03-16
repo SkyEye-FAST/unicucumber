@@ -11,7 +11,7 @@
   ></canvas>
 </template>
 
-<script lang="ts" setup>
+<script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
 
 const props = defineProps({
