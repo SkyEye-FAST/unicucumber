@@ -12,41 +12,40 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
   createCanvasFromGrid,
   convertToBMP,
   createSVGFromGrid,
 } from '../utils/exportUtils'
 
-const props = defineProps({
-  gridData: {
-    type: Array,
-    required: true,
-  },
-  codepoint: {
-    type: String,
-    default: '',
-  },
-})
+const props = defineProps<{
+  gridData: number[][]
+  codepoint: string
+}>()
 
-const downloadFormats = ['PNG', 'BMP', 'SVG']
+const downloadFormats = ['PNG', 'BMP', 'SVG'] as const
+type DownloadFormat = (typeof downloadFormats)[number]
 
-const downloadFile = async (format) => {
-  let blob
-  let filename
+const downloadFile = async (format: DownloadFormat) => {
+  let blob: Blob | null
+  let filename: string
   const baseFilename = props.codepoint ? `${props.codepoint}` : 'glyph'
 
   switch (format) {
     case 'PNG': {
       const canvas = createCanvasFromGrid(props.gridData)
-      blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
+      blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, 'image/png'),
+      )
+      if (!blob) throw new Error('Failed to create PNG blob')
       filename = `${baseFilename}.png`
       break
     }
     case 'BMP': {
       const canvas = createCanvasFromGrid(props.gridData)
       const context = canvas.getContext('2d')
+      if (!context) throw new Error('Failed to get canvas context')
       const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
       blob = await convertToBMP(imageData)
       filename = `${baseFilename}.bmp`

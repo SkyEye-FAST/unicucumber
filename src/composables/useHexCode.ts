@@ -1,15 +1,32 @@
-import { ref, watch } from 'vue'
+import { ref, watch, type Ref } from 'vue'
 import { gridToHex } from '@/utils/hexUtils'
 
-export function useHexCode(gridData, resetGrid) {
+interface GridData {
+  value: number[][]
+}
+
+interface ResetGridFunction {
+  (width?: number): void
+}
+
+interface UseHexCodeReturn {
+  hexCode: Ref<string>
+  updateHexCode: () => void
+  updateGridFromHex: () => void
+}
+
+export function useHexCode(
+  gridData: GridData,
+  resetGrid: ResetGridFunction,
+): UseHexCodeReturn {
   const hexCode = ref('0'.repeat(64))
 
-  const updateHexCode = () => {
+  const updateHexCode = (): void => {
     if (!gridData.value || !gridData.value.length) return
     hexCode.value = gridToHex(gridData.value)
   }
 
-  const updateGridFromHex = () => {
+  const updateGridFromHex = (): void => {
     if (
       !/^[0-9A-Fa-f]{32}$/i.test(hexCode.value) &&
       !/^[0-9A-Fa-f]{64}$/i.test(hexCode.value)
@@ -19,10 +36,10 @@ export function useHexCode(gridData, resetGrid) {
       return
     }
 
-    const width = hexCode.value.length <= 32 ? 8 : 16
-    const height = 16
+    const width: number = hexCode.value.length <= 32 ? 8 : 16
+    const height: number = 16
 
-    const binary = hexCode.value
+    const binary: string = hexCode.value
       .split('')
       .map((char) => parseInt(char, 16).toString(2).padStart(4, '0'))
       .join('')

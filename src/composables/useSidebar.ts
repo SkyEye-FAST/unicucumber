@@ -13,18 +13,22 @@ export function useSidebar() {
     isSidebarActive.value = !isSidebarActive.value
   }
 
-  const startResize = (e) => {
+  interface ResizeEvent {
+    clientX: number
+  }
+
+  const startResize = (e: ResizeEvent): void => {
     if (window.innerWidth <= 768) return
 
     const startX = e.clientX
     const startWidth = sidebarWidth.value
 
-    const doResize = (e) => {
+    const doResize = (e: ResizeEvent): void => {
       const newWidth = startWidth + (e.clientX - startX)
       sidebarWidth.value = Math.min(Math.max(newWidth, minWidth), maxWidth)
     }
 
-    const stopResize = () => {
+    const stopResize = (): void => {
       window.removeEventListener('mousemove', doResize)
       window.removeEventListener('mouseup', stopResize)
     }

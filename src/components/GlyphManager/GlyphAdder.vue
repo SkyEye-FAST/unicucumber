@@ -69,40 +69,54 @@
   </div>
 </template>
 
-<script setup>
+<script lang="ts" setup>
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+interface GlyphData {
+  codePoint: string
+  hexValue: string
+}
+
 const { t: $t } = useI18n()
 
 const props = defineProps({
   modelValue: {
-    type: Object,
+    type: Object as () => GlyphData,
     required: true,
   },
-  prefillData: Object,
+  prefillData: {
+    type: Object as () => GlyphData | undefined,
+    default: undefined,
+  },
   editMode: Boolean,
-  duplicateGlyph: Object,
+  duplicateGlyph: {
+    type: Object as () => GlyphData | undefined,
+    default: undefined,
+  },
 })
 
-const emit = defineEmits([
-  'update:modelValue',
-  'add',
-  'import',
-  'clear',
-  'update',
-])
+const emit = defineEmits<{
+  'update:modelValue': [value: GlyphData]
+  add: []
+  import: []
+  clear: []
+  update: []
+}>()
 
-const updateCodePoint = (event) => {
+const updateCodePoint = (event: Event) => {
+  const target = event.target as HTMLInputElement
   emit('update:modelValue', {
     ...props.modelValue,
-    codePoint: event.target.value.toUpperCase(),
+    codePoint: target.value.toUpperCase(),
   })
 }
 
-const updateHexValue = (event) => {
+const updateHexValue = (event: Event) => {
+  const target = event.target as HTMLInputElement
   emit('update:modelValue', {
     ...props.modelValue,
-    hexValue: event.target.value.toUpperCase(),
+    hexValue: target.value.toUpperCase(),
   })
 }
 

@@ -12,7 +12,7 @@ import zh_tw from './locales/zh_tw.json'
 
 const i18n = createI18n({
   legacy: false,
-  locale: navigator.language || navigator.userLanguage || 'en',
+  locale: navigator.language || 'en',
   fallbackLocale: 'en',
   silentTranslationWarn: true,
   messages: {
@@ -23,11 +23,17 @@ const i18n = createI18n({
   },
 })
 
-const updateHtmlLang = (locale) => {
+interface LocaleType {
+  locale: 'en' | 'zh' | 'zh-CN' | 'zh-TW'
+}
+
+const updateHtmlLang = (locale: LocaleType['locale']): void => {
   document.documentElement.lang = locale.replace('_', '-').toLowerCase()
 }
 
-i18n.global.locale.value = navigator.language || navigator.userLanguage || 'en'
+i18n.global.locale.value = (
+  navigator.language.startsWith('zh') ? navigator.language : 'en'
+) as 'en' | 'zh' | 'zh-CN' | 'zh-TW'
 updateHtmlLang(i18n.global.locale.value)
 
 watch(i18n.global.locale, (newLocale) => {

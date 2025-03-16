@@ -5,7 +5,7 @@ const isDark = ref(false)
 export function useTheme() {
   const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
 
-  const setTheme = (dark) => {
+  const setTheme = (dark: boolean): void => {
     isDark.value = dark
     localStorage.setItem('theme', dark ? 'dark' : 'light')
     document.documentElement.setAttribute('data-theme', dark ? 'dark' : '')
@@ -15,7 +15,11 @@ export function useTheme() {
     setTheme(!isDark.value)
   }
 
-  const handleSystemThemeChange = (e) => {
+  interface MediaQueryEvent {
+    matches: boolean
+  }
+
+  const handleSystemThemeChange = (e: MediaQueryEvent): void => {
     if (!localStorage.getItem('theme')) {
       setTheme(e.matches)
     }

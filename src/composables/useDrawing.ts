@@ -1,17 +1,68 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 
-export function useDrawing(props, emit) {
-  const isDrawing = ref(false)
-  const buttonValue = ref(1)
-  const hoverCell = ref({ row: -1, col: -1 })
-  const selectionStart = ref(null)
-  const selectionEnd = ref(null)
-  const isSelecting = ref(false)
-  const isDragging = ref(false)
-  const dragStart = ref({ x: 0, y: 0 })
-  const dragOffset = ref({ row: 0, col: 0 })
-  const draggedData = ref(null)
-  const drawBuffer = ref([])
+interface Position {
+  row: number
+  col: number
+}
+
+interface DragStart extends Position {
+  x: number
+  y: number
+  originRow: number
+  originCol: number
+}
+
+interface DraggedData {
+  data: number[][]
+  width: number
+  height: number
+  position: {
+    minRow: number
+    maxRow: number
+    minCol: number
+    maxCol: number
+  }
+  isDragging?: boolean
+}
+
+interface DrawingProps {
+  drawMode: string
+  moveMode: boolean
+  drawValue: number
+  gridData: number[][]
+}
+
+interface DrawBufferItem {
+  row: number
+  col: number
+  value: number
+}
+
+export function useDrawing(
+  props: DrawingProps,
+  emit: (
+    event: string,
+    ...args: (number | Position | DraggedData | DrawBufferItem[] | boolean)[]
+  ) => void,
+) {
+  const isDrawing = ref<boolean>(false)
+  const buttonValue = ref<number>(1)
+  const hoverCell = ref<Position>({ row: -1, col: -1 })
+  const selectionStart = ref<Position | null>(null)
+  const selectionEnd = ref<Position | null>(null)
+  const isSelecting = ref<boolean>(false)
+  const isDragging = ref<boolean>(false)
+  const dragStart = ref<DragStart>({
+    x: 0,
+    y: 0,
+    row: 0,
+    col: 0,
+    originRow: 0,
+    originCol: 0,
+  })
+  const dragOffset = ref<Position>({ row: 0, col: 0 })
+  const draggedData = ref<DraggedData | null>(null)
+  const drawBuffer = ref<DrawBufferItem[]>([])
 
   onMounted(() => {
     document.addEventListener('mouseup', stopDrawing)
@@ -27,7 +78,11 @@ export function useDrawing(props, emit) {
     document.removeEventListener('touchend', handleTouchEnd)
   })
 
-  const startDrawing = (rowIndex, cellIndex, event) => {
+  const startDrawing = (
+    rowIndex: number,
+    cellIndex: number,
+    event: MouseEvent | TouchEvent,
+  ): void => {
     event.preventDefault()
     event.stopPropagation()
 
@@ -36,7 +91,7 @@ export function useDrawing(props, emit) {
 
     if (props.drawMode === 'doubleButtonDraw') {
       isDrawing.value = true
-      const newValue = event.button === 2 ? 0 : 1
+      const newValue = (event as MouseEvent).button === 2 ? 0 : 1
       emit('update:drawValue', newValue)
       buttonValue.value = newValue
       updateCell(rowIndex, cellIndex, newValue)
@@ -62,7 +117,7 @@ export function useDrawing(props, emit) {
 
     isDrawing.value = true
     if (props.drawMode === 'doubleButtonDraw') {
-      buttonValue.value = event.button === 2 ? 0 : 1
+      buttonValue.value = (event as MouseEvent).button === 2 ? 0 : 1
       updateCell(rowIndex, cellIndex, buttonValue.value)
       drawBuffer.value.push({
         row: rowIndex,
@@ -79,19 +134,19 @@ export function useDrawing(props, emit) {
     }
   }
 
-  const stopDrawing = () => {
+  const stopDrawing = (): void => {
     if (isDrawing.value && drawBuffer.value.length > 0) {
       emit('draw-complete', drawBuffer.value)
     }
     isDrawing.value = false
     drawBuffer.value = []
-    if (isSelecting.value) {
+    if (isSelecting.value && selectionStart.value && selectionEnd.value) {
       isSelecting.value = false
       emit('selection-complete', selectionStart.value, selectionEnd.value)
     }
   }
 
-  const handleHover = (rowIndex, cellIndex) => {
+  const handleHover = (rowIndex: number, cellIndex: number): void => {
     if (isSelecting.value) {
       selectionEnd.value = { row: rowIndex, col: cellIndex }
       return
@@ -108,41 +163,58 @@ export function useDrawing(props, emit) {
     }
   }
 
-  const clearHover = () => {
+  const clearHover = (): void => {
     hoverCell.value = { row: -1, col: -1 }
   }
 
-  const updateCell = (rowIndex, cellIndex, value) => {
+  const updateCell = (
+    rowIndex: number,
+    cellIndex: number,
+    value: number,
+  ): void => {
     emit('update:cell', rowIndex, cellIndex, value)
   }
 
-  const getCellIndex = (target) => {
-    const cellIndex = Array.from(target.parentNode.children).indexOf(target) - 1
+  const getCellIndex = (
+    target: HTMLElement,
+  ): { rowIndex: number; cellIndex: number } => {
+    const cellIndex =
+      Array.from(target.parentNode!.children).indexOf(target) - 1
     const rowIndex =
-      Array.from(target.parentNode.parentNode.children).indexOf(
-        target.parentNode,
+      Array.from(target.parentNode!.parentNode!.children).indexOf(
+        target.parentNode! as HTMLElement,
       ) - 1
     return { rowIndex, cellIndex }
   }
 
-  const handleTouchStart = (event) => {
-    event.preventDefault()
+  const handleTouchStart = (event: TouchEvent): void => {
+    if (event.cancelable) {
+      event.preventDefault()
+    }
     const touch = event.touches[0]
-    const target = document.elementFromPoint(touch.clientX, touch.clientY)
+    const target = document.elementFromPoint(
+      touch.clientX,
+      touch.clientY,
+    ) as HTMLElement
     if (target?.classList.contains('cell')) {
       const { rowIndex, cellIndex } = getCellIndex(target)
       startDrawing(rowIndex, cellIndex, {
         preventDefault: () => {},
         stopPropagation: () => {},
-        button: 0, // 模拟左键点击
-      })
+        button: 0,
+      } as MouseEvent)
     }
   }
 
-  const handleTouchMove = (event) => {
-    event.preventDefault()
+  const handleTouchMove = (event: TouchEvent): void => {
+    if (event.cancelable) {
+      event.preventDefault()
+    }
     const touch = event.touches[0]
-    const target = document.elementFromPoint(touch.clientX, touch.clientY)
+    const target = document.elementFromPoint(
+      touch.clientX,
+      touch.clientY,
+    ) as HTMLElement
     if (target?.classList.contains('cell')) {
       const { rowIndex, cellIndex } = getCellIndex(target)
       if (rowIndex >= 0 && cellIndex >= 0) {
@@ -151,12 +223,11 @@ export function useDrawing(props, emit) {
     }
   }
 
-  const handleTouchEnd = (event) => {
-    event.preventDefault()
+  const handleTouchEnd = (): void => {
     stopDrawing()
   }
 
-  const isInSelection = (row, col) => {
+  const isInSelection = (row: number, col: number): boolean => {
     if (!selectionStart.value || !selectionEnd.value) return false
     const minRow = Math.min(selectionStart.value.row, selectionEnd.value.row)
     const maxRow = Math.max(selectionStart.value.row, selectionEnd.value.row)
@@ -165,7 +236,11 @@ export function useDrawing(props, emit) {
     return row >= minRow && row <= maxRow && col >= minCol && col <= maxCol
   }
 
-  const startDragging = (rowIndex, cellIndex, event) => {
+  const startDragging = (
+    rowIndex: number,
+    cellIndex: number,
+    event: MouseEvent | TouchEvent,
+  ): void => {
     if (!props.moveMode || !selectionStart.value || !selectionEnd.value) return
 
     if (!isInSelection(rowIndex, cellIndex)) return
@@ -175,9 +250,9 @@ export function useDrawing(props, emit) {
     const minCol = Math.min(selectionStart.value.col, selectionEnd.value.col)
     const maxCol = Math.max(selectionStart.value.col, selectionEnd.value.col)
 
-    const selectedData = []
+    const selectedData: number[][] = []
     for (let i = minRow; i <= maxRow; i++) {
-      const row = []
+      const row: number[] = []
       for (let j = minCol; j <= maxCol; j++) {
         row.push(props.gridData[i][j])
       }
@@ -186,10 +261,12 @@ export function useDrawing(props, emit) {
 
     isDragging.value = true
     dragStart.value = {
-      x: event.clientX,
-      y: event.clientY,
+      x: (event as MouseEvent).clientX,
+      y: (event as MouseEvent).clientY,
       originRow: minRow,
       originCol: minCol,
+      row: 0,
+      col: 0,
     }
 
     dragOffset.value = {
@@ -207,7 +284,7 @@ export function useDrawing(props, emit) {
     event.preventDefault()
   }
 
-  const handleDragMove = (event) => {
+  const handleDragMove = (event: MouseEvent): void => {
     if (!isDragging.value || !draggedData.value) return
 
     const cellSize = parseInt(
@@ -237,7 +314,7 @@ export function useDrawing(props, emit) {
     }
   }
 
-  const stopDragging = (event) => {
+  const stopDragging = (event: MouseEvent): void => {
     if (!isDragging.value || !draggedData.value) return
 
     const cellSize = parseInt(
@@ -285,7 +362,7 @@ export function useDrawing(props, emit) {
     emit('drag-complete')
   }
 
-  const copySelection = () => {
+  const copySelection = (): DraggedData | null => {
     console.log('copySelection called with selection:', {
       start: selectionStart.value,
       end: selectionEnd.value,
@@ -298,9 +375,9 @@ export function useDrawing(props, emit) {
     const minCol = Math.min(selectionStart.value.col, selectionEnd.value.col)
     const maxCol = Math.max(selectionStart.value.col, selectionEnd.value.col)
 
-    const selection = []
+    const selection: number[][] = []
     for (let i = minRow; i <= maxRow; i++) {
-      const row = []
+      const row: number[] = []
       for (let j = minCol; j <= maxCol; j++) {
         row.push(props.gridData[i][j])
       }
@@ -317,7 +394,11 @@ export function useDrawing(props, emit) {
     return result
   }
 
-  const pasteSelection = (targetRow, targetCol, selection) => {
+  const pasteSelection = (
+    targetRow: number,
+    targetCol: number,
+    selection: DraggedData,
+  ): void => {
     console.log('pasteSelection called:', { targetRow, targetCol, selection })
     if (!selection?.data) return
 
