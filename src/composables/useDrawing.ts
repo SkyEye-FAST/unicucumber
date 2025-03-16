@@ -22,6 +22,7 @@ interface DraggedData {
     minCol: number
     maxCol: number
   }
+  isDragging?: boolean
 }
 
 interface DrawingProps {
@@ -37,7 +38,13 @@ interface DrawBufferItem {
   value: number
 }
 
-export function useDrawing(props: DrawingProps, emit: Function) {
+export function useDrawing(
+  props: DrawingProps,
+  emit: (
+    event: string,
+    ...args: (number | Position | DraggedData | DrawBufferItem[] | boolean)[]
+  ) => void,
+) {
   const isDrawing = ref<boolean>(false)
   const buttonValue = ref<number>(1)
   const hoverCell = ref<Position>({ row: -1, col: -1 })
@@ -133,7 +140,7 @@ export function useDrawing(props: DrawingProps, emit: Function) {
     }
     isDrawing.value = false
     drawBuffer.value = []
-    if (isSelecting.value) {
+    if (isSelecting.value && selectionStart.value && selectionEnd.value) {
       isSelecting.value = false
       emit('selection-complete', selectionStart.value, selectionEnd.value)
     }
@@ -181,7 +188,9 @@ export function useDrawing(props: DrawingProps, emit: Function) {
   }
 
   const handleTouchStart = (event: TouchEvent): void => {
-    event.preventDefault()
+    if (event.cancelable) {
+      event.preventDefault()
+    }
     const touch = event.touches[0]
     const target = document.elementFromPoint(
       touch.clientX,
@@ -192,13 +201,15 @@ export function useDrawing(props: DrawingProps, emit: Function) {
       startDrawing(rowIndex, cellIndex, {
         preventDefault: () => {},
         stopPropagation: () => {},
-        button: 0, // 模拟左键点击
+        button: 0,
       } as MouseEvent)
     }
   }
 
   const handleTouchMove = (event: TouchEvent): void => {
-    event.preventDefault()
+    if (event.cancelable) {
+      event.preventDefault()
+    }
     const touch = event.touches[0]
     const target = document.elementFromPoint(
       touch.clientX,
@@ -212,8 +223,7 @@ export function useDrawing(props: DrawingProps, emit: Function) {
     }
   }
 
-  const handleTouchEnd = (event: TouchEvent): void => {
-    event.preventDefault()
+  const handleTouchEnd = (): void => {
     stopDrawing()
   }
 
