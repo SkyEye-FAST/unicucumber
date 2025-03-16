@@ -38,12 +38,21 @@ interface DrawBufferItem {
   value: number
 }
 
+type EmitType = {
+  'update:cell': [number, number, number]
+  'update:drawValue': [number]
+  'copy-selection': [DraggedData]
+  'selection-complete': [Position, Position]
+  'paste-complete': [boolean]
+  'preview-move': [DraggedData]
+  'move-to': [Position]
+  'draw-complete': [DrawBufferItem[]]
+  'drag-complete': []
+}
+
 export function useDrawing(
   props: DrawingProps,
-  emit: (
-    event: string,
-    ...args: (number | Position | DraggedData | DrawBufferItem[] | boolean)[]
-  ) => void,
+  emit: <T extends keyof EmitType>(event: T, ...args: EmitType[T]) => void,
 ) {
   const isDrawing = ref<boolean>(false)
   const buttonValue = ref<number>(1)
@@ -306,9 +315,15 @@ export function useDrawing(
       targetCol + draggedData.value.width <= props.gridData[0].length
     ) {
       emit('preview-move', {
-        row: targetRow,
-        col: targetCol,
         data: draggedData.value.data,
+        width: draggedData.value.width,
+        height: draggedData.value.height,
+        position: {
+          minRow: targetRow,
+          maxRow: targetRow + draggedData.value.height - 1,
+          minCol: targetCol,
+          maxCol: targetCol + draggedData.value.width - 1,
+        },
         isDragging: true,
       })
     }
