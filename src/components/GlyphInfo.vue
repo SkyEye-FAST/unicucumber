@@ -61,9 +61,8 @@
   </div>
 </template>
 
-<script setup>
+<script lang="ts" setup>
 import { ref, watch, computed } from 'vue'
-import { Buffer } from 'buffer'
 import { useI18n } from 'vue-i18n'
 import PixelPreview from './GlyphManager/PixelPreview.vue'
 import { isCJKChar } from '@/utils/charUtils'
@@ -102,8 +101,8 @@ watch(
   },
 )
 
-const handleInput = (event) => {
-  let value = event.target.value.toUpperCase()
+const handleInput = (event: Event) => {
+  let value = (event.target as HTMLInputElement).value.toUpperCase()
   value = value.replace(/[^0-9A-F]/g, '')
   if (value.length > 6) {
     value = value.slice(0, 6)
@@ -134,18 +133,19 @@ const toggleEncodingInfo = () => {
   showingEncodingInfo.value = !showingEncodingInfo.value
 }
 
-const convertEncoding = (char, encoding) => {
+const convertEncoding = (char: string, encoding: string): string => {
   try {
-    const buffer = Buffer.from(char)
-    const encoded = iconvLite.encode(buffer, encoding)
+    const encoded = iconvLite.encode(char, encoding)
     if (char === '?' && encoded.length === 1 && encoded[0] === 0x3f) {
       return '3F'
     }
-    if (encoded.every((b) => b === 0x3f)) {
+    if (encoded.every((b: number) => b === 0x3f)) {
       return '—'
     }
     return Array.from(encoded)
-      .map((b) => b.toString(16).toUpperCase().padStart(2, '0'))
+      .map((b: unknown) =>
+        (b as number).toString(16).toUpperCase().padStart(2, '0'),
+      )
       .join(' ')
   } catch {
     return '—'

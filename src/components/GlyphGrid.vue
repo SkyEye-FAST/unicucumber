@@ -99,40 +99,33 @@
   </div>
 </template>
 
-<script setup>
+<script lang="ts" setup>
 import { computed, watch } from 'vue'
 import { useDrawing } from '@/composables/useDrawing'
 import { useHistory } from '@/composables/useHistory'
 
-const props = defineProps({
-  gridData: {
-    type: Array,
-    required: true,
-  },
-  drawMode: {
-    type: String,
-    required: true,
-  },
-  drawValue: {
-    type: Number,
-    required: true,
-  },
-  cursorEffect: {
-    type: Boolean,
-    required: true,
-  },
-  showBorder: {
-    type: Boolean,
-    required: true,
-  },
-  moveMode: {
-    type: Boolean,
-    default: false,
-  },
-  clipboardData: {
-    type: Object,
-    default: null,
-  },
+interface Props {
+  gridData: number[][]
+  drawMode: string
+  drawValue: number
+  cursorEffect: boolean
+  showBorder: boolean
+  moveMode: boolean
+  clipboardData: Record<
+    string,
+    {
+      area: {
+        start: { row: number; col: number }
+        end: { row: number; col: number }
+      }
+      data: number[][]
+    }
+  > | null
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  moveMode: false,
+  clipboardData: null,
 })
 
 const emit = defineEmits([
@@ -174,7 +167,10 @@ watch(
   { immediate: true },
 )
 
-const getCellStyle = (rowIndex, cellIndex) => {
+const getCellStyle = (
+  rowIndex: number,
+  cellIndex: number,
+): Record<string, string> => {
   return props.cursorEffect &&
     hoverCell.value.row === rowIndex &&
     hoverCell.value.col === cellIndex
@@ -189,7 +185,7 @@ const getCellStyle = (rowIndex, cellIndex) => {
     : {}
 }
 
-const isInSelection = (rowIndex, cellIndex) => {
+const isInSelection = (rowIndex: number, cellIndex: number): boolean => {
   if (!selectionStart.value || !selectionEnd.value) return false
 
   const minRow = Math.min(selectionStart.value.row, selectionEnd.value.row)
@@ -216,11 +212,12 @@ const handleCopySelection = () => {
   return selection
 }
 
-const getCellIndex = (target) => {
-  const cellIndex = Array.from(target.parentNode.children).indexOf(target) - 1
+const getCellIndex = (target: HTMLElement) => {
+  const cellIndex =
+    Array.from(target.parentNode?.children || []).indexOf(target) - 1
   const rowIndex =
-    Array.from(target.parentNode.parentNode.children).indexOf(
-      target.parentNode,
+    Array.from(target.parentNode?.parentNode?.children || []).indexOf(
+      target.parentNode as Element,
     ) - 1
   return { rowIndex, cellIndex }
 }
