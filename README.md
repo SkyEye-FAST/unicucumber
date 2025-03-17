@@ -6,11 +6,12 @@ UniCucumber
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![GitHub stars](https://img.shields.io/github/stars/SkyEye-FAST/unicucumber)](https://github.com/SkyEye-FAST/unicucumber/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/SkyEye-FAST/unicucumber)](https://github.com/SkyEye-FAST/unicucumber/issues)
+
 </h1></center>
 
 This is a project for editing Unifont glyphs in browsers.
 
-See [*Unifoundry.com* Unifont Utilities](https://unifoundry.com/unifont/unifont-utilities.html) for more information.
+See [_Unifoundry.com_ Unifont Utilities](https://unifoundry.com/unifont/unifont-utilities.html) for more information.
 
 ## Demostration
 
@@ -45,26 +46,26 @@ To use this project, you need to have Node.js installed on your computer. Then, 
 
 1. Install pnpm (if not already installed). See <https://pnpm.io/installation> for more information.
 
-    You can use another package manager instead.
+   You can use another package manager instead.
 
 2. Clone this repository:
 
-    ```shell
-    git clone https://github.com/SkyEye-FAST/unicucumber.git
-    ```
+   ```shell
+   git clone https://github.com/SkyEye-FAST/unicucumber.git
+   ```
 
 3. Install dependencies:
 
-    ```shell
-    cd unicucumber
-    pnpm install
-    ```
+   ```shell
+   cd unicucumber
+   pnpm install
+   ```
 
 4. Start the development server:
 
-    ```shell
-    pnpm dev
-    ```
+   ```shell
+   pnpm dev
+   ```
 
 5. Open your browser and go to `http://localhost:5173/`.
 
