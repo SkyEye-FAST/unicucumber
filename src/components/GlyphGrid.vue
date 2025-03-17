@@ -85,7 +85,7 @@
           isDragging && moveMode ? { cursor: 'move' } : null,
           {
             boxShadow: showBorder
-              ? 'inset 0 0 0 0.2px var(--primary-darker)'
+              ? 'inset 0 0 0 0.3px var(--primary-darker)'
               : 'none',
           },
         ]"
@@ -398,19 +398,11 @@ defineExpose({
   .header-cell {
     font-size: 1.5em;
   }
-
-  .cell {
-    box-shadow: inset 0 0 0 0.3px var(--primary-darker) !important;
-  }
 }
 
 @media (orientation: portrait) and (min-width: 1024px) {
   .header-cell {
     font-size: 2em;
-  }
-
-  .cell {
-    box-shadow: inset 0 0 0 0.3px var(--primary-darker) !important;
   }
 }
 </style>
