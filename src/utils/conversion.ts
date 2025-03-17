@@ -9,7 +9,7 @@ export const binaryToHex = (binaryString: string): string => {
   return Array.from(
     { length: Math.ceil(binaryString.length / 4) },
     (_: undefined, i: number) => {
-      let nibble: string = binaryString.slice(i * 4, i * 4 + 4)
+      const nibble: string = binaryString.slice(i * 4, i * 4 + 4)
       return parseInt(nibble, 2).toString(16).toUpperCase()
     },
   ).join('')
