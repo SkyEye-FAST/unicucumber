@@ -400,7 +400,7 @@ defineExpose({
   }
 
   .cell {
-    box-shadow: inset 0 0 0 0.5px var(--primary-color-30);
+    box-shadow: inset 0 0 0 1px var(--primary-color-30) !important;
   }
 }
 
@@ -410,7 +410,7 @@ defineExpose({
   }
 
   .cell {
-    box-shadow: inset 0 0 0 0.5px var(--primary-color-30);
+    box-shadow: inset 0 0 0 1px var(--primary-color-30) !important;
   }
 }
 </style>
