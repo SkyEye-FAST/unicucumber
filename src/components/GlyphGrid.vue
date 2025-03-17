@@ -340,7 +340,7 @@ defineExpose({
   right: 0;
   bottom: 0;
   background-color: var(--grid-dragging-bg);
-  box-shadow: inset 0 0 0 0.2px var(--primary-color-50);
+  box-shadow: inset 0 0 0 0.2px var(--primary-color);
   opacity: 0.3;
   z-index: 1;
   pointer-events: none;
@@ -398,11 +398,19 @@ defineExpose({
   .header-cell {
     font-size: 1.5em;
   }
+
+  .cell {
+    box-shadow: inset 0 0 0 0.3px var(--primary-darker) !important;
+  }
 }
 
 @media (orientation: portrait) and (min-width: 1024px) {
   .header-cell {
     font-size: 2em;
+  }
+
+  .cell {
+    box-shadow: inset 0 0 0 0.3px var(--primary-darker) !important;
   }
 }
 </style>
