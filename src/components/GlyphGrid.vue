@@ -394,19 +394,9 @@ defineExpose({
   opacity: 0.4;
 }
 
-@media (orientation: portrait) and (max-width: 768px) {
-  .cell {
-    box-shadow: inset 0 0 0 0.2px var(--primary-color-30);
-  }
-}
-
 @media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
   .header-cell {
     font-size: 1.5em;
-  }
-
-  .cell {
-    box-shadow: inset 0 0 0 0.3px var(--primary-color-30);
   }
 }
 
