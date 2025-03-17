@@ -340,7 +340,7 @@ defineExpose({
   right: 0;
   bottom: 0;
   background-color: var(--grid-dragging-bg);
-  box-shadow: inset 0 0 0 0.2px var(--primary-color-50);
+  box-shadow: inset 0 0 0 0.2px var(--primary-color);
   opacity: 0.3;
   z-index: 1;
   pointer-events: none;
@@ -400,7 +400,7 @@ defineExpose({
   }
 
   .cell {
-    box-shadow: inset 0 0 0 1px var(--primary-color-30) !important;
+    box-shadow: inset 0 0 0 1px var(--primary-darker) !important;
   }
 }
 
@@ -410,7 +410,7 @@ defineExpose({
   }
 
   .cell {
-    box-shadow: inset 0 0 0 1px var(--primary-color-30) !important;
+    box-shadow: inset 0 0 0 1px var(--primary-darker) !important;
   }
 }
 </style>
