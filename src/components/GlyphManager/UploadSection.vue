@@ -1,47 +1,42 @@
 <template>
   <div class="upload-section">
     <div class="upload-buttons">
-      <button @click="triggerFileUpload('hex')" class="btn-upload">
+      <button @click="openHexDialog" class="btn-upload">
         <span class="material-symbols-outlined">upload_file</span>
         {{ $t('glyph_manager.upload.hex_file') }}
       </button>
-      <button @click="triggerFileUpload('image')" class="btn-upload">
+      <button @click="openImageDialog" class="btn-upload">
         <span class="material-symbols-outlined">image</span>
         {{ $t('glyph_manager.upload.image_file') }}
       </button>
     </div>
-    <input
-      type="file"
-      ref="hexFileInput"
-      @change="$emit('hex-upload', $event)"
-      accept=".hex"
-      style="display: none"
-    />
-    <input
-      type="file"
-      ref="imageFileInput"
-      @change="$emit('image-upload', $event)"
-      accept=".png,.jpg,.jpeg,.bmp"
-      style="display: none"
-    />
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
+<script setup lang="ts">
+import { useFileDialog } from '@vueuse/core'
 
-const hexFileInput = ref(null)
-const imageFileInput = ref(null)
+const emit = defineEmits(['hex-upload', 'image-upload'])
 
-const triggerFileUpload = (type) => {
-  if (type === 'hex') {
-    hexFileInput.value.click()
-  } else {
-    imageFileInput.value.click()
+const { open: openHexDialog, onChange: onHexChange } = useFileDialog({
+  accept: '.hex',
+})
+
+const { open: openImageDialog, onChange: onImageChange } = useFileDialog({
+  accept: '.png,.jpg,.jpeg,.bmp',
+})
+
+onHexChange((files) => {
+  if (files) {
+    emit('hex-upload', { target: { files } })
   }
-}
+})
 
-defineEmits(['hex-upload', 'image-upload'])
+onImageChange((files) => {
+  if (files) {
+    emit('image-upload', { target: { files } })
+  }
+})
 </script>
 
 <style scoped>

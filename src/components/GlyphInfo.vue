@@ -1,5 +1,5 @@
 <template>
-  <div class="glyph-info-wrapper">
+  <div class="glyph-info-wrapper" ref="wrapperRef">
     <div class="current-glyph-info">
       <a
         v-if="showZiToolsLink"
@@ -13,7 +13,7 @@
       </a>
       <button
         class="encoding-info-btn"
-        @click="toggleEncodingInfo"
+        @click="toggleEncodingInfo()"
         :title="$t('editor.actions.show_encoding_info')"
         :class="{ active: showingEncodingInfo }"
       >
@@ -62,8 +62,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useVModel, useToggle } from '@vueuse/core'
 import PixelPreview from './GlyphManager/PixelPreview.vue'
 import { isCJKChar } from '@/utils/charUtils'
 import iconvLite from 'iconv-lite/lib/index.js'
@@ -92,14 +93,28 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const localModelValue = ref(props.modelValue)
+const localModelValue = useVModel(props, 'modelValue', emit)
 
-watch(
-  () => props.modelValue,
-  (newValue) => {
-    localModelValue.value = newValue
-  },
-)
+const wrapperRef = ref<HTMLElement | null>(null)
+const [showingEncodingInfo, toggleEncodingInfo] = useToggle()
+
+const handleClickOutside = (event: MouseEvent) => {
+  if (
+    showingEncodingInfo.value &&
+    wrapperRef.value &&
+    !wrapperRef.value.contains(event.target as Node)
+  ) {
+    showingEncodingInfo.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 
 const handleInput = (event: Event) => {
   let value = (event.target as HTMLInputElement).value.toUpperCase()
@@ -108,7 +123,6 @@ const handleInput = (event: Event) => {
     value = value.slice(0, 6)
   }
   localModelValue.value = value
-  emit('update:modelValue', value)
 }
 
 const previewStyle = computed(() => ({
@@ -126,12 +140,6 @@ const showZiToolsLink = computed(() => {
   const char = String.fromCodePoint(codePoint)
   return isCJKChar(char)
 })
-
-const showingEncodingInfo = ref(false)
-
-const toggleEncodingInfo = () => {
-  showingEncodingInfo.value = !showingEncodingInfo.value
-}
 
 const convertEncoding = (char: string, encoding: string): string => {
   try {
