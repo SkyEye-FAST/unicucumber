@@ -1,14 +1,14 @@
 <template>
   <div class="hex-code-container">
     <input
-      v-model="localHexCode"
-      @input="updateHex"
       id="hexInput"
+      v-model="localHexCode"
       class="hex-input"
       maxlength="64"
       :placeholder="$t('hex_input.placeholder')"
+      @input="updateHex"
     />
-    <button @click="copyHex" class="copy-button" :title="$t('hex_input.copy')">
+    <button class="copy-button" :title="$t('hex_input.copy')" @click="copyHex">
       <span class="material-symbols-outlined">{{ copyIcon }}</span>
     </button>
   </div>
@@ -30,7 +30,7 @@ const emit = defineEmits(['update:hexCode', 'update:grid', 'copy'])
 const localHexCode = ref(props.hexCode)
 const copyIcon = ref('content_copy')
 
-syncRef(() => props.hexCode, localHexCode)
+syncRef(() => props.hexCode, localHexCode, { direction: 'both' })
 
 const updateHex = () => {
   emit('update:hexCode', localHexCode.value)

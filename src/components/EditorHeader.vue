@@ -4,13 +4,13 @@
     <h1 class="title"><span style="color: #000">Uni</span>Cucumber</h1>
   </div>
   <div class="modal-buttons">
-    <button @click="$emit('openSettings')" class="modal-button">
+    <button class="modal-button" @click="$emit('openSettings')">
       <span class="material-symbols-outlined bold">settings</span>
     </button>
-    <button @click="$emit('toggleSidebar')" class="modal-button">
+    <button class="modal-button" @click="$emit('toggleSidebar')">
       <span class="material-symbols-outlined bold">glyphs</span>
     </button>
-    <button @click="toggleTheme" class="modal-button">
+    <button class="modal-button" @click="toggleTheme">
       <span class="material-symbols-outlined bold">{{
         isDark ? 'light_mode' : 'dark_mode'
       }}</span>

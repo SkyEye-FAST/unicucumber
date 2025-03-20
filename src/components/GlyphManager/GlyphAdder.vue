@@ -22,26 +22,26 @@
       <div class="input-group">
         <input
           :value="modelValue.codePoint"
-          @input="updateCodePoint"
           :placeholder="$t('glyph_manager.add.code_point')"
           class="input"
+          @input="updateCodePoint"
         />
         <input
           v-if="!prefillData"
           :value="modelValue.hexValue"
-          @input="updateHexValue"
           :placeholder="$t('glyph_manager.add.hex_value')"
           class="input"
+          @input="updateHexValue"
         />
         <div v-else class="hex-preview">{{ prefillData.hexValue }}</div>
       </div>
 
       <div class="button-group">
         <button
-          @click="$emit('add')"
           class="btn-add"
           :disabled="!isValidInput"
           :title="getAddButtonTitle"
+          @click="$emit('add')"
         >
           {{
             editMode
@@ -50,17 +50,17 @@
           }}
         </button>
         <button
-          @click="$emit('import')"
           class="btn-import"
           :disabled="!modelValue.codePoint"
+          @click="$emit('import')"
         >
           <span class="material-symbols-outlined">sync</span>
           {{ $t('glyph_manager.import') }}
         </button>
         <button
           v-if="!editMode && (modelValue.hexValue || prefillData)"
-          @click="$emit('clear')"
           class="btn-clear"
+          @click="$emit('clear')"
         >
           {{ $t('glyph_manager.add.clear_button') }}
         </button>

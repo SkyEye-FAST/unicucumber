@@ -9,9 +9,9 @@
       />
     </div>
     <button
-      @click="$emit('export')"
       class="btn-export"
       :disabled="!glyphs.length"
+      @click="$emit('export')"
     >
       <span class="material-symbols-outlined">file_download</span>
       {{ $t('glyph_manager.export') }}
@@ -19,7 +19,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 const { t: $t } = useI18n()
 
@@ -28,7 +28,10 @@ defineProps({
     type: Array,
     required: true,
   },
-  searchQuery: String,
+  searchQuery: {
+    type: String,
+    default: '',
+  },
 })
 
 defineEmits(['update:searchQuery', 'export'])

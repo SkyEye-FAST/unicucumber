@@ -12,9 +12,9 @@
         </label>
         <button
           v-if="selectedGlyphs.length > 0"
-          @click="handleBatchDelete"
           class="btn-danger batch-delete"
           :title="$t('glyph_manager.batch_delete')"
+          @click="handleBatchDelete"
         >
           <span class="material-symbols-outlined">delete</span>
           {{
@@ -28,8 +28,8 @@
     <div v-for="glyph in glyphs" :key="glyph.codePoint" class="glyph-card">
       <label class="checkbox-label">
         <input
-          type="checkbox"
           v-model="selectedGlyphs"
+          type="checkbox"
           :value="glyph"
           @change="emitSelectionChange"
         />
@@ -37,10 +37,10 @@
       <div
         class="glyph-preview"
         :class="{ 'dual-preview': showPixelPreview && showBrowserPreview }"
-        @click="$emit('edit-in-grid', glyph)"
         :title="
           $t('glyph_manager.glyph.edit_in_grid', { codePoint: glyph.codePoint })
         "
+        @click="$emit('edit-in-grid', glyph)"
       >
         <template v-if="showPixelPreview">
           <PixelPreview
@@ -69,16 +69,16 @@
       </div>
       <div class="glyph-actions">
         <button
-          @click="$emit('edit', glyph)"
           class="btn-icon"
           :title="$t('glyph_manager.glyph.edit')"
+          @click="$emit('edit', glyph)"
         >
           <span class="material-symbols-outlined">edit</span>
         </button>
         <button
-          @click="$emit('remove', glyph.codePoint)"
           class="btn-icon danger"
           :title="$t('glyph_manager.glyph.delete')"
+          @click="$emit('remove', glyph.codePoint)"
         >
           <span class="material-symbols-outlined">delete</span>
         </button>
