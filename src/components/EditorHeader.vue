@@ -1,6 +1,6 @@
 <template>
   <div class="header">
-    <img src="/icon.png" alt="UniCucumber" class="logo" />
+    <img src="@/assets/icon.png" alt="UniCucumber" class="logo" />
     <h1 class="title"><span style="color: #000">Uni</span>Cucumber</h1>
   </div>
   <div class="modal-buttons">
@@ -89,7 +89,7 @@ onMounted(() => {
 .github-icon {
   width: 1.5em;
   height: 1.5em;
-  mask: url('/github-icon.svg') center / contain no-repeat;
+  mask: url('@/assets/github-icon.svg') center / contain no-repeat;
   background-color: var(--text-secondary);
 }
 

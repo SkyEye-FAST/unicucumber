@@ -233,7 +233,7 @@ const exportToHex = () => {
 
 const loadUnifontData = async () => {
   try {
-    const response = await fetch('/unifont_all-16.0.02.hex')
+    const response = await fetch('src/assets/unifont_all-16.0.02.hex')
     const text = await response.text()
     const lines = text.split('\n')
     const map = {}
