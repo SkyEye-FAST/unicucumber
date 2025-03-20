@@ -5,7 +5,10 @@
         :value="searchQuery"
         :placeholder="$t('glyph_manager.search')"
         class="search-input"
-        @input="$emit('update:searchQuery', $event.target.value)"
+        @input="
+          (e) =>
+            $emit('update:searchQuery', (e.target as HTMLInputElement).value)
+        "
       />
     </div>
     <button
