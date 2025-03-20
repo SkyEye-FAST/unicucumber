@@ -249,7 +249,7 @@ const confirmReset = () => {
   border-radius: 10px;
   box-shadow: 0 8px 16px var(--modal-shadow);
   z-index: 999;
-  width: 20em;
+  width: 25em;
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border-color);
