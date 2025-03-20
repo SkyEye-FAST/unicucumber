@@ -1,5 +1,5 @@
 <template>
-  <div class="glyph-info-wrapper" ref="wrapperRef">
+  <div ref="wrapperRef" class="glyph-info-wrapper">
     <div class="current-glyph-info">
       <a
         v-if="showZiToolsLink"
@@ -13,9 +13,9 @@
       </a>
       <button
         class="encoding-info-btn"
-        @click="toggleEncodingInfo()"
         :title="$t('editor.actions.show_encoding_info')"
         :class="{ active: showingEncodingInfo }"
+        @click="toggleEncodingInfo()"
       >
         <span class="material-symbols-outlined">info</span>
       </button>
@@ -23,14 +23,14 @@
         <span>U+</span>
         <input
           v-model="localModelValue"
-          @input="handleInput"
           maxlength="6"
           pattern="[0-9A-Fa-f]{4,6}"
+          @input="handleInput"
         />
       </div>
       <div class="glyph-preview">
         <PixelPreview
-          :hexValue="hexValue"
+          :hex-value="hexValue"
           :width="width"
           display-mode="editor"
         />

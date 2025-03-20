@@ -1,26 +1,26 @@
 <template>
   <div class="tool-buttons">
     <button
-      @click="updateDrawValue(1)"
       :class="{ active: modelValue === 1 }"
       :disabled="disabled && modelValue !== 2"
       class="tool-button"
+      @click="updateDrawValue(1)"
     >
       <span class="material-symbols-outlined">draw</span>
     </button>
     <button
-      @click="updateDrawValue(0)"
       :class="{ active: modelValue === 0 }"
       :disabled="disabled && modelValue !== 2"
       class="tool-button"
+      @click="updateDrawValue(0)"
     >
       <span class="material-symbols-outlined">ink_eraser</span>
     </button>
     <button
       v-if="enableSelection"
-      @click="updateDrawValue(2)"
       :class="{ active: modelValue === 2 }"
       class="tool-button"
+      @click="updateDrawValue(2)"
     >
       <span class="material-symbols-outlined">select</span>
     </button>

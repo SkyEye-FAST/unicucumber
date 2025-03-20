@@ -1,11 +1,11 @@
 <template>
   <div class="upload-section">
     <div class="upload-buttons">
-      <button @click="openHexDialog" class="btn-upload">
+      <button class="btn-upload" @click="handleHexClick">
         <span class="material-symbols-outlined">upload_file</span>
         {{ $t('glyph_manager.upload.hex_file') }}
       </button>
-      <button @click="openImageDialog" class="btn-upload">
+      <button class="btn-upload" @click="handleImageClick">
         <span class="material-symbols-outlined">image</span>
         {{ $t('glyph_manager.upload.image_file') }}
       </button>
@@ -25,6 +25,16 @@ const { open: openHexDialog, onChange: onHexChange } = useFileDialog({
 const { open: openImageDialog, onChange: onImageChange } = useFileDialog({
   accept: '.png,.jpg,.jpeg,.bmp',
 })
+
+const handleHexClick = (event: MouseEvent) => {
+  event.preventDefault()
+  openHexDialog()
+}
+
+const handleImageClick = (event: MouseEvent) => {
+  event.preventDefault()
+  openImageDialog()
+}
 
 onHexChange((files) => {
   if (files) {

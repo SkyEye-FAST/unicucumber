@@ -6,8 +6,8 @@ declare module '*.vue' {
       width: number
       displayMode?: string
     },
-    {},
-    {}
+    object,
+    object
   >
   export default component
 }
