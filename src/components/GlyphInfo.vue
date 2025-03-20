@@ -9,7 +9,7 @@
         class="zi-tools-link"
         :title="$t('editor.actions.open_in_zitools')"
       >
-        <img src="/zi-tools.svg" alt="zi.tools" class="zi-tools-icon" />
+        <img src="@/assets/zi-tools.svg" alt="zi.tools" class="zi-tools-icon" />
       </a>
       <button
         class="encoding-info-btn"
