@@ -233,19 +233,9 @@ const exportToHex = () => {
 
 const loadUnifontData = async () => {
   try {
-    const response = await fetch('src/assets/unifont_all-16.0.02.hex')
-    const text = await response.text()
-    const lines = text.split('\n')
-    const map = {}
-
-    for (const line of lines) {
-      if (line && line.includes(':')) {
-        const [code, hex] = line.split(':')
-        map[parseInt(code, 16)] = hex.trim()
-      }
-    }
-
-    unifontMap.value = map
+    const response = await fetch('/src/assets/unifont-map.json')
+    const data = await response.json()
+    unifontMap.value = data.glyphs
   } catch (error) {
     console.error($t('glyph_manager.error.loading_unifont'), error)
   }

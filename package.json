@@ -15,7 +15,8 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix",
-    "format": "prettier --write src/"
+    "format": "prettier --write src/",
+    "process-unifont": "node scripts/process-unifont.js"
   },
   "dependencies": {
     "@vueuse/core": "^13.0.0",
