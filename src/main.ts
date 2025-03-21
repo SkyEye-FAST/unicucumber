@@ -1,7 +1,8 @@
-import { createApp } from 'vue'
+import { createApp, watch } from 'vue'
 import { createI18n } from 'vue-i18n'
-import { watch } from 'vue'
 import { usePreferredLanguages, useTitle } from '@vueuse/core'
+import * as Sentry from '@sentry/vue'
+
 import App from './App.vue'
 
 import './styles/base.css'
@@ -61,4 +62,11 @@ watch(i18n.global.locale, (newLocale) => {
 useTitle(i18n.global.t('title'))
 
 const app = createApp(App)
-app.use(i18n).mount('#app')
+
+Sentry.init({
+  app,
+  dsn: 'https://a495d50783e753f433ca4369401a45f2@o4507582862589952.ingest.de.sentry.io/4509016380407888',
+})
+
+app.use(i18n)
+app.mount('#app')
