@@ -32,8 +32,8 @@
       <label for="cursorEffect">{{ $t('settings.cursor_effect') }}</label>
       <div class="checkbox-wrapper">
         <input
-          type="checkbox"
           id="cursorEffect"
+          type="checkbox"
           :checked="settings.cursorEffect"
           @change="
             $emit('update:settings', {
@@ -97,8 +97,8 @@
       <label for="showBorder">{{ $t('settings.show_border') }}</label>
       <div class="checkbox-wrapper">
         <input
-          type="checkbox"
           id="showBorder"
+          type="checkbox"
           :checked="settings.showBorder"
           @change="
             $emit('update:settings', {
@@ -113,8 +113,8 @@
     <div class="setting-option">
       <label for="confirmClear">{{ $t('settings.confirm_clear') }} </label>
       <input
-        type="checkbox"
         id="confirmClear"
+        type="checkbox"
         :checked="settings.confirmClear"
         @change="
           $emit('update:settings', {
@@ -128,8 +128,8 @@
     <div class="setting-option">
       <label for="enableSelection">{{ $t('settings.enable_selection') }}</label>
       <input
-        type="checkbox"
         id="enableSelection"
+        type="checkbox"
         :checked="settings.enableSelection"
         @change="
           $emit('update:settings', {
@@ -141,10 +141,10 @@
     </div>
 
     <div class="button-group">
-      <button @click="showResetConfirm" class="reset-button">
+      <button class="reset-button" @click="showResetConfirm">
         {{ $t('settings.reset') }}
       </button>
-      <button @click="$emit('update:modelValue', false)" class="close-button">
+      <button class="close-button" @click="$emit('update:modelValue', false)">
         {{ $t('settings.close') }}
       </button>
     </div>
@@ -155,14 +155,14 @@
         <textarea
           v-model="tempFont"
           class="font-input"
-          @keyup.enter.prevent="saveFontEdit"
           rows="3"
+          @keyup.enter.prevent="saveFontEdit"
         ></textarea>
         <div class="font-edit-buttons">
-          <button @click="saveFontEdit" class="save-button">
+          <button class="save-button" @click="saveFontEdit">
             {{ $t('settings.font_edit.save') }}
           </button>
-          <button @click="showFontEdit = false" class="cancel-button">
+          <button class="cancel-button" @click="showFontEdit = false">
             {{ $t('settings.font_edit.cancel') }}
           </button>
         </div>
@@ -174,7 +174,7 @@
     :show="showResetDialog"
     :title="$t('dialog.settings_reset.title')"
     :message="$t('dialog.settings_reset.message')"
-    :confirmText="$t('dialog.settings_reset.confirm')"
+    :confirm-text="$t('dialog.settings_reset.confirm')"
     @confirm="confirmReset"
     @cancel="showResetDialog = false"
   />

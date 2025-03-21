@@ -15,8 +15,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, toRef } from 'vue'
-import { useClipboard, useTimeoutFn, syncRef } from '@vueuse/core'
+import { ref, watch } from 'vue'
+import { useClipboard, useTimeoutFn } from '@vueuse/core'
 
 const props = defineProps({
   hexCode: {
@@ -30,7 +30,12 @@ const emit = defineEmits(['update:hexCode', 'update:grid', 'copy'])
 const localHexCode = ref(props.hexCode)
 const copyIcon = ref('content_copy')
 
-syncRef(toRef(props, 'hexCode'), localHexCode, { direction: 'both' })
+watch(
+  () => props.hexCode,
+  (newValue) => {
+    localHexCode.value = newValue
+  },
+)
 
 const updateHex = () => {
   emit('update:hexCode', localHexCode.value)

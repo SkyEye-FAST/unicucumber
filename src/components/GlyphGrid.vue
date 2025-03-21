@@ -23,8 +23,8 @@
 
     <!-- Selection Overlay -->
     <div
-      class="selection-overlay"
       v-if="selectionStart || isDragging"
+      class="selection-overlay"
       :style="{
         gridColumnStart: 2,
         gridTemplateColumns: `repeat(${gridData[0].length}, var(--cell-size))`,
