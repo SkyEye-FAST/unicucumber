@@ -22,7 +22,7 @@
               class="conflict-item"
             >
               <label class="checkbox-label">
-                <input type="checkbox" v-model="selectedItems" :value="item" />
+                <input v-model="selectedItems" type="checkbox" :value="item" />
                 <span class="item-details">
                   <span class="code-info">
                     <span class="code-point">U+{{ item.codePoint }}</span>
@@ -38,12 +38,12 @@
         </div>
       </div>
       <div class="dialog-actions">
-        <button v-if="showCancel" @click="handleCancel" class="btn-secondary">
+        <button v-if="showCancel" class="btn-secondary" @click="handleCancel">
           {{ cancelText }}
         </button>
         <button
-          @click="handleConfirm"
           :class="{ 'btn-primary': !danger, 'btn-danger': danger }"
+          @click="handleConfirm"
         >
           {{ confirmText }}
         </button>

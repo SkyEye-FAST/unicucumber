@@ -1,15 +1,15 @@
 <template>
   <div class="container" @mousedown="handleContainerClick">
     <EditorHeader
-      @openSettings="showSettings = true"
-      @toggleSidebar="toggleSidebar"
+      @open-settings="showSettings = true"
+      @toggle-sidebar="toggleSidebar"
     />
 
     <GlyphInfo
       v-model="currentCodePoint"
-      :hexValue="hexCode"
+      :hex-value="hexCode"
       :width="settings.glyphWidth"
-      :browserPreviewFont="settings.browserPreviewFont"
+      :browser-preview-font="settings.browserPreviewFont"
     />
 
     <SettingsModal
@@ -20,15 +20,15 @@
 
     <GlyphGrid
       ref="glyphGridRef"
-      :gridData="gridData"
-      :drawMode="currentDrawMode"
-      :drawValue="drawValue"
-      :cursorEffect="settings.cursorEffect"
-      :showBorder="settings.showBorder"
-      :moveMode="moveMode"
-      :clipboardData="clipboardData"
+      :grid-data="gridData"
+      :draw-mode="currentDrawMode"
+      :draw-value="drawValue"
+      :cursor-effect="settings.cursorEffect"
+      :show-border="settings.showBorder"
+      :move-mode="moveMode"
+      :clipboard-data="clipboardData"
       @update:cell="updateCell"
-      @update:drawValue="updateDrawValue"
+      @update:draw-value="updateDrawValue"
       @selection-complete="handleSelectionComplete"
       @paste-complete="handlePasteComplete"
       @preview-move="handlePreviewMove"
@@ -41,44 +41,44 @@
         <button
           v-if="selectedRegion"
           class="action-button"
-          @click="handleCut"
           :title="$t('glyph_editor.cut_title')"
+          @click="handleCut"
         >
           <span class="material-symbols-outlined">content_cut</span>
         </button>
         <button
           v-if="selectedRegion"
           class="action-button"
-          @click="handleCopy"
           :title="$t('glyph_editor.copy_title')"
+          @click="handleCopy"
         >
           <span class="material-symbols-outlined">content_copy</span>
         </button>
         <button
           v-if="clipboardData"
           class="action-button"
-          @click.stop="handlePasteButtonClick"
           :class="{ 'paste-mode': pasteMode }"
           :title="
             pasteMode
               ? $t('glyph_editor.paste_hint')
               : $t('glyph_editor.paste_title')
           "
+          @click.stop="handlePasteButtonClick"
         >
           <span class="material-symbols-outlined">content_paste</span>
         </button>
         <button
           class="action-button secondary"
-          @click="handleClear"
           :title="$t('editor.actions.clear.title')"
+          @click="handleClear"
         >
           <span class="material-symbols-outlined">mop</span>
           {{ $t('editor.actions.clear.button') }}
         </button>
         <button
           class="action-button primary"
-          @click="addToGlyphset"
           :title="$t('editor.actions.add_to_glyphset.title')"
+          @click="addToGlyphset"
         >
           <span class="material-symbols-outlined">add_box</span>
           {{ $t('editor.actions.add_to_glyphset.button') }}
@@ -87,33 +87,33 @@
       <div class="history-controls">
         <button
           class="icon-button"
-          @click="handleUndo"
           :disabled="!canUndo"
           :title="$t('editor.actions.undo.title')"
+          @click="handleUndo"
         >
           <span class="material-symbols-outlined">undo</span>
         </button>
         <button
           class="icon-button"
-          @click="handleRedo"
           :disabled="!canRedo"
           :title="$t('editor.actions.redo.title')"
+          @click="handleRedo"
         >
           <span class="material-symbols-outlined">redo</span>
         </button>
       </div>
     </div>
     <ToolButtons
-      v-model:modelValue="drawValue"
-      :copyMode="copyMode"
-      :moveMode="moveMode"
-      :selectedRegion="selectedRegion"
+      v-model:model-value="drawValue"
+      :copy-mode="copyMode"
+      :move-mode="moveMode"
+      :selected-region="selectedRegion"
       :disabled="shouldDisableTools"
-      :enableSelection="settings.enableSelection"
+      :enable-selection="settings.enableSelection"
       @copy-selection="handleCopySelection"
     />
-    <HexCodeInput v-model:hexCode="hexCode" @update:grid="updateGridFromHex" />
-    <DownloadButtons :gridData="gridData" :codepoint="currentCodePoint" />
+    <HexCodeInput v-model:hex-code="hexCode" @update:grid="updateGridFromHex" />
+    <DownloadButtons :grid-data="gridData" :codepoint="currentCodePoint" />
 
     <div :class="['sidebar', { active: isSidebarActive }]">
       <div class="sidebar-resizer" @mousedown="startResize"></div>
@@ -123,8 +123,8 @@
       <GlyphManager
         v-if="isSidebarActive"
         :glyphs="glyphs"
-        :onGlyphChange="setGlyphs"
-        :prefillData="prefillData"
+        :on-glyph-change="setGlyphs"
+        :prefill-data="prefillData"
         @edit-in-grid="handleGlyphEdit"
         @clear-prefill="clearPrefillData"
       />

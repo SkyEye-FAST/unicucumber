@@ -6,8 +6,8 @@ import { dirname } from 'path'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-const inputFile = join(__dirname, '../src/assets/unifont_all-16.0.02.hex')
-const outputFile = join(__dirname, '../src/assets/unifont-map.json')
+const inputFile = join(__dirname, '../public/unifont_all-16.0.02.hex')
+const outputFile = join(__dirname, '../public/unifont-map.json')
 
 const processUnifont = () => {
   const content = readFileSync(inputFile, 'utf8')

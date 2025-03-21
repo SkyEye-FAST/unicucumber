@@ -1,5 +1,5 @@
 <template>
-  <UniCucumber :hexValue="''" :width="16" />
+  <UniCucumber />
 </template>
 
 <script lang="ts">

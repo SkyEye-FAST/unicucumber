@@ -233,7 +233,7 @@ const exportToHex = () => {
 
 const loadUnifontData = async () => {
   try {
-    const response = await fetch('/src/assets/unifont-map.json')
+    const response = await fetch('/unifont-map.json')
     const data = await response.json()
     unifontMap.value = data.glyphs
   } catch (error) {
