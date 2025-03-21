@@ -1,4 +1,3 @@
-import { sentryVitePlugin } from '@sentry/vite-plugin'
 import { fileURLToPath, URL } from 'node:url'
 import { resolve, dirname } from 'node:path'
 import { defineConfig } from 'vite'
@@ -50,10 +49,6 @@ export default defineConfig({
         ],
       },
     }),
-    sentryVitePlugin({
-      org: 'miracle-habitat',
-      project: 'unicucumber',
-    }),
   ],
   resolve: {
     alias: {
@@ -62,6 +57,7 @@ export default defineConfig({
       stream: 'stream-browserify',
     },
   },
+  assetsInclude: ['**/*.hex'],
   publicDir: 'public',
   optimizeDeps: {
     esbuildOptions: {
@@ -69,8 +65,5 @@ export default defineConfig({
         global: 'globalThis',
       },
     },
-  },
-  build: {
-    sourcemap: true,
   },
 })

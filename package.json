@@ -19,8 +19,6 @@
     "process-unifont": "node scripts/process-unifont.js"
   },
   "dependencies": {
-    "@sentry/vite-plugin": "^3.2.2",
-    "@sentry/vue": "^9.8.0",
     "@vueuse/core": "^13.0.0",
     "buffer": "^6.0.3",
     "iconv-lite": "^0.6.3",
