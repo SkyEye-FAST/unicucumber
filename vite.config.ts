@@ -15,7 +15,7 @@ export default defineConfig({
     VueI18nPlugin({
       include: resolve(
         dirname(fileURLToPath(import.meta.url)),
-        './path/to/src/locales/**',
+        './src/locales/**',
       ),
     }),
     VitePWA({
