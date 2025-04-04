@@ -8,14 +8,14 @@ import './styles/font.css'
 import './styles/theme.css'
 
 import en from './locales/en.json'
-import zh_cn from './locales/zh_cn.json'
-import zh_tw from './locales/zh_tw.json'
+import zh_cn from './locales/zh-cn.json'
+import zh_tw from './locales/zh-tw.json'
 
 const languages = usePreferredLanguages()
 
 const i18n = createI18n({
   legacy: false,
-  locale: 'en',
+  locale: navigator.language || 'en',
   fallbackLocale: 'en',
   silentTranslationWarn: true,
   messages: {
@@ -31,18 +31,29 @@ interface LocaleType {
 }
 
 const updateHtmlLang = (locale: LocaleType['locale']): void => {
-  document.documentElement.lang = locale.replace('_', '-').toLowerCase()
+  const htmlElement = document.querySelector('html')
+  if (htmlElement) {
+    htmlElement.lang = locale
+  }
 }
 
 const setLocaleFromPreference = (preferredLanguages: readonly string[]) => {
   if (preferredLanguages.length > 0) {
-    const lang = preferredLanguages[0]
-    const locale = lang.startsWith('zh')
-      ? lang.includes('CN')
-        ? 'zh-CN'
-        : 'zh-TW'
-      : 'en'
-    i18n.global.locale.value = locale as LocaleType['locale']
+    const lang = preferredLanguages[0].toLowerCase()
+    let locale: LocaleType['locale'] = 'en'
+
+    if (lang.startsWith('zh')) {
+      if (lang.includes('cn') || lang.includes('hans')) {
+        locale = 'zh-CN'
+      } else if (lang.includes('tw') || lang.includes('hant')) {
+        locale = 'zh-TW'
+      } else {
+        locale = 'zh'
+      }
+    }
+
+    i18n.global.locale.value = locale
+    updateHtmlLang(locale)
   }
 }
 
