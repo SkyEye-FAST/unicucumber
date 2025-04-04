@@ -1,6 +1,5 @@
-import { createApp } from 'vue'
+import { watch, createApp } from 'vue'
 import { createI18n } from 'vue-i18n'
-import { watch } from 'vue'
 import { usePreferredLanguages, useTitle } from '@vueuse/core'
 import App from './App.vue'
 

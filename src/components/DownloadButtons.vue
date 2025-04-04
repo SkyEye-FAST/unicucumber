@@ -3,8 +3,8 @@
     <button
       v-for="format in downloadFormats"
       :key="format"
-      @click="() => downloadFile(format)"
       class="download-button"
+      @click="() => downloadFile(format)"
     >
       <span class="material-symbols-outlined">download</span><br />
       <span style="font-size: smaller">{{ format }}</span>
