@@ -1,11 +1,11 @@
 <div align="center">
-<img src="https://raw.githubusercontent.com/SkyEye-FAST/unicucumber/master/public/icon.png">
+<img src="https://raw.githubusercontent.com/SkyEye-FAST/unicucumber/master/src/assets/icon.png">
 
 ----
 
 # UniCucumber
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+![GitHub License](https://img.shields.io/github/license/SkyEye-FAST/unicucumber)
 [![GitHub stars](https://img.shields.io/github/stars/SkyEye-FAST/unicucumber)](https://github.com/SkyEye-FAST/unicucumber/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/SkyEye-FAST/unicucumber)](https://github.com/SkyEye-FAST/unicucumber/issues)
 </div>
