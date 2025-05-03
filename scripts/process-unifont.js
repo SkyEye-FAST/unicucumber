@@ -6,7 +6,7 @@ import { dirname } from 'path'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-const inputFile = join(__dirname, '../public/unifont_all-16.0.02.hex')
+const inputFile = join(__dirname, '../public/unifont_all-16.0.03.hex')
 const outputFile = join(__dirname, '../public/unifont-map.json')
 
 const processUnifont = () => {
@@ -15,7 +15,7 @@ const processUnifont = () => {
 
   const data = {
     meta: {
-      version: '16.0.02',
+      version: '16.0.03',
       source: 'unifont_all',
     },
     glyphs: {},
