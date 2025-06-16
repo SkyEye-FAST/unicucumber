@@ -180,7 +180,7 @@
   />
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref } from 'vue'
 import { useSettings } from '../composables/useSettings'
 import DialogBox from './DialogBox.vue'
