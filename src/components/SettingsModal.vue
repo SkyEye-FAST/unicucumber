@@ -180,7 +180,7 @@
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useSettings } from '../composables/useSettings'
 import DialogBox from './DialogBox.vue'
@@ -459,6 +459,11 @@ input[type='number']:focus {
 }
 
 @media (orientation: portrait) and (max-width: 768px) {
+  .settings-modal {
+    width: 20em;
+    padding: 5px 10px 20px;
+  }
+
   .setting-option {
     margin: 10px;
   }
@@ -470,8 +475,8 @@ input[type='number']:focus {
   }
 
   .setting-option select {
-    font-size: 1.1em;
-    padding: 10px 0;
+    font-size: 1em;
+    padding: 5px 0;
   }
 
   .setting-option input[type='checkbox'] {
@@ -491,8 +496,8 @@ input[type='number']:focus {
   }
 
   .font-button {
-    font-size: 1.1em;
-    padding: 10px;
+    font-size: 1em;
+    padding: 5px;
   }
 }
 
