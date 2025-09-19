@@ -86,13 +86,17 @@ const props = defineProps({
     required: true,
   },
   prefillData: {
-    type: Object as () => GlyphData | undefined,
+    type: Object as () => GlyphData | null | undefined,
     default: undefined,
   },
   editMode: Boolean,
   duplicateGlyph: {
-    type: Object as () => GlyphData | undefined,
+    type: Object as () => GlyphData | null | undefined,
     default: undefined,
+  },
+  unifontMap: {
+    type: Object,
+    default: () => ({}),
   },
 })
 

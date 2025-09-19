@@ -28,6 +28,16 @@
 </template>
 
 <script setup lang="ts">
+interface CellPosition {
+  row: number
+  col: number
+}
+
+interface Region {
+  start: CellPosition
+  end: CellPosition
+}
+
 const emit = defineEmits(['update:modelValue'])
 const { disabled, enableSelection } = defineProps({
   modelValue: {
@@ -43,7 +53,7 @@ const { disabled, enableSelection } = defineProps({
     default: false,
   },
   selectedRegion: {
-    type: Object,
+    type: Object as () => Region | null,
     default: null,
   },
   disabled: {

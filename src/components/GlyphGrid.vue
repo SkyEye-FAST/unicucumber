@@ -10,7 +10,7 @@
     <div class="header-row">
       <div class="corner-cell"></div>
       <div
-        v-for="colIndex in gridData[0].length"
+        v-for="colIndex in gridData[0]?.length || 0"
         :key="`col-${colIndex}`"
         class="header-cell"
         :style="{
@@ -27,7 +27,7 @@
       class="selection-overlay"
       :style="{
         gridColumnStart: 2,
-        gridTemplateColumns: `repeat(${gridData[0].length}, var(--cell-size))`,
+        gridTemplateColumns: `repeat(${gridData[0]?.length || 0}, var(--cell-size))`,
       }"
     >
       <div class="overlay-content">
@@ -104,23 +104,20 @@ import { computed, watch } from 'vue'
 import { useDrawing } from '@/composables/useDrawing'
 import { useHistory } from '@/composables/useHistory'
 
+interface ClipboardData {
+  data: number[][]
+  width: number
+  height: number
+}
+
 interface Props {
   gridData: number[][]
   drawMode: string
   drawValue: number
   cursorEffect: boolean
   showBorder: boolean
-  moveMode: boolean
-  clipboardData: Record<
-    string,
-    {
-      area: {
-        start: { row: number; col: number }
-        end: { row: number; col: number }
-      }
-      data: number[][]
-    }
-  > | null
+  moveMode?: boolean
+  clipboardData?: ClipboardData | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -202,7 +199,9 @@ const isInSelection = (rowIndex: number, cellIndex: number): boolean => {
 }
 
 const gridStyle = computed(() => ({
-  gridTemplateColumns: `var(--cell-size) repeat(${props.gridData[0].length}, var(--cell-size))`,
+  gridTemplateColumns: props.gridData[0]
+    ? `var(--cell-size) repeat(${props.gridData[0].length}, var(--cell-size))`
+    : '',
 }))
 const handleCopySelection = () => {
   const selection = copySelection()

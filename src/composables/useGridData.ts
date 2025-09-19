@@ -1,11 +1,9 @@
 import { ref, watch, type Ref } from 'vue'
 
-interface GridDataType {
-  value: number[][]
-}
+export type GridDataType = number[][]
 
 interface UseGridDataReturn {
-  gridData: GridDataType
+  gridData: Ref<GridDataType>
   resetGrid: (width?: number) => void
   updateGrid: (newSize: number) => void
 }

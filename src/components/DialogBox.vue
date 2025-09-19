@@ -52,22 +52,29 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import type { Glyph } from '@/types/glyph'
 
 const { t: $t } = useI18n()
 
 const props = defineProps({
   show: Boolean,
-  title: String,
-  message: String,
+  title: {
+    type: String,
+    default: '',
+  },
+  message: {
+    type: String,
+    default: '',
+  },
   type: {
     type: String,
     default: 'alert', // 'alert', 'confirm', 'list'
   },
   items: {
-    type: Array,
+    type: Array as () => Glyph[],
     default: () => [],
   },
   showCancel: {
@@ -86,10 +93,30 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  onConfirm: {
+    type: Function,
+    default: null,
+  },
+  onCancel: {
+    type: Function,
+    default: null,
+  },
+  hexValue: {
+    type: String,
+    default: '',
+  },
+  width: {
+    type: Number,
+    default: 400,
+  },
+  displayMode: {
+    type: String,
+    default: '',
+  },
 })
 
 const emit = defineEmits(['confirm', 'cancel'])
-const selectedItems = ref([])
+const selectedItems = ref<Glyph[]>([])
 
 const confirmText = computed(() => props.confirmText || $t('dialog.confirm'))
 const cancelText = computed(() => props.cancelText || $t('dialog.cancel'))
