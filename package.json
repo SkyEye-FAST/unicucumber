@@ -16,7 +16,7 @@
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
-    "process-unifont": "node scripts/process-unifont.js"
+    "update-unifont": "node scripts/update-unifont.js"
   },
   "dependencies": {
     "@vueuse/core": "^13.9.0",
