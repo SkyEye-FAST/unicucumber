@@ -24,6 +24,14 @@ export interface DialogConfig {
   hexValue?: string
   width?: number
   displayMode?: string
+  showProgress?: boolean
+  progressCurrent?: number
+  progressTotal?: number
+  customButtons?: Array<{
+    text: string
+    action: string
+    class?: string
+  }>
   onConfirm: (selectedItems?: Glyph[]) => void
   onCancel?: () => void
 }

@@ -6,7 +6,6 @@
     @touchmove="handleTouchMove"
     @touchend="handleTouchEnd"
   >
-    <!-- Header row with column numbers -->
     <div class="header-row">
       <div class="corner-cell"></div>
       <div
@@ -20,8 +19,6 @@
         {{ (colIndex - 1).toString(16).toUpperCase() }}
       </div>
     </div>
-
-    <!-- Selection Overlay -->
     <div
       v-if="selectionStart || isDragging"
       class="selection-overlay"
@@ -51,8 +48,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Grid rows -->
     <div
       v-for="(row, rowIndex) in gridData"
       :key="`row-${rowIndex}`"

@@ -19,12 +19,11 @@ export function useHexCode(
   gridData: GridData,
   resetGrid: ResetGridFunction,
 ): UseHexCodeReturn {
-  // 根据初始网格宽度确定默认hex长度
   const getInitialHexLength = () => {
     if (gridData.value && gridData.value[0]) {
       return gridData.value[0].length <= 8 ? 32 : 64
     }
-    return 64 // 默认16px
+    return 64
   }
 
   const hexCode = ref('0'.repeat(getInitialHexLength()))
