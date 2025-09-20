@@ -93,6 +93,23 @@ const { settings } = useSettings()
 
 const STORAGE_KEY = 'unicucumber_glyphs'
 
+const normalizeCodePoint = (input: string): string => {
+  let normalized = input.trim().toUpperCase()
+
+  if (normalized.startsWith('U+')) {
+    normalized = normalized.substring(2)
+  } else if (normalized.startsWith('U') && normalized.length > 1) {
+    const nextChar = normalized.charAt(1)
+    if (/^[0-9A-F]/.test(nextChar)) {
+      normalized = normalized.substring(1)
+    }
+  }
+
+  normalized = normalized.replace(/^0+/, '') || '0'
+
+  return normalized
+}
+
 const loadStoredGlyphs = (): void => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
@@ -114,7 +131,8 @@ const saveGlyphsToStorage = (glyphs: Glyph[]): void => {
 }
 
 const isValidInput = computed(() => {
-  const isValidCodePoint = /^[0-9A-Fa-f]{4,6}$/.test(newGlyph.value.codePoint)
+  const normalizedCodePoint = normalizeCodePoint(newGlyph.value.codePoint)
+  const isValidCodePoint = /^[0-9A-Fa-f]{4,6}$/.test(normalizedCodePoint)
   const hasValidHex =
     (props.prefillData && props.prefillData.hexValue) ||
     /^[0-9A-Fa-f]{32}$|^[0-9A-Fa-f]{64}$/.test(newGlyph.value.hexValue)
@@ -127,7 +145,7 @@ const addGlyph = (): void => {
   const hexValue = props.prefillData
     ? props.prefillData.hexValue.toUpperCase()
     : newGlyph.value.hexValue.toUpperCase()
-  const codePoint = newGlyph.value.codePoint.toUpperCase()
+  const codePoint = normalizeCodePoint(newGlyph.value.codePoint)
   const updatedGlyphs = [
     ...props.glyphs,
     {
@@ -148,8 +166,9 @@ const addGlyph = (): void => {
 }
 
 const findExistingGlyph = (codePoint: string): Glyph | undefined => {
+  const normalizedInput = normalizeCodePoint(codePoint)
   return props.glyphs.find(
-    (g) => g.codePoint.toLowerCase() === codePoint.toLowerCase(),
+    (g) => normalizeCodePoint(g.codePoint) === normalizedInput,
   )
 }
 
@@ -175,9 +194,9 @@ const updateExistingGlyph = (): void => {
   const hexValue = props.prefillData
     ? props.prefillData.hexValue.toUpperCase()
     : newGlyph.value.hexValue.toUpperCase()
-  const codePoint = newGlyph.value.codePoint.toUpperCase()
+  const codePoint = normalizeCodePoint(newGlyph.value.codePoint)
   const updatedGlyphs = props.glyphs.map((g) =>
-    g.codePoint.toLowerCase() === codePoint.toLowerCase()
+    normalizeCodePoint(g.codePoint) === codePoint
       ? { ...g, codePoint, hexValue }
       : g,
   )
@@ -269,7 +288,13 @@ const handleEditInGrid = (glyph: Glyph): void => {
 
 const exportToHex = (): void => {
   const hexContent = props.glyphs
-    .map((glyph) => `${glyph.codePoint}:${glyph.hexValue}`)
+    .map((glyph) => {
+      let codePoint = glyph.codePoint
+      if (codePoint.length === 5) {
+        codePoint = '0' + codePoint
+      }
+      return `${codePoint}:${glyph.hexValue}`
+    })
     .join('\n')
 
   const blob = new Blob([hexContent], { type: 'text/plain' })
@@ -297,8 +322,8 @@ const loadUnifontData = async (): Promise<void> => {
 const importFromUnifont = (): void => {
   if (!newGlyph.value.codePoint) return
 
-  newGlyph.value.codePoint = newGlyph.value.codePoint.toUpperCase()
-  const codePoint = parseInt(newGlyph.value.codePoint, 16)
+  const normalizedCodePoint = normalizeCodePoint(newGlyph.value.codePoint)
+  const codePoint = parseInt(normalizedCodePoint, 16)
   const hexValue = unifontMap.value[codePoint]
 
   if (hexValue) {
@@ -324,9 +349,9 @@ const handleHexFileUpload = async (event: Event): Promise<void> => {
     if (line && line.includes(':')) {
       const parts = line.split(':')
       if (parts[0]) {
-        const codePoint = parts[0].toUpperCase()
+        const codePoint = normalizeCodePoint(parts[0])
         const hexValue = parts[1]?.trim().toUpperCase() || ''
-        const existing = findExistingGlyph(codePoint)
+        const existing = findExistingGlyph(parts[0])
 
         if (existing) {
           conflicts.push({ codePoint, hexValue })
@@ -440,11 +465,12 @@ const processImageFile = async (
   file: File,
 ): Promise<{ glyph: Glyph | null; error: string | null }> => {
   const nameMatch = file.name?.match(/^([^.]+)/) || ['']
-  const codePoint = nameMatch[0].toUpperCase()
+  const fileName = nameMatch[0]
+  const normalizedCodePoint = normalizeCodePoint(fileName)
   let useCodePoint = ''
 
-  if (/^[0-9A-F]{4,6}$/.test(codePoint)) {
-    useCodePoint = codePoint
+  if (/^[0-9A-F]{4,6}$/.test(normalizedCodePoint)) {
+    useCodePoint = normalizedCodePoint
   }
 
   const canvas = document.createElement('canvas')
