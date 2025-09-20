@@ -201,6 +201,7 @@ export function useDrawing(
       event.preventDefault()
     }
     const touch = event.touches[0]
+    if (!touch) return
     const target = document.elementFromPoint(
       touch.clientX,
       touch.clientY,
@@ -220,6 +221,7 @@ export function useDrawing(
       event.preventDefault()
     }
     const touch = event.touches[0]
+    if (!touch) return
     const target = document.elementFromPoint(
       touch.clientX,
       touch.clientY,
@@ -263,7 +265,8 @@ export function useDrawing(
     for (let i = minRow; i <= maxRow; i++) {
       const row: number[] = []
       for (let j = minCol; j <= maxCol; j++) {
-        row.push(props.gridData[i][j])
+        const value = props.gridData[i]?.[j] ?? 0
+        row.push(value)
       }
       selectedData.push(row)
     }
@@ -312,7 +315,7 @@ export function useDrawing(
       targetRow >= 0 &&
       targetCol >= 0 &&
       targetRow + draggedData.value.height <= props.gridData.length &&
-      targetCol + draggedData.value.width <= props.gridData[0].length
+      targetCol + draggedData.value.width <= (props.gridData[0]?.length ?? 0)
     ) {
       emit('preview-move', {
         data: draggedData.value.data,
@@ -348,7 +351,7 @@ export function useDrawing(
       targetRow >= 0 &&
       targetCol >= 0 &&
       targetRow + draggedData.value.height <= props.gridData.length &&
-      targetCol + draggedData.value.width <= props.gridData[0].length
+      targetCol + draggedData.value.width <= (props.gridData[0]?.length ?? 0)
     ) {
       const { minRow, maxRow, minCol, maxCol } = draggedData.value.position
       for (let i = minRow; i <= maxRow; i++) {
@@ -394,7 +397,8 @@ export function useDrawing(
     for (let i = minRow; i <= maxRow; i++) {
       const row: number[] = []
       for (let j = minCol; j <= maxCol; j++) {
-        row.push(props.gridData[i][j])
+        const value = props.gridData[i]?.[j] ?? 0
+        row.push(value)
       }
       selection.push(row)
     }
@@ -421,7 +425,7 @@ export function useDrawing(
 
     if (
       targetRow + data.length > props.gridData.length ||
-      targetCol + data[0].length > props.gridData[0].length
+      targetCol + (data[0]?.length ?? 0) > (props.gridData[0]?.length ?? 0)
     ) {
       console.warn('Paste area exceeds grid boundaries')
       return
@@ -438,7 +442,7 @@ export function useDrawing(
     selectionStart.value = { row: targetRow, col: targetCol }
     selectionEnd.value = {
       row: targetRow + data.length - 1,
-      col: targetCol + data[0].length - 1,
+      col: targetCol + (data[0]?.length ?? 0) - 1,
     }
 
     emit('selection-complete', selectionStart.value, selectionEnd.value)
