@@ -156,7 +156,7 @@ const updateHexValue = (event: Event) => {
 
 const isValidInput = computed(() => {
   const normalizedCodePoint = normalizeCodePoint(props.modelValue.codePoint)
-  const isValidCodePoint = /^[0-9A-Fa-f]{4,6}$/.test(normalizedCodePoint)
+  const isValidCodePoint = /^[0-9A-Fa-f]{1,6}$/.test(normalizedCodePoint)
   const hasValidHex =
     (props.prefillData && props.prefillData.hexValue) ||
     /^[0-9A-Fa-f]{32}$|^[0-9A-Fa-f]{64}$/.test(props.modelValue.hexValue)
@@ -167,7 +167,7 @@ const getAddButtonTitle = computed(() => {
   if (!props.modelValue.codePoint)
     return $t('glyph_manager.validation.enter_code_point')
   const normalizedCodePoint = normalizeCodePoint(props.modelValue.codePoint)
-  if (!/^[0-9A-Fa-f]{4,6}$/.test(normalizedCodePoint))
+  if (!/^[0-9A-Fa-f]{1,6}$/.test(normalizedCodePoint))
     return $t('glyph_manager.validation.invalid_code_point')
   if (
     !props.prefillData &&
