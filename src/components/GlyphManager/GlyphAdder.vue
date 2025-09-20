@@ -278,7 +278,7 @@ watch(
   font-family: var(--normal-font);
   background: var(--background-color);
   flex: 0 0 60px;
-  min-width: 80px;
+  min-width: 120px;
 }
 
 .codepoint-input {

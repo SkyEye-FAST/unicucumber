@@ -77,7 +77,7 @@
       "add_button": "添加字形",
       "character": "输入字符",
       "clear_button": "清除",
-      "code_point": "输入Unicode码位 (例如：4E00)",
+      "code_point": "输入Unicode码位",
       "hex_value": "输入16进制字形数据 (32或64位)",
       "preview": "字形预览",
       "update_button": "更新字形"
