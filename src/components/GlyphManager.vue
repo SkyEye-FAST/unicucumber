@@ -138,7 +138,7 @@ const addGlyph = (): void => {
 
   props.onGlyphChange(updatedGlyphs)
   saveGlyphsToStorage(updatedGlyphs)
-  clearForm()
+  clearForm(false)
 
   if (manualInputQueue.value.length > 0) {
     nextTick(() => {
@@ -184,7 +184,13 @@ const updateExistingGlyph = (): void => {
 
   props.onGlyphChange(updatedGlyphs)
   saveGlyphsToStorage(updatedGlyphs)
-  clearForm()
+  clearForm(false)
+
+  if (manualInputQueue.value.length > 0) {
+    nextTick(() => {
+      processNextManualInputGlyph()
+    })
+  }
 }
 
 const clearForm = (shouldClearQueue: boolean = true): void => {
