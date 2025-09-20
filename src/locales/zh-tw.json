@@ -75,6 +75,7 @@
   "glyph_manager": {
     "add": {
       "add_button": "新增字形",
+      "character": "輸入字符",
       "clear_button": "清除",
       "code_point": "輸入 Unicode 碼位 (例如：4E00)",
       "hex_value": "輸入 16 進位字形資料 (32 或 64 位)",

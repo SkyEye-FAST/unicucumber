@@ -24,7 +24,7 @@
         <input
           v-model="localModelValue"
           maxlength="6"
-          pattern="[0-9A-Fa-f]{4,6}"
+          pattern="[0-9A-Fa-f]{1,6}"
           @input="handleInput"
         />
       </div>

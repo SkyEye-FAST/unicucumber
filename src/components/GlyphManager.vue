@@ -110,6 +110,23 @@ const normalizeCodePoint = (input: string): string => {
   return normalized
 }
 
+const normalizeCodePointForStorage = (input: string): string => {
+  const normalized = normalizeCodePoint(input)
+  if (normalized.length < 4) {
+    return normalized.padStart(4, '0')
+  }
+  return normalized
+}
+
+const normalizeCodePointForExport = (codePoint: string): string => {
+  if (codePoint.length < 4) {
+    return codePoint.padStart(4, '0')
+  } else if (codePoint.length === 5) {
+    return '0' + codePoint
+  }
+  return codePoint
+}
+
 const loadStoredGlyphs = (): void => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
@@ -132,7 +149,7 @@ const saveGlyphsToStorage = (glyphs: Glyph[]): void => {
 
 const isValidInput = computed(() => {
   const normalizedCodePoint = normalizeCodePoint(newGlyph.value.codePoint)
-  const isValidCodePoint = /^[0-9A-Fa-f]{4,6}$/.test(normalizedCodePoint)
+  const isValidCodePoint = /^[0-9A-Fa-f]{1,6}$/.test(normalizedCodePoint)
   const hasValidHex =
     (props.prefillData && props.prefillData.hexValue) ||
     /^[0-9A-Fa-f]{32}$|^[0-9A-Fa-f]{64}$/.test(newGlyph.value.hexValue)
@@ -145,7 +162,7 @@ const addGlyph = (): void => {
   const hexValue = props.prefillData
     ? props.prefillData.hexValue.toUpperCase()
     : newGlyph.value.hexValue.toUpperCase()
-  const codePoint = normalizeCodePoint(newGlyph.value.codePoint)
+  const codePoint = normalizeCodePointForStorage(newGlyph.value.codePoint)
   const updatedGlyphs = [
     ...props.glyphs,
     {
@@ -194,9 +211,10 @@ const updateExistingGlyph = (): void => {
   const hexValue = props.prefillData
     ? props.prefillData.hexValue.toUpperCase()
     : newGlyph.value.hexValue.toUpperCase()
-  const codePoint = normalizeCodePoint(newGlyph.value.codePoint)
+  const codePoint = normalizeCodePointForStorage(newGlyph.value.codePoint)
   const updatedGlyphs = props.glyphs.map((g) =>
-    normalizeCodePoint(g.codePoint) === codePoint
+    normalizeCodePoint(g.codePoint) ===
+    normalizeCodePoint(newGlyph.value.codePoint)
       ? { ...g, codePoint, hexValue }
       : g,
   )
@@ -287,12 +305,14 @@ const handleEditInGrid = (glyph: Glyph): void => {
 }
 
 const exportToHex = (): void => {
-  const hexContent = props.glyphs
+  const hexContent = [...props.glyphs]
+    .sort((a, b) => {
+      const codePointA = parseInt(a.codePoint, 16)
+      const codePointB = parseInt(b.codePoint, 16)
+      return codePointA - codePointB
+    })
     .map((glyph) => {
-      let codePoint = glyph.codePoint
-      if (codePoint.length === 5) {
-        codePoint = '0' + codePoint
-      }
+      const codePoint = normalizeCodePointForExport(glyph.codePoint)
       return `${codePoint}:${glyph.hexValue}`
     })
     .join('\n')
@@ -300,9 +320,19 @@ const exportToHex = (): void => {
   const blob = new Blob([hexContent], { type: 'text/plain' })
   const url = URL.createObjectURL(blob)
 
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  const hours = String(now.getHours()).padStart(2, '0')
+  const minutes = String(now.getMinutes()).padStart(2, '0')
+  const seconds = String(now.getSeconds()).padStart(2, '0')
+  const timestamp = `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`
+  const filename = `glyphs_unicucumber_${timestamp}.hex`
+
   const link = document.createElement('a')
   link.href = url
-  link.download = 'glyphs.hex'
+  link.download = filename
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
@@ -349,7 +379,7 @@ const handleHexFileUpload = async (event: Event): Promise<void> => {
     if (line && line.includes(':')) {
       const parts = line.split(':')
       if (parts[0]) {
-        const codePoint = normalizeCodePoint(parts[0])
+        const codePoint = normalizeCodePointForStorage(parts[0])
         const hexValue = parts[1]?.trim().toUpperCase() || ''
         const existing = findExistingGlyph(parts[0])
 
@@ -469,8 +499,8 @@ const processImageFile = async (
   const normalizedCodePoint = normalizeCodePoint(fileName)
   let useCodePoint = ''
 
-  if (/^[0-9A-F]{4,6}$/.test(normalizedCodePoint)) {
-    useCodePoint = normalizedCodePoint
+  if (/^[0-9A-F]{1,6}$/.test(normalizedCodePoint)) {
+    useCodePoint = normalizeCodePointForStorage(fileName)
   }
 
   const canvas = document.createElement('canvas')

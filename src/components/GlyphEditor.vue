@@ -141,7 +141,25 @@
       @confirm="dialogConfig.onConfirm"
       @cancel="dialogConfig.onCancel"
     />
-    <div class="copyright-text">Copyright © 2024-2025 SkyEye_FAST</div>
+    <div class="copyright-text" role="contentinfo">
+      <span class="copyright-left">Copyright © 2024 - 2025</span>
+      <span class="copyright-links" aria-hidden="false">
+        <a
+          href="https://github.com/SkyEye-FAST"
+          aria-label="SkyEye_FAST on GitHub"
+          >SkyEye_FAST</a
+        >
+        <span class="sep" aria-hidden="true">•</span>
+        <a
+          href="https://unifoundry.com/unifont/"
+          target="_blank"
+          rel="noreferrer nofollow"
+          aria-label="GNU Unifont website"
+          >GNU Unifont</a
+        >
+        <span v-if="unifontVersion" class="version">{{ unifontVersion }}</span>
+      </span>
+    </div>
   </div>
 </template>
 
@@ -307,6 +325,10 @@ provide('isDark', isDark)
 const mousePosition = ref<Position>({ x: 0, y: 0 })
 
 const currentCodePoint = ref<string>('0000')
+
+const unifontVersion = ref<string>(
+  (import.meta.env.VITE_UNIFONT_VERSION as string) || '',
+)
 
 onMounted(() => {
   updateGridFontPreview()
@@ -936,6 +958,49 @@ const handleDrawComplete = (changes: CellChange[]): void => {
   color: var(--text-secondary);
   font-size: 1em;
   margin-top: auto;
+}
+
+.copyright-text a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  margin: 0 0.2rem;
+  font-weight: 600;
+  opacity: 0.9;
+  transition:
+    color 0.15s ease,
+    text-decoration 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.copyright-text a:hover,
+.copyright-text a:focus {
+  color: var(--text-color);
+  text-decoration: underline;
+  opacity: 1;
+}
+
+.copyright-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.copyright-left {
+  display: inline-block;
+  margin-right: 0.2rem;
+  color: var(--text-secondary);
+}
+
+.copyright-text .sep {
+  color: var(--text-secondary);
+  margin: 0 0.2rem;
+  font-size: 0.9em;
+}
+
+.copyright-text .version {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.95em;
 }
 
 @media (orientation: portrait) and (max-width: 768px) {

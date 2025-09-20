@@ -75,6 +75,7 @@
   "glyph_manager": {
     "add": {
       "add_button": "Add Glyph",
+      "character": "Enter character",
       "clear_button": "Clear",
       "code_point": "Enter Unicode code point (e.g. 4E00)",
       "hex_value": "Enter glyph data (32 or 64 hex digits)",
