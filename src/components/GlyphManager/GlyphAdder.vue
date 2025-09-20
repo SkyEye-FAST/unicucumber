@@ -20,12 +20,21 @@
 
     <template v-else>
       <div class="input-group">
-        <input
-          :value="modelValue.codePoint"
-          :placeholder="$t('glyph_manager.add.code_point')"
-          class="input"
-          @input="updateCodePoint"
-        />
+        <div class="char-codepoint-row">
+          <input
+            :value="modelValue.codePoint"
+            :placeholder="$t('glyph_manager.add.code_point')"
+            class="input codepoint-input"
+            @input="updateCodePoint"
+          />
+          <input
+            :value="modelValue.character || ''"
+            :placeholder="$t('glyph_manager.add.character')"
+            class="input character-input"
+            maxlength="1"
+            @input="updateCharacter"
+          />
+        </div>
         <input
           v-if="!prefillData"
           :value="modelValue.hexValue"
@@ -88,6 +97,7 @@ import PixelPreview from './PixelPreview.vue'
 interface GlyphData {
   codePoint: string
   hexValue: string
+  character?: string
 }
 
 const { t: $t } = useI18n()
@@ -144,9 +154,22 @@ const extractHexDigits = (codePoint: string): string => {
 const updateCodePoint = (event: Event) => {
   const target = event.target as HTMLInputElement
   const normalizedCodePoint = normalizeCodePoint(target.value)
+
+  let character = ''
+  const hexDigits = extractHexDigits(normalizedCodePoint)
+  if (hexDigits && /^[0-9A-Fa-f]{1,6}$/.test(hexDigits)) {
+    try {
+      const cp = parseInt(hexDigits, 16)
+      if (cp >= 0 && cp <= 0x10ffff) {
+        character = String.fromCodePoint(cp)
+      }
+    } catch {}
+  }
+
   emit('update:modelValue', {
     ...props.modelValue,
     codePoint: normalizedCodePoint,
+    character,
   })
 }
 
@@ -155,6 +178,25 @@ const updateHexValue = (event: Event) => {
   emit('update:modelValue', {
     ...props.modelValue,
     hexValue: target.value.toUpperCase(),
+  })
+}
+
+const updateCharacter = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const character = target.value
+  let codePoint = ''
+
+  if (character) {
+    const cp = character.codePointAt(0)
+    if (cp !== undefined) {
+      codePoint = cp.toString(16).toUpperCase().padStart(4, '0')
+    }
+  }
+
+  emit('update:modelValue', {
+    ...props.modelValue,
+    character,
+    codePoint,
   })
 }
 
@@ -230,6 +272,26 @@ watch(
   border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 0.9rem;
+}
+
+.character-input {
+  font-family: var(--normal-font);
+  background: var(--background-color);
+  flex: 0 0 60px;
+  min-width: 80px;
+}
+
+.codepoint-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.char-codepoint-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
 }
 
 .input-group {
@@ -404,6 +466,15 @@ watch(
   .input {
     font-size: 1.5rem;
     padding: 12px;
+  }
+
+  .character-input {
+    font-size: 2rem;
+    flex: 0 0 80px;
+  }
+
+  .char-codepoint-row {
+    gap: 12px;
   }
 
   .button-group {
