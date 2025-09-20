@@ -1,6 +1,7 @@
 import { fileURLToPath, URL } from 'node:url'
 import { resolve, dirname } from 'node:path'
 import { defineConfig } from 'vite'
+import { readFileSync } from 'node:fs'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
@@ -8,6 +9,26 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 export default defineConfig({
+  define: (() => {
+    const fallback = ''
+    try {
+      const content = readFileSync(
+        new URL('./public/unifont-map.json', import.meta.url),
+        'utf-8',
+      )
+      const parsed = JSON.parse(content)
+      if (parsed && parsed.meta && typeof parsed.meta.version === 'string') {
+        const v = JSON.stringify(parsed.meta.version)
+        return {
+          'import.meta.env.VITE_UNIFONT_VERSION': v,
+        }
+      }
+    } catch (e) {}
+    const fv = JSON.stringify(fallback)
+    return {
+      'import.meta.env.VITE_UNIFONT_VERSION': fv,
+    }
+  })(),
   plugins: [
     vue(),
     vueDevTools(),
