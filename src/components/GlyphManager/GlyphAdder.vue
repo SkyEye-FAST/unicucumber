@@ -121,20 +121,24 @@ const emit = defineEmits<{
 }>()
 
 const normalizeCodePoint = (input: string): string => {
-  let normalized = input.trim().toUpperCase()
+  return input.trim().toUpperCase()
+}
 
-  if (normalized.startsWith('U+')) {
-    normalized = normalized.substring(2)
-  } else if (normalized.startsWith('U') && normalized.length > 1) {
-    const nextChar = normalized.charAt(1)
+const extractHexDigits = (codePoint: string): string => {
+  let extracted = codePoint.trim().toUpperCase()
+
+  if (extracted.startsWith('U+')) {
+    extracted = extracted.substring(2)
+  } else if (extracted.startsWith('U') && extracted.length > 1) {
+    const nextChar = extracted.charAt(1)
     if (/^[0-9A-F]/.test(nextChar)) {
-      normalized = normalized.substring(1)
+      extracted = extracted.substring(1)
     }
   }
 
-  normalized = normalized.replace(/^0+/, '') || '0'
+  extracted = extracted.replace(/^0+/, '') || '0'
 
-  return normalized
+  return extracted
 }
 
 const updateCodePoint = (event: Event) => {
@@ -155,8 +159,8 @@ const updateHexValue = (event: Event) => {
 }
 
 const isValidInput = computed(() => {
-  const normalizedCodePoint = normalizeCodePoint(props.modelValue.codePoint)
-  const isValidCodePoint = /^[0-9A-Fa-f]{1,6}$/.test(normalizedCodePoint)
+  const hexDigits = extractHexDigits(props.modelValue.codePoint)
+  const isValidCodePoint = /^[0-9A-Fa-f]{1,6}$/.test(hexDigits)
   const hasValidHex =
     (props.prefillData && props.prefillData.hexValue) ||
     /^[0-9A-Fa-f]{32}$|^[0-9A-Fa-f]{64}$/.test(props.modelValue.hexValue)
@@ -166,8 +170,8 @@ const isValidInput = computed(() => {
 const getAddButtonTitle = computed(() => {
   if (!props.modelValue.codePoint)
     return $t('glyph_manager.validation.enter_code_point')
-  const normalizedCodePoint = normalizeCodePoint(props.modelValue.codePoint)
-  if (!/^[0-9A-Fa-f]{1,6}$/.test(normalizedCodePoint))
+  const hexDigits = extractHexDigits(props.modelValue.codePoint)
+  if (!/^[0-9A-Fa-f]{1,6}$/.test(hexDigits))
     return $t('glyph_manager.validation.invalid_code_point')
   if (
     !props.prefillData &&
