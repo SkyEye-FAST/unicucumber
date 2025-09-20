@@ -120,11 +120,29 @@ const emit = defineEmits<{
   update: []
 }>()
 
+const normalizeCodePoint = (input: string): string => {
+  let normalized = input.trim().toUpperCase()
+
+  if (normalized.startsWith('U+')) {
+    normalized = normalized.substring(2)
+  } else if (normalized.startsWith('U') && normalized.length > 1) {
+    const nextChar = normalized.charAt(1)
+    if (/^[0-9A-F]/.test(nextChar)) {
+      normalized = normalized.substring(1)
+    }
+  }
+
+  normalized = normalized.replace(/^0+/, '') || '0'
+
+  return normalized
+}
+
 const updateCodePoint = (event: Event) => {
   const target = event.target as HTMLInputElement
+  const normalizedCodePoint = normalizeCodePoint(target.value)
   emit('update:modelValue', {
     ...props.modelValue,
-    codePoint: target.value.toUpperCase(),
+    codePoint: normalizedCodePoint,
   })
 }
 
@@ -137,7 +155,8 @@ const updateHexValue = (event: Event) => {
 }
 
 const isValidInput = computed(() => {
-  const isValidCodePoint = /^[0-9A-Fa-f]{4,6}$/.test(props.modelValue.codePoint)
+  const normalizedCodePoint = normalizeCodePoint(props.modelValue.codePoint)
+  const isValidCodePoint = /^[0-9A-Fa-f]{4,6}$/.test(normalizedCodePoint)
   const hasValidHex =
     (props.prefillData && props.prefillData.hexValue) ||
     /^[0-9A-Fa-f]{32}$|^[0-9A-Fa-f]{64}$/.test(props.modelValue.hexValue)
@@ -147,7 +166,8 @@ const isValidInput = computed(() => {
 const getAddButtonTitle = computed(() => {
   if (!props.modelValue.codePoint)
     return $t('glyph_manager.validation.enter_code_point')
-  if (!/^[0-9A-Fa-f]{4,6}$/.test(props.modelValue.codePoint))
+  const normalizedCodePoint = normalizeCodePoint(props.modelValue.codePoint)
+  if (!/^[0-9A-Fa-f]{4,6}$/.test(normalizedCodePoint))
     return $t('glyph_manager.validation.invalid_code_point')
   if (
     !props.prefillData &&
