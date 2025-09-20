@@ -21,9 +21,9 @@ export interface DialogConfig {
   confirmText?: string
   cancelText?: string
   danger?: boolean
-  hexValue?: string // 添加DialogBox组件需要的属性
-  width?: number // 添加DialogBox组件需要的属性
-  displayMode?: string // 添加DialogBox组件可能需要的属性
+  hexValue?: string
+  width?: number
+  displayMode?: string
   onConfirm: (selectedItems?: Glyph[]) => void
   onCancel?: () => void
 }
@@ -49,7 +49,6 @@ export interface ImageWithDimensions extends HTMLImageElement {
   height: number
 }
 
-// GlyphAdder组件的类型
 export interface GlyphAdderProps {
   modelValue: GlyphData
   prefillData?: PrefillData | null

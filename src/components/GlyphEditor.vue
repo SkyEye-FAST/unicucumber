@@ -174,7 +174,6 @@ import { useTheme } from '@/composables/useTheme'
 import { hexToGrid } from '@/utils/hexUtils'
 import type { Glyph, PrefillData } from '@/types/glyph'
 
-// 定义类型
 interface Position {
   x: number
   y: number
@@ -639,14 +638,6 @@ const loadGlyph = async (hexValue: string, glyph: Glyph): Promise<void> => {
 const clearPrefillData = (): void => {
   prefillData.value = null
 }
-
-watch(
-  () => settings.value.glyphWidth,
-  (newWidth: number): void => {
-    updateGrid(newWidth)
-    updateHexCode()
-  },
-)
 
 const { pushState, undo, redo, canUndo, canRedo, clearAndInitHistory } =
   useHistory(gridData.value)

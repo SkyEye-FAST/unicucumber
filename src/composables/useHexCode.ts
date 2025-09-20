@@ -19,7 +19,15 @@ export function useHexCode(
   gridData: GridData,
   resetGrid: ResetGridFunction,
 ): UseHexCodeReturn {
-  const hexCode = ref('0'.repeat(64))
+  // 根据初始网格宽度确定默认hex长度
+  const getInitialHexLength = () => {
+    if (gridData.value && gridData.value[0]) {
+      return gridData.value[0].length <= 8 ? 32 : 64
+    }
+    return 64 // 默认16px
+  }
+
+  const hexCode = ref('0'.repeat(getInitialHexLength()))
 
   const updateHexCode = (): void => {
     if (!gridData.value || !gridData.value.length) return
@@ -39,21 +47,33 @@ export function useHexCode(
     const width: number = hexCode.value.length <= 32 ? 8 : 16
     const height: number = 16
 
+    resetGrid(width)
+    if (!gridData.value || !Array.isArray(gridData.value)) {
+      return
+    }
+
     const binary: string = hexCode.value
       .split('')
       .map((char) => parseInt(char, 16).toString(2).padStart(4, '0'))
       .join('')
 
-    resetGrid(width)
-
+    const newGrid: number[][] = []
     for (let i = 0; i < height; i++) {
-      for (let j = 0; j < width; j++) {
-        const index = i * width + j
-        if (index < binary.length) {
-          gridData.value[i][j] = parseInt(binary[index], 10)
+      if (i < gridData.value.length) {
+        const row: number[] = []
+        for (let j = 0; j < width; j++) {
+          const index = i * width + j
+          if (index < binary.length) {
+            row.push(binary[index] === '1' ? 1 : 0)
+          } else {
+            row.push(0)
+          }
         }
+        newGrid.push(row)
       }
     }
+
+    gridData.value = newGrid
   }
 
   watch(
