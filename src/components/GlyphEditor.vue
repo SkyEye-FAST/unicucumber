@@ -15,6 +15,8 @@
     <SettingsModal
       v-model="showSettings"
       :settings="settings"
+      :hex-value="hexCode"
+      :width="settings.glyphWidth"
       @update:settings="updateSettings"
     />
 
@@ -143,7 +145,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
   ref,
   onMounted,
@@ -170,6 +172,55 @@ import { useHistory } from '@/composables/useHistory'
 import { useSidebar } from '@/composables/useSidebar'
 import { useTheme } from '@/composables/useTheme'
 import { hexToGrid } from '@/utils/hexUtils'
+import type { Glyph, PrefillData } from '@/types/glyph'
+
+interface Position {
+  x: number
+  y: number
+}
+
+interface CellPosition {
+  row: number
+  col: number
+}
+
+interface Region {
+  start: CellPosition
+  end: CellPosition
+}
+
+interface ClipboardData {
+  data: number[][]
+  width: number
+  height: number
+}
+
+interface GlyphData {
+  codePoint: string
+  hexValue: string
+}
+
+interface CellChange {
+  row: number
+  col: number
+  oldValue: number
+  newValue: number
+}
+
+interface DrawAction {
+  type: string
+  changes: CellChange[]
+}
+
+interface DialogConfigExtended {
+  title: string
+  message: string
+  confirmText?: string
+  cancelText?: string
+  onConfirm: () => void
+  onCancel?: () => void
+}
+
 const { t: $t } = useI18n()
 
 const { settings, showSettings } = useSettings()
@@ -182,17 +233,17 @@ const { hexCode, updateHexCode, updateGridFromHex } = useHexCode(
 const { isSidebarActive, sidebarWidth, toggleSidebar, startResize } =
   useSidebar()
 
-const drawValue = ref(1)
+const drawValue = ref<number>(1)
 
-const shouldDisableTools = computed(() => {
+const shouldDisableTools = computed((): boolean => {
   return settings.value.drawMode === 'doubleButtonDraw' && drawValue.value !== 2
 })
 
-const currentDrawMode = computed(() => {
+const currentDrawMode = computed((): string => {
   return drawValue.value === 2 ? 'singleButtonDraw' : settings.value.drawMode
 })
 
-const updateDrawValue = (value) => {
+const updateDrawValue = (value: number): void => {
   if (value === drawValue.value) return
   drawValue.value = value
 
@@ -208,7 +259,7 @@ const updateDrawValue = (value) => {
 
 watch(
   () => settings.value.enableSelection,
-  (newValue) => {
+  (newValue: boolean): void => {
     if (!newValue) {
       clearSelection()
       if (drawValue.value === 2) {
@@ -222,25 +273,40 @@ defineExpose({
   updateDrawValue,
 })
 
-const glyphs = ref([])
-const prefillData = ref(null)
-const currentGlyph = ref({
+const glyphs = ref<Glyph[]>([])
+const prefillData = ref<PrefillData | null>(null)
+const currentGlyph = ref<GlyphData>({
   codePoint: '0000',
   hexValue: '',
 })
-const hasUnsavedChanges = ref(false)
-const showDialog = ref(false)
-const dialogConfig = ref({})
+const hasUnsavedChanges = ref<boolean>(false)
+const showDialog = ref<boolean>(false)
+const dialogConfig = ref<DialogConfigExtended>({
+  title: '',
+  message: '',
+  onConfirm: () => {},
+})
 
-const glyphGridRef = ref(null)
-const gridFontRef = ref(null)
+interface GlyphGridInstance {
+  handleCopySelection: () => ClipboardData | null
+  getCellIndex: (element: HTMLElement) => {
+    rowIndex: number
+    cellIndex: number
+  }
+  pasteSelection: (row: number, col: number, data: ClipboardData) => void
+  clearSelection: () => void
+  gridFontString: string
+}
+
+const glyphGridRef = ref<GlyphGridInstance | null>(null)
+const gridFontRef = ref<HTMLElement | null>(null)
 
 const { isDark } = useTheme()
 provide('isDark', isDark)
 
-const mousePosition = ref({ x: 0, y: 0 })
+const mousePosition = ref<Position>({ x: 0, y: 0 })
 
-const currentCodePoint = ref('0000')
+const currentCodePoint = ref<string>('0000')
 
 onMounted(() => {
   updateGridFontPreview()
@@ -256,51 +322,56 @@ onBeforeUnmount(() => {
   document.removeEventListener('mousemove', updateMousePosition)
 })
 
-const updateMousePosition = (e) => {
+const updateMousePosition = (e: MouseEvent): void => {
   mousePosition.value = { x: e.clientX, y: e.clientY }
 }
 
-const selectedRegion = ref(null)
-const clipboardData = ref(null)
+const selectedRegion = ref<Region | null>(null)
+const clipboardData = ref<ClipboardData | null>(null)
 
-const copyMode = ref(false)
-const moveMode = ref(false)
+const copyMode = ref<boolean>(false)
+const moveMode = ref<boolean>(false)
 
 watch(
   [drawValue, selectedRegion],
-  ([newDrawValue, newSelectedRegion]) => {
+  ([newDrawValue, newSelectedRegion]: [number, Region | null]): void => {
     moveMode.value = newDrawValue === 2 && newSelectedRegion !== null
   },
   { immediate: true },
 )
 
-const pasteMode = ref(false)
+const pasteMode = ref<boolean>(false)
 
-const handleSelectionComplete = (start, end) => {
+const handleSelectionComplete = (
+  start: CellPosition,
+  end: CellPosition,
+): void => {
   selectedRegion.value = { start, end }
 }
 
-const handleCopySelection = () => {
+const handleCopySelection = (): void => {
   if (!selectedRegion.value) return
   moveMode.value = false
   copyMode.value = true
 
-  const selection = glyphGridRef.value.handleCopySelection()
-  if (selection) {
-    clipboardData.value = selection
+  if (glyphGridRef.value) {
+    const selection = glyphGridRef.value.handleCopySelection()
+    if (selection) {
+      clipboardData.value = selection
 
-    try {
-      const jsonString = JSON.stringify(selection)
-      navigator.clipboard.writeText(jsonString)
-    } catch (error) {
-      console.error('Failed to write to clipboard:', error)
+      try {
+        const jsonString = JSON.stringify(selection)
+        navigator.clipboard.writeText(jsonString)
+      } catch (error) {
+        console.error('Failed to write to clipboard:', error)
+      }
     }
   }
 }
 
 defineEmits(['update:modelValue', 'selection-complete', 'paste-complete'])
 
-const handleKeydown = (e) => {
+const handleKeydown = (e: KeyboardEvent): void => {
   if (e.ctrlKey) {
     if (e.key === 'z') {
       e.preventDefault()
@@ -316,14 +387,14 @@ const handleKeydown = (e) => {
       handleCopy()
     } else if (e.key === 'v' && clipboardData.value) {
       e.preventDefault()
-      handlePaste(e)
+      handlePaste()
     }
   }
 }
 
-const handleCut = () => {
-  if (!selectedRegion.value) return
-  const selection = glyphGridRef.value?.handleCopySelection()
+const handleCut = (): void => {
+  if (!selectedRegion.value || !glyphGridRef.value) return
+  const selection = glyphGridRef.value.handleCopySelection()
   if (selection) {
     clipboardData.value = selection
     copyMode.value = true
@@ -335,25 +406,27 @@ const handleCut = () => {
       console.error('Failed to write to clipboard:', error)
     }
 
-    const { start, end } = selectedRegion.value
-    const minRow = Math.min(start.row, end.row)
-    const maxRow = Math.max(start.row, end.row)
-    const minCol = Math.min(start.col, end.col)
-    const maxCol = Math.max(start.col, end.col)
+    if (selectedRegion.value) {
+      const { start, end } = selectedRegion.value
+      const minRow = Math.min(start.row, end.row)
+      const maxRow = Math.max(start.row, end.row)
+      const minCol = Math.min(start.col, end.col)
+      const maxCol = Math.max(start.col, end.col)
 
-    for (let i = minRow; i <= maxRow; i++) {
-      for (let j = minCol; j <= maxCol; j++) {
-        updateCell(i, j, 0)
+      for (let i = minRow; i <= maxRow; i++) {
+        for (let j = minCol; j <= maxCol; j++) {
+          updateCell(i, j, 0)
+        }
       }
-    }
 
-    pushState(gridData.value, 'cut')
+      pushState(gridData.value, 'cut')
+    }
   }
 }
 
-const handleCopy = () => {
-  if (!selectedRegion.value) return
-  const selection = glyphGridRef.value?.handleCopySelection()
+const handleCopy = (): void => {
+  if (!selectedRegion.value || !glyphGridRef.value) return
+  const selection = glyphGridRef.value.handleCopySelection()
   if (selection) {
     clipboardData.value = selection
     copyMode.value = true
@@ -367,7 +440,7 @@ const handleCopy = () => {
   }
 }
 
-const handlePasteButtonClick = () => {
+const handlePasteButtonClick = (): void => {
   pasteMode.value = true
   document.addEventListener('click', handlePasteClick, {
     capture: true,
@@ -375,29 +448,35 @@ const handlePasteButtonClick = () => {
   })
 }
 
-const handlePasteClick = (e) => {
+const handlePasteClick = (e: MouseEvent): void => {
   e.stopPropagation()
 
-  if (e.target.classList.contains('cell')) {
-    const { rowIndex, cellIndex } = glyphGridRef.value.getCellIndex(e.target)
+  if (
+    e.target &&
+    (e.target as HTMLElement).classList.contains('cell') &&
+    glyphGridRef.value
+  ) {
+    const { rowIndex, cellIndex } = glyphGridRef.value.getCellIndex(
+      e.target as HTMLElement,
+    )
     pasteAtPosition(rowIndex, cellIndex)
   }
 
   pasteMode.value = false
 }
 
-const pasteAtPosition = (targetRow, targetCol) => {
+const pasteAtPosition = (targetRow: number, targetCol: number): void => {
   console.log('Attempting to paste at:', targetRow, targetCol)
   if (targetRow < 0 || targetCol < 0) return
 
-  if (clipboardData.value) {
+  if (clipboardData.value && glyphGridRef.value) {
     console.log('Using clipboard data:', clipboardData.value)
     glyphGridRef.value.pasteSelection(targetRow, targetCol, clipboardData.value)
-    pushState(gridData.value)
+    pushState(gridData.value, 'paste')
   }
 }
 
-const handlePaste = () => {
+const handlePaste = (): void => {
   if (!clipboardData.value) return
 
   const target = document.elementFromPoint(
@@ -405,36 +484,50 @@ const handlePaste = () => {
     mousePosition.value.y,
   )
 
-  if (target?.classList.contains('cell')) {
-    const { rowIndex, cellIndex } = glyphGridRef.value.getCellIndex(target)
+  if (
+    target &&
+    (target as HTMLElement).classList.contains('cell') &&
+    glyphGridRef.value
+  ) {
+    const { rowIndex, cellIndex } = glyphGridRef.value.getCellIndex(
+      target as HTMLElement,
+    )
     pasteAtPosition(rowIndex, cellIndex)
   }
 }
 
-const handlePasteComplete = () => {
+const handlePasteComplete = (): void => {
   moveMode.value = false
   clipboardData.value = null
   pushState(gridData.value, 'paste')
 }
 
-const handleMoveTo = (row, col) => {
+const handleMoveTo = (row: number, col: number): void => {
   if (!clipboardData.value) return
 
   pasteAtPosition(row, col)
   moveMode.value = false
-  clipboardData.value = null
 
-  selectedRegion.value = {
-    start: { row, col },
-    end: {
-      row: row + (clipboardData.value?.data.length || 0) - 1,
-      col: col + (clipboardData.value?.data[0].length || 0) - 1,
-    },
+  if (clipboardData.value) {
+    const dataHeight = clipboardData.value.data.length || 0
+    const dataWidth =
+      dataHeight > 0 && clipboardData.value.data[0]
+        ? clipboardData.value.data[0].length || 0
+        : 0
+
+    selectedRegion.value = {
+      start: { row, col },
+      end: {
+        row: row + dataHeight - 1,
+        col: col + dataWidth - 1,
+      },
+    }
   }
+
   pushState(gridData.value, 'move')
 }
 
-const clearSelection = () => {
+const clearSelection = (): void => {
   if (glyphGridRef.value) {
     glyphGridRef.value.clearSelection()
   }
@@ -446,25 +539,34 @@ const clearSelection = () => {
 
 watch(
   () => selectedRegion.value,
-  () => {
+  (): void => {
     if (selectedRegion.value) {
-      pushState(gridData.value)
+      pushState(gridData.value, 'selection')
     }
   },
 )
 
-const setGlyphs = (newGlyphs) => {
+const setGlyphs = (newGlyphs: Glyph[]): void => {
   glyphs.value = newGlyphs
 }
 
-const preventDefault = (e) => e.preventDefault()
+const preventDefault = (e: Event): void => e.preventDefault()
 
-const addToGlyphset = () => {
+const addToGlyphset = (): void => {
   prefillData.value = {
     hexValue: hexCode.value,
     codePoint: currentCodePoint.value,
   }
   isSidebarActive.value = true
+}
+
+interface ShowConfirmDialogParams {
+  title: string
+  message: string
+  confirmText: string
+  cancelText?: string
+  onConfirm: () => void
+  onCancel?: () => void
 }
 
 const showConfirmDialog = ({
@@ -474,7 +576,7 @@ const showConfirmDialog = ({
   cancelText,
   onConfirm,
   onCancel,
-}) => {
+}: ShowConfirmDialogParams): void => {
   dialogConfig.value = {
     title,
     message,
@@ -486,7 +588,7 @@ const showConfirmDialog = ({
   showDialog.value = true
 }
 
-const handleGlyphEdit = (hexValue, glyph) => {
+const handleGlyphEdit = (hexValue: string, glyph?: Glyph): void => {
   try {
     if (hasUnsavedChanges.value && currentGlyph.value) {
       showConfirmDialog({
@@ -494,70 +596,66 @@ const handleGlyphEdit = (hexValue, glyph) => {
         message: $t('dialog.unsaved_changes.message'),
         confirmText: $t('dialog.unsaved_changes.confirm'),
         onConfirm: () => {
-          loadGlyph(hexValue, glyph)
+          if (glyph) loadGlyph(hexValue, glyph)
           showDialog.value = false
         },
       })
     } else {
-      loadGlyph(hexValue, glyph)
+      if (glyph) loadGlyph(hexValue, glyph)
     }
   } catch (error) {
     console.error('Error loading glyph:', error)
   }
 }
 
-const loadGlyph = async (hexValue, glyph) => {
+const loadGlyph = async (hexValue: string, glyph: Glyph): Promise<void> => {
   if (!glyph || !glyph.codePoint) {
     console.error('Invalid glyph data:', glyph)
     return
   }
 
   const newGrid = hexToGrid(hexValue)
-  const newWidth = newGrid[0].length
+  if (newGrid && newGrid[0]) {
+    const newWidth = newGrid[0].length
 
-  settings.value.glyphWidth = newWidth === 8 ? 8 : 16
-  await nextTick()
-  updateGrid(newWidth)
-  await nextTick()
-  gridData.value = newGrid
-  hexCode.value = hexValue
-  currentGlyph.value = {
-    codePoint: glyph.codePoint,
-    hexValue: hexValue,
+    settings.value.glyphWidth = newWidth === 8 ? 8 : 16
+    await nextTick()
+    updateGrid(newWidth)
+    await nextTick()
+    gridData.value = newGrid
+    hexCode.value = hexValue
+    currentGlyph.value = {
+      codePoint: glyph.codePoint,
+      hexValue: hexValue,
+    }
+    currentCodePoint.value = glyph.codePoint
+    hasUnsavedChanges.value = false
+    await nextTick()
+    updateGridFontPreview()
   }
-  currentCodePoint.value = glyph.codePoint
-  hasUnsavedChanges.value = false
-  await nextTick()
-  updateGridFontPreview()
 }
 
-const clearPrefillData = () => {
+const clearPrefillData = (): void => {
   prefillData.value = null
 }
-
-watch(
-  () => settings.value.glyphWidth,
-  (newWidth) => {
-    updateGrid(newWidth)
-    updateHexCode()
-  },
-)
 
 const { pushState, undo, redo, canUndo, canRedo, clearAndInitHistory } =
   useHistory(gridData.value)
 
-const handleClear = () => {
+const handleClear = (): void => {
   const doClear = () => {
-    resetGrid(gridData.value[0].length)
-    updateHexCode()
-    hasUnsavedChanges.value = false
-    currentCodePoint.value = '0000'
-    currentGlyph.value = {
-      codePoint: '0000',
-      hexValue: '',
+    if (gridData.value && gridData.value[0]) {
+      resetGrid(gridData.value[0].length)
+      updateHexCode()
+      hasUnsavedChanges.value = false
+      currentCodePoint.value = '0000'
+      currentGlyph.value = {
+        codePoint: '0000',
+        hexValue: '',
+      }
+      pushState(gridData.value, 'clear-grid')
+      showDialog.value = false
     }
-    pushState(gridData.value, 'clear-grid')
-    showDialog.value = false
   }
 
   if (settings.value.confirmClear) {
@@ -572,7 +670,7 @@ const handleClear = () => {
   }
 }
 
-const handleUndo = () => {
+const handleUndo = (): void => {
   const prevState = undo()
   if (prevState) {
     gridData.value = prevState
@@ -580,7 +678,7 @@ const handleUndo = () => {
   }
 }
 
-const handleRedo = () => {
+const handleRedo = (): void => {
   const nextState = redo()
   if (nextState) {
     gridData.value = nextState
@@ -588,21 +686,29 @@ const handleRedo = () => {
   }
 }
 
-const updateCell = (rowIndex, cellIndex, value) => {
-  const newGrid = gridData.value.map((row) => [...row])
-  newGrid[rowIndex][cellIndex] = value
-  gridData.value = newGrid
+const updateCell = (
+  rowIndex: number,
+  cellIndex: number,
+  value: number,
+): void => {
+  if (gridData.value) {
+    const newGrid = gridData.value.map((row) => [...row])
+    if (newGrid[rowIndex]) {
+      newGrid[rowIndex][cellIndex] = value
+      gridData.value = newGrid
+    }
+  }
 }
 
-const handleCloseSidebar = () => {
+const handleCloseSidebar = (): void => {
   isSidebarActive.value = false
 }
 
-const updateSettings = (newSettings) => {
+const updateSettings = (newSettings: typeof settings.value): void => {
   Object.assign(settings.value, newSettings)
 }
 
-const updateGridFontPreview = () => {
+const updateGridFontPreview = (): void => {
   if (gridFontRef.value && glyphGridRef.value) {
     gridFontRef.value.textContent = glyphGridRef.value.gridFontString
   }
@@ -621,7 +727,7 @@ onBeforeUnmount(() => {
 
 watch(
   () => currentGlyph.value,
-  (newGlyph) => {
+  (newGlyph): void => {
     if (newGlyph) {
       clearAndInitHistory(gridData.value)
     }
@@ -629,13 +735,19 @@ watch(
   { deep: true },
 )
 
-const handlePreviewMove = ({ row, col, data }) => {
+interface PreviewMoveData {
+  row: number
+  col: number
+  data: number[][]
+}
+
+const handlePreviewMove = ({ row, col, data }: PreviewMoveData): void => {
   const preview = document.querySelectorAll('.cell.preview')
   preview.forEach((cell) => cell.classList.remove('preview'))
 
   if (data) {
-    data.forEach((rowData, i) => {
-      rowData.forEach((value, j) => {
+    data.forEach((rowData: number[], i: number) => {
+      rowData.forEach((value: number, j: number) => {
         const cell = document.querySelector(
           `.cell[data-row="${row + i}"][data-col="${col + j}"]`,
         )
@@ -647,11 +759,12 @@ const handlePreviewMove = ({ row, col, data }) => {
   }
 }
 
-const handleContainerClick = (event) => {
+const handleContainerClick = (event: MouseEvent): void => {
   if (
-    event.target.classList.contains('container') ||
-    event.target.classList.contains('editor-actions') ||
-    event.target.classList.contains('tool-buttons')
+    event.target instanceof HTMLElement &&
+    (event.target.classList.contains('container') ||
+      event.target.classList.contains('editor-actions') ||
+      event.target.classList.contains('tool-buttons'))
   ) {
     event.stopPropagation()
     if (glyphGridRef.value) {
@@ -661,12 +774,12 @@ const handleContainerClick = (event) => {
   }
 }
 
-const handleDrawComplete = (changes) => {
-  const action = {
+const handleDrawComplete = (changes: CellChange[]): void => {
+  const action: DrawAction = {
     type: 'draw',
     changes: changes,
   }
-  pushState(gridData.value, action)
+  pushState(gridData.value, JSON.stringify(action))
 }
 </script>
 

@@ -24,6 +24,7 @@ const { open: openHexDialog, onChange: onHexChange } = useFileDialog({
 
 const { open: openImageDialog, onChange: onImageChange } = useFileDialog({
   accept: '.png,.jpg,.jpeg,.bmp',
+  multiple: true,
 })
 
 const handleHexClick = (event: MouseEvent) => {

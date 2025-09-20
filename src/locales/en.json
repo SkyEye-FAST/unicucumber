@@ -20,6 +20,7 @@
       "message": "Image must be black and white only",
       "title": "Invalid Image Format"
     },
+    "glyph_hex": "Glyph Data",
     "hex_import": {
       "cancel": "Skip",
       "confirm": "Update Selected Glyphs",
@@ -77,6 +78,7 @@
       "clear_button": "Clear",
       "code_point": "Enter Unicode code point (e.g. 4E00)",
       "hex_value": "Enter glyph data (32 or 64 hex digits)",
+      "preview": "Glyph Preview",
       "update_button": "Update Glyph"
     },
     "batch_delete": "Batch Delete",
@@ -100,6 +102,13 @@
       "hex": "Hex:"
     },
     "import": "Import from Unifont",
+    "manual_input": {
+      "message": "Please input code point for this glyph:",
+      "process": "Process",
+      "skip_all": "Skip All",
+      "skip_one": "Skip",
+      "title": "Manual Code Point Input Required"
+    },
     "search": "Search glyphs...",
     "select_all": "Select All",
     "title": "Glyph Manager",

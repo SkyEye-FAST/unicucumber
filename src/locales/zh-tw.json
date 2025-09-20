@@ -20,6 +20,7 @@
       "message": "圖片必須為黑白色",
       "title": "圖片格式錯誤"
     },
+    "glyph_hex": "字形資料",
     "hex_import": {
       "cancel": "跳過",
       "confirm": "更新選中字形",
@@ -77,6 +78,7 @@
       "clear_button": "清除",
       "code_point": "輸入 Unicode 碼位 (例如：4E00)",
       "hex_value": "輸入 16 進位字形資料 (32 或 64 位)",
+      "preview": "字形預覽",
       "update_button": "更新字形"
     },
     "batch_delete": "批量刪除",
@@ -100,6 +102,13 @@
       "hex": "Hex："
     },
     "import": "從 Unifont 讀取",
+    "manual_input": {
+      "message": "請為該字形輸入碼位：",
+      "process": "處理",
+      "skip_all": "跳過全部",
+      "skip_one": "跳過",
+      "title": "需要手動輸入碼位"
+    },
     "search": "搜尋字形...",
     "select_all": "全選",
     "title": "字形管理器",

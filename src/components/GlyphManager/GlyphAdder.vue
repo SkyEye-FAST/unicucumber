@@ -36,6 +36,17 @@
         <div v-else class="hex-preview">{{ prefillData.hexValue }}</div>
       </div>
 
+      <div v-if="shouldShowPreview" class="glyph-preview-section">
+        <div class="preview-label">{{ $t('glyph_manager.add.preview') }}:</div>
+        <div class="preview-container">
+          <PixelPreview
+            :hex-value="getHexValue"
+            :width="getGlyphWidth"
+            display-mode="editor"
+          />
+        </div>
+      </div>
+
       <div class="button-group">
         <button
           class="btn-add"
@@ -72,6 +83,7 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import PixelPreview from './PixelPreview.vue'
 
 interface GlyphData {
   codePoint: string
@@ -86,13 +98,17 @@ const props = defineProps({
     required: true,
   },
   prefillData: {
-    type: Object as () => GlyphData | undefined,
+    type: Object as () => GlyphData | null | undefined,
     default: undefined,
   },
   editMode: Boolean,
   duplicateGlyph: {
-    type: Object as () => GlyphData | undefined,
+    type: Object as () => GlyphData | null | undefined,
     default: undefined,
+  },
+  unifontMap: {
+    type: Object,
+    default: () => ({}),
   },
 })
 
@@ -140,6 +156,20 @@ const getAddButtonTitle = computed(() => {
     return $t('glyph_manager.validation.invalid_hex')
   }
   return $t('glyph_manager.validation.add_glyph')
+})
+
+const shouldShowPreview = computed(() => {
+  const hexValue = getHexValue.value
+  return hexValue && /^[0-9A-Fa-f]{32}$|^[0-9A-Fa-f]{64}$/.test(hexValue)
+})
+
+const getHexValue = computed(() => {
+  return props.prefillData?.hexValue || props.modelValue.hexValue
+})
+
+const getGlyphWidth = computed(() => {
+  const hexValue = getHexValue.value
+  return hexValue && hexValue.length <= 32 ? 8 : 16
 })
 
 watch(
@@ -316,6 +346,30 @@ watch(
 .warning-actions {
   display: flex;
   gap: 8px;
+}
+
+.glyph-preview-section {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+
+.preview-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.preview-container {
+  display: flex;
+  justify-content: center;
+  padding: 8px;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
 }
 
 @media (orientation: portrait) and (min-width: 768px) {

@@ -17,7 +17,7 @@
       @add="handleAdd"
       @update="updateExistingGlyph"
       @import="importFromUnifont"
-      @clear="clearForm"
+      @clear="handleClear"
     />
 
     <UploadSection
@@ -34,11 +34,31 @@
       @batch-delete="handleBatchDelete"
     />
 
-    <DialogBox v-model:show="dialog.show" v-bind="dialog" />
+    <DialogBox
+      :show="dialog.show"
+      :title="dialog.title"
+      :message="dialog.message"
+      :type="dialog.type"
+      :items="dialog.items || []"
+      :show-cancel="dialog.showCancel"
+      :confirm-text="dialog.confirmText"
+      :cancel-text="dialog.cancelText"
+      :danger="dialog.danger"
+      :hex-value="dialog.hexValue || ''"
+      :width="dialog.width || 400"
+      :display-mode="dialog.displayMode || ''"
+      :custom-buttons="dialog.customButtons"
+      :show-progress="dialog.showProgress || false"
+      :progress-current="dialog.progressCurrent || 0"
+      :progress-total="dialog.progressTotal || 0"
+      @confirm="handleDialogConfirm"
+      @cancel="handleDialogCancel"
+      @custom-action="handleDialogCustomAction"
+    />
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSettings } from '@/composables/useSettings'
@@ -47,40 +67,37 @@ import GlyphAdder from './GlyphManager/GlyphAdder.vue'
 import UploadSection from './GlyphManager/UploadSection.vue'
 import GlyphList from './GlyphManager/GlyphList.vue'
 import DialogBox from './DialogBox.vue'
+import type {
+  Glyph,
+  UnifontMapType,
+  DialogConfig,
+  GlyphManagerProps,
+  GlyphManagerEmits,
+  GlyphData,
+  ImageWithDimensions,
+} from '@/types/glyph'
+
 const { t: $t } = useI18n()
 
-const props = defineProps({
-  glyphs: {
-    type: Array,
-    required: true,
-  },
-  onGlyphChange: {
-    type: Function,
-    required: true,
-  },
-  prefillData: {
-    type: Object,
-    default: null,
-  },
-})
+const props = defineProps<GlyphManagerProps>()
 
-const emit = defineEmits(['edit-in-grid', 'clear-prefill'])
+const emit = defineEmits<GlyphManagerEmits>()
 
-const newGlyph = ref({ codePoint: '', hexValue: '' })
-const searchQuery = ref('')
-const editMode = ref(false)
-const duplicateGlyph = ref(null)
-const unifontMap = ref({})
+const newGlyph = ref<GlyphData>({ codePoint: '', hexValue: '' })
+const searchQuery = ref<string>('')
+const editMode = ref<boolean>(false)
+const duplicateGlyph = ref<Glyph | null>(null)
+const unifontMap = ref<UnifontMapType>({})
 
 const { settings } = useSettings()
 
 const STORAGE_KEY = 'unicucumber_glyphs'
 
-const loadStoredGlyphs = () => {
+const loadStoredGlyphs = (): void => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
-      const parsedGlyphs = JSON.parse(stored)
+      const parsedGlyphs = JSON.parse(stored) as Glyph[]
       props.onGlyphChange(parsedGlyphs)
     }
   } catch (error) {
@@ -88,7 +105,7 @@ const loadStoredGlyphs = () => {
   }
 }
 
-const saveGlyphsToStorage = (glyphs) => {
+const saveGlyphsToStorage = (glyphs: Glyph[]): void => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(glyphs))
   } catch (error) {
@@ -104,7 +121,7 @@ const isValidInput = computed(() => {
   return isValidCodePoint && hasValidHex
 })
 
-const addGlyph = () => {
+const addGlyph = (): void => {
   if (!isValidInput.value) return
 
   const hexValue = props.prefillData
@@ -121,16 +138,22 @@ const addGlyph = () => {
 
   props.onGlyphChange(updatedGlyphs)
   saveGlyphsToStorage(updatedGlyphs)
-  clearForm()
+  clearForm(false)
+
+  if (manualInputQueue.value.length > 0) {
+    nextTick(() => {
+      processNextManualInputGlyph()
+    })
+  }
 }
 
-const findExistingGlyph = (codePoint) => {
+const findExistingGlyph = (codePoint: string): Glyph | undefined => {
   return props.glyphs.find(
     (g) => g.codePoint.toLowerCase() === codePoint.toLowerCase(),
   )
 }
 
-const handleAdd = () => {
+const handleAdd = (): void => {
   if (!isValidInput.value) return
 
   const existing = findExistingGlyph(newGlyph.value.codePoint)
@@ -140,9 +163,15 @@ const handleAdd = () => {
   }
 
   addGlyph()
+
+  if (manualInputQueue.value.length > 0) {
+    nextTick(() => {
+      processNextManualInputGlyph()
+    })
+  }
 }
 
-const updateExistingGlyph = () => {
+const updateExistingGlyph = (): void => {
   const hexValue = props.prefillData
     ? props.prefillData.hexValue.toUpperCase()
     : newGlyph.value.hexValue.toUpperCase()
@@ -155,15 +184,37 @@ const updateExistingGlyph = () => {
 
   props.onGlyphChange(updatedGlyphs)
   saveGlyphsToStorage(updatedGlyphs)
-  clearForm()
+  clearForm(false)
+
+  if (manualInputQueue.value.length > 0) {
+    nextTick(() => {
+      processNextManualInputGlyph()
+    })
+  }
 }
 
-const clearForm = () => {
+const clearForm = (shouldClearQueue: boolean = true): void => {
   newGlyph.value = { codePoint: '', hexValue: '' }
   duplicateGlyph.value = null
   editMode.value = false
 
   emit('clear-prefill')
+
+  if (shouldClearQueue) {
+    manualInputQueue.value = []
+    manualInputOriginalTotal.value = 0
+  }
+}
+
+const handleClear = (): void => {
+  const shouldClearQueue = manualInputQueue.value.length === 0
+  clearForm(shouldClearQueue)
+
+  if (!shouldClearQueue && manualInputQueue.value.length > 0) {
+    nextTick(() => {
+      processNextManualInputGlyph()
+    })
+  }
 }
 
 watch(
@@ -171,7 +222,9 @@ watch(
   (newData) => {
     if (newData) {
       nextTick(() => {
-        const codePointInput = document.querySelector('.add-glyph input')
+        const codePointInput = document.querySelector(
+          '.add-glyph input',
+        ) as HTMLInputElement | null
         if (codePointInput) {
           codePointInput.focus()
         }
@@ -181,7 +234,7 @@ watch(
   { immediate: true },
 )
 
-const filteredGlyphs = computed(() => {
+const filteredGlyphs = computed<Glyph[]>(() => {
   const query = searchQuery.value.toLowerCase()
   return props.glyphs
     .filter(
@@ -196,7 +249,7 @@ const filteredGlyphs = computed(() => {
     })
 })
 
-const removeGlyph = (codePoint) => {
+const removeGlyph = (codePoint: string): void => {
   const updatedGlyphs = props.glyphs.filter(
     (glyph) => glyph.codePoint !== codePoint,
   )
@@ -204,17 +257,17 @@ const removeGlyph = (codePoint) => {
   saveGlyphsToStorage(updatedGlyphs)
 }
 
-const editGlyph = (glyph) => {
+const editGlyph = (glyph: Glyph): void => {
   newGlyph.value = { ...glyph }
   editMode.value = true
   removeGlyph(glyph.codePoint)
 }
 
-const handleEditInGrid = (glyph) => {
+const handleEditInGrid = (glyph: Glyph): void => {
   emit('edit-in-grid', glyph.hexValue, glyph)
 }
 
-const exportToHex = () => {
+const exportToHex = (): void => {
   const hexContent = props.glyphs
     .map((glyph) => `${glyph.codePoint}:${glyph.hexValue}`)
     .join('\n')
@@ -231,7 +284,7 @@ const exportToHex = () => {
   URL.revokeObjectURL(url)
 }
 
-const loadUnifontData = async () => {
+const loadUnifontData = async (): Promise<void> => {
   try {
     const response = await fetch('/unifont-map.json')
     const data = await response.json()
@@ -241,7 +294,7 @@ const loadUnifontData = async () => {
   }
 }
 
-const importFromUnifont = () => {
+const importFromUnifont = (): void => {
   if (!newGlyph.value.codePoint) return
 
   newGlyph.value.codePoint = newGlyph.value.codePoint.toUpperCase()
@@ -257,26 +310,29 @@ const importFromUnifont = () => {
   }
 }
 
-const handleHexFileUpload = async (event) => {
-  const file = event.target.files[0]
+const handleHexFileUpload = async (event: Event): Promise<void> => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
   if (!file) return
 
   const text = await file.text()
   const lines = text.split('\n')
-  const newGlyphs = []
-  const conflicts = []
+  const newGlyphs: Glyph[] = []
+  const conflicts: Glyph[] = []
 
   for (const line of lines) {
     if (line && line.includes(':')) {
-      const [code, hex] = line.split(':')
-      const codePoint = code.toUpperCase()
-      const hexValue = hex.trim().toUpperCase()
-      const existing = findExistingGlyph(codePoint)
+      const parts = line.split(':')
+      if (parts[0]) {
+        const codePoint = parts[0].toUpperCase()
+        const hexValue = parts[1]?.trim().toUpperCase() || ''
+        const existing = findExistingGlyph(codePoint)
 
-      if (existing) {
-        conflicts.push({ codePoint, hexValue })
-      } else {
-        newGlyphs.push({ codePoint, hexValue })
+        if (existing) {
+          conflicts.push({ codePoint, hexValue })
+        } else {
+          newGlyphs.push({ codePoint, hexValue })
+        }
       }
     }
   }
@@ -290,7 +346,9 @@ const handleHexFileUpload = async (event) => {
       items: conflicts,
       confirmText: $t('dialog.hex_import.confirm'),
       cancelText: $t('dialog.hex_import.cancel'),
-      onConfirm: (selectedItems) => {
+      onConfirm: (selectedItems?: Glyph[]) => {
+        if (!selectedItems) return
+
         const updatedGlyphs = props.glyphs.map((g) => {
           const selected = selectedItems.find(
             (s) => s.codePoint === g.codePoint,
@@ -316,10 +374,10 @@ const handleHexFileUpload = async (event) => {
     saveGlyphsToStorage(updatedGlyphs)
   }
 
-  event.target.value = ''
+  target.value = ''
 }
 
-const validateImageDimensions = (img) => {
+const validateImageDimensions = (img: ImageWithDimensions): boolean => {
   if (
     (img.width === 16 && img.height === 16) ||
     (img.width === 8 && img.height === 16)
@@ -333,6 +391,10 @@ const validateImageDimensions = (img) => {
     message: $t('dialog.dimension_error.message'),
     type: 'alert',
     showCancel: false,
+    confirmText: $t('dialog.confirm'),
+    cancelText: $t('dialog.cancel'),
+    danger: false,
+    items: [],
     onConfirm: () => {
       dialog.value.show = false
     },
@@ -340,12 +402,12 @@ const validateImageDimensions = (img) => {
   return false
 }
 
-const validateMonochrome = (imageData) => {
+const validateMonochrome = (imageData: ImageData): boolean => {
   for (let i = 0; i < imageData.data.length; i += 4) {
-    const r = imageData.data[i]
-    const g = imageData.data[i + 1]
-    const b = imageData.data[i + 2]
-    const a = imageData.data[i + 3]
+    const r = imageData.data[i] || 0
+    const g = imageData.data[i + 1] || 0
+    const b = imageData.data[i + 2] || 0
+    const a = imageData.data[i + 3] || 0
 
     if (
       a > 0 &&
@@ -360,6 +422,10 @@ const validateMonochrome = (imageData) => {
         message: $t('dialog.format_error.message'),
         type: 'alert',
         showCancel: false,
+        confirmText: $t('dialog.confirm'),
+        cancelText: $t('dialog.cancel'),
+        danger: false,
+        items: [],
         onConfirm: () => {
           dialog.value.show = false
         },
@@ -370,11 +436,11 @@ const validateMonochrome = (imageData) => {
   return true
 }
 
-const handleImageFileUpload = async (event) => {
-  const file = event.target.files[0]
-  if (!file) return
-
-  const codePoint = file.name.split('.')[0].toUpperCase()
+const processImageFile = async (
+  file: File,
+): Promise<{ glyph: Glyph | null; error: string | null }> => {
+  const nameMatch = file.name?.match(/^([^.]+)/) || ['']
+  const codePoint = nameMatch[0].toUpperCase()
   let useCodePoint = ''
 
   if (/^[0-9A-F]{4,6}$/.test(codePoint)) {
@@ -385,73 +451,297 @@ const handleImageFileUpload = async (event) => {
   const ctx = canvas.getContext('2d')
 
   try {
-    const img = await loadImage(file)
+    const img = (await loadImage(file)) as ImageWithDimensions
 
     if (!validateImageDimensions(img)) {
-      event.target.value = ''
-      return
+      return { glyph: null, error: $t('dialog.dimension_error.message') }
     }
 
     canvas.width = img.width
     canvas.height = img.height
-    ctx.drawImage(img, 0, 0)
 
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    if (ctx) {
+      ctx.drawImage(img, 0, 0)
 
-    if (!validateMonochrome(imageData)) {
-      event.target.value = ''
-      return
-    }
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
 
-    let hex = ''
-    for (let y = 0; y < 16; y++) {
-      let row = 0
-      for (let x = 0; x < canvas.width; x++) {
-        const i = (y * canvas.width + x) * 4
-        const isBlack = imageData.data[i] === 0 && imageData.data[i + 3] > 127
-        row = (row << 1) | (isBlack ? 1 : 0)
+      if (!validateMonochrome(imageData)) {
+        return { glyph: null, error: $t('dialog.format_error.message') }
       }
 
-      hex += row.toString(16).padStart(2, '0').toUpperCase()
-    }
+      let hex = ''
+      const width = canvas.width
 
-    if (useCodePoint) {
-      const newGlyph = {
-        codePoint: useCodePoint,
-        hexValue: hex.toUpperCase(),
-      }
-
-      const updatedGlyphs = [...props.glyphs, newGlyph]
-      props.onGlyphChange(updatedGlyphs)
-      saveGlyphsToStorage(updatedGlyphs)
-    } else {
-      newGlyph.value.hexValue = hex.toUpperCase()
-
-      nextTick(() => {
-        const codePointInput = document.querySelector('.add-glyph input')
-        if (codePointInput) {
-          codePointInput.focus()
+      for (let y = 0; y < 16; y++) {
+        let rowBinary = ''
+        for (let x = 0; x < width; x++) {
+          const i = (y * width + x) * 4
+          const r = imageData.data[i] || 0
+          const a = imageData.data[i + 3] || 0
+          const isBlack = r === 0 && a > 127
+          rowBinary += isBlack ? '1' : '0'
         }
-      })
+
+        for (let i = 0; i < rowBinary.length; i += 4) {
+          const chunk = rowBinary.slice(i, i + 4).padEnd(4, '0')
+          hex += parseInt(chunk, 2).toString(16).toUpperCase()
+        }
+      }
+
+      if (useCodePoint) {
+        return {
+          glyph: {
+            codePoint: useCodePoint,
+            hexValue: hex.toUpperCase(),
+          },
+          error: null,
+        }
+      } else {
+        return {
+          glyph: {
+            codePoint: '',
+            hexValue: hex.toUpperCase(),
+          },
+          error: null,
+        }
+      }
     }
   } catch (error) {
     console.error('Error loading image:', error)
+    return { glyph: null, error: $t('dialog.image_error.message') }
+  }
+
+  return { glyph: null, error: 'Unknown error' }
+}
+
+const handleImageFileUpload = async (event: Event): Promise<void> => {
+  const target = event.target as HTMLInputElement
+  const files = target.files
+  if (!files || files.length === 0) return
+
+  const results: Array<{
+    glyph: Glyph | null
+    error: string | null
+    fileName: string
+  }> = []
+  const validGlyphs: Glyph[] = []
+  const conflicts: Glyph[] = []
+  const manualInputGlyphs: Glyph[] = []
+  const errors: Array<{ fileName: string; error: string }> = []
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i]
+    if (!file) continue
+
+    const result = await processImageFile(file)
+    results.push({ ...result, fileName: file.name })
+
+    if (result.error) {
+      errors.push({ fileName: file.name, error: result.error })
+    } else if (result.glyph) {
+      if (result.glyph.codePoint === '') {
+        manualInputGlyphs.push(result.glyph)
+      } else {
+        const existing = findExistingGlyph(result.glyph.codePoint)
+        if (existing) {
+          conflicts.push(result.glyph)
+        } else {
+          validGlyphs.push(result.glyph)
+        }
+      }
+    }
+  }
+
+  if (errors.length > 0) {
+    const errorMessage = errors
+      .map((e) => `${e.fileName}: ${e.error}`)
+      .join('\n')
     dialog.value = {
       show: true,
       title: $t('dialog.image_error.title'),
-      message: $t('dialog.image_error.message'),
+      message: errorMessage,
       type: 'alert',
       showCancel: false,
+      confirmText: $t('dialog.confirm'),
+      cancelText: $t('dialog.cancel'),
+      danger: false,
+      items: [],
       onConfirm: () => {
         dialog.value.show = false
       },
     }
   }
 
-  event.target.value = ''
+  if (conflicts.length > 0) {
+    dialog.value = {
+      show: true,
+      title: $t('dialog.hex_import.title'),
+      message: $t('dialog.hex_import.message'),
+      type: 'list',
+      items: conflicts,
+      confirmText: $t('dialog.hex_import.confirm'),
+      cancelText: $t('dialog.hex_import.cancel'),
+      onConfirm: (selectedItems?: Glyph[]) => {
+        if (!selectedItems) return
+
+        const updatedGlyphs = props.glyphs.map((g) => {
+          const selected = selectedItems.find(
+            (s) => s.codePoint === g.codePoint,
+          )
+          return selected ? selected : g
+        })
+
+        const finalGlyphs = [...updatedGlyphs, ...validGlyphs]
+        props.onGlyphChange(finalGlyphs)
+        saveGlyphsToStorage(finalGlyphs)
+        dialog.value.show = false
+
+        handleManualInputGlyphs(manualInputGlyphs)
+      },
+      onCancel: () => {
+        const finalGlyphs = [...props.glyphs, ...validGlyphs]
+        props.onGlyphChange(finalGlyphs)
+        saveGlyphsToStorage(finalGlyphs)
+        dialog.value.show = false
+
+        handleManualInputGlyphs(manualInputGlyphs)
+      },
+    }
+  } else if (validGlyphs.length > 0) {
+    const updatedGlyphs = [...props.glyphs, ...validGlyphs]
+    props.onGlyphChange(updatedGlyphs)
+    saveGlyphsToStorage(updatedGlyphs)
+
+    handleManualInputGlyphs(manualInputGlyphs)
+  } else {
+    handleManualInputGlyphs(manualInputGlyphs)
+  }
+
+  target.value = ''
 }
 
-const loadImage = (file) => {
+const manualInputQueue = ref<Glyph[]>([])
+const manualInputOriginalTotal = ref<number>(0)
+
+const handleManualInputGlyphs = (manualInputGlyphs: Glyph[]): void => {
+  if (manualInputGlyphs.length > 0) {
+    manualInputQueue.value = [...manualInputGlyphs]
+    manualInputOriginalTotal.value = manualInputGlyphs.length
+
+    if (manualInputGlyphs.length === 1) {
+      const firstGlyph = manualInputGlyphs[0]
+      if (firstGlyph) {
+        newGlyph.value.hexValue = firstGlyph.hexValue
+
+        manualInputQueue.value.shift()
+
+        nextTick(() => {
+          const codePointInput = document.querySelector(
+            '.add-glyph input',
+          ) as HTMLInputElement
+          if (codePointInput) {
+            codePointInput.focus()
+          }
+        })
+      }
+    } else {
+      processNextManualInputGlyph()
+    }
+  }
+}
+
+const processNextManualInputGlyph = (): void => {
+  if (manualInputQueue.value.length === 0) {
+    return
+  }
+
+  const currentGlyph = manualInputQueue.value[0]
+  const remaining = manualInputQueue.value.length
+  const current = manualInputOriginalTotal.value - remaining + 1
+
+  dialog.value = {
+    show: true,
+    title: $t('glyph_manager.manual_input.title'),
+    message: $t('glyph_manager.manual_input.message'),
+    type: 'alert',
+    showCancel: false,
+    danger: false,
+    items: [],
+    hexValue: currentGlyph?.hexValue || '',
+    displayMode: 'glyph-input',
+    showProgress: true,
+    progressCurrent: current,
+    progressTotal: manualInputOriginalTotal.value,
+    customButtons: [
+      {
+        text: $t('glyph_manager.manual_input.process'),
+        action: 'process',
+        class: 'btn-primary',
+      },
+      {
+        text: $t('glyph_manager.manual_input.skip_one'),
+        action: 'skipOne',
+        class: 'btn-secondary',
+      },
+      {
+        text: $t('glyph_manager.manual_input.skip_all'),
+        action: 'skipAll',
+        class: 'btn-secondary',
+      },
+    ],
+    onConfirm: () => {},
+    onCancel: () => {
+      dialog.value.show = false
+      manualInputQueue.value = []
+      manualInputOriginalTotal.value = 0
+    },
+  }
+}
+
+const handleDialogConfirm = (selectedItems?: Glyph[]): void => {
+  if (dialog.value.onConfirm) {
+    dialog.value.onConfirm(selectedItems)
+  }
+}
+
+const handleDialogCancel = (): void => {
+  if (dialog.value.onCancel) {
+    dialog.value.onCancel()
+  }
+}
+
+const handleDialogCustomAction = (action: string): void => {
+  dialog.value.show = false
+
+  if (action === 'process') {
+    const currentGlyph = manualInputQueue.value[0]
+    if (currentGlyph) {
+      newGlyph.value.hexValue = currentGlyph.hexValue
+      manualInputQueue.value.shift()
+
+      nextTick(() => {
+        const codePointInput = document.querySelector(
+          '.add-glyph input',
+        ) as HTMLInputElement
+        if (codePointInput) {
+          codePointInput.focus()
+        }
+      })
+    }
+  } else if (action === 'skipOne') {
+    manualInputQueue.value.shift()
+    if (manualInputQueue.value.length > 0) {
+      nextTick(() => {
+        processNextManualInputGlyph()
+      })
+    }
+  } else if (action === 'skipAll') {
+    manualInputQueue.value = []
+    manualInputOriginalTotal.value = 0
+  }
+}
+
+const loadImage = (file: File): Promise<HTMLImageElement> => {
   return new Promise((resolve, reject) => {
     const img = new Image()
     img.onload = () => resolve(img)
@@ -460,7 +750,7 @@ const loadImage = (file) => {
   })
 }
 
-const dialog = ref({
+const dialog = ref<DialogConfig>({
   show: false,
   title: '',
   message: '',
@@ -470,11 +760,16 @@ const dialog = ref({
   confirmText: $t('dialog.confirm'),
   cancelText: $t('dialog.cancel'),
   danger: false,
+  hexValue: '',
+  width: 400,
+  showProgress: false,
+  progressCurrent: 0,
+  progressTotal: 0,
   onConfirm: () => {},
   onCancel: () => {},
 })
 
-const handleBatchDelete = (codePoints) => {
+const handleBatchDelete = (codePoints: string[]): void => {
   dialog.value = {
     show: true,
     title: $t('dialog.batch_delete.title'),
@@ -482,6 +777,9 @@ const handleBatchDelete = (codePoints) => {
     type: 'confirm',
     danger: true,
     confirmText: $t('dialog.batch_delete.confirm'),
+    cancelText: $t('dialog.cancel'),
+    showCancel: true,
+    items: [],
     onConfirm: () => {
       const updatedGlyphs = props.glyphs.filter(
         (glyph) => !codePoints.includes(glyph.codePoint),

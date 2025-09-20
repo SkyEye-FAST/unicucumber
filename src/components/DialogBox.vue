@@ -4,6 +4,34 @@
       <h3 class="dialog-title">{{ title }}</h3>
       <div class="dialog-content">
         <p>{{ message }}</p>
+        <div v-if="showProgress" class="progress-section">
+          <div class="progress-info">
+            <span>{{ progressCurrent }} / {{ progressTotal }}</span>
+            <span>{{ progressPercentage }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              :style="{ width: progressPercentage + '%' }"
+            ></div>
+          </div>
+        </div>
+        <div
+          v-if="hexValue && displayMode === 'glyph-input'"
+          class="glyph-preview-section"
+        >
+          <div class="glyph-preview-container">
+            <PixelPreview
+              :hex-value="hexValue"
+              :width="hexValue.length <= 32 ? 8 : 16"
+              display-mode="dialog"
+            />
+          </div>
+          <div class="glyph-info">
+            <span class="hex-label">{{ $t('dialog.glyph_hex') }}:</span>
+            <span class="hex-display">{{ hexValue }}</span>
+          </div>
+        </div>
         <div v-if="type === 'list'" class="conflict-list">
           <div class="select-all-row">
             <label class="checkbox-label">
@@ -38,36 +66,56 @@
         </div>
       </div>
       <div class="dialog-actions">
-        <button v-if="showCancel" class="btn-secondary" @click="handleCancel">
-          {{ cancelText }}
-        </button>
-        <button
-          :class="{ 'btn-primary': !danger, 'btn-danger': danger }"
-          @click="handleConfirm"
-        >
-          {{ confirmText }}
-        </button>
+        <template v-if="customButtons && customButtons.length > 0">
+          <button
+            v-for="(button, index) in customButtons"
+            :key="index"
+            :class="['btn-custom', button.class || 'btn-secondary']"
+            @click="handleCustomButton(button.action)"
+          >
+            {{ button.text }}
+          </button>
+        </template>
+        <template v-else>
+          <button v-if="showCancel" class="btn-secondary" @click="handleCancel">
+            {{ cancelText }}
+          </button>
+          <button
+            :class="{ 'btn-primary': !danger, 'btn-danger': danger }"
+            @click="handleConfirm"
+          >
+            {{ confirmText }}
+          </button>
+        </template>
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import type { Glyph } from '@/types/glyph'
+import PixelPreview from '@/components/GlyphManager/PixelPreview.vue'
 
 const { t: $t } = useI18n()
 
 const props = defineProps({
   show: Boolean,
-  title: String,
-  message: String,
+  title: {
+    type: String,
+    default: '',
+  },
+  message: {
+    type: String,
+    default: '',
+  },
   type: {
     type: String,
     default: 'alert', // 'alert', 'confirm', 'list'
   },
   items: {
-    type: Array,
+    type: Array as () => Glyph[],
     default: () => [],
   },
   showCancel: {
@@ -86,10 +134,50 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  onConfirm: {
+    type: Function,
+    default: null,
+  },
+  onCancel: {
+    type: Function,
+    default: null,
+  },
+  hexValue: {
+    type: String,
+    default: '',
+  },
+  width: {
+    type: Number,
+    default: 400,
+  },
+  displayMode: {
+    type: String,
+    default: '',
+  },
+  customButtons: {
+    type: Array as () => Array<{
+      text: string
+      action: string
+      class?: string
+    }>,
+    default: () => [],
+  },
+  progressCurrent: {
+    type: Number,
+    default: 0,
+  },
+  progressTotal: {
+    type: Number,
+    default: 0,
+  },
+  showProgress: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const emit = defineEmits(['confirm', 'cancel'])
-const selectedItems = ref([])
+const emit = defineEmits(['confirm', 'cancel', 'customAction'])
+const selectedItems = ref<Glyph[]>([])
 
 const confirmText = computed(() => props.confirmText || $t('dialog.confirm'))
 const cancelText = computed(() => props.cancelText || $t('dialog.cancel'))
@@ -98,6 +186,11 @@ const isAllSelected = computed(() => {
   return (
     props.items.length > 0 && selectedItems.value.length === props.items.length
   )
+})
+
+const progressPercentage = computed(() => {
+  if (props.progressTotal === 0) return 0
+  return Math.round((props.progressCurrent / props.progressTotal) * 100)
 })
 
 const toggleSelectAll = () => {
@@ -115,6 +208,11 @@ const handleConfirm = () => {
 
 const handleCancel = () => {
   emit('cancel')
+  selectedItems.value = []
+}
+
+const handleCustomButton = (action: string) => {
+  emit('customAction', action)
   selectedItems.value = []
 }
 
@@ -139,6 +237,7 @@ const dialogMaxWidth = computed(() => {
   justify-content: center;
   z-index: 1000;
   padding: 20px;
+  pointer-events: none;
 }
 
 .dialog-box {
@@ -148,6 +247,7 @@ const dialogMaxWidth = computed(() => {
   padding: 20px;
   width: 100%;
   box-shadow: 0 2px 12px var(--modal-shadow);
+  pointer-events: auto;
 }
 
 .dialog-title {
@@ -413,6 +513,114 @@ const dialogMaxWidth = computed(() => {
   .glyph-preview {
     font-size: 1.3em;
     min-width: 32px;
+  }
+}
+
+.glyph-preview-section {
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--background-light);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.progress-section {
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--background-light);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-family: var(--monospace-font);
+  font-size: 0.9em;
+  color: var(--text-secondary);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 20px;
+  background: var(--glyph-card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary-color);
+  border-radius: 10px;
+  transition: width 0.3s ease;
+  min-width: 2px;
+}
+
+[data-theme='dark'] .progress-bar {
+  background: var(--glyph-card-background);
+  border-color: var(--glyph-card-border);
+}
+
+[data-theme='dark'] .progress-fill {
+  background: var(--primary-color);
+}
+
+.glyph-preview-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+}
+
+.glyph-info {
+  text-align: center;
+  font-family: var(--monospace-font);
+}
+
+.hex-label {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+.hex-display {
+  color: var(--text-color);
+  font-weight: 600;
+  word-break: break-all;
+  margin-left: 8px;
+}
+
+@media (orientation: portrait) and (max-width: 767px) {
+  .glyph-preview-section {
+    margin: 12px 0;
+    padding: 12px;
+  }
+
+  .progress-section {
+    margin: 12px 0;
+    padding: 12px;
+  }
+
+  .progress-info {
+    font-size: 0.8em;
+    margin-bottom: 8px;
+  }
+
+  .progress-bar {
+    height: 16px;
+  }
+
+  .glyph-info {
+    font-size: 0.9em;
+  }
+
+  .hex-display {
+    margin-left: 4px;
   }
 }
 </style>

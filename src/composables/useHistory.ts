@@ -45,7 +45,7 @@ export function useHistory<T extends number[][]>(
   const undo = () => {
     if (currentIndex.value > 0) {
       currentIndex.value--
-      return deepCloneGrid(history.value[currentIndex.value].grid) as T
+      return deepCloneGrid(history.value[currentIndex.value]?.grid ?? []) as T
     }
     return null
   }
@@ -54,7 +54,7 @@ export function useHistory<T extends number[][]>(
     if (currentIndex.value < history.value.length - 1) {
       currentIndex.value++
       return deepCloneGrid(
-        history.value[currentIndex.value].grid as number[][],
+        (history.value[currentIndex.value]?.grid ?? []) as number[][],
       ) as T
     }
     return null
@@ -100,13 +100,13 @@ export function useHistory<T extends number[][]>(
 
   const getLastAction = () => {
     if (history.value.length === 0) return null
-    return history.value[currentIndex.value].action
+    return history.value[currentIndex.value]?.action ?? null
   }
 
   const getCurrentState = () => {
     if (history.value.length === 0) return null
     return deepCloneGrid(
-      history.value[currentIndex.value].grid as number[][],
+      (history.value[currentIndex.value]?.grid ?? []) as number[][],
     ) as T
   }
 

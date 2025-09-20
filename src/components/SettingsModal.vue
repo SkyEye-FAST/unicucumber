@@ -15,7 +15,7 @@
         @change="
           $emit('update:settings', {
             ...settings,
-            drawMode: $event.target.value,
+            drawMode: ($event.target as HTMLSelectElement).value,
           })
         "
       >
@@ -38,7 +38,7 @@
           @change="
             $emit('update:settings', {
               ...settings,
-              cursorEffect: $event.target.checked,
+              cursorEffect: ($event.target as HTMLInputElement).checked,
             })
           "
         />
@@ -53,7 +53,7 @@
         @change="
           $emit('update:settings', {
             ...settings,
-            glyphWidth: parseInt($event.target.value),
+            glyphWidth: parseInt(($event.target as HTMLSelectElement).value),
           })
         "
       >
@@ -72,7 +72,7 @@
         @change="
           $emit('update:settings', {
             ...settings,
-            glyphPreviewMode: $event.target.value,
+            glyphPreviewMode: ($event.target as HTMLSelectElement).value,
           })
         "
       >
@@ -103,7 +103,7 @@
           @change="
             $emit('update:settings', {
               ...settings,
-              showBorder: $event.target.checked,
+              showBorder: ($event.target as HTMLInputElement).checked,
             })
           "
         />
@@ -119,7 +119,7 @@
         @change="
           $emit('update:settings', {
             ...settings,
-            confirmClear: $event.target.checked,
+            confirmClear: ($event.target as HTMLInputElement).checked,
           })
         "
       />
@@ -134,7 +134,7 @@
         @change="
           $emit('update:settings', {
             ...settings,
-            enableSelection: $event.target.checked,
+            enableSelection: ($event.target as HTMLInputElement).checked,
           })
         "
       />
@@ -180,7 +180,7 @@
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useSettings } from '../composables/useSettings'
 import DialogBox from './DialogBox.vue'
@@ -195,6 +195,18 @@ const props = defineProps({
   settings: {
     type: Object,
     required: true,
+  },
+  hexValue: {
+    type: String,
+    default: '',
+  },
+  width: {
+    type: Number,
+    default: 16,
+  },
+  displayMode: {
+    type: String,
+    default: undefined,
   },
 })
 

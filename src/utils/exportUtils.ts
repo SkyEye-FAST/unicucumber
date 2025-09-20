@@ -2,7 +2,7 @@ export const createCanvasFromGrid = (
   gridData: number[][],
 ): HTMLCanvasElement => {
   const canvas: HTMLCanvasElement = document.createElement('canvas')
-  canvas.width = gridData[0].length
+  canvas.width = gridData[0]?.length ?? 0
   canvas.height = gridData.length
   const context: CanvasRenderingContext2D | null = canvas.getContext('2d')
 
@@ -41,7 +41,7 @@ export const convertToBMP = async (imageData: ImageData): Promise<Blob> => {
 
 export const createSVGFromGrid = (gridData: number[][]): string => {
   const cellSize = 1
-  const width = gridData[0].length
+  const width = gridData[0]?.length ?? 0
   const height = gridData.length
 
   let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">`

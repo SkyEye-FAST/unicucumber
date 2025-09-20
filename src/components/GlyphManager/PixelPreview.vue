@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 
 const props = defineProps({
   hexValue: {
@@ -116,28 +116,53 @@ const drawGlyph = () => {
     willReadFrequently: false,
   }) as CanvasRenderingContext2D
 
-  const bits = new Uint8Array(props.width * 16)
-  const bytes = (props.hexValue.match(/.{1,2}/g) ?? []).map((byte) =>
-    parseInt(byte, 16),
-  )
+  try {
+    ctx.clearRect(0, 0, props.width, 16)
+    ctx.fillStyle = 'white'
+    ctx.fillRect(0, 0, props.width, 16)
 
-  for (let i = 0; i < bytes.length; i++) {
-    const byte = bytes[i]
-    const offset = i * 8
-    for (let bit = 0; bit < 8; bit++) {
-      bits[offset + bit] = (byte >> (7 - bit)) & 1
+    const expectedLength = props.width === 8 ? 32 : 64
+    const hexLength = props.hexValue.length
+
+    if (!props.hexValue || hexLength !== expectedLength) {
+      return
     }
-  }
 
-  ctx.fillStyle = 'white'
-  ctx.fillRect(0, 0, props.width, 16)
+    if (!/^[0-9A-Fa-f]*$/i.test(props.hexValue)) {
+      return
+    }
 
-  ctx.fillStyle = 'black'
-  for (let i = 0; i < bits.length; i++) {
-    if (bits[i]) {
-      const x = i % props.width
-      const y = Math.floor(i / props.width)
-      ctx.fillRect(x, y, 1, 1)
+    const bits = new Uint8Array(props.width * 16)
+    const bytes = (props.hexValue.match(/.{1,2}/g) ?? []).map((byte) =>
+      parseInt(byte, 16),
+    )
+
+    for (let i = 0; i < bytes.length; i++) {
+      const byte = bytes[i]
+      if (byte === undefined) continue
+      const offset = i * 8
+      for (let bit = 0; bit < 8; bit++) {
+        if (offset + bit < bits.length) {
+          bits[offset + bit] = (byte >> (7 - bit)) & 1
+        }
+      }
+    }
+
+    ctx.fillStyle = 'black'
+    for (let i = 0; i < bits.length; i++) {
+      if (bits[i]) {
+        const x = i % props.width
+        const y = Math.floor(i / props.width)
+        ctx.fillRect(x, y, 1, 1)
+      }
+    }
+  } catch (error) {
+    console.warn('PixelPreview drawGlyph error:', error)
+    try {
+      ctx.fillStyle = 'white'
+      ctx.fillRect(0, 0, props.width, 16)
+    } catch (fallbackError) {
+      console.error('PixelPreview fallback draw error:', fallbackError)
     }
   }
 }
@@ -146,7 +171,13 @@ onMounted(() => {
   drawGlyph()
 })
 
-watch(() => props.hexValue, drawGlyph)
+watch(
+  [() => props.hexValue, () => props.width],
+  () => {
+    drawGlyph()
+  },
+  { flush: 'post' },
+)
 </script>
 
 <style scoped>
