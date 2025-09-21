@@ -2,9 +2,8 @@
   <div
     class="grid-container"
     :style="gridStyle"
-    @touchstart="handleTouchStart"
-    @touchmove="handleTouchMove"
-    @touchend="handleTouchEnd"
+    tabindex="0"
+    @keydown="handleKeyDown"
   >
     <div class="header-row">
       <div class="corner-cell"></div>
@@ -19,35 +18,7 @@
         {{ (colIndex - 1).toString(16).toUpperCase() }}
       </div>
     </div>
-    <div
-      v-if="selectionStart || isDragging"
-      class="selection-overlay"
-      :style="{
-        gridColumnStart: 2,
-        gridTemplateColumns: `repeat(${gridData[0]?.length || 0}, var(--cell-size))`,
-      }"
-    >
-      <div class="overlay-content">
-        <div
-          v-for="(row, rowIndex) in gridData"
-          :key="`overlay-row-${rowIndex}`"
-          class="overlay-row"
-        >
-          <div
-            v-for="(cell, cellIndex) in row"
-            :key="`overlay-cell-${rowIndex}-${cellIndex}`"
-            :class="[
-              'overlay-cell',
-              {
-                'overlay-selected': isInSelection(rowIndex, cellIndex),
-                'overlay-dragging':
-                  isDragging && isInSelection(rowIndex, cellIndex),
-              },
-            ]"
-          ></div>
-        </div>
-      </div>
-    </div>
+
     <div
       v-for="(row, rowIndex) in gridData"
       :key="`row-${rowIndex}`"
@@ -61,174 +32,583 @@
       >
         {{ rowIndex.toString(16).toUpperCase() }}
       </div>
+
       <div
         v-for="(cell, cellIndex) in row"
         :key="`cell-${rowIndex}-${cellIndex}`"
-        :class="[
-          'cell',
-          {
-            filled: cell === 1,
-            selected: isInSelection(rowIndex, cellIndex),
-            'selected-filled': isInSelection(rowIndex, cellIndex) && cell === 1,
-            dragging: isDragging && isInSelection(rowIndex, cellIndex),
-          },
-        ]"
+        :class="getCellClasses(rowIndex, cellIndex, cell)"
         :data-row="rowIndex"
         :data-col="cellIndex"
-        :style="[
-          getCellStyle(rowIndex, cellIndex),
-          isDragging && moveMode ? { cursor: 'move' } : null,
-          {
-            boxShadow: showBorder
-              ? 'inset 0 0 0 0.3px var(--primary-darker)'
-              : 'none',
-          },
-        ]"
-        @mousedown.prevent="startDrawing(rowIndex, cellIndex, $event)"
-        @contextmenu.prevent
-        @mouseover="handleHover(rowIndex, cellIndex)"
-        @mouseleave="clearHover"
-        @mouseup="stopDrawing"
+        :style="getCellStyle(rowIndex, cellIndex)"
+        @mousedown="handleMouseDown(rowIndex, cellIndex, $event)"
+        @mousemove="handleMouseMove(rowIndex, cellIndex)"
+        @mouseleave="handleMouseLeave"
+        @contextmenu="drawing.handleContextMenu"
+        @click="handleCellClick(rowIndex, cellIndex)"
       ></div>
     </div>
+
+    <div
+      v-if="currentSelectionRect"
+      class="selection-overlay"
+      :class="selectionStateClass"
+      :style="getSelectionOverlayStyle(currentSelectionRect)"
+    ></div>
+
+    <div
+      v-if="tempSelectionRect"
+      class="selection-overlay temp-selection"
+      :class="tempSelectionStateClass"
+      :style="getSelectionOverlayStyle(tempSelectionRect)"
+    ></div>
+
+    <div
+      v-if="clipboard.isPasteMode.value && drawing.hoverCell.value.row >= 0"
+      class="paste-cursor"
+      :style="pasteCursorStyle"
+    ></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue'
-import { useDrawing } from '@/composables/useDrawing'
-import { useHistory } from '@/composables/useHistory'
-
-interface ClipboardData {
-  data: number[][]
-  width: number
-  height: number
-}
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
+import {
+  useSelection,
+  type ToolType,
+  type Rectangle,
+} from '@/composables/useSelection'
+import { useClipboard } from '@/composables/useClipboard'
+import { useDrawing, type DrawAction } from '@/composables/useDrawing'
 
 interface Props {
   gridData: number[][]
-  drawMode: string
+  drawMode: 'singleButtonDraw' | 'doubleButtonDraw'
   drawValue: number
   cursorEffect: boolean
   showBorder: boolean
-  moveMode?: boolean
-  clipboardData?: ClipboardData | null
+  currentTool?: ToolType
+  enableSelection?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  moveMode: false,
-  clipboardData: null,
+  currentTool: 'draw',
+  enableSelection: false,
 })
 
 const emit = defineEmits([
   'update:cell',
   'update:drawValue',
-  'copy-selection',
-  'selection-complete',
-  'paste-complete',
-  'preview-move',
-  'move-to',
+  'update:draw-value',
+  'selection-change',
+  'tool-change',
+  'tool-state-change',
   'draw-complete',
-  'drag-complete',
+  'clipboard-change',
 ])
 
-const {
-  hoverCell,
-  startDrawing,
-  stopDrawing,
-  handleHover,
-  clearHover,
-  selectionStart,
-  selectionEnd,
-  isSelecting,
-  copySelection,
-  pasteSelection,
-  isDragging,
-  handleTouchStart,
-  handleTouchMove,
-  handleTouchEnd,
-} = useDrawing(props, emit)
+const selection = useSelection(() => props.gridData)
+const clipboard = useClipboard()
 
-const { initHistory } = useHistory(props.gridData)
-
-watch(
-  () => props.gridData,
-  (newData) => {
-    initHistory(newData)
+const drawing = useDrawing(
+  computed(() => ({
+    drawMode: props.drawMode,
+    drawValue: props.drawValue,
+    gridData: () => props.gridData,
+    disabled: !props.enableSelection && props.currentTool === 'select',
+  })),
+  {
+    'cell-change': (row: number, col: number, value: number) =>
+      emit('update:cell', row, col, value),
+    'draw-complete': (action: DrawAction) => emit('draw-complete', action),
+    'tool-change': (value: number) => emit('update:draw-value', value),
+    'tool-state-change': (tool: 'draw' | 'erase') =>
+      emit('tool-state-change', tool),
   },
-  { immediate: true },
 )
 
-const getCellStyle = (
-  rowIndex: number,
-  cellIndex: number,
-): Record<string, string> => {
-  return props.cursorEffect &&
-    hoverCell.value.row === rowIndex &&
-    hoverCell.value.col === cellIndex
-    ? {
-        backgroundColor:
-          props.drawValue === 2
-            ? 'var(--grid-selection-bg)'
-            : props.drawValue === 1
-              ? 'black'
-              : 'white',
-      }
-    : {}
-}
-
-const isInSelection = (rowIndex: number, cellIndex: number): boolean => {
-  if (!selectionStart.value || !selectionEnd.value) return false
-
-  const minRow = Math.min(selectionStart.value.row, selectionEnd.value.row)
-  const maxRow = Math.max(selectionStart.value.row, selectionEnd.value.row)
-  const minCol = Math.min(selectionStart.value.col, selectionEnd.value.col)
-  const maxCol = Math.max(selectionStart.value.col, selectionEnd.value.col)
-
-  return (
-    rowIndex >= minRow &&
-    rowIndex <= maxRow &&
-    cellIndex >= minCol &&
-    cellIndex <= maxCol
-  )
-}
+const isInteracting = ref(false)
+const mousePosition = ref({ x: 0, y: 0 })
+const lastValidMousePos = ref({ row: -1, col: -1 })
 
 const gridStyle = computed(() => ({
   gridTemplateColumns: props.gridData[0]
     ? `var(--cell-size) repeat(${props.gridData[0].length}, var(--cell-size))`
     : '',
 }))
-const handleCopySelection = () => {
-  const selection = copySelection()
-  if (selection) {
-    emit('copy-selection', selection)
-  }
-  return selection
+
+const getCellClasses = (row: number, col: number, value: number) => {
+  const classes = ['cell']
+  if (value === 1) classes.push('filled')
+  return classes.join(' ')
 }
 
-const getCellIndex = (target: HTMLElement) => {
-  const cellIndex =
-    Array.from(target.parentNode?.children || []).indexOf(target) - 1
-  const rowIndex =
-    Array.from(target.parentNode?.parentNode?.children || []).indexOf(
-      target.parentNode as Element,
-    ) - 1
-  return { rowIndex, cellIndex }
+const getCellStyle = (row: number, col: number) => {
+  const style: Record<string, string> = {}
+
+  if (
+    props.cursorEffect &&
+    drawing.hoverCell.value.row === row &&
+    drawing.hoverCell.value.col === col &&
+    props.currentTool !== 'select'
+  ) {
+    const drawValue =
+      props.drawMode === 'doubleButtonDraw'
+        ? drawing.currentDrawValue.value
+        : drawing.effectiveDrawValue.value
+    if (drawValue === 1) {
+      style.backgroundColor = 'black'
+    } else if (drawValue === 0) {
+      style.backgroundColor = 'white'
+    }
+  }
+
+  if (props.showBorder) {
+    style.boxShadow = 'inset 0 0 0 0.3px var(--primary-darker)'
+  }
+
+  return style
 }
+
+const currentSelectionRect = computed(() => {
+  return selection.selectionRect.value
+})
+
+const tempSelectionRect = computed(() => {
+  return selection.tempRect.value
+})
+
+const selectionStateClass = computed(() => {
+  const state = selection.state.value
+  return {
+    'selection-selecting': state === 'selecting',
+    'selection-selected': state === 'selected',
+    'selection-moving': state === 'moving',
+    'selection-copying': state === 'copying',
+  }
+})
+
+const tempSelectionStateClass = computed(() => {
+  const state = selection.state.value
+  return {
+    'selection-temp': true,
+    'selection-selecting': state === 'selecting',
+    'selection-moving': state === 'moving',
+    'selection-copying': state === 'copying',
+  }
+})
+
+const getSelectionOverlayStyle = (rect: Rectangle | null) => {
+  if (!rect) return {}
+
+  const normalized = {
+    startRow: Math.min(rect.startRow, rect.endRow),
+    startCol: Math.min(rect.startCol, rect.endCol),
+    endRow: Math.max(rect.startRow, rect.endRow),
+    endCol: Math.max(rect.startCol, rect.endCol),
+  }
+
+  const cellSize = 'var(--cell-size)'
+  const top = `calc(${normalized.startRow + 1} * ${cellSize})`
+  const left = `calc(${normalized.startCol + 1} * ${cellSize})`
+  const width = `calc(${normalized.endCol - normalized.startCol + 1} * ${cellSize})`
+  const height = `calc(${normalized.endRow - normalized.startRow + 1} * ${cellSize})`
+
+  return {
+    position: 'absolute' as const,
+    top,
+    left,
+    width,
+    height,
+    pointerEvents: 'none' as const,
+    boxSizing: 'border-box' as const,
+  }
+}
+
+const pasteCursorStyle = computed(() => {
+  if (!clipboard.isPasteMode.value || !clipboard.clipboardData.value) {
+    return { display: 'none' }
+  }
+
+  const { width, height } = clipboard.clipboardData.value
+  const hoverCell = drawing.hoverCell.value
+
+  if (hoverCell.row >= 0 && hoverCell.col >= 0) {
+    return {
+      position: 'absolute' as const,
+      gridRowStart: hoverCell.row + 2,
+      gridRowEnd: hoverCell.row + height + 2,
+      gridColumnStart: hoverCell.col + 2,
+      gridColumnEnd: hoverCell.col + width + 2,
+      border: '2px dashed var(--primary-color)',
+      backgroundColor: 'rgba(var(--primary-color-rgb), 0.1)',
+      pointerEvents: 'none' as const,
+      zIndex: 1000,
+    }
+  }
+
+  return {
+    position: 'fixed' as const,
+    left: `${mousePosition.value.x}px`,
+    top: `${mousePosition.value.y}px`,
+    width: `calc(${width} * var(--cell-size))`,
+    height: `calc(${height} * var(--cell-size))`,
+    border: '2px dashed var(--primary-color)',
+    backgroundColor: 'rgba(var(--primary-color-rgb), 0.1)',
+    pointerEvents: 'none' as const,
+    zIndex: 1000,
+  }
+})
+
+const handleMouseDown = (row: number, col: number, event: MouseEvent) => {
+  isInteracting.value = true
+  interactionStartPos.value = { row, col }
+
+  if (props.currentTool === 'select') {
+    event.preventDefault()
+    event.stopPropagation()
+
+    if (selection.isPositionInSelection({ row, col })) {
+      if (selection.startMove()) {
+        return
+      }
+    }
+
+    selection.clearSelection()
+    selection.startSelection({ row, col })
+  } else {
+    selection.clearSelection()
+    drawing.handleMouseDown(row, col, event)
+  }
+}
+
+const handleMouseMove = (row: number, col: number) => {
+  lastValidMousePos.value = { row, col }
+
+  drawing.handleMouseMove(row, col)
+
+  if (props.currentTool === 'select' && isInteracting.value) {
+    if (selection.isMoving.value) {
+      const startPos = getInteractionStartPos()
+      if (startPos && selection.selectionData.value) {
+        const deltaRow = row - startPos.row
+        const deltaCol = col - startPos.col
+
+        const originalRect = selection.selectionData.value.originalRect
+        const rawNewPos = {
+          row: originalRect.startRow + deltaRow,
+          col: originalRect.startCol + deltaCol,
+        }
+
+        const gridHeight = props.gridData.length
+        const gridWidth = props.gridData[0]?.length ?? 0
+        const selectionHeight = selection.selectionData.value.height
+        const selectionWidth = selection.selectionData.value.width
+
+        const clampedNewPos = {
+          row: Math.max(
+            0,
+            Math.min(gridHeight - selectionHeight, rawNewPos.row),
+          ),
+          col: Math.max(0, Math.min(gridWidth - selectionWidth, rawNewPos.col)),
+        }
+
+        const tempRect = {
+          startRow: clampedNewPos.row,
+          startCol: clampedNewPos.col,
+          endRow: clampedNewPos.row + selectionHeight - 1,
+          endCol: clampedNewPos.col + selectionWidth - 1,
+        }
+
+        selection.setTempRect(tempRect)
+      }
+    } else if (selection.isSelecting.value) {
+      selection.updateSelection({ row, col })
+    }
+  }
+}
+const interactionStartPos = ref<{ row: number; col: number } | null>(null)
+const getInteractionStartPos = () => interactionStartPos.value
+
+const handleMouseLeave = () => {
+  drawing.handleMouseLeave()
+}
+
+const handleMouseUp = () => {
+  if (!isInteracting.value) return
+
+  if (props.currentTool === 'select') {
+    if (selection.isMoving.value && interactionStartPos.value) {
+      const startPos = interactionStartPos.value
+
+      const currentPos = lastValidMousePos.value
+
+      if (selection.selectionData.value) {
+        const deltaRow = currentPos.row - startPos.row
+        const deltaCol = currentPos.col - startPos.col
+
+        const originalRect = selection.selectionData.value.originalRect
+        const rawNewPos = {
+          row: originalRect.startRow + deltaRow,
+          col: originalRect.startCol + deltaCol,
+        }
+
+        const gridHeight = props.gridData.length
+        const gridWidth = props.gridData[0]?.length ?? 0
+        const selectionHeight = selection.selectionData.value.height
+        const selectionWidth = selection.selectionData.value.width
+
+        const clampedNewPos = {
+          row: Math.max(
+            0,
+            Math.min(gridHeight - selectionHeight, rawNewPos.row),
+          ),
+          col: Math.max(0, Math.min(gridWidth - selectionWidth, rawNewPos.col)),
+        }
+
+        if (selection.moveSelectionTo(clampedNewPos)) {
+          const selectionDataValue = selection.selectionData.value
+          if (selectionDataValue) {
+            moveSelectionData(selectionDataValue, originalRect, clampedNewPos)
+
+            const newRect = {
+              startRow: clampedNewPos.row,
+              startCol: clampedNewPos.col,
+              endRow: clampedNewPos.row + selectionDataValue.height - 1,
+              endCol: clampedNewPos.col + selectionDataValue.width - 1,
+            }
+            selection.updateOriginalRect(newRect)
+          }
+        } else {
+        }
+      }
+
+      selection.setTempRect(null)
+    } else if (selection.isSelecting.value) {
+      selection.finishSelection()
+    }
+  }
+
+  isInteracting.value = false
+  interactionStartPos.value = null
+}
+
+const moveSelectionData = (
+  selectionData: {
+    readonly data: readonly (readonly number[])[]
+    readonly width: number
+    readonly height: number
+    readonly originalRect: Rectangle
+  },
+  fromRect: Rectangle,
+  toPos: { row: number; col: number },
+) => {
+  for (let row = fromRect.startRow; row <= fromRect.endRow; row++) {
+    for (let col = fromRect.startCol; col <= fromRect.endCol; col++) {
+      emit('update:cell', row, col, 0)
+    }
+  }
+
+  selectionData.data.forEach((rowData, rowIndex) => {
+    rowData.forEach((value, colIndex) => {
+      emit('update:cell', toPos.row + rowIndex, toPos.col + colIndex, value)
+    })
+  })
+}
+
+const handleCellClick = (row: number, col: number) => {
+  if (clipboard.isPasteMode.value) {
+    pasteAt(row, col)
+  }
+}
+
+const handleKeyDown = (event: KeyboardEvent) => {
+  if (event.ctrlKey || event.metaKey) {
+    switch (event.key.toLowerCase()) {
+      case 'c':
+        handleCopy()
+        event.preventDefault()
+        break
+      case 'x':
+        handleCut()
+        event.preventDefault()
+        break
+      case 'v':
+        handlePaste()
+        event.preventDefault()
+        break
+      case 'a':
+        handleSelectAll()
+        event.preventDefault()
+        break
+    }
+  } else {
+    switch (event.key) {
+      case 'Delete':
+        handleDelete()
+        event.preventDefault()
+        break
+      case 'Escape':
+        handleEscape()
+        event.preventDefault()
+        break
+    }
+  }
+}
+
+const handleCopy = () => {
+  if (selection.hasSelection.value && selection.selectionData.value) {
+    const data = selection.selectionData.value
+    clipboard.copy({
+      data: data.data.map((row) => [...row]),
+      width: data.width,
+      height: data.height,
+      originalRect: { ...data.originalRect },
+    })
+    emit('clipboard-change', true)
+  }
+}
+
+const handleCut = () => {
+  if (selection.hasSelection.value && selection.selectionData.value) {
+    const data = selection.selectionData.value
+    clipboard.cut({
+      data: data.data.map((row) => [...row]),
+      width: data.width,
+      height: data.height,
+      originalRect: { ...data.originalRect },
+    })
+
+    const rect = selection.selectionRect.value!
+    for (let row = rect.startRow; row <= rect.endRow; row++) {
+      for (let col = rect.startCol; col <= rect.endCol; col++) {
+        emit('update:cell', row, col, 0)
+      }
+    }
+
+    emit('clipboard-change', true)
+  }
+}
+
+const handlePaste = () => {
+  if (clipboard.hasClipboardData()) {
+    clipboard.enterPasteMode()
+  }
+}
+
+const handleSelectAll = () => {
+  if (props.currentTool === 'select' && props.enableSelection) {
+    const maxRow = props.gridData.length - 1
+    const maxCol = (props.gridData[0]?.length ?? 0) - 1
+
+    if (maxRow >= 0 && maxCol >= 0) {
+      selection.clearSelection()
+      selection.startSelection({ row: 0, col: 0 })
+      selection.updateSelection({ row: maxRow, col: maxCol })
+      selection.finishSelection()
+    }
+  }
+}
+
+const handleDelete = () => {
+  if (selection.hasSelection.value && selection.selectionRect.value) {
+    const rect = selection.selectionRect.value
+    for (let row = rect.startRow; row <= rect.endRow; row++) {
+      for (let col = rect.startCol; col <= rect.endCol; col++) {
+        emit('update:cell', row, col, 0)
+      }
+    }
+  }
+}
+
+const handleEscape = () => {
+  if (clipboard.isPasteMode.value) {
+    clipboard.exitPasteMode()
+  } else if (selection.hasSelection.value) {
+    selection.clearSelection()
+  }
+}
+
+const pasteAt = (row: number, col: number) => {
+  if (!clipboard.isPasteMode.value) return false
+
+  const pasteData = clipboard.getPasteData({ row, col })
+  if (!pasteData) return false
+
+  if (
+    !clipboard.canPasteAt(
+      { row, col },
+      props.gridData[0]?.length ?? 0,
+      props.gridData.length,
+    )
+  ) {
+    return false
+  }
+
+  pasteData.data.forEach((rowData, rowIndex) => {
+    rowData.forEach((value, colIndex) => {
+      emit('update:cell', row + rowIndex, col + colIndex, value)
+    })
+  })
+
+  selection.clearSelection()
+  selection.startSelection({ row, col })
+  selection.updateSelection({
+    row: row + pasteData.height - 1,
+    col: col + pasteData.width - 1,
+  })
+  selection.finishSelection()
+
+  clipboard.exitPasteMode()
+  return true
+}
+
+const updateMousePosition = (event: MouseEvent) => {
+  mousePosition.value = { x: event.clientX, y: event.clientY }
+}
+
+onMounted(() => {
+  document.addEventListener('mouseup', handleMouseUp)
+  document.addEventListener('mousemove', updateMousePosition)
+  document.addEventListener('keydown', handleKeyDown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('mouseup', handleMouseUp)
+  document.removeEventListener('mousemove', updateMousePosition)
+  document.removeEventListener('keydown', handleKeyDown)
+})
+
+import { watch } from 'vue'
+
+watch(
+  () => props.currentTool,
+  (newTool) => {
+    selection.setTool(newTool)
+    drawing.stopDrawing()
+    selection.cancelOperation()
+    clipboard.exitPasteMode()
+    emit('tool-change', newTool)
+  },
+)
+
+watch(selection.hasSelection, (hasSelection) => {
+  emit('selection-change', hasSelection)
+})
+
+watch(clipboard.clipboardData, () => {
+  emit('clipboard-change', clipboard.hasClipboardData())
+})
 
 defineExpose({
-  handleCopySelection,
-  getCellIndex,
-  pasteSelection,
-  clearSelection: () => {
-    selectionStart.value = null
-    selectionEnd.value = null
-    isSelecting.value = false
-  },
-  getSelectionArea: () => ({
-    start: selectionStart.value,
-    end: selectionEnd.value,
-  }),
+  selection,
+  clipboard,
+  drawing,
+  handleCopy,
+  handleCut,
+  handlePaste,
+  handleSelectAll,
+  handleDelete,
+  clearSelection: () => selection.clearSelection(),
 })
 </script>
 
@@ -243,6 +623,7 @@ defineExpose({
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+  outline: none;
 }
 
 .header-row,
@@ -279,113 +660,125 @@ defineExpose({
   background-color: black;
 }
 
-.cell.selected::before,
-.cell.selected::after,
-.cell.selected-filled::before,
-.cell.dragging::before {
-  display: none;
-}
-
-.cell.selected::before {
-  content: '';
+.selection-layer {
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: white;
-  mix-blend-mode: lighten;
-  z-index: 2;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+  display: grid;
+  gap: 0;
 }
 
-.cell.selected::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--grid-selection-bg);
-  mix-blend-mode: multiply;
-  z-index: 2;
-  box-shadow: inset 0 0 0 0.5px var(--grid-selection-border);
+.selection-row {
+  display: contents;
 }
 
-.cell.selected-filled::before {
-  background-color: var(--grid-selection-filled);
-}
-
-.cell.dragging {
-  position: relative;
-  cursor: move;
-  z-index: 3;
-  background-color: white !important;
-}
-
-.cell.dragging.filled {
-  background-color: black !important;
-}
-
-.cell.dragging::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--grid-dragging-bg);
-  box-shadow: inset 0 0 0 0.2px var(--primary-color);
-  opacity: 0.3;
-  z-index: 1;
+.selection-header-cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
   pointer-events: none;
 }
 
-.cell.preview {
-  box-shadow: inset 0 0 0 1px var(--primary-color) !important;
-  background-color: var(--grid-selection-bg) !important;
-  z-index: 3;
-}
-
-.cell.is-dragging {
-  cursor: move;
-  opacity: 0.7;
+.selection-cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  pointer-events: none;
+  position: relative;
 }
 
 .selection-overlay {
-  position: absolute;
-  top: var(--cell-size);
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 2;
-  display: grid;
-}
-
-.overlay-content {
-  display: contents;
-}
-
-.overlay-row {
-  display: contents;
-}
-
-.overlay-cell {
-  width: var(--cell-size);
-  height: var(--cell-size);
-  position: relative;
+  z-index: 15;
   box-sizing: border-box;
 }
 
-.overlay-selected {
-  background-color: var(--grid-selection-bg);
-  box-shadow: inset 0 0 0 1px var(--grid-selection-border);
-  opacity: 0.3;
+.selection-overlay.selection-selecting {
+  border: 2px solid var(--primary-color);
+  background-color: rgba(78, 167, 46, 0.1);
 }
 
-.overlay-dragging {
-  background-color: var(--grid-dragging-bg);
-  opacity: 0.4;
+.selection-overlay.selection-selected {
+  border: 2px dashed var(--primary-color);
+  background-color: rgba(78, 167, 46, 0.1);
+  animation: marching-ants 1s linear infinite;
+}
+
+.selection-overlay.selection-moving {
+  border: 2px dashed #0ea5e9;
+  background-color: rgba(14, 165, 233, 0.2);
+}
+
+.selection-overlay.selection-copying {
+  border: 2px dashed #22c55e;
+  background-color: rgba(34, 197, 94, 0.1);
+}
+
+.selection-overlay.temp-selection {
+  opacity: 0.8;
+}
+
+.selection-cell-selected {
+  background-color: rgba(var(--primary-color-rgb), 0.15);
+}
+
+.selection-cell-temp {
+  background-color: rgba(var(--info-color-rgb), 0.2);
+}
+
+.selection-cell-top {
+  border-top: 1px solid var(--primary-color);
+}
+
+.selection-cell-bottom {
+  border-bottom: 1px solid var(--primary-color);
+}
+
+.selection-cell-left {
+  border-left: 1px solid var(--primary-color);
+}
+
+.selection-cell-right {
+  border-right: 1px solid var(--primary-color);
+}
+
+@keyframes marching-ants {
+  0% {
+    border-image: repeating-linear-gradient(
+        90deg,
+        var(--primary-color) 0,
+        var(--primary-color) 4px,
+        transparent 4px,
+        transparent 8px
+      )
+      2;
+  }
+  100% {
+    border-image: repeating-linear-gradient(
+        90deg,
+        var(--primary-color) 4px,
+        var(--primary-color) 8px,
+        transparent 8px,
+        transparent 12px
+      )
+      2;
+  }
+}
+
+.paste-cursor {
+  pointer-events: none;
+  opacity: 0.8;
+  animation: pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 0.8;
+  }
 }
 
 @media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {

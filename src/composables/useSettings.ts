@@ -57,7 +57,7 @@ export function useSettings() {
         font.includes(' ') || font.includes('-') ? `"${font}"` : font,
       )
       .join(', '),
-    enableSelection: false,
+    enableSelection: true,
   }
 
   const loadSettings = () => {
