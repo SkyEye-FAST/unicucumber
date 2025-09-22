@@ -48,7 +48,7 @@ export function useSettings() {
   const defaultSettings = {
     glyphWidth: 16,
     drawMode: 'singleButtonDraw',
-    cursorEffect: true,
+    alwaysShowMouseCursor: false,
     showBorder: true,
     confirmClear: true,
     glyphPreviewMode: 'pixelOnly',

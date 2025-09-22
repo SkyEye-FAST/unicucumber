@@ -133,6 +133,7 @@
     "close": "保存并关闭",
     "confirm_clear": "清空时需要确认",
     "cursor_effect": "光标效果（鼠标）",
+    "always_show_mouse_cursor": "始终显示鼠标光标",
     "draw_mode": {
       "double_button": "左键绘制，右键擦除",
       "label": "绘制模式",

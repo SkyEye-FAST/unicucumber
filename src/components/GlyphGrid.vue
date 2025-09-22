@@ -86,12 +86,13 @@ import {
   type ToolType,
   useSelection,
 } from '@/composables/useSelection'
+import { useSettings } from '@/composables/useSettings'
 
 interface Props {
   gridData: number[][]
   drawMode: 'singleButtonDraw' | 'doubleButtonDraw'
   drawValue: number
-  cursorEffect: boolean
+  // cursorEffect removed; use global settings.alwaysShowMouseCursor instead
   showBorder: boolean
   currentTool?: ToolType
   enableSelection?: boolean
@@ -133,6 +134,12 @@ const drawing = useDrawing(
   },
 )
 
+// settings (for new alwaysShowMouseCursor option)
+const { settings } = useSettings()
+
+// track whether the last input was touch; default false (assume mouse)
+const lastInputWasTouch = ref(false)
+
 const isInteracting = ref(false)
 const mousePosition = ref({ x: 0, y: 0 })
 const lastValidMousePos = ref({ row: -1, col: -1 })
@@ -152,8 +159,14 @@ const getCellClasses = (row: number, col: number, value: number) => {
 const getCellStyle = (row: number, col: number) => {
   const style: Record<string, string> = {}
 
+  // Show cursor effect when either user enabled alwaysShowMouseCursor
+  // or when last input wasn't touch (i.e., mouse/pen) — and only if the
+  // settings key exists.
+  const shouldShowCursorEffect =
+    settings.value?.alwaysShowMouseCursor || !lastInputWasTouch.value
+
   if (
-    props.cursorEffect &&
+    shouldShowCursorEffect &&
     drawing.hoverCell.value.row === row &&
     drawing.hoverCell.value.col === col &&
     props.currentTool !== 'select'
@@ -433,16 +446,23 @@ const handlePointerDown = (row: number, col: number, event: PointerEvent) => {
     if (event.preventDefault) event.preventDefault()
   } catch {}
 
+  // update last input type
+  lastInputWasTouch.value = event.pointerType === 'touch'
+
   handleMouseDown(row, col, event as unknown as MouseEvent)
 }
 
 const handlePointerMove = (row: number, col: number, event: PointerEvent) => {
-  void event
+  // update last input type on move as well
+  lastInputWasTouch.value = event.pointerType === 'touch'
   handleMouseMove(row, col)
 }
 
 const handlePointerUp = (event: PointerEvent) => {
   void event
+  // pointer up may be from touch or mouse
+  lastInputWasTouch.value = event.pointerType === 'touch'
+
   drawing.stopDrawing()
   handleMouseUp()
 }

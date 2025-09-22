@@ -25,7 +25,7 @@
       :grid-data="gridData"
       :draw-mode="settings.drawMode"
       :draw-value="drawValue"
-      :cursor-effect="settings.cursorEffect"
+      :cursor-effect="settings.alwaysShowMouseCursor"
       :show-border="settings.showBorder"
       :current-tool="currentTool"
       :enable-selection="settings.enableSelection"

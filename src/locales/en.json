@@ -133,6 +133,7 @@
     "close": "Save & Close",
     "confirm_clear": "Confirm Clear",
     "cursor_effect": "Cursor Effect (Mouse)",
+    "always_show_mouse_cursor": "Always show mouse cursor",
     "draw_mode": {
       "double_button": "Left Draw, Right Erase",
       "label": "Draw Mode",
