@@ -1,17 +1,17 @@
 /* Noto Sans & Fira Code */
 @import url('https://fonts.font.im/css2?family=Fira+Code:wght@300..700&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 /* Sarasa Mono SC */
-@import url('https://static.zeoseven.com/zsft/159/main/result.css');
+@import url('https://fontsapi.zeoseven.com/159/main/result.css');
 /* Noto Sans CJK SC */
-@import url('https://static.zeoseven.com/zsft/69/main/result.css');
+@import url('https://fontsapi.zeoseven.com/69/main/result.css');
 /* Noto Sans CJK TC */
-@import url('https://static.zeoseven.com/zsft/188/main/result.css');
+@import url('https://fontsapi.zeoseven.com/188/main/result.css');
 /* BabelStone Han */
-@import url('https://static.zeoseven.com/zsft/371/main/result.css');
+@import url('https://fontsapi.zeoseven.com/371/main/result.css');
 /* Plangothic P1 */
-@import url('https://static.zeoseven.com/zsft/150/main/result.css');
+@import url('https://fontsapi.zeoseven.com/150/main/result.css');
 /* Plangothic P2 */
-@import url('https://static.zeoseven.com/zsft/152/main/result.css');
+@import url('https://fontsapi.zeoseven.com/152/main/result.css');
 
 .material-symbols-outlined {
   font-variation-settings:
