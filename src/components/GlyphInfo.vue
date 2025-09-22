@@ -64,7 +64,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
-import iconvLite from 'iconv-lite/lib/index.js'
+import * as iconvLite from 'iconv-lite'
 import { useI18n } from 'vue-i18n'
 
 import { isCJKChar } from '@/utils/charUtils'
