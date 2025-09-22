@@ -1,5 +1,6 @@
-import { ref, readonly } from 'vue'
-import type { SelectionData, Position } from './useSelection'
+import { readonly, ref } from 'vue'
+
+import type { Position, SelectionData } from './useSelection'
 
 export interface ClipboardData {
   data: number[][]
@@ -8,14 +9,6 @@ export interface ClipboardData {
   timestamp: number
 }
 
-/**
- * 剪贴板管理 Composable
- *
- * 提供复制、剪切、粘贴功能：
- * - 管理剪贴板数据
- * - 处理复制和剪切操作
- * - 处理粘贴操作和位置验证
- */
 export function useClipboard() {
   const _clipboardData = ref<ClipboardData | null>(null)
   const _isPasteMode = ref(false)

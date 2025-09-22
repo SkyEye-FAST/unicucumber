@@ -152,32 +152,35 @@
 
 <script setup lang="ts">
 import {
-  ref,
-  onMounted,
-  onBeforeUnmount,
-  watch,
   computed,
   nextTick,
+  onBeforeUnmount,
+  onMounted,
   provide,
+  ref,
+  watch,
 } from 'vue'
+
 import { useI18n } from 'vue-i18n'
-import EditorHeader from './EditorHeader.vue'
-import GlyphInfo from './GlyphInfo.vue'
-import SettingsModal from './SettingsModal.vue'
-import GlyphGrid from './GlyphGrid.vue'
-import ToolButtons from './ToolButtons.vue'
-import HexCodeInput from './HexCodeInput.vue'
-import DownloadButtons from './DownloadButtons.vue'
-import GlyphManager from './GlyphManager.vue'
-import DialogBox from './DialogBox.vue'
-import { useSettings } from '@/composables/useSettings'
+
 import { useGridData } from '@/composables/useGridData'
 import { useHexCode } from '@/composables/useHexCode'
 import { useHistory } from '@/composables/useHistory'
+import { useSettings } from '@/composables/useSettings'
 import { useSidebar } from '@/composables/useSidebar'
 import { useTheme } from '@/composables/useTheme'
-import { hexToGrid } from '@/utils/hexUtils'
 import type { Glyph, PrefillData } from '@/types/glyph'
+import { hexToGrid } from '@/utils/hexUtils'
+
+import DialogBox from './DialogBox.vue'
+import DownloadButtons from './DownloadButtons.vue'
+import EditorHeader from './EditorHeader.vue'
+import GlyphGrid from './GlyphGrid.vue'
+import GlyphInfo from './GlyphInfo.vue'
+import GlyphManager from './GlyphManager.vue'
+import HexCodeInput from './HexCodeInput.vue'
+import SettingsModal from './SettingsModal.vue'
+import ToolButtons from './ToolButtons.vue'
 
 interface Position {
   x: number

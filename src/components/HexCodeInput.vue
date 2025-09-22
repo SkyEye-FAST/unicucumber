@@ -16,6 +16,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+
 import { useClipboard, useTimeoutFn } from '@vueuse/core'
 
 const props = defineProps({

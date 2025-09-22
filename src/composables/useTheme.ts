@@ -1,5 +1,6 @@
-import { usePreferredDark, usePreferredColorScheme } from '@vueuse/core'
-import { watch, ref } from 'vue'
+import { ref, watch } from 'vue'
+
+import { usePreferredColorScheme, usePreferredDark } from '@vueuse/core'
 
 const systemDark = usePreferredDark()
 const preferredColor = usePreferredColorScheme()

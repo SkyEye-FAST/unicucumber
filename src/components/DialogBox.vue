@@ -93,10 +93,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
+
 import { useI18n } from 'vue-i18n'
-import type { Glyph } from '@/types/glyph'
+
 import PixelPreview from '@/components/GlyphManager/PixelPreview.vue'
+import type { Glyph } from '@/types/glyph'
 
 const { t: $t } = useI18n()
 

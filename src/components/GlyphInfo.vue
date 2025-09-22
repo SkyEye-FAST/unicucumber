@@ -62,13 +62,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useVModel, useToggle } from '@vueuse/core'
-import PixelPreview from './GlyphManager/PixelPreview.vue'
-import { isCJKChar } from '@/utils/charUtils'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+
 import iconvLite from 'iconv-lite/lib/index.js'
 import { unicodeName } from 'unicode-name'
+import { useI18n } from 'vue-i18n'
+
+import { isCJKChar } from '@/utils/charUtils'
+import { useToggle, useVModel } from '@vueuse/core'
+
+import PixelPreview from './GlyphManager/PixelPreview.vue'
 
 const { t: $t } = useI18n()
 

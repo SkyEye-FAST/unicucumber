@@ -59,23 +59,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
+
 import { useSettings } from '@/composables/useSettings'
-import SearchToolbar from './GlyphManager/SearchToolbar.vue'
-import GlyphAdder from './GlyphManager/GlyphAdder.vue'
-import UploadSection from './GlyphManager/UploadSection.vue'
-import GlyphList from './GlyphManager/GlyphList.vue'
-import DialogBox from './DialogBox.vue'
 import type {
-  Glyph,
-  UnifontMapType,
   DialogConfig,
-  GlyphManagerProps,
-  GlyphManagerEmits,
+  Glyph,
   GlyphData,
+  GlyphManagerEmits,
+  GlyphManagerProps,
   ImageWithDimensions,
+  UnifontMapType,
 } from '@/types/glyph'
+
+import DialogBox from './DialogBox.vue'
+import GlyphAdder from './GlyphManager/GlyphAdder.vue'
+import GlyphList from './GlyphManager/GlyphList.vue'
+import SearchToolbar from './GlyphManager/SearchToolbar.vue'
+import UploadSection from './GlyphManager/UploadSection.vue'
 
 const { t: $t } = useI18n()
 

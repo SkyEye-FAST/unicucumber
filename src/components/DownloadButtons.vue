@@ -14,8 +14,8 @@
 
 <script setup lang="ts">
 import {
-  createCanvasFromGrid,
   convertToBMP,
+  createCanvasFromGrid,
   createSVGFromGrid,
 } from '../utils/exportUtils'
 

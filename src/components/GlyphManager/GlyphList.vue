@@ -88,8 +88,10 @@
 </template>
 
 <script setup lang="ts">
+import { computed, nextTick, ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
-import { computed, watch, nextTick, ref } from 'vue'
+
 import PixelPreview from './PixelPreview.vue'
 
 interface Glyph {

@@ -1,4 +1,5 @@
 import { ref, type Ref } from 'vue'
+
 import { deepCloneGrid } from '@/utils/hexUtils'
 
 interface HistoryEntry<T extends number[][]> {

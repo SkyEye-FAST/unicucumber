@@ -1,10 +1,11 @@
 import {
-  ref,
   computed,
-  onMounted,
-  onBeforeUnmount,
   type ComputedRef,
+  onBeforeUnmount,
+  onMounted,
+  ref,
 } from 'vue'
+
 import type { Position } from './useSelection'
 
 export interface DrawAction {

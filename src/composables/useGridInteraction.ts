@@ -1,7 +1,8 @@
-import { ref, computed, watch } from 'vue'
-import { useSelection, type Position, type ToolType } from './useSelection'
+import { computed, ref, watch } from 'vue'
+
 import { useClipboard } from './useClipboard'
 import { useDrawing } from './useDrawing'
+import { type Position, type ToolType, useSelection } from './useSelection'
 import { useSelectionRenderer } from './useSelectionRenderer'
 
 interface GridInteractionProps {
@@ -20,15 +21,6 @@ type GridInteractionEmits = {
   'clipboard-change': [hasData: boolean]
 }
 
-/**
- * 网格交互管理器
- *
- * 统一管理网格的所有交互功能：
- * - 工具切换和状态管理
- * - 鼠标和触摸事件分发
- * - 绘制和选区功能协调
- * - 剪贴板操作
- */
 export function useGridInteraction(
   props: GridInteractionProps,
   emit: <K extends keyof GridInteractionEmits>(
