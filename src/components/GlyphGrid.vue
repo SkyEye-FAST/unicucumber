@@ -19,6 +19,47 @@
       </div>
     </div>
 
+    <template
+      v-if="
+        currentSelectionRect &&
+        props.currentTool === 'select' &&
+        lastInputWasTouch
+      "
+    >
+      <button
+        class="move-button move-up"
+        :style="getMoveButtonStyle('up')"
+        @click.stop.prevent="moveUp"
+        aria-label="Move selection up"
+      >
+        ▲
+      </button>
+      <button
+        class="move-button move-down"
+        :style="getMoveButtonStyle('down')"
+        @click.stop.prevent="moveDown"
+        aria-label="Move selection down"
+      >
+        ▼
+      </button>
+      <button
+        class="move-button move-left"
+        :style="getMoveButtonStyle('left')"
+        @click.stop.prevent="moveLeft"
+        aria-label="Move selection left"
+      >
+        ◀
+      </button>
+      <button
+        class="move-button move-right"
+        :style="getMoveButtonStyle('right')"
+        @click.stop.prevent="moveRight"
+        aria-label="Move selection right"
+      >
+        ▶
+      </button>
+    </template>
+
     <div
       v-for="(row, rowIndex) in gridData"
       :key="`row-${rowIndex}`"
@@ -45,9 +86,13 @@
         @pointerdown.prevent="handlePointerDown(rowIndex, cellIndex, $event)"
         @pointermove="handlePointerMove(rowIndex, cellIndex, $event)"
         @pointerup="handlePointerUp($event)"
-        @touchstart.stop.prevent="drawing.handleTouchStart($event)"
-        @touchmove.stop.prevent="drawing.handleTouchMove($event)"
-        @touchend.stop.prevent="drawing.stopDrawing()"
+        @touchstart.stop.prevent="
+          handleTouchStartCell(rowIndex, cellIndex, $event)
+        "
+        @touchmove.stop.prevent="
+          handleTouchMoveCell(rowIndex, cellIndex, $event)
+        "
+        @touchend.stop.prevent="handleTouchEndCell($event)"
         @mouseleave="handleMouseLeave"
         @contextmenu="drawing.handleContextMenu"
         @click="handleCellClick(rowIndex, cellIndex)"
@@ -458,6 +503,143 @@ const handlePointerUp = (event: PointerEvent) => {
   handleMouseUp()
 }
 
+const handleTouchStartCell = (row: number, col: number, event: TouchEvent) => {
+  lastInputWasTouch.value = true
+
+  if (props.currentTool === 'select') {
+    isInteracting.value = true
+    interactionStartPos.value = { row, col }
+
+    if (selection.isPositionInSelection({ row, col })) {
+      if (selection.startMove()) {
+        return
+      }
+    }
+
+    selection.clearSelection()
+    selection.startSelection({ row, col })
+  } else {
+    drawing.handleTouchStart(event)
+  }
+}
+
+const handleTouchMoveCell = (_row: number, _col: number, event: TouchEvent) => {
+  lastInputWasTouch.value = true
+  const touch = event.touches[0]
+  if (!touch) return
+  const target = document.elementFromPoint(
+    touch.clientX,
+    touch.clientY,
+  ) as HTMLElement
+  if (!target || !target.classList.contains('cell')) {
+    return
+  }
+  const row = parseInt(target.dataset.row ?? '-1')
+  const col = parseInt(target.dataset.col ?? '-1')
+  if (row < 0 || col < 0) return
+
+  lastValidMousePos.value = { row, col }
+
+  if (props.currentTool === 'select' && isInteracting.value) {
+    if (selection.isMoving.value) {
+      const startPos = getInteractionStartPos()
+      if (startPos && selection.selectionData.value) {
+        const deltaRow = row - startPos.row
+        const deltaCol = col - startPos.col
+
+        const originalRect = selection.selectionData.value.originalRect
+        const newPos = {
+          row: originalRect.startRow + deltaRow,
+          col: originalRect.startCol + deltaCol,
+        }
+
+        const gridHeight = props.gridData.length
+        const gridWidth = props.gridData[0]?.length ?? 0
+        const selectionHeight = selection.selectionData.value.height
+        const selectionWidth = selection.selectionData.value.width
+
+        const clampedNewPos = {
+          row: Math.max(0, Math.min(gridHeight - selectionHeight, newPos.row)),
+          col: Math.max(0, Math.min(gridWidth - selectionWidth, newPos.col)),
+        }
+
+        const tempRect = {
+          startRow: clampedNewPos.row,
+          startCol: clampedNewPos.col,
+          endRow: clampedNewPos.row + selectionHeight - 1,
+          endCol: clampedNewPos.col + selectionWidth - 1,
+        }
+
+        selection.setTempRect(tempRect)
+      }
+    } else if (selection.isSelecting.value) {
+      selection.updateSelection({ row, col })
+    }
+  } else {
+    drawing.handleTouchMove(event)
+  }
+}
+
+const handleTouchEndCell = (_event?: TouchEvent) => {
+  void _event
+  lastInputWasTouch.value = true
+
+  drawing.stopDrawing()
+
+  if (isInteracting.value && props.currentTool === 'select') {
+    if (selection.isMoving.value && interactionStartPos.value) {
+      const startPos = interactionStartPos.value
+      const currentPos = lastValidMousePos.value
+
+      if (selection.selectionData.value) {
+        const deltaRow = currentPos.row - startPos.row
+        const deltaCol = currentPos.col - startPos.col
+
+        const originalRect = selection.selectionData.value.originalRect
+        const rawNewPos = {
+          row: originalRect.startRow + deltaRow,
+          col: originalRect.startCol + deltaCol,
+        }
+
+        const gridHeight = props.gridData.length
+        const gridWidth = props.gridData[0]?.length ?? 0
+        const selectionHeight = selection.selectionData.value.height
+        const selectionWidth = selection.selectionData.value.width
+
+        const clampedNewPos = {
+          row: Math.max(
+            0,
+            Math.min(gridHeight - selectionHeight, rawNewPos.row),
+          ),
+          col: Math.max(0, Math.min(gridWidth - selectionWidth, rawNewPos.col)),
+        }
+
+        if (selection.moveSelectionTo(clampedNewPos)) {
+          const selectionDataValue = selection.selectionData.value
+          if (selectionDataValue) {
+            moveSelectionData(selectionDataValue, originalRect, clampedNewPos)
+
+            const newRect = {
+              startRow: clampedNewPos.row,
+              startCol: clampedNewPos.col,
+              endRow: clampedNewPos.row + selectionDataValue.height - 1,
+              endCol: clampedNewPos.col + selectionDataValue.width - 1,
+            }
+            selection.updateOriginalRect(newRect)
+          }
+        }
+      }
+
+      selection.setTempRect(null)
+    } else if (selection.isSelecting.value) {
+      selection.finishSelection()
+    }
+  }
+
+  isInteracting.value = false
+  interactionStartPos.value = null
+}
+
 const handleKeyDown = (event: KeyboardEvent) => {
   if (event.ctrlKey || event.metaKey) {
     switch (event.key.toLowerCase()) {
@@ -603,15 +785,91 @@ const updateMousePosition = (event: MouseEvent) => {
   mousePosition.value = { x: event.clientX, y: event.clientY }
 }
 
+const moveSelectionBy = (dRow: number, dCol: number) => {
+  if (!selection.hasSelection.value || !selection.selectionData.value) return
+
+  const rect = selection.selectionRect.value
+  if (!rect) return
+
+  const newPos = { row: rect.startRow + dRow, col: rect.startCol + dCol }
+
+  const gridHeight = props.gridData.length
+  const gridWidth = props.gridData[0]?.length ?? 0
+  const selHeight = selection.selectionData.value.height
+  const selWidth = selection.selectionData.value.width
+
+  const clamped = {
+    row: Math.max(0, Math.min(gridHeight - selHeight, newPos.row)),
+    col: Math.max(0, Math.min(gridWidth - selWidth, newPos.col)),
+  }
+
+  const originalRect = selection.selectionRect.value!
+  if (selection.moveSelectionTo(clamped)) {
+    moveSelectionData(selection.selectionData.value!, originalRect, clamped)
+    selection.updateOriginalRect({
+      startRow: clamped.row,
+      startCol: clamped.col,
+      endRow: clamped.row + selHeight - 1,
+      endCol: clamped.col + selWidth - 1,
+    })
+  }
+}
+
+const moveUp = () => moveSelectionBy(-1, 0)
+const moveDown = () => moveSelectionBy(1, 0)
+const moveLeft = () => moveSelectionBy(0, -1)
+const moveRight = () => moveSelectionBy(0, 1)
+
+const getMoveButtonStyle = (dir: 'up' | 'down' | 'left' | 'right') => {
+  const rect = selection.selectionRect.value
+  if (!rect) return { display: 'none' }
+
+  const normalized = {
+    startRow: Math.min(rect.startRow, rect.endRow),
+    startCol: Math.min(rect.startCol, rect.endCol),
+    endRow: Math.max(rect.startRow, rect.endRow),
+    endCol: Math.max(rect.startCol, rect.endCol),
+  }
+
+  const width = normalized.endCol - normalized.startCol + 1
+  const height = normalized.endRow - normalized.startRow + 1
+  const cell = 'var(--cell-size)'
+
+  switch (dir) {
+    case 'up': {
+      const left = `calc(( ${normalized.startCol} + ${Math.floor(width / 2)} + 1) * ${cell})`
+      const top = `calc(( ${normalized.startRow} + 1) * ${cell} - 0.6 * ${cell})`
+      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
+    }
+    case 'down': {
+      const left = `calc(( ${normalized.startCol} + ${Math.floor(width / 2)} + 1) * ${cell})`
+      const top = `calc(( ${normalized.endRow} + 2) * ${cell} + 0.2 * ${cell})`
+      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
+    }
+    case 'left': {
+      const left = `calc(( ${normalized.startCol} + 1) * ${cell} - 0.6 * ${cell})`
+      const top = `calc(( ${normalized.startRow} + ${Math.floor(height / 2)} + 1) * ${cell})`
+      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
+    }
+    case 'right': {
+      const left = `calc(( ${normalized.endCol} + 2) * ${cell} + 0.2 * ${cell})`
+      const top = `calc(( ${normalized.startRow} + ${Math.floor(height / 2)} + 1) * ${cell})`
+      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
+    }
+  }
+}
+
 onMounted(() => {
   document.addEventListener('mouseup', handleMouseUp)
   document.addEventListener('mousemove', updateMousePosition)
+  document.addEventListener('touchend', handleTouchEndCell)
   document.addEventListener('keydown', handleKeyDown)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('mouseup', handleMouseUp)
   document.removeEventListener('mousemove', updateMousePosition)
+  document.removeEventListener('touchend', handleTouchEndCell)
   document.removeEventListener('keydown', handleKeyDown)
 })
 
@@ -805,6 +1063,26 @@ defineExpose({
   pointer-events: none;
   opacity: 0.8;
   animation: pulse 1s ease-in-out infinite alternate;
+}
+
+.move-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+.move-button:active {
+  transform: scale(0.95);
 }
 
 @keyframes pulse {
