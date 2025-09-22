@@ -9,7 +9,6 @@ const isDark = ref(systemDark.value)
 export function useTheme() {
   const setTheme = (dark: boolean): void => {
     isDark.value = dark
-    localStorage.setItem('theme', dark ? 'dark' : 'light')
     document.documentElement.setAttribute('data-theme', dark ? 'dark' : '')
   }
 
@@ -18,17 +17,11 @@ export function useTheme() {
   }
 
   const initTheme = () => {
-    const savedTheme = localStorage.getItem('theme')
-    if (savedTheme) {
-      setTheme(savedTheme === 'dark')
-    } else {
-      setTheme(preferredColor.value === 'dark')
-      watch(preferredColor, (newValue) => {
-        if (!localStorage.getItem('theme')) {
-          setTheme(newValue === 'dark')
-        }
-      })
-    }
+    setTheme(preferredColor.value === 'dark')
+
+    watch(preferredColor, (newValue) => {
+      setTheme(newValue === 'dark')
+    })
   }
 
   return {
