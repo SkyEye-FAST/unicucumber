@@ -42,6 +42,12 @@
         :style="getCellStyle(rowIndex, cellIndex)"
         @mousedown="handleMouseDown(rowIndex, cellIndex, $event)"
         @mousemove="handleMouseMove(rowIndex, cellIndex)"
+        @pointerdown.prevent="handlePointerDown(rowIndex, cellIndex, $event)"
+        @pointermove="handlePointerMove(rowIndex, cellIndex, $event)"
+        @pointerup="handlePointerUp($event)"
+        @touchstart.stop.prevent="drawing.handleTouchStart($event)"
+        @touchmove.stop.prevent="drawing.handleTouchMove($event)"
+        @touchend.stop.prevent="drawing.stopDrawing()"
         @mouseleave="handleMouseLeave"
         @contextmenu="drawing.handleContextMenu"
         @click="handleCellClick(rowIndex, cellIndex)"
@@ -80,12 +86,12 @@ import {
   type ToolType,
   useSelection,
 } from '@/composables/useSelection'
+import { useSettings } from '@/composables/useSettings'
 
 interface Props {
   gridData: number[][]
   drawMode: 'singleButtonDraw' | 'doubleButtonDraw'
   drawValue: number
-  cursorEffect: boolean
   showBorder: boolean
   currentTool?: ToolType
   enableSelection?: boolean
@@ -127,6 +133,10 @@ const drawing = useDrawing(
   },
 )
 
+const { settings } = useSettings()
+
+const lastInputWasTouch = ref(false)
+
 const isInteracting = ref(false)
 const mousePosition = ref({ x: 0, y: 0 })
 const lastValidMousePos = ref({ row: -1, col: -1 })
@@ -146,8 +156,11 @@ const getCellClasses = (row: number, col: number, value: number) => {
 const getCellStyle = (row: number, col: number) => {
   const style: Record<string, string> = {}
 
+  const shouldShowCursorEffect =
+    settings.value?.alwaysShowMouseCursor || !lastInputWasTouch.value
+
   if (
-    props.cursorEffect &&
+    shouldShowCursorEffect &&
     drawing.hoverCell.value.row === row &&
     drawing.hoverCell.value.col === col &&
     props.currentTool !== 'select'
@@ -420,6 +433,29 @@ const handleCellClick = (row: number, col: number) => {
   if (clipboard.isPasteMode.value) {
     pasteAt(row, col)
   }
+}
+
+const handlePointerDown = (row: number, col: number, event: PointerEvent) => {
+  try {
+    if (event.preventDefault) event.preventDefault()
+  } catch {}
+
+  lastInputWasTouch.value = event.pointerType === 'touch'
+
+  handleMouseDown(row, col, event as unknown as MouseEvent)
+}
+
+const handlePointerMove = (row: number, col: number, event: PointerEvent) => {
+  lastInputWasTouch.value = event.pointerType === 'touch'
+  handleMouseMove(row, col)
+}
+
+const handlePointerUp = (event: PointerEvent) => {
+  void event
+  lastInputWasTouch.value = event.pointerType === 'touch'
+
+  drawing.stopDrawing()
+  handleMouseUp()
 }
 
 const handleKeyDown = (event: KeyboardEvent) => {

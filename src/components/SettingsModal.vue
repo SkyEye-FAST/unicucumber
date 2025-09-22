@@ -28,17 +28,22 @@
       </select>
     </div>
 
+    <!-- cursorEffect removed; replaced by alwaysShowMouseCursor -->
+
     <div class="setting-option">
-      <label for="cursorEffect">{{ $t('settings.cursor_effect') }}</label>
+      <label for="alwaysShowMouseCursor">{{
+        $t('settings.always_show_mouse_cursor')
+      }}</label>
       <div class="checkbox-wrapper">
         <input
-          id="cursorEffect"
+          id="alwaysShowMouseCursor"
           type="checkbox"
-          :checked="settings.cursorEffect"
+          :checked="settings.alwaysShowMouseCursor"
           @change="
             $emit('update:settings', {
               ...settings,
-              cursorEffect: ($event.target as HTMLInputElement).checked,
+              alwaysShowMouseCursor: ($event.target as HTMLInputElement)
+                .checked,
             })
           "
         />

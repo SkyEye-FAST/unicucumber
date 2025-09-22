@@ -265,11 +265,13 @@ export function useDrawing(
 
   onMounted(() => {
     document.addEventListener('mouseup', handleMouseUp)
+    document.addEventListener('pointerup', handleMouseUp)
     document.addEventListener('touchend', handleTouchEnd)
   })
 
   onBeforeUnmount(() => {
     document.removeEventListener('mouseup', handleMouseUp)
+    document.removeEventListener('pointerup', handleMouseUp)
     document.removeEventListener('touchend', handleTouchEnd)
   })
 
