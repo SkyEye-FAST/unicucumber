@@ -1,12 +1,14 @@
-import { watch, createApp } from 'vue'
-import { createI18n } from 'vue-i18n'
-import { usePreferredLanguages, useTitle } from '@vueuse/core'
-import App from './App.vue'
-
 import './styles/base.css'
 import './styles/font.css'
 import './styles/theme.css'
 
+import { createApp, watch } from 'vue'
+
+import { createI18n } from 'vue-i18n'
+
+import { usePreferredLanguages, useTitle } from '@vueuse/core'
+
+import App from './App.vue'
 import en from './locales/en.json'
 import zh_cn from './locales/zh-cn.json'
 import zh_tw from './locales/zh-tw.json'

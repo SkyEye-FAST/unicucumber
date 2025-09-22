@@ -11,7 +11,7 @@
       class="tool-button"
       @click="updateTool('draw', 1)"
     >
-      <span class="material-symbols-outlined">draw</span>
+      <i-material-symbols-draw-outline class="icon" />
     </button>
 
     <button
@@ -25,7 +25,7 @@
       class="tool-button"
       @click="updateTool('erase', 0)"
     >
-      <span class="material-symbols-outlined">ink_eraser</span>
+      <i-material-symbols-ink-eraser-outline class="icon" />
     </button>
 
     <button
@@ -34,7 +34,7 @@
       class="tool-button"
       @click="updateTool('select', 2)"
     >
-      <span class="material-symbols-outlined">select</span>
+      <i-material-symbols-select class="icon" />
     </button>
   </div>
 </template>
@@ -122,7 +122,7 @@ const updateTool = (tool: ToolType, value: number) => {
 
 @media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
   .tool-buttons {
-    width: 24rem;
+    width: 40rem;
   }
 
   .tool-button {
@@ -143,7 +143,7 @@ const updateTool = (tool: ToolType, value: number) => {
     min-width: 4em;
   }
 
-  .tool-button .material-symbols-outlined {
+  .tool-button .icon {
     font-size: 1em !important;
   }
 }

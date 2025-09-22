@@ -71,14 +71,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
-import {
-  useSelection,
-  type ToolType,
-  type Rectangle,
-} from '@/composables/useSelection'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+
 import { useClipboard } from '@/composables/useClipboard'
-import { useDrawing, type DrawAction } from '@/composables/useDrawing'
+import { type DrawAction, useDrawing } from '@/composables/useDrawing'
+import {
+  type Rectangle,
+  type ToolType,
+  useSelection,
+} from '@/composables/useSelection'
 
 interface Props {
   gridData: number[][]
@@ -577,8 +578,6 @@ onBeforeUnmount(() => {
   document.removeEventListener('mousemove', updateMousePosition)
   document.removeEventListener('keydown', handleKeyDown)
 })
-
-import { watch } from 'vue'
 
 watch(
   () => props.currentTool,

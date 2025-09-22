@@ -2,11 +2,11 @@
   <div class="upload-section">
     <div class="upload-buttons">
       <button class="btn-upload" @click="handleHexClick">
-        <span class="material-symbols-outlined">upload_file</span>
+        <i-material-symbols-upload-file-outline class="icon" />
         {{ $t('glyph_manager.upload.hex_file') }}
       </button>
       <button class="btn-upload" @click="handleImageClick">
-        <span class="material-symbols-outlined">image</span>
+        <i-material-symbols-image-outline class="icon" />
         {{ $t('glyph_manager.upload.image_file') }}
       </button>
     </div>
@@ -79,7 +79,7 @@ onImageChange((files) => {
   background: var(--primary-dark);
 }
 
-.material-symbols-outlined {
+.icon {
   font-size: 20px;
 }
 

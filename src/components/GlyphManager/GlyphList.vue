@@ -16,7 +16,7 @@
           :title="$t('glyph_manager.batch_delete')"
           @click="handleBatchDelete"
         >
-          <span class="material-symbols-outlined">delete</span>
+          <i-material-symbols-delete-outline class="icon" />
           {{
             $t('glyph_manager.delete_selected', {
               count: selectedGlyphs.length,
@@ -73,14 +73,14 @@
           :title="$t('glyph_manager.glyph.edit')"
           @click="$emit('edit', glyph)"
         >
-          <span class="material-symbols-outlined">edit</span>
+          <i-material-symbols-edit-outline class="icon" />
         </button>
         <button
           class="btn-icon danger"
           :title="$t('glyph_manager.glyph.delete')"
           @click="$emit('remove', glyph.codePoint)"
         >
-          <span class="material-symbols-outlined">delete</span>
+          <i-material-symbols-delete-outline class="icon" />
         </button>
       </div>
     </div>
@@ -88,8 +88,10 @@
 </template>
 
 <script setup lang="ts">
+import { computed, nextTick, ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
-import { computed, watch, nextTick, ref } from 'vue'
+
 import PixelPreview from './PixelPreview.vue'
 
 interface Glyph {
@@ -274,8 +276,6 @@ const browserPreviewStyle = computed(() => {
 }
 
 .btn-icon {
-  width: 32px;
-  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -339,7 +339,7 @@ const browserPreviewStyle = computed(() => {
   background-color: var(--danger-hover);
 }
 
-.batch-delete .material-symbols-outlined {
+.batch-delete .icon {
   font-size: 1.2rem;
 }
 
@@ -379,7 +379,7 @@ const browserPreviewStyle = computed(() => {
     height: 44px;
   }
 
-  .btn-icon .material-symbols-outlined {
+  .btn-icon .icon {
     font-size: 36px !important;
   }
 
@@ -397,7 +397,7 @@ const browserPreviewStyle = computed(() => {
     font-size: 1.5rem;
   }
 
-  .batch-delete .material-symbols-outlined {
+  .batch-delete .icon {
     font-size: 1.5rem;
   }
 

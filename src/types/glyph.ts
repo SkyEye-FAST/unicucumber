@@ -4,7 +4,7 @@ export interface Glyph {
 }
 
 export interface PrefillData extends Glyph {
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export interface UnifontMapType {

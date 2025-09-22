@@ -1,31 +1,30 @@
 import { ref, type Ref } from 'vue'
+
 import { deepCloneGrid } from '@/utils/hexUtils'
 
-interface HistoryEntry<T extends number[][]> {
+interface HistoryEntry {
   grid: number[][]
   action: string
 }
 
-interface HistoryState<T extends number[][]> {
-  history: Ref<HistoryEntry<T>[]>
+interface HistoryState {
+  history: Ref<HistoryEntry[]>
   currentIndex: Ref<number>
-  pushState: (newState: T, action: string) => void
-  undo: () => T | null
-  redo: () => T | null
+  pushState: (newState: number[][], action: string) => void
+  undo: () => number[][] | null
+  redo: () => number[][] | null
   canUndo: () => boolean
   canRedo: () => boolean
-  resetHistory: (newState: T) => void
+  resetHistory: (newState: number[][]) => void
   clearHistory: () => void
-  initHistory: (newState: T) => void
-  clearAndInitHistory: (newState: T) => void
+  initHistory: (newState: number[][]) => void
+  clearAndInitHistory: (newState: number[][]) => void
   getLastAction: () => string | null
-  getCurrentState: () => T | null
+  getCurrentState: () => number[][] | null
 }
 
-export function useHistory<T extends number[][]>(
-  initialState: T,
-): HistoryState<T> {
-  const history = ref<HistoryEntry<T>[]>([
+export function useHistory(initialState: number[][]): HistoryState {
+  const history = ref<HistoryEntry[]>([
     {
       grid: deepCloneGrid(initialState),
       action: 'initial',
@@ -33,7 +32,7 @@ export function useHistory<T extends number[][]>(
   ])
   const currentIndex = ref(0)
 
-  const pushState = (newState: T, action: string) => {
+  const pushState = (newState: number[][], action: string) => {
     history.value = history.value.slice(0, currentIndex.value + 1)
     history.value.push({
       grid: deepCloneGrid(newState),
@@ -45,7 +44,9 @@ export function useHistory<T extends number[][]>(
   const undo = () => {
     if (currentIndex.value > 0) {
       currentIndex.value--
-      return deepCloneGrid(history.value[currentIndex.value]?.grid ?? []) as T
+      return deepCloneGrid(
+        history.value[currentIndex.value]?.grid ?? [],
+      ) as number[][]
     }
     return null
   }
@@ -55,7 +56,7 @@ export function useHistory<T extends number[][]>(
       currentIndex.value++
       return deepCloneGrid(
         (history.value[currentIndex.value]?.grid ?? []) as number[][],
-      ) as T
+      ) as number[][]
     }
     return null
   }
@@ -63,7 +64,7 @@ export function useHistory<T extends number[][]>(
   const canUndo = () => currentIndex.value > 0
   const canRedo = () => currentIndex.value < history.value.length - 1
 
-  const resetHistory = (newState: T) => {
+  const resetHistory = (newState: number[][]) => {
     history.value = [
       {
         grid: deepCloneGrid(newState),
@@ -78,7 +79,7 @@ export function useHistory<T extends number[][]>(
     currentIndex.value = 0
   }
 
-  const initHistory = (newState: T) => {
+  const initHistory = (newState: number[][]) => {
     history.value = [
       {
         grid: deepCloneGrid(newState),
@@ -88,7 +89,7 @@ export function useHistory<T extends number[][]>(
     currentIndex.value = 0
   }
 
-  const clearAndInitHistory = (newState: T) => {
+  const clearAndInitHistory = (newState: number[][]) => {
     history.value = [
       {
         grid: deepCloneGrid(newState),
@@ -107,7 +108,7 @@ export function useHistory<T extends number[][]>(
     if (history.value.length === 0) return null
     return deepCloneGrid(
       (history.value[currentIndex.value]?.grid ?? []) as number[][],
-    ) as T
+    ) as number[][]
   }
 
   return {

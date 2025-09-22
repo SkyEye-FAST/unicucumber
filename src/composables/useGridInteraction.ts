@@ -1,7 +1,8 @@
-import { ref, computed, watch } from 'vue'
-import { useSelection, type Position, type ToolType } from './useSelection'
+import { computed, ref, watch } from 'vue'
+
 import { useClipboard } from './useClipboard'
 import { useDrawing } from './useDrawing'
+import { type Position, type ToolType, useSelection } from './useSelection'
 import { useSelectionRenderer } from './useSelectionRenderer'
 
 interface GridInteractionProps {
@@ -14,21 +15,12 @@ interface GridInteractionProps {
 
 type GridInteractionEmits = {
   'cell-change': [row: number, col: number, value: number]
-  'draw-complete': [action: any]
+  'draw-complete': [action: unknown]
   'selection-change': [hasSelection: boolean]
   'tool-change': [tool: ToolType]
   'clipboard-change': [hasData: boolean]
 }
 
-/**
- * 网格交互管理器
- *
- * 统一管理网格的所有交互功能：
- * - 工具切换和状态管理
- * - 鼠标和触摸事件分发
- * - 绘制和选区功能协调
- * - 剪贴板操作
- */
 export function useGridInteraction(
   props: GridInteractionProps,
   emit: <K extends keyof GridInteractionEmits>(
@@ -50,7 +42,7 @@ export function useGridInteraction(
     {
       'cell-change': (row, col, value) => emit('cell-change', row, col, value),
       'draw-complete': (action) => emit('draw-complete', action),
-      'tool-change': (value) => {},
+      'tool-change': () => {},
     },
   )
 
@@ -188,8 +180,13 @@ export function useGridInteraction(
   }
 
   const moveSelectionData = (
-    selectionData: any,
-    fromRect: any,
+    selectionData: { data: readonly (readonly number[])[] },
+    fromRect: {
+      startRow: number
+      endRow: number
+      startCol: number
+      endCol: number
+    },
     toPos: Position,
   ) => {
     for (let row = fromRect.startRow; row <= fromRect.endRow; row++) {
@@ -198,8 +195,8 @@ export function useGridInteraction(
       }
     }
 
-    selectionData.data.forEach((rowData: number[], rowIndex: number) => {
-      rowData.forEach((value: number, colIndex: number) => {
+    selectionData.data.forEach((rowData, rowIndex) => {
+      rowData.forEach((value, colIndex) => {
         emit('cell-change', toPos.row + rowIndex, toPos.col + colIndex, value)
       })
     })

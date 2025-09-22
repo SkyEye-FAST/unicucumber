@@ -35,12 +35,12 @@
 
 /* Global Theme Transition */
 *:not(
-    .tool-buttons,
-    .tool-buttons *,
-    .modal-button,
-    .glyph-preview *,
-    .unicode-char
-  ) {
+  .tool-buttons,
+  .tool-buttons *,
+  .modal-button,
+  .glyph-preview *,
+  .unicode-char
+) {
   transition:
     background-color var(--theme-transition-time) var(--theme-transition-curve),
     border-color var(--theme-transition-time) var(--theme-transition-curve),
@@ -73,7 +73,7 @@ body {
     --cell-size: 35px;
   }
 
-  .material-symbols-outlined {
+  .icon {
     font-size: larger !important;
   }
 }
@@ -83,7 +83,7 @@ body {
     --cell-size: 45px;
   }
 
-  .material-symbols-outlined {
+  .icon {
     font-size: larger !important;
   }
 }

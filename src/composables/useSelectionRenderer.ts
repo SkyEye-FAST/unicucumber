@@ -1,5 +1,6 @@
-import { computed, ref, watch } from 'vue'
-import type { Rectangle, Position } from './useSelection'
+import { computed, ref } from 'vue'
+
+import type { Rectangle } from './useSelection'
 
 export interface SelectionRenderData {
   rect: Rectangle | null
@@ -11,15 +12,6 @@ export interface SelectionRenderData {
   state: 'none' | 'selecting' | 'selected' | 'moving' | 'copying'
 }
 
-/**
- * 选区渲染 Composable
- *
- * 处理选区的视觉渲染：
- * - 选区边框渲染
- * - 蚂蚁线动画
- * - 选择过程的视觉反馈
- * - 移动和复制状态的视觉效果
- */
 export function useSelectionRenderer() {
   const renderData = ref<SelectionRenderData>({
     rect: null,

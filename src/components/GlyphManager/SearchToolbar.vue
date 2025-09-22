@@ -16,7 +16,7 @@
       :disabled="!glyphs.length"
       @click="$emit('export')"
     >
-      <span class="material-symbols-outlined">file_download</span>
+      <i-material-symbols-file-download class="icon" />
       {{ $t('glyph_manager.export') }}
     </button>
   </div>
@@ -24,6 +24,7 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+
 const { t: $t } = useI18n()
 
 defineProps({

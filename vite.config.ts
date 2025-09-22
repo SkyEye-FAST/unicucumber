@@ -1,34 +1,36 @@
-import { fileURLToPath, URL } from 'node:url'
-import { resolve, dirname } from 'node:path'
-import { defineConfig } from 'vite'
 import { readFileSync } from 'node:fs'
-import vue from '@vitejs/plugin-vue'
-import vueDevTools from 'vite-plugin-vue-devtools'
-import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
-import { VitePWA } from 'vite-plugin-pwa'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath, URL } from 'node:url'
+
+import AutoImport from 'unplugin-auto-import/vite'
+import IconsResolver from 'unplugin-icons/resolver'
+import Icons from 'unplugin-icons/vite'
+import Components from 'unplugin-vue-components/vite'
+import { defineConfig } from 'vite'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import { VitePWA } from 'vite-plugin-pwa'
+import vueDevTools from 'vite-plugin-vue-devtools'
+
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
+import vue from '@vitejs/plugin-vue'
+
+const getUnifontVersion = (): string => {
+  try {
+    const content = readFileSync(
+      new URL('./public/unifont-map.json', import.meta.url),
+      'utf-8',
+    )
+    const parsed = JSON.parse(content)
+    const v = parsed?.meta?.version
+    if (typeof v === 'string') return v
+  } catch {}
+  return ''
+}
 
 export default defineConfig({
-  define: (() => {
-    const fallback = ''
-    try {
-      const content = readFileSync(
-        new URL('./public/unifont-map.json', import.meta.url),
-        'utf-8',
-      )
-      const parsed = JSON.parse(content)
-      if (parsed && parsed.meta && typeof parsed.meta.version === 'string') {
-        const v = JSON.stringify(parsed.meta.version)
-        return {
-          'import.meta.env.VITE_UNIFONT_VERSION': v,
-        }
-      }
-    } catch (e) {}
-    const fv = JSON.stringify(fallback)
-    return {
-      'import.meta.env.VITE_UNIFONT_VERSION': fv,
-    }
-  })(),
+  define: {
+    'import.meta.env.VITE_UNIFONT_VERSION': JSON.stringify(getUnifontVersion()),
+  },
   plugins: [
     vue(),
     vueDevTools(),
@@ -39,16 +41,27 @@ export default defineConfig({
         './src/locales/**',
       ),
     }),
+    AutoImport({
+      resolvers: [IconsResolver({ prefix: 'i' })],
+    }),
+    Components({
+      resolvers: [
+        IconsResolver({
+          enabledCollections: ['material-symbols', 'fa6-brands'],
+        }),
+      ],
+    }),
+    Icons({
+      autoInstall: true,
+    }),
     VitePWA({
       injectRegister: 'auto',
       registerType: 'autoUpdate',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        maximumFileSizeToCacheInBytes: 3000000,
+        maximumFileSizeToCacheInBytes: 3_000_000,
       },
-      devOptions: {
-        enabled: true,
-      },
+      devOptions: { enabled: true },
       includeAssets: ['apple-touch-icon.png', 'favicon.ico'],
       manifest: {
         name: 'UniCucumber',
@@ -57,16 +70,8 @@ export default defineConfig({
         theme_color: '#4ea72e',
         description: 'A simple webpage for editing Unifont glyphs in browsers.',
         icons: [
-          {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
+          { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
         ],
       },
     }),
@@ -82,8 +87,24 @@ export default defineConfig({
   publicDir: 'public',
   optimizeDeps: {
     esbuildOptions: {
-      define: {
-        global: 'globalThis',
+      define: { global: 'globalThis' },
+    },
+  },
+  build: {
+    chunkSizeWarningLimit: 2500,
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (id.includes('node_modules')) {
+            if (id.includes('vue')) return 'vendor_vue'
+            if (id.includes('@vueuse')) return 'vendor_vueuse'
+            if (id.includes('unicode-name')) return 'vendor_unicode_name'
+            if (id.includes('iconv-lite')) return 'vendor_iconv_lite'
+            if (id.includes('unplugin-icons') || id.includes('@iconify'))
+              return 'vendor_icons'
+            return 'vendor_misc'
+          }
+        },
       },
     },
   },

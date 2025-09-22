@@ -17,7 +17,7 @@
         :class="{ active: showingEncodingInfo }"
         @click="toggleEncodingInfo()"
       >
-        <span class="material-symbols-outlined">info</span>
+        <i-material-symbols-info-outline class="icon" />
       </button>
       <div class="code-point-input">
         <span>U+</span>
@@ -62,13 +62,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useVModel, useToggle } from '@vueuse/core'
-import PixelPreview from './GlyphManager/PixelPreview.vue'
-import { isCJKChar } from '@/utils/charUtils'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+
 import iconvLite from 'iconv-lite/lib/index.js'
-import { unicodeName } from 'unicode-name'
+import { useI18n } from 'vue-i18n'
+
+import { isCJKChar } from '@/utils/charUtils'
+import { useToggle, useVModel } from '@vueuse/core'
+
+import PixelPreview from './GlyphManager/PixelPreview.vue'
 
 const { t: $t } = useI18n()
 
@@ -160,11 +162,61 @@ const convertEncoding = (char: string, encoding: string): string => {
   }
 }
 
+const unicodeNameCache = ref<Record<number, string>>({})
+let unicodeNameModule: unknown = null
+
+async function loadUnicodeModule() {
+  if (unicodeNameModule) return
+  try {
+    unicodeNameModule = await import('unicode-name')
+  } catch {
+    unicodeNameModule = null
+  }
+}
+
+async function ensureUnicodeNameFor(codePoint: number) {
+  if (unicodeNameCache.value[codePoint] !== undefined) return
+  try {
+    await loadUnicodeModule()
+    let fn: unknown = null
+    if (unicodeNameModule && typeof unicodeNameModule === 'object') {
+      const m = unicodeNameModule as Record<string, unknown>
+      fn = m.unicodeName || m.default || m
+    } else {
+      fn = unicodeNameModule
+    }
+    if (typeof fn === 'function') {
+      const name = (fn as (s: string) => string)(
+        String.fromCodePoint(codePoint),
+      )
+      unicodeNameCache.value[codePoint] = name || '—'
+      return
+    }
+  } catch {}
+  unicodeNameCache.value[codePoint] = '—'
+}
+
 const unicodeNameStr = computed(() => {
   const codePoint = parseInt(props.modelValue || '0000', 16)
-  const char = String.fromCodePoint(codePoint)
-  return unicodeName(char) || '—'
+  const cached = unicodeNameCache.value[codePoint]
+  if (cached !== undefined) return cached
+  return showingEncodingInfo.value ? 'Loading…' : '—'
 })
+
+watch(showingEncodingInfo, async (v) => {
+  if (!v) return
+  const codePoint = parseInt(props.modelValue || '0000', 16)
+  await ensureUnicodeNameFor(codePoint)
+})
+
+watch(
+  () => props.modelValue,
+  async (val) => {
+    if (!showingEncodingInfo.value) return
+    const codePoint = parseInt(val || '0000', 16)
+    await ensureUnicodeNameFor(codePoint)
+  },
+)
 
 const encodingInfo = computed(() => {
   const codePoint = parseInt(props.modelValue || '0000', 16)
@@ -285,10 +337,6 @@ const encodingInfo = computed(() => {
 
 .encoding-info-btn:hover {
   background-color: var(--background-active);
-}
-
-.encoding-info-btn .material-icons {
-  font-size: 24px;
 }
 
 .glyph-info-wrapper {

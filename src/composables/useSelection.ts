@@ -1,4 +1,4 @@
-import { ref, computed, readonly } from 'vue'
+import { computed, readonly, ref } from 'vue'
 
 export interface Position {
   row: number
@@ -28,14 +28,6 @@ export type SelectionState =
 
 export type ToolType = 'draw' | 'erase' | 'select'
 
-/**
- * 选区管理 Composable
- *
- * 提供统一的选区状态管理，包括：
- * - 选区的创建、更新、清除
- * - 选区状态的管理
- * - 选区数据的提取和应用
- */
 export function useSelection(gridData: () => number[][]) {
   const _state = ref<SelectionState>('none')
   const _currentTool = ref<ToolType>('draw')

@@ -46,7 +46,7 @@
           :title="$t('glyph_editor.cut_title')"
           @click="handleCut"
         >
-          <span class="material-symbols-outlined">content_cut</span>
+          <i-material-symbols-content-cut class="icon" />
         </button>
         <button
           v-if="hasSelection"
@@ -54,14 +54,14 @@
           :title="$t('glyph_editor.copy_title')"
           @click="handleCopy"
         >
-          <span class="material-symbols-outlined">content_copy</span>
+          <i-material-symbols-content-copy class="icon" />
         </button>
         <button
           class="action-button secondary"
           :title="$t('editor.actions.clear.title')"
           @click="handleClear"
         >
-          <span class="material-symbols-outlined">mop</span>
+          <i-material-symbols-mop-outline class="icon" />
           {{ $t('editor.actions.clear.button') }}
         </button>
         <button
@@ -69,7 +69,7 @@
           :title="$t('editor.actions.add_to_glyphset.title')"
           @click="addToGlyphset"
         >
-          <span class="material-symbols-outlined">add_box</span>
+          <i-material-symbols-add-box-outline class="icon" />
           {{ $t('editor.actions.add_to_glyphset.button') }}
         </button>
       </div>
@@ -80,7 +80,7 @@
           :title="$t('editor.actions.undo.title')"
           @click="handleUndo"
         >
-          <span class="material-symbols-outlined">undo</span>
+          <i-material-symbols-undo class="icon" />
         </button>
         <button
           class="icon-button"
@@ -88,7 +88,7 @@
           :title="$t('editor.actions.redo.title')"
           @click="handleRedo"
         >
-          <span class="material-symbols-outlined">redo</span>
+          <i-material-symbols-redo class="icon" />
         </button>
       </div>
     </div>
@@ -107,7 +107,7 @@
     <div :class="['sidebar', { active: isSidebarActive }]">
       <div class="sidebar-resizer" @mousedown="startResize"></div>
       <button class="btn-close-sidebar" @click="handleCloseSidebar">
-        <span class="material-symbols-outlined">close</span>
+        <i-material-symbols-close class="icon" />
       </button>
       <GlyphManager
         v-if="isSidebarActive"
@@ -152,32 +152,35 @@
 
 <script setup lang="ts">
 import {
-  ref,
-  onMounted,
-  onBeforeUnmount,
-  watch,
   computed,
   nextTick,
+  onBeforeUnmount,
+  onMounted,
   provide,
+  ref,
+  watch,
 } from 'vue'
+
 import { useI18n } from 'vue-i18n'
-import EditorHeader from './EditorHeader.vue'
-import GlyphInfo from './GlyphInfo.vue'
-import SettingsModal from './SettingsModal.vue'
-import GlyphGrid from './GlyphGrid.vue'
-import ToolButtons from './ToolButtons.vue'
-import HexCodeInput from './HexCodeInput.vue'
-import DownloadButtons from './DownloadButtons.vue'
-import GlyphManager from './GlyphManager.vue'
-import DialogBox from './DialogBox.vue'
-import { useSettings } from '@/composables/useSettings'
+
 import { useGridData } from '@/composables/useGridData'
 import { useHexCode } from '@/composables/useHexCode'
 import { useHistory } from '@/composables/useHistory'
+import { useSettings } from '@/composables/useSettings'
 import { useSidebar } from '@/composables/useSidebar'
 import { useTheme } from '@/composables/useTheme'
-import { hexToGrid } from '@/utils/hexUtils'
 import type { Glyph, PrefillData } from '@/types/glyph'
+import { hexToGrid } from '@/utils/hexUtils'
+
+import DialogBox from './DialogBox.vue'
+import DownloadButtons from './DownloadButtons.vue'
+import EditorHeader from './EditorHeader.vue'
+import GlyphGrid from './GlyphGrid.vue'
+import GlyphInfo from './GlyphInfo.vue'
+import GlyphManager from './GlyphManager.vue'
+import HexCodeInput from './HexCodeInput.vue'
+import SettingsModal from './SettingsModal.vue'
+import ToolButtons from './ToolButtons.vue'
 
 interface Position {
   x: number
@@ -713,7 +716,7 @@ const handleDrawComplete = (changes: CellChange[]): void => {
   background: var(--danger-hover);
 }
 
-.action-button .material-symbols-outlined {
+.action-button .icon {
   font-size: 20px;
 }
 
@@ -753,7 +756,7 @@ const handleDrawComplete = (changes: CellChange[]): void => {
   cursor: not-allowed;
 }
 
-.icon-button .material-symbols-outlined {
+.icon-button .icon {
   font-size: 20px;
 }
 
@@ -836,7 +839,7 @@ const handleDrawComplete = (changes: CellChange[]): void => {
     padding: 12px;
   }
 
-  .btn-close-sidebar .material-symbols-outlined {
+  .btn-close-sidebar .icon {
     font-size: 24px !important;
   }
 
@@ -883,7 +886,7 @@ const handleDrawComplete = (changes: CellChange[]): void => {
     padding: 12px;
   }
 
-  .btn-close-sidebar .material-symbols-outlined {
+  .btn-close-sidebar .icon {
     font-size: 36px !important;
   }
 
@@ -907,7 +910,7 @@ const handleDrawComplete = (changes: CellChange[]): void => {
     height: 60px;
   }
 
-  .icon-button .material-symbols-outlined {
+  .icon-button .icon {
     font-size: 28px !important;
   }
 
@@ -927,7 +930,7 @@ const handleDrawComplete = (changes: CellChange[]): void => {
     padding: 16px 28px;
   }
 
-  .action-button .material-symbols-outlined {
+  .action-button .icon {
     font-size: 44px !important;
     transform: translateY(3px);
   }
@@ -945,7 +948,7 @@ const handleDrawComplete = (changes: CellChange[]): void => {
     height: 80px;
   }
 
-  .icon-button .material-symbols-outlined {
+  .icon-button .icon {
     font-size: 48px !important;
   }
 
