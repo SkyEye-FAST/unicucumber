@@ -42,6 +42,12 @@
         :style="getCellStyle(rowIndex, cellIndex)"
         @mousedown="handleMouseDown(rowIndex, cellIndex, $event)"
         @mousemove="handleMouseMove(rowIndex, cellIndex)"
+        @pointerdown.prevent="handlePointerDown(rowIndex, cellIndex, $event)"
+        @pointermove="handlePointerMove(rowIndex, cellIndex, $event)"
+        @pointerup="handlePointerUp($event)"
+        @touchstart.stop.prevent="drawing.handleTouchStart($event)"
+        @touchmove.stop.prevent="drawing.handleTouchMove($event)"
+        @touchend.stop.prevent="drawing.stopDrawing()"
         @mouseleave="handleMouseLeave"
         @contextmenu="drawing.handleContextMenu"
         @click="handleCellClick(rowIndex, cellIndex)"
@@ -420,6 +426,25 @@ const handleCellClick = (row: number, col: number) => {
   if (clipboard.isPasteMode.value) {
     pasteAt(row, col)
   }
+}
+
+const handlePointerDown = (row: number, col: number, event: PointerEvent) => {
+  try {
+    if (event.preventDefault) event.preventDefault()
+  } catch {}
+
+  handleMouseDown(row, col, event as unknown as MouseEvent)
+}
+
+const handlePointerMove = (row: number, col: number, event: PointerEvent) => {
+  void event
+  handleMouseMove(row, col)
+}
+
+const handlePointerUp = (event: PointerEvent) => {
+  void event
+  drawing.stopDrawing()
+  handleMouseUp()
 }
 
 const handleKeyDown = (event: KeyboardEvent) => {
