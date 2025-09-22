@@ -297,7 +297,6 @@ const removeGlyph = (codePoint: string): void => {
 const editGlyph = (glyph: Glyph): void => {
   newGlyph.value = { ...glyph }
   editMode.value = true
-  removeGlyph(glyph.codePoint)
 }
 
 const handleEditInGrid = (glyph: Glyph): void => {

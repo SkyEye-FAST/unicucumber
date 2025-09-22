@@ -1,26 +1,38 @@
 <template>
   <div class="tool-buttons">
     <button
-      :class="{ active: modelValue === 1 }"
-      :disabled="disabled && modelValue !== 2"
+      :class="{
+        active:
+          props.drawMode === 'doubleButtonDraw'
+            ? props.currentDrawValue === 1
+            : currentTool === 'draw' && modelValue === 1,
+      }"
+      :disabled="disabled && currentTool !== 'select'"
       class="tool-button"
-      @click="updateDrawValue(1)"
+      @click="updateTool('draw', 1)"
     >
       <span class="material-symbols-outlined">draw</span>
     </button>
+
     <button
-      :class="{ active: modelValue === 0 }"
-      :disabled="disabled && modelValue !== 2"
+      :class="{
+        active:
+          props.drawMode === 'doubleButtonDraw'
+            ? props.currentDrawValue === 0
+            : currentTool === 'erase' && modelValue === 0,
+      }"
+      :disabled="disabled && currentTool !== 'select'"
       class="tool-button"
-      @click="updateDrawValue(0)"
+      @click="updateTool('erase', 0)"
     >
       <span class="material-symbols-outlined">ink_eraser</span>
     </button>
+
     <button
       v-if="enableSelection"
-      :class="{ active: modelValue === 2 }"
+      :class="{ active: currentTool === 'select' }"
       class="tool-button"
-      @click="updateDrawValue(2)"
+      @click="updateTool('select', 2)"
     >
       <span class="material-symbols-outlined">select</span>
     </button>
@@ -28,48 +40,33 @@
 </template>
 
 <script setup lang="ts">
-interface CellPosition {
-  row: number
-  col: number
+import type { ToolType } from '@/composables/useSelection'
+
+interface Props {
+  modelValue: number
+  currentTool: ToolType
+  disabled?: boolean
+  enableSelection?: boolean
+  drawMode?: 'singleButtonDraw' | 'doubleButtonDraw'
+  currentDrawValue?: number
 }
 
-interface Region {
-  start: CellPosition
-  end: CellPosition
-}
-
-const emit = defineEmits(['update:modelValue'])
-const { disabled, enableSelection } = defineProps({
-  modelValue: {
-    type: Number,
-    required: true,
-  },
-  copyMode: {
-    type: Boolean,
-    default: false,
-  },
-  moveMode: {
-    type: Boolean,
-    default: false,
-  },
-  selectedRegion: {
-    type: Object as () => Region | null,
-    default: null,
-  },
-  disabled: {
-    type: Boolean,
-    default: false,
-  },
-  enableSelection: {
-    type: Boolean,
-    default: false,
-  },
+const props = withDefaults(defineProps<Props>(), {
+  disabled: false,
+  enableSelection: false,
+  drawMode: 'singleButtonDraw',
+  currentDrawValue: undefined,
 })
 
-const updateDrawValue = (value: number) => {
-  if (value === 2 || !disabled) {
-    emit('update:modelValue', value)
+const emit = defineEmits(['update:modelValue', 'update:currentTool'])
+
+const updateTool = (tool: ToolType, value: number) => {
+  if (props.disabled && tool !== 'select') {
+    return
   }
+
+  emit('update:currentTool', tool)
+  emit('update:modelValue', value)
 }
 </script>
 
