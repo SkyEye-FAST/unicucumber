@@ -19,6 +19,47 @@
       </div>
     </div>
 
+    <template
+      v-if="
+        currentSelectionRect &&
+        props.currentTool === 'select' &&
+        lastInputWasTouch
+      "
+    >
+      <button
+        class="move-button move-up"
+        :style="getMoveButtonStyle('up')"
+        @click.stop.prevent="moveUp"
+        aria-label="Move selection up"
+      >
+        ▲
+      </button>
+      <button
+        class="move-button move-down"
+        :style="getMoveButtonStyle('down')"
+        @click.stop.prevent="moveDown"
+        aria-label="Move selection down"
+      >
+        ▼
+      </button>
+      <button
+        class="move-button move-left"
+        :style="getMoveButtonStyle('left')"
+        @click.stop.prevent="moveLeft"
+        aria-label="Move selection left"
+      >
+        ◀
+      </button>
+      <button
+        class="move-button move-right"
+        :style="getMoveButtonStyle('right')"
+        @click.stop.prevent="moveRight"
+        aria-label="Move selection right"
+      >
+        ▶
+      </button>
+    </template>
+
     <div
       v-for="(row, rowIndex) in gridData"
       :key="`row-${rowIndex}`"
@@ -744,6 +785,80 @@ const updateMousePosition = (event: MouseEvent) => {
   mousePosition.value = { x: event.clientX, y: event.clientY }
 }
 
+const moveSelectionBy = (dRow: number, dCol: number) => {
+  if (!selection.hasSelection.value || !selection.selectionData.value) return
+
+  const rect = selection.selectionRect.value
+  if (!rect) return
+
+  const newPos = { row: rect.startRow + dRow, col: rect.startCol + dCol }
+
+  const gridHeight = props.gridData.length
+  const gridWidth = props.gridData[0]?.length ?? 0
+  const selHeight = selection.selectionData.value.height
+  const selWidth = selection.selectionData.value.width
+
+  const clamped = {
+    row: Math.max(0, Math.min(gridHeight - selHeight, newPos.row)),
+    col: Math.max(0, Math.min(gridWidth - selWidth, newPos.col)),
+  }
+
+  const originalRect = selection.selectionRect.value!
+  if (selection.moveSelectionTo(clamped)) {
+    moveSelectionData(selection.selectionData.value!, originalRect, clamped)
+    selection.updateOriginalRect({
+      startRow: clamped.row,
+      startCol: clamped.col,
+      endRow: clamped.row + selHeight - 1,
+      endCol: clamped.col + selWidth - 1,
+    })
+  }
+}
+
+const moveUp = () => moveSelectionBy(-1, 0)
+const moveDown = () => moveSelectionBy(1, 0)
+const moveLeft = () => moveSelectionBy(0, -1)
+const moveRight = () => moveSelectionBy(0, 1)
+
+const getMoveButtonStyle = (dir: 'up' | 'down' | 'left' | 'right') => {
+  const rect = selection.selectionRect.value
+  if (!rect) return { display: 'none' }
+
+  const normalized = {
+    startRow: Math.min(rect.startRow, rect.endRow),
+    startCol: Math.min(rect.startCol, rect.endCol),
+    endRow: Math.max(rect.startRow, rect.endRow),
+    endCol: Math.max(rect.startCol, rect.endCol),
+  }
+
+  const width = normalized.endCol - normalized.startCol + 1
+  const height = normalized.endRow - normalized.startRow + 1
+  const cell = 'var(--cell-size)'
+
+  switch (dir) {
+    case 'up': {
+      const left = `calc(( ${normalized.startCol} + ${Math.floor(width / 2)} + 1) * ${cell})`
+      const top = `calc(( ${normalized.startRow} + 1) * ${cell} - 0.6 * ${cell})`
+      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
+    }
+    case 'down': {
+      const left = `calc(( ${normalized.startCol} + ${Math.floor(width / 2)} + 1) * ${cell})`
+      const top = `calc(( ${normalized.endRow} + 2) * ${cell} + 0.2 * ${cell})`
+      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
+    }
+    case 'left': {
+      const left = `calc(( ${normalized.startCol} + 1) * ${cell} - 0.6 * ${cell})`
+      const top = `calc(( ${normalized.startRow} + ${Math.floor(height / 2)} + 1) * ${cell})`
+      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
+    }
+    case 'right': {
+      const left = `calc(( ${normalized.endCol} + 2) * ${cell} + 0.2 * ${cell})`
+      const top = `calc(( ${normalized.startRow} + ${Math.floor(height / 2)} + 1) * ${cell})`
+      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
+    }
+  }
+}
+
 onMounted(() => {
   document.addEventListener('mouseup', handleMouseUp)
   document.addEventListener('mousemove', updateMousePosition)
@@ -948,6 +1063,26 @@ defineExpose({
   pointer-events: none;
   opacity: 0.8;
   animation: pulse 1s ease-in-out infinite alternate;
+}
+
+.move-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+.move-button:active {
+  transform: scale(0.95);
 }
 
 @keyframes pulse {
