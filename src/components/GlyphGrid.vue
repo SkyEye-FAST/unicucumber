@@ -45,9 +45,13 @@
         @pointerdown.prevent="handlePointerDown(rowIndex, cellIndex, $event)"
         @pointermove="handlePointerMove(rowIndex, cellIndex, $event)"
         @pointerup="handlePointerUp($event)"
-        @touchstart.stop.prevent="drawing.handleTouchStart($event)"
-        @touchmove.stop.prevent="drawing.handleTouchMove($event)"
-        @touchend.stop.prevent="drawing.stopDrawing()"
+        @touchstart.stop.prevent="
+          handleTouchStartCell(rowIndex, cellIndex, $event)
+        "
+        @touchmove.stop.prevent="
+          handleTouchMoveCell(rowIndex, cellIndex, $event)
+        "
+        @touchend.stop.prevent="handleTouchEndCell($event)"
         @mouseleave="handleMouseLeave"
         @contextmenu="drawing.handleContextMenu"
         @click="handleCellClick(rowIndex, cellIndex)"
@@ -458,6 +462,131 @@ const handlePointerUp = (event: PointerEvent) => {
   handleMouseUp()
 }
 
+const handleTouchStartCell = (row: number, col: number, event: TouchEvent) => {
+  lastInputWasTouch.value = true
+
+  if (props.currentTool === 'select') {
+    isInteracting.value = true
+    interactionStartPos.value = { row, col }
+
+    if (selection.isPositionInSelection({ row, col })) {
+      if (selection.startMove()) {
+        return
+      }
+    }
+
+    selection.clearSelection()
+    selection.startSelection({ row, col })
+  } else {
+    drawing.handleTouchStart(event)
+  }
+}
+
+const handleTouchMoveCell = (row: number, col: number, event: TouchEvent) => {
+  lastInputWasTouch.value = true
+
+  lastValidMousePos.value = { row, col }
+
+  if (props.currentTool === 'select' && isInteracting.value) {
+    if (selection.isMoving.value) {
+      const startPos = getInteractionStartPos()
+      if (startPos && selection.selectionData.value) {
+        const deltaRow = row - startPos.row
+        const deltaCol = col - startPos.col
+
+        const originalRect = selection.selectionData.value.originalRect
+        const newPos = {
+          row: originalRect.startRow + deltaRow,
+          col: originalRect.startCol + deltaCol,
+        }
+
+        const gridHeight = props.gridData.length
+        const gridWidth = props.gridData[0]?.length ?? 0
+        const selectionHeight = selection.selectionData.value.height
+        const selectionWidth = selection.selectionData.value.width
+
+        const clampedNewPos = {
+          row: Math.max(0, Math.min(gridHeight - selectionHeight, newPos.row)),
+          col: Math.max(0, Math.min(gridWidth - selectionWidth, newPos.col)),
+        }
+
+        const tempRect = {
+          startRow: clampedNewPos.row,
+          startCol: clampedNewPos.col,
+          endRow: clampedNewPos.row + selectionHeight - 1,
+          endCol: clampedNewPos.col + selectionWidth - 1,
+        }
+
+        selection.setTempRect(tempRect)
+      }
+    } else if (selection.isSelecting.value) {
+      selection.updateSelection({ row, col })
+    }
+  } else {
+    drawing.handleTouchMove(event)
+  }
+}
+
+const handleTouchEndCell = (_event?: TouchEvent) => {
+  void _event
+  lastInputWasTouch.value = true
+
+  drawing.stopDrawing()
+
+  if (isInteracting.value && props.currentTool === 'select') {
+    if (selection.isMoving.value && interactionStartPos.value) {
+      const startPos = interactionStartPos.value
+      const currentPos = lastValidMousePos.value
+
+      if (selection.selectionData.value) {
+        const deltaRow = currentPos.row - startPos.row
+        const deltaCol = currentPos.col - startPos.col
+
+        const originalRect = selection.selectionData.value.originalRect
+        const rawNewPos = {
+          row: originalRect.startRow + deltaRow,
+          col: originalRect.startCol + deltaCol,
+        }
+
+        const gridHeight = props.gridData.length
+        const gridWidth = props.gridData[0]?.length ?? 0
+        const selectionHeight = selection.selectionData.value.height
+        const selectionWidth = selection.selectionData.value.width
+
+        const clampedNewPos = {
+          row: Math.max(
+            0,
+            Math.min(gridHeight - selectionHeight, rawNewPos.row),
+          ),
+          col: Math.max(0, Math.min(gridWidth - selectionWidth, rawNewPos.col)),
+        }
+
+        if (selection.moveSelectionTo(clampedNewPos)) {
+          const selectionDataValue = selection.selectionData.value
+          if (selectionDataValue) {
+            moveSelectionData(selectionDataValue, originalRect, clampedNewPos)
+
+            const newRect = {
+              startRow: clampedNewPos.row,
+              startCol: clampedNewPos.col,
+              endRow: clampedNewPos.row + selectionDataValue.height - 1,
+              endCol: clampedNewPos.col + selectionDataValue.width - 1,
+            }
+            selection.updateOriginalRect(newRect)
+          }
+        }
+      }
+
+      selection.setTempRect(null)
+    } else if (selection.isSelecting.value) {
+      selection.finishSelection()
+    }
+  }
+
+  isInteracting.value = false
+  interactionStartPos.value = null
+}
+
 const handleKeyDown = (event: KeyboardEvent) => {
   if (event.ctrlKey || event.metaKey) {
     switch (event.key.toLowerCase()) {
@@ -606,12 +735,14 @@ const updateMousePosition = (event: MouseEvent) => {
 onMounted(() => {
   document.addEventListener('mouseup', handleMouseUp)
   document.addEventListener('mousemove', updateMousePosition)
+  document.addEventListener('touchend', handleTouchEndCell)
   document.addEventListener('keydown', handleKeyDown)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('mouseup', handleMouseUp)
   document.removeEventListener('mousemove', updateMousePosition)
+  document.removeEventListener('touchend', handleTouchEndCell)
   document.removeEventListener('keydown', handleKeyDown)
 })
 
