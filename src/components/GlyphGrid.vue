@@ -92,7 +92,6 @@ interface Props {
   gridData: number[][]
   drawMode: 'singleButtonDraw' | 'doubleButtonDraw'
   drawValue: number
-  // cursorEffect removed; use global settings.alwaysShowMouseCursor instead
   showBorder: boolean
   currentTool?: ToolType
   enableSelection?: boolean
@@ -134,10 +133,8 @@ const drawing = useDrawing(
   },
 )
 
-// settings (for new alwaysShowMouseCursor option)
 const { settings } = useSettings()
 
-// track whether the last input was touch; default false (assume mouse)
 const lastInputWasTouch = ref(false)
 
 const isInteracting = ref(false)
@@ -159,9 +156,6 @@ const getCellClasses = (row: number, col: number, value: number) => {
 const getCellStyle = (row: number, col: number) => {
   const style: Record<string, string> = {}
 
-  // Show cursor effect when either user enabled alwaysShowMouseCursor
-  // or when last input wasn't touch (i.e., mouse/pen) — and only if the
-  // settings key exists.
   const shouldShowCursorEffect =
     settings.value?.alwaysShowMouseCursor || !lastInputWasTouch.value
 
@@ -446,21 +440,18 @@ const handlePointerDown = (row: number, col: number, event: PointerEvent) => {
     if (event.preventDefault) event.preventDefault()
   } catch {}
 
-  // update last input type
   lastInputWasTouch.value = event.pointerType === 'touch'
 
   handleMouseDown(row, col, event as unknown as MouseEvent)
 }
 
 const handlePointerMove = (row: number, col: number, event: PointerEvent) => {
-  // update last input type on move as well
   lastInputWasTouch.value = event.pointerType === 'touch'
   handleMouseMove(row, col)
 }
 
 const handlePointerUp = (event: PointerEvent) => {
   void event
-  // pointer up may be from touch or mouse
   lastInputWasTouch.value = event.pointerType === 'touch'
 
   drawing.stopDrawing()
