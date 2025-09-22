@@ -129,23 +129,30 @@
       @cancel="dialogConfig.onCancel"
     />
     <div class="copyright-text" role="contentinfo">
-      <span class="copyright-left">Copyright © 2024 - 2025</span>
-      <span class="copyright-links" aria-hidden="false">
-        <a
-          href="https://github.com/SkyEye-FAST"
-          aria-label="SkyEye_FAST on GitHub"
-          >SkyEye_FAST</a
-        >
-        <span class="sep" aria-hidden="true">•</span>
-        <a
-          href="https://unifoundry.com/unifont/"
-          target="_blank"
-          rel="noreferrer nofollow"
-          aria-label="GNU Unifont website"
-          >GNU Unifont</a
-        >
-        <span v-if="unifontVersion" class="version">{{ unifontVersion }}</span>
-      </span>
+      <div class="copyright-line copyright-line-top">
+        <span class="copyright-left">
+          Copyright © 2024 - 2025
+          <a
+            href="https://github.com/SkyEye-FAST"
+            aria-label="SkyEye_FAST on GitHub"
+            >SkyEye_FAST</a
+          >
+        </span>
+      </div>
+      <div class="copyright-line copyright-line-bottom">
+        <span class="copyright-links" aria-hidden="false">
+          <a
+            href="https://unifoundry.com/unifont/"
+            target="_blank"
+            rel="noreferrer nofollow"
+            aria-label="GNU Unifont website"
+            >GNU Unifont</a
+          >
+          <span v-if="unifontVersion" class="version">{{
+            unifontVersion
+          }}</span>
+        </span>
+      </div>
     </div>
   </div>
 </template>
@@ -822,10 +829,19 @@ const handleDrawComplete = (changes: CellChange[]): void => {
   color: var(--text-secondary);
 }
 
-.copyright-text .sep {
-  color: var(--text-secondary);
-  margin: 0 0.2rem;
-  font-size: 0.9em;
+.copyright-line {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.copyright-line-top {
+  margin-bottom: 0.15rem;
+}
+
+.copyright-line-bottom {
+  gap: 0.3rem;
 }
 
 .copyright-text .version {
