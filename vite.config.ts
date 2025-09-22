@@ -92,20 +92,6 @@ export default defineConfig({
   },
   build: {
     chunkSizeWarningLimit: 2500,
-    rollupOptions: {
-      output: {
-        manualChunks(id: string) {
-          if (id.includes('node_modules')) {
-            if (id.includes('vue')) return 'vendor_vue'
-            if (id.includes('@vueuse')) return 'vendor_vueuse'
-            if (id.includes('unicode-name')) return 'vendor_unicode_name'
-            if (id.includes('iconv-lite')) return 'vendor_iconv_lite'
-            if (id.includes('unplugin-icons') || id.includes('@iconify'))
-              return 'vendor_icons'
-            return 'vendor_misc'
-          }
-        },
-      },
-    },
+    rollupOptions: {},
   },
 })
