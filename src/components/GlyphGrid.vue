@@ -482,8 +482,20 @@ const handleTouchStartCell = (row: number, col: number, event: TouchEvent) => {
   }
 }
 
-const handleTouchMoveCell = (row: number, col: number, event: TouchEvent) => {
+const handleTouchMoveCell = (_row: number, _col: number, event: TouchEvent) => {
   lastInputWasTouch.value = true
+  const touch = event.touches[0]
+  if (!touch) return
+  const target = document.elementFromPoint(
+    touch.clientX,
+    touch.clientY,
+  ) as HTMLElement
+  if (!target || !target.classList.contains('cell')) {
+    return
+  }
+  const row = parseInt(target.dataset.row ?? '-1')
+  const col = parseInt(target.dataset.col ?? '-1')
+  if (row < 0 || col < 0) return
 
   lastValidMousePos.value = { row, col }
 
