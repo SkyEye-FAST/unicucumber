@@ -15,7 +15,7 @@ interface GridInteractionProps {
 
 type GridInteractionEmits = {
   'cell-change': [row: number, col: number, value: number]
-  'draw-complete': [action: any]
+  'draw-complete': [action: unknown]
   'selection-change': [hasSelection: boolean]
   'tool-change': [tool: ToolType]
   'clipboard-change': [hasData: boolean]
@@ -42,7 +42,7 @@ export function useGridInteraction(
     {
       'cell-change': (row, col, value) => emit('cell-change', row, col, value),
       'draw-complete': (action) => emit('draw-complete', action),
-      'tool-change': (value) => {},
+      'tool-change': () => {},
     },
   )
 
@@ -180,8 +180,13 @@ export function useGridInteraction(
   }
 
   const moveSelectionData = (
-    selectionData: any,
-    fromRect: any,
+    selectionData: { data: readonly (readonly number[])[] },
+    fromRect: {
+      startRow: number
+      endRow: number
+      startCol: number
+      endCol: number
+    },
     toPos: Position,
   ) => {
     for (let row = fromRect.startRow; row <= fromRect.endRow; row++) {
@@ -190,8 +195,8 @@ export function useGridInteraction(
       }
     }
 
-    selectionData.data.forEach((rowData: number[], rowIndex: number) => {
-      rowData.forEach((value: number, colIndex: number) => {
+    selectionData.data.forEach((rowData, rowIndex) => {
+      rowData.forEach((value, colIndex) => {
         emit('cell-change', toPos.row + rowIndex, toPos.col + colIndex, value)
       })
     })

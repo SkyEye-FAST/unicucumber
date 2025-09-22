@@ -6,7 +6,7 @@
       class="download-button"
       @click="() => downloadFile(format)"
     >
-      <span class="material-symbols-outlined">download</span><br />
+      <i-material-symbols-download class="icon" /><br />
       <span style="font-size: smaller">{{ format }}</span>
     </button>
   </div>
@@ -115,7 +115,7 @@ const downloadFile = async (format: DownloadFormat) => {
     width: 5em;
   }
 
-  .download-button .material-symbols-outlined {
+  .download-button .icon {
     font-size: 1.5em !important;
   }
 }

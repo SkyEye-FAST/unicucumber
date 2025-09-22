@@ -17,7 +17,7 @@
         :class="{ active: showingEncodingInfo }"
         @click="toggleEncodingInfo()"
       >
-        <span class="material-symbols-outlined">info</span>
+        <i-material-symbols-info-outline class="icon" />
       </button>
       <div class="code-point-input">
         <span>U+</span>
@@ -288,10 +288,6 @@ const encodingInfo = computed(() => {
 
 .encoding-info-btn:hover {
   background-color: var(--background-active);
-}
-
-.encoding-info-btn .material-icons {
-  font-size: 24px;
 }
 
 .glyph-info-wrapper {

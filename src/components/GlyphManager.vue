@@ -875,7 +875,7 @@ onMounted(() => {
   font-weight: bold;
 }
 
-.material-symbols-outlined {
+.icon {
   font-size: 20px;
 }
 

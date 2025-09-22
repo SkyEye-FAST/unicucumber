@@ -16,7 +16,7 @@
       :disabled="!glyphs.length"
       @click="$emit('export')"
     >
-      <span class="material-symbols-outlined">file_download</span>
+      <i-material-symbols-file-download class="icon" />
       {{ $t('glyph_manager.export') }}
     </button>
   </div>

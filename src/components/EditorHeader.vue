@@ -4,19 +4,30 @@
     <h1 class="title"><span style="color: #000">Uni</span>Cucumber</h1>
   </div>
   <div class="modal-buttons">
-    <button class="modal-button" @click="$emit('openSettings')">
-      <span class="material-symbols-outlined bold">settings</span>
+    <button
+      class="modal-button"
+      aria-label="open settings"
+      @click="$emit('openSettings')"
+    >
+      <i-material-symbols-settings class="icon" />
     </button>
-    <button class="modal-button" @click="$emit('toggleSidebar')">
-      <span class="material-symbols-outlined bold">glyphs</span>
+    <button
+      class="modal-button"
+      aria-label="toggle sidebar"
+      @click="$emit('toggleSidebar')"
+    >
+      <i-material-symbols-glyphs class="icon" />
     </button>
-    <button class="modal-button" @click="toggleTheme">
-      <span class="material-symbols-outlined bold">{{
-        isDark ? 'light_mode' : 'dark_mode'
-      }}</span>
+    <button class="modal-button" aria-label="toggle theme" @click="toggleTheme">
+      <i-material-symbols-light-mode v-if="isDark" class="icon" />
+      <i-material-symbols-dark-mode v-else class="icon" />
     </button>
-    <a href="https://github.com/SkyEye-FAST/unicucumber" class="github-link">
-      <div class="github-icon"></div>
+    <a
+      class="modal-button"
+      href="https://github.com/SkyEye-FAST/unicucumber"
+      aria-label="GitHub"
+    >
+      <i-fa6-brands-github class="icon" style="transform: translateY(-3px)" />
     </a>
   </div>
 </template>
@@ -60,7 +71,6 @@ onMounted(() => {
   border-radius: 4px;
   box-shadow: 0 2px 4px var(--modal-shadow);
   display: flex;
-  padding-top: 5px;
   margin: 5px;
   align-items: center;
   flex-direction: row;
@@ -81,32 +91,10 @@ onMounted(() => {
   color: var(--primary-color);
 }
 
-.github-link {
-  margin: 0 10px;
-  padding: 5px;
-  transform: translateY(-0.2em);
-}
-
-.github-icon {
-  width: 1.5em;
-  height: 1.5em;
-  mask: url('@/assets/github-icon.svg') center / contain no-repeat;
-  background-color: var(--text-secondary);
-}
-
-.github-icon:hover {
-  background-color: var(--primary-color);
-}
-
 @media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
   .modal-button {
     padding: 5px 10px;
     font-size: 2em;
-  }
-
-  .github-icon {
-    width: 2.1em;
-    padding: 5px 10px;
   }
 
   .title {
@@ -123,11 +111,6 @@ onMounted(() => {
 @media (orientation: portrait) and (min-width: 1024px) {
   .modal-button {
     font-size: 3em;
-    padding: 10px 15px;
-  }
-
-  .github-icon {
-    width: 3.2em;
     padding: 10px 15px;
   }
 

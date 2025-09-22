@@ -74,7 +74,7 @@
           :disabled="!modelValue.codePoint"
           @click="$emit('import')"
         >
-          <span class="material-symbols-outlined">sync</span>
+          <i-material-symbols-sync-outline class="icon" />
           {{ $t('glyph_manager.import') }}
         </button>
         <button

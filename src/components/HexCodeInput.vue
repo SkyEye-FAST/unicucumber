@@ -9,7 +9,15 @@
       @input="updateHex"
     />
     <button class="copy-button" :title="$t('hex_input.copy')" @click="copyHex">
-      <span class="material-symbols-outlined">{{ copyIcon }}</span>
+      <template v-if="copyIcon === 'content_copy'">
+        <i-material-symbols-content-copy-outline class="icon" />
+      </template>
+      <template v-else-if="copyIcon === 'check'">
+        <i-material-symbols-check class="icon" />
+      </template>
+      <template v-else>
+        <i-material-symbols-content-copy class="icon" />
+      </template>
     </button>
   </div>
 </template>
