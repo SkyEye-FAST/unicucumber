@@ -938,6 +938,15 @@ const handleDocumentClick = (e: MouseEvent) => {
   const target = e.target as HTMLElement | null
   if (!target) return
 
+  if (
+    target.closest('.editor-actions') ||
+    target.closest('.action-button') ||
+    target.closest('.tool-buttons') ||
+    target.closest('[data-preserve-selection]')
+  ) {
+    return
+  }
+
   if (!target.closest('.grid-container')) {
     if (clipboard.isPasteMode.value) clipboard.exitPasteMode()
     if (selection.hasSelection.value) selection.clearSelection()
