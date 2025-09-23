@@ -106,6 +106,40 @@
       :style="getSelectionOverlayStyle(currentSelectionRect)"
     ></div>
 
+    <template v-if="clipboard.isPasteMode.value && lastInputWasTouch">
+      <button
+        class="move-button paste-move-up"
+        :style="getPasteMoveButtonStyle('up')"
+        @click.stop.prevent="movePasteBy(-1, 0)"
+        aria-label="Move paste up"
+      >
+        ▲
+      </button>
+      <button
+        class="move-button paste-move-down"
+        :style="getPasteMoveButtonStyle('down')"
+        @click.stop.prevent="movePasteBy(1, 0)"
+        aria-label="Move paste down"
+      >
+        ▼
+      </button>
+      <button
+        class="move-button paste-move-left"
+        :style="getPasteMoveButtonStyle('left')"
+        @click.stop.prevent="movePasteBy(0, -1)"
+        aria-label="Move paste left"
+      >
+        ◀
+      </button>
+      <button
+        class="move-button paste-move-right"
+        :style="getPasteMoveButtonStyle('right')"
+        @click.stop.prevent="movePasteBy(0, 1)"
+        aria-label="Move paste right"
+      >
+        ▶
+      </button>
+    </template>
     <div
       v-if="tempSelectionRect"
       class="selection-overlay temp-selection"
@@ -894,6 +928,87 @@ const moveUp = () => moveSelectionBy(-1, 0)
 const moveDown = () => moveSelectionBy(1, 0)
 const moveLeft = () => moveSelectionBy(0, -1)
 const moveRight = () => moveSelectionBy(0, 1)
+
+const movePasteBy = (dRow: number, dCol: number) => {
+  if (!clipboard.isPasteMode.value || !clipboard.clipboardData.value) return
+
+  const cb = clipboard.clipboardData.value
+
+  let startRow = drawing.hoverCell.value.row
+  let startCol = drawing.hoverCell.value.col
+
+  if (tempSelectionRect.value) {
+    startRow = Math.min(
+      tempSelectionRect.value.startRow,
+      tempSelectionRect.value.endRow,
+    )
+    startCol = Math.min(
+      tempSelectionRect.value.startCol,
+      tempSelectionRect.value.endCol,
+    )
+  }
+
+  const gridHeight = props.gridData.length
+  const gridWidth = props.gridData[0]?.length ?? 0
+
+  const newRow = Math.max(0, Math.min(gridHeight - cb.height, startRow + dRow))
+  const newCol = Math.max(0, Math.min(gridWidth - cb.width, startCol + dCol))
+
+  const tempRect = {
+    startRow: newRow,
+    startCol: newCol,
+    endRow: newRow + cb.height - 1,
+    endCol: newCol + cb.width - 1,
+  }
+
+  selection.setTempRect(tempRect)
+}
+
+const getPasteMoveButtonStyle = (dir: 'up' | 'down' | 'left' | 'right') => {
+  const rect =
+    tempSelectionRect.value ||
+    (drawing.hoverCell.value.row >= 0
+      ? {
+          startRow: drawing.hoverCell.value.row,
+          startCol: drawing.hoverCell.value.col,
+          endRow: drawing.hoverCell.value.row,
+          endCol: drawing.hoverCell.value.col,
+        }
+      : null)
+
+  if (!rect) return { display: 'none' }
+
+  const normalized = {
+    startRow: Math.min(rect.startRow, rect.endRow),
+    startCol: Math.min(rect.startCol, rect.endCol),
+    endRow: Math.max(rect.startRow, rect.endRow),
+    endCol: Math.max(rect.startCol, rect.endCol),
+  }
+
+  const cell = 'var(--cell-size)'
+  switch (dir) {
+    case 'up': {
+      const left = `calc(( ${normalized.startCol} + ${Math.floor((normalized.endCol - normalized.startCol + 1) / 2)} + 1) * ${cell})`
+      const top = `calc(( ${normalized.startRow} + 1) * ${cell} - 0.6 * ${cell})`
+      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
+    }
+    case 'down': {
+      const left = `calc(( ${normalized.startCol} + ${Math.floor((normalized.endCol - normalized.startCol + 1) / 2)} + 1) * ${cell})`
+      const top = `calc(( ${normalized.endRow} + 2) * ${cell} + 0.2 * ${cell})`
+      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
+    }
+    case 'left': {
+      const left = `calc(( ${normalized.startCol} + 1) * ${cell} - 0.6 * ${cell})`
+      const top = `calc(( ${normalized.startRow} + ${Math.floor((normalized.endRow - normalized.startRow + 1) / 2)} + 1) * ${cell})`
+      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
+    }
+    case 'right': {
+      const left = `calc(( ${normalized.endCol} + 2) * ${cell} + 0.2 * ${cell})`
+      const top = `calc(( ${normalized.startRow} + ${Math.floor((normalized.endRow - normalized.startRow + 1) / 2)} + 1) * ${cell})`
+      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
+    }
+  }
+}
 
 const getMoveButtonStyle = (dir: 'up' | 'down' | 'left' | 'right') => {
   const rect = selection.selectionRect.value
