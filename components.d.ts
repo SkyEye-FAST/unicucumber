@@ -25,6 +25,7 @@ declare module 'vue' {
     IMaterialSymbolsContentCopy: typeof import('~icons/material-symbols/content-copy')['default']
     IMaterialSymbolsContentCopyOutline: typeof import('~icons/material-symbols/content-copy-outline')['default']
     IMaterialSymbolsContentCut: typeof import('~icons/material-symbols/content-cut')['default']
+    IMaterialSymbolsContentPaste: typeof import('~icons/material-symbols/content-paste')['default']
     IMaterialSymbolsDarkMode: typeof import('~icons/material-symbols/dark-mode')['default']
     IMaterialSymbolsDeleteOutline: typeof import('~icons/material-symbols/delete-outline')['default']
     IMaterialSymbolsDownload: typeof import('~icons/material-symbols/download')['default']

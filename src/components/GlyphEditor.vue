@@ -36,13 +36,14 @@
       @tool-state-change="handleToolStateChange"
       @draw-complete="handleDrawComplete"
       @clipboard-change="handleClipboardChange"
+      @paste-start="handlePasteStart"
     />
 
     <div class="editor-actions">
       <div class="action-group">
         <button
           v-if="hasSelection"
-          class="action-button"
+          class="action-button icon-only"
           :title="$t('glyph_editor.cut_title')"
           @click="handleCut"
         >
@@ -50,11 +51,19 @@
         </button>
         <button
           v-if="hasSelection"
-          class="action-button"
+          class="action-button icon-only"
           :title="$t('glyph_editor.copy_title')"
           @click="handleCopy"
         >
           <i-material-symbols-content-copy class="icon" />
+        </button>
+        <button
+          v-if="hasClipboardData"
+          class="action-button icon-only"
+          :title="$t('glyph_editor.paste_title')"
+          @click="handlePaste"
+        >
+          <i-material-symbols-content-paste class="icon" />
         </button>
         <button
           class="action-button secondary"
@@ -336,10 +345,15 @@ interface GlyphGridInstance {
   handleDelete: () => void
   clearSelection: () => void
   gridFontString?: string
+  drawing?: {
+    currentDrawValue?: {
+      value?: number
+    }
+  }
 }
 
 const glyphGridRef = ref<GlyphGridInstance | null>(null)
-const gridRef = ref<InstanceType<typeof GlyphGrid> | null>(null)
+const gridRef = ref<GlyphGridInstance | null>(null)
 const gridFontRef = ref<HTMLElement | null>(null)
 
 const currentDrawValue = computed(() => {
@@ -363,6 +377,12 @@ onMounted(() => {
   document.addEventListener('keydown', handleKeydown)
   document.addEventListener('mousemove', updateMousePosition)
   nextTick(updateGridFontPreview)
+
+  nextTick(() => {
+    if (gridRef.value) {
+      glyphGridRef.value = gridRef.value
+    }
+  })
 })
 
 onBeforeUnmount(() => {
@@ -391,7 +411,7 @@ watch(
 
 const pasteMode = ref<boolean>(false)
 
-defineEmits(['update:modelValue', 'selection-complete', 'paste-complete'])
+defineEmits(['update:modelValue', 'selection-complete'])
 
 const handleKeydown = (e: KeyboardEvent): void => {
   if (e.ctrlKey) {
@@ -407,6 +427,11 @@ const handleKeydown = (e: KeyboardEvent): void => {
     } else if (e.key === 'c' && selectedRegion.value) {
       e.preventDefault()
       handleCopy()
+    } else if (e.key === 'v') {
+      e.preventDefault()
+      if (hasClipboardData.value) {
+        handlePaste()
+      }
     }
   }
 }
@@ -422,6 +447,29 @@ const handleCut = (): void => {
     glyphGridRef.value.handleCut()
   }
 }
+
+const handlePaste = (): void => {
+  if (!hasClipboardData.value) return
+  if (
+    glyphGridRef.value &&
+    typeof glyphGridRef.value.handlePaste === 'function'
+  ) {
+    glyphGridRef.value.handlePaste()
+    return
+  }
+  if (gridRef.value && typeof gridRef.value.handlePaste === 'function') {
+    gridRef.value.handlePaste()
+  }
+}
+
+watch(
+  () => gridRef.value,
+  (newVal) => {
+    if (newVal) {
+      glyphGridRef.value = newVal
+    }
+  },
+)
 
 const clearSelection = (): void => {
   if (glyphGridRef.value) {
@@ -641,6 +689,13 @@ const handleDrawComplete = (changes: CellChange[]): void => {
   }
   pushState(gridData.value, JSON.stringify(action))
 }
+
+const handlePasteStart = (): void => {
+  if (settings.value.enableSelection) {
+    drawValue.value = 2
+    currentTool.value = 'select'
+  }
+}
 </script>
 
 <style scoped>
@@ -703,6 +758,24 @@ const handleDrawComplete = (changes: CellChange[]): void => {
   align-items: center;
   gap: 6px;
   transition: background-color 0.2s;
+}
+
+.action-button.icon-only {
+  padding: 8px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--text-secondary);
+}
+
+.action-button.icon-only .icon {
+  font-size: 20px;
+}
+
+.action-button.icon-only:hover,
+.action-button.icon-only:focus {
+  background: transparent;
+  color: var(--text-color);
 }
 
 .action-button.primary {

@@ -1,4 +1,4 @@
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 
 import { useClipboard } from './useClipboard'
 import { useDrawing } from './useDrawing'
@@ -78,6 +78,29 @@ export function useGridInteraction(
     emit('clipboard-change', clipboard.hasClipboardData())
   })
 
+  watch(
+    () => clipboard.isPasteMode.value,
+    (isPaste) => {
+      if (!isPaste) {
+        renderer.updateRenderData({ tempRect: null, state: 'none' })
+        selection.setTempRect(null)
+      } else {
+        const hover = drawing.hoverCell.value
+        const cbData = clipboard.clipboardData.value
+        if (hover.row >= 0 && hover.col >= 0 && cbData) {
+          const tempRect = {
+            startRow: hover.row,
+            startCol: hover.col,
+            endRow: hover.row + cbData.height - 1,
+            endCol: hover.col + cbData.width - 1,
+          }
+          renderer.updateRenderData({ tempRect, state: 'copying' })
+          selection.setTempRect(tempRect)
+        }
+      }
+    },
+  )
+
   const handleMouseDown = (row: number, col: number, event: MouseEvent) => {
     event.preventDefault()
     event.stopPropagation()
@@ -103,6 +126,34 @@ export function useGridInteraction(
   }
 
   const handleMouseMove = (row: number, col: number) => {
+    if (clipboard.isPasteMode.value && props.currentTool === 'select') {
+      drawing.handleMouseMove(row, col)
+
+      const cbData = clipboard.clipboardData.value
+      if (cbData) {
+        const gridHeight = props.gridData.length
+        const gridWidth = props.gridData[0]?.length ?? 0
+
+        const clampedRow = Math.max(
+          0,
+          Math.min(gridHeight - cbData.height, row),
+        )
+        const clampedCol = Math.max(0, Math.min(gridWidth - cbData.width, col))
+
+        const tempRect = {
+          startRow: clampedRow,
+          startCol: clampedCol,
+          endRow: clampedRow + cbData.height - 1,
+          endCol: clampedCol + cbData.width - 1,
+        }
+
+        renderer.updateRenderData({ tempRect, state: 'copying' })
+        selection.setTempRect(tempRect)
+      }
+
+      return
+    }
+
     if (!isInteracting.value) {
       drawing.handleMouseMove(row, col)
       return
@@ -232,6 +283,15 @@ export function useGridInteraction(
           handleEscape()
           event.preventDefault()
           break
+        case 'Enter':
+          if (clipboard.isPasteMode.value) {
+            const hover = drawing.hoverCell.value
+            if (hover.row >= 0 && hover.col >= 0) {
+              pasteAt(hover.row, hover.col)
+            }
+            event.preventDefault()
+          }
+          break
       }
     }
   }
@@ -267,6 +327,9 @@ export function useGridInteraction(
             emit('cell-change', row, col, 0)
           }
         }
+
+        selection.clearSelection()
+        clipboard.exitPasteMode()
       }
     }
   }
@@ -315,7 +378,7 @@ export function useGridInteraction(
     }
   }
 
-  const pasteAt = (row: number, col: number) => {
+  const pasteAt = async (row: number, col: number) => {
     if (!clipboard.isPasteMode.value) return false
 
     const pasteData = clipboard.getPasteData({ row, col })
@@ -336,6 +399,8 @@ export function useGridInteraction(
         emit('cell-change', row + rowIndex, col + colIndex, value)
       })
     })
+
+    await nextTick()
 
     selection.clearSelection()
     selection.startSelection({ row, col })

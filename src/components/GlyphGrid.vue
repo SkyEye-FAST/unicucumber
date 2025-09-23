@@ -114,15 +114,31 @@
     ></div>
 
     <div
-      v-if="clipboard.isPasteMode.value && drawing.hoverCell.value.row >= 0"
+      v-if="
+        clipboard.isPasteMode.value &&
+        clipboard.clipboardData.value &&
+        (drawing.hoverCell.value.row >= 0 || tempSelectionRect)
+      "
       class="paste-cursor"
       :style="pasteCursorStyle"
-    ></div>
+    >
+      <template
+        v-for="(rowData, rIdx) in clipboard.clipboardData.value.data"
+        :key="`paste-row-${rIdx}`"
+      >
+        <div
+          v-for="(cell, cIdx) in rowData"
+          :key="`paste-cell-${rIdx}-${cIdx}`"
+          class="paste-cell"
+          :class="{ filled: cell === 1 }"
+        ></div>
+      </template>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch, nextTick } from 'vue'
 
 import { useClipboard } from '@/composables/useClipboard'
 import { type DrawAction, useDrawing } from '@/composables/useDrawing'
@@ -156,6 +172,7 @@ const emit = defineEmits([
   'tool-state-change',
   'draw-complete',
   'clipboard-change',
+  'paste-start',
 ])
 
 const selection = useSelection(() => props.gridData)
@@ -287,17 +304,47 @@ const pasteCursorStyle = computed(() => {
   if (!clipboard.isPasteMode.value || !clipboard.clipboardData.value) {
     return { display: 'none' }
   }
-
-  const { width, height } = clipboard.clipboardData.value
+  const cb = clipboard.clipboardData.value
   const hoverCell = drawing.hoverCell.value
 
-  if (hoverCell.row >= 0 && hoverCell.col >= 0) {
+  if (tempSelectionRect.value) {
+    const rect = tempSelectionRect.value
+    const normalized = {
+      startRow: Math.min(rect.startRow, rect.endRow),
+      startCol: Math.min(rect.startCol, rect.endCol),
+      endRow: Math.max(rect.startRow, rect.endRow),
+      endCol: Math.max(rect.startCol, rect.endCol),
+    }
+    const w = normalized.endCol - normalized.startCol + 1
+    const h = normalized.endRow - normalized.startRow + 1
+
+    return {
+      position: 'absolute' as const,
+      gridRowStart: normalized.startRow + 2,
+      gridRowEnd: normalized.endRow + 3,
+      gridColumnStart: normalized.startCol + 2,
+      gridColumnEnd: normalized.endCol + 3,
+      display: 'grid',
+      gridTemplateColumns: `repeat(${w}, var(--cell-size))`,
+      gridTemplateRows: `repeat(${h}, var(--cell-size))`,
+      border: '2px dashed var(--primary-color)',
+      backgroundColor: 'rgba(var(--primary-color-rgb), 0.05)',
+      pointerEvents: 'none' as const,
+      zIndex: 1000,
+    }
+  }
+
+  if (hoverCell.row >= 0 && hoverCell.col >= 0 && cb) {
+    const { width, height } = cb
     return {
       position: 'absolute' as const,
       gridRowStart: hoverCell.row + 2,
       gridRowEnd: hoverCell.row + height + 2,
       gridColumnStart: hoverCell.col + 2,
       gridColumnEnd: hoverCell.col + width + 2,
+      display: 'grid',
+      gridTemplateColumns: `repeat(${width}, var(--cell-size))`,
+      gridTemplateRows: `repeat(${height}, var(--cell-size))`,
       border: '2px dashed var(--primary-color)',
       backgroundColor: 'rgba(var(--primary-color-rgb), 0.1)',
       pointerEvents: 'none' as const,
@@ -305,22 +352,37 @@ const pasteCursorStyle = computed(() => {
     }
   }
 
-  return {
-    position: 'fixed' as const,
-    left: `${mousePosition.value.x}px`,
-    top: `${mousePosition.value.y}px`,
-    width: `calc(${width} * var(--cell-size))`,
-    height: `calc(${height} * var(--cell-size))`,
-    border: '2px dashed var(--primary-color)',
-    backgroundColor: 'rgba(var(--primary-color-rgb), 0.1)',
-    pointerEvents: 'none' as const,
-    zIndex: 1000,
+  if (cb) {
+    const { width, height } = cb
+    return {
+      position: 'fixed' as const,
+      left: `${mousePosition.value.x}px`,
+      top: `${mousePosition.value.y}px`,
+      width: `calc(${width} * var(--cell-size))`,
+      height: `calc(${height} * var(--cell-size))`,
+      display: 'grid',
+      gridTemplateColumns: `repeat(${width}, var(--cell-size))`,
+      gridTemplateRows: `repeat(${height}, var(--cell-size))`,
+      border: '2px dashed var(--primary-color)',
+      backgroundColor: 'rgba(var(--primary-color-rgb), 0.1)',
+      pointerEvents: 'none' as const,
+      zIndex: 1000,
+    }
   }
+
+  return { display: 'none' }
 })
 
 const handleMouseDown = (row: number, col: number, event: MouseEvent) => {
   isInteracting.value = true
   interactionStartPos.value = { row, col }
+
+  if (clipboard.isPasteMode.value) {
+    event.preventDefault()
+    event.stopPropagation()
+
+    return
+  }
 
   if (props.currentTool === 'select') {
     event.preventDefault()
@@ -474,9 +536,10 @@ const moveSelectionData = (
   })
 }
 
-const handleCellClick = (row: number, col: number) => {
+const handleCellClick = async (row: number, col: number) => {
   if (clipboard.isPasteMode.value) {
-    pasteAt(row, col)
+    await pasteAt(row, col)
+    return
   }
 }
 
@@ -486,6 +549,11 @@ const handlePointerDown = (row: number, col: number, event: PointerEvent) => {
   } catch {}
 
   lastInputWasTouch.value = event.pointerType === 'touch'
+
+  if (clipboard.isPasteMode.value) {
+    drawing.handleMouseMove(row, col)
+    return
+  }
 
   handleMouseDown(row, col, event as unknown as MouseEvent)
 }
@@ -704,13 +772,18 @@ const handleCut = () => {
       }
     }
 
+    selection.clearSelection()
+    clipboard.exitPasteMode()
+
     emit('clipboard-change', true)
   }
 }
 
 const handlePaste = () => {
   if (clipboard.hasClipboardData()) {
-    clipboard.enterPasteMode()
+    if (clipboard.enterPasteMode()) {
+      emit('paste-start')
+    }
   }
 }
 
@@ -747,7 +820,7 @@ const handleEscape = () => {
   }
 }
 
-const pasteAt = (row: number, col: number) => {
+const pasteAt = async (row: number, col: number) => {
   if (!clipboard.isPasteMode.value) return false
 
   const pasteData = clipboard.getPasteData({ row, col })
@@ -768,6 +841,8 @@ const pasteAt = (row: number, col: number) => {
       emit('update:cell', row + rowIndex, col + colIndex, value)
     })
   })
+
+  await nextTick()
 
   selection.clearSelection()
   selection.startSelection({ row, col })
@@ -859,11 +934,22 @@ const getMoveButtonStyle = (dir: 'up' | 'down' | 'left' | 'right') => {
   }
 }
 
+const handleDocumentClick = (e: MouseEvent) => {
+  const target = e.target as HTMLElement | null
+  if (!target) return
+
+  if (!target.closest('.grid-container')) {
+    if (clipboard.isPasteMode.value) clipboard.exitPasteMode()
+    if (selection.hasSelection.value) selection.clearSelection()
+  }
+}
+
 onMounted(() => {
   document.addEventListener('mouseup', handleMouseUp)
   document.addEventListener('mousemove', updateMousePosition)
   document.addEventListener('touchend', handleTouchEndCell)
   document.addEventListener('keydown', handleKeyDown)
+  document.addEventListener('click', handleDocumentClick)
 })
 
 onBeforeUnmount(() => {
@@ -871,6 +957,7 @@ onBeforeUnmount(() => {
   document.removeEventListener('mousemove', updateMousePosition)
   document.removeEventListener('touchend', handleTouchEndCell)
   document.removeEventListener('keydown', handleKeyDown)
+  document.removeEventListener('click', handleDocumentClick)
 })
 
 watch(
@@ -1063,6 +1150,22 @@ defineExpose({
   pointer-events: none;
   opacity: 0.8;
   animation: pulse 1s ease-in-out infinite alternate;
+}
+
+.paste-cursor {
+  display: grid;
+  gap: 0;
+  box-sizing: border-box;
+}
+
+.paste-cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  background-color: transparent;
+}
+
+.paste-cell.filled {
+  background-color: rgba(0, 0, 0, 0.9);
 }
 
 .move-button {
