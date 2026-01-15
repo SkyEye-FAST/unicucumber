@@ -140,7 +140,7 @@
     <div class="copyright-text" role="contentinfo">
       <div class="copyright-line copyright-line-top">
         <span class="copyright-left">
-          Copyright © 2024 - 2025
+          Copyright © 2024 - 2026
           <a
             href="https://github.com/SkyEye-FAST"
             aria-label="SkyEye_FAST on GitHub"
