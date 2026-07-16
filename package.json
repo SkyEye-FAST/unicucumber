@@ -45,7 +45,7 @@
     "@intlify/unplugin-vue-i18n": "^11.2.4",
     "@playwright/test": "1.61.1",
     "@tsconfig/node24": "^24.0.4",
-    "@types/node": "^24.10.0",
+    "@types/node": "^26.1.1",
     "@vitejs/plugin-vue": "^6.0.8",
     "@vitest/coverage-v8": "^4.1.10",
     "@vue/eslint-config-prettier": "^10.2.0",
