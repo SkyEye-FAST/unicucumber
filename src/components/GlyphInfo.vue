@@ -25,7 +25,17 @@
           v-model="localModelValue"
           maxlength="6"
           pattern="[0-9A-Fa-f]{1,6}"
+          inputmode="text"
+          autocapitalize="characters"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+          :aria-invalid="codePointError !== null"
+          :aria-describedby="codePointError ? 'codePointError' : undefined"
           @input="handleInput"
+          @blur="commitCodePoint"
+          @keydown.enter.prevent="commitCodePoint"
+          @keydown.escape.prevent="revertCodePoint"
         />
       </div>
       <div class="glyph-preview">
@@ -39,6 +49,14 @@
         </span>
       </div>
     </div>
+    <span
+      v-if="codePointError"
+      id="codePointError"
+      class="code-point-error"
+      aria-live="polite"
+    >
+      {{ codePointError }}
+    </span>
 
     <Transition name="slide">
       <div v-if="showingEncodingInfo" class="encoding-info-panel">
@@ -66,8 +84,12 @@ import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
 
 import { useI18n } from 'vue-i18n'
 
-import { characterFromCodePoint, isCJKChar } from '@/utils/charUtils'
-import { useToggle, useVModel } from '@vueuse/core'
+import {
+  characterFromCodePoint,
+  isCJKChar,
+  normalizeCodePointHex,
+} from '@/utils/charUtils'
+import { useToggle } from '@vueuse/core'
 
 import PixelPreview from './GlyphManager/PixelPreview.vue'
 
@@ -94,7 +116,20 @@ const props = defineProps({
 
 const emit = defineEmits(['update:model-value'])
 
-const localModelValue = useVModel(props, 'modelValue', emit)
+const localModelValue = ref(props.modelValue)
+const codePointError = computed(() => {
+  if (localModelValue.value === props.modelValue) return null
+  return normalizeCodePointHex(localModelValue.value) === null
+    ? $t('glyph_editor.invalid_code_point')
+    : null
+})
+
+watch(
+  () => props.modelValue,
+  (value) => {
+    localModelValue.value = value
+  },
+)
 
 const wrapperRef = ref<HTMLElement | null>(null)
 const [showingEncodingInfo, toggleEncodingInfo] = useToggle()
@@ -119,11 +154,21 @@ onUnmounted(() => {
 
 const handleInput = (event: Event) => {
   let value = (event.target as HTMLInputElement).value.toUpperCase()
-  value = value.replace(/[^0-9A-F]/g, '')
   if (value.length > 6) {
     value = value.slice(0, 6)
   }
   localModelValue.value = value
+}
+
+const commitCodePoint = () => {
+  const normalized = normalizeCodePointHex(localModelValue.value)
+  if (normalized === null) return
+  localModelValue.value = normalized
+  if (normalized !== props.modelValue) emit('update:model-value', normalized)
+}
+
+const revertCodePoint = () => {
+  localModelValue.value = props.modelValue
 }
 
 const previewStyle = computed(() => ({
@@ -317,6 +362,19 @@ const encodingInfo = computed(() => {
 .code-point-input input:focus {
   background: var(--background-active);
   border-radius: 2px;
+}
+
+.code-point-input input[aria-invalid='true'] {
+  color: var(--danger-color);
+}
+
+.code-point-error {
+  display: block;
+  max-width: 24rem;
+  margin: -0.25rem auto 0.35rem;
+  color: var(--danger-color);
+  font-size: 0.75rem;
+  text-align: center;
 }
 
 .zi-tools-link {

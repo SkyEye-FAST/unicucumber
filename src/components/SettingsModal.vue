@@ -1,179 +1,185 @@
 <template>
-  <div
-    v-if="modelValue"
-    class="overlay"
-    @click="$emit('update:modelValue', false)"
-  ></div>
-  <div v-if="modelValue" class="settings-modal">
-    <h2 class="modal-title">{{ $t('settings.title') }}</h2>
+  <Teleport to="body">
+    <div
+      v-if="modelValue"
+      class="overlay"
+      @click="$emit('update:modelValue', false)"
+    ></div>
+    <div
+      v-if="modelValue"
+      ref="modalRef"
+      class="settings-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settings-modal-title"
+      tabindex="-1"
+      @keydown="handleKeydown"
+    >
+      <h2 id="settings-modal-title" class="modal-title">
+        {{ $t('settings.title') }}
+      </h2>
 
-    <div class="setting-option">
-      <label for="drawMode">{{ $t('settings.draw_mode.label') }}</label>
-      <select
-        id="drawMode"
-        :value="settings.drawMode"
-        @change="
-          $emit('update:settings', {
-            ...settings,
-            drawMode: ($event.target as HTMLSelectElement).value,
-          })
-        "
-      >
-        <option value="doubleButtonDraw">
-          {{ $t('settings.draw_mode.double_button') }}
-        </option>
-        <option value="singleButtonDraw">
-          {{ $t('settings.draw_mode.single_button') }}
-        </option>
-      </select>
-    </div>
-
-    <!-- cursorEffect removed; replaced by alwaysShowMouseCursor -->
-
-    <div class="setting-option">
-      <label for="alwaysShowMouseCursor">{{
-        $t('settings.always_show_mouse_cursor')
-      }}</label>
-      <div class="checkbox-wrapper">
-        <input
-          id="alwaysShowMouseCursor"
-          type="checkbox"
-          :checked="settings.alwaysShowMouseCursor"
+      <div class="setting-option">
+        <label for="drawMode">{{ $t('settings.draw_mode.label') }}</label>
+        <select
+          id="drawMode"
+          :value="settings.drawMode"
           @change="
             $emit('update:settings', {
               ...settings,
-              alwaysShowMouseCursor: ($event.target as HTMLInputElement)
-                .checked,
+              drawMode: ($event.target as HTMLSelectElement).value,
+            })
+          "
+        >
+          <option value="doubleButtonDraw">
+            {{ $t('settings.draw_mode.double_button') }}
+          </option>
+          <option value="singleButtonDraw">
+            {{ $t('settings.draw_mode.single_button') }}
+          </option>
+        </select>
+      </div>
+
+      <!-- cursorEffect removed; replaced by alwaysShowMouseCursor -->
+
+      <div class="setting-option">
+        <label for="alwaysShowMouseCursor">{{
+          $t('settings.always_show_mouse_cursor')
+        }}</label>
+        <div class="checkbox-wrapper">
+          <input
+            id="alwaysShowMouseCursor"
+            type="checkbox"
+            :checked="settings.alwaysShowMouseCursor"
+            @change="
+              $emit('update:settings', {
+                ...settings,
+                alwaysShowMouseCursor: ($event.target as HTMLInputElement)
+                  .checked,
+              })
+            "
+          />
+        </div>
+      </div>
+
+      <div class="setting-option">
+        <label for="glyphWidth">{{ $t('settings.glyph_width.label') }}</label>
+        <select
+          id="glyphWidth"
+          :value="settings.glyphWidth"
+          @change="
+            $emit('update:settings', {
+              ...settings,
+              glyphWidth: parseInt(($event.target as HTMLSelectElement).value),
+            })
+          "
+        >
+          <option :value="8">{{ $t('settings.glyph_width.8px') }}</option>
+          <option :value="16">{{ $t('settings.glyph_width.16px') }}</option>
+        </select>
+      </div>
+
+      <div class="setting-option">
+        <label for="glyphPreviewMode">{{
+          $t('settings.glyph_preview.label')
+        }}</label>
+        <select
+          id="glyphPreviewMode"
+          :value="settings.glyphPreviewMode"
+          @change="
+            $emit('update:settings', {
+              ...settings,
+              glyphPreviewMode: ($event.target as HTMLSelectElement).value,
+            })
+          "
+        >
+          <option value="pixelOnly">
+            {{ $t('settings.glyph_preview.pixel_only') }}
+          </option>
+          <option value="browserOnly">
+            {{ $t('settings.glyph_preview.browser_only') }}
+          </option>
+          <option value="both">{{ $t('settings.glyph_preview.both') }}</option>
+        </select>
+      </div>
+
+      <div class="setting-option">
+        <div id="browserFont">{{ $t('settings.browser_preview_font') }}</div>
+        <button class="font-button" type="button" @click="openFontEdit">
+          {{ settings.browserPreviewFont }}
+        </button>
+      </div>
+
+      <div class="setting-option">
+        <label for="showBorder">{{ $t('settings.show_border') }}</label>
+        <div class="checkbox-wrapper">
+          <input
+            id="showBorder"
+            type="checkbox"
+            :checked="settings.showBorder"
+            @change="
+              $emit('update:settings', {
+                ...settings,
+                showBorder: ($event.target as HTMLInputElement).checked,
+              })
+            "
+          />
+        </div>
+      </div>
+
+      <div class="setting-option">
+        <label for="confirmClear">{{ $t('settings.confirm_clear') }} </label>
+        <input
+          id="confirmClear"
+          type="checkbox"
+          :checked="settings.confirmClear"
+          @change="
+            $emit('update:settings', {
+              ...settings,
+              confirmClear: ($event.target as HTMLInputElement).checked,
             })
           "
         />
       </div>
-    </div>
 
-    <div class="setting-option">
-      <label for="glyphWidth">{{ $t('settings.glyph_width.label') }}</label>
-      <select
-        id="glyphWidth"
-        :value="settings.glyphWidth"
-        @change="
-          $emit('update:settings', {
-            ...settings,
-            glyphWidth: parseInt(($event.target as HTMLSelectElement).value),
-          })
-        "
-      >
-        <option :value="8">{{ $t('settings.glyph_width.8px') }}</option>
-        <option :value="16">{{ $t('settings.glyph_width.16px') }}</option>
-      </select>
-    </div>
-
-    <div class="setting-option">
-      <label for="glyphPreviewMode">{{
-        $t('settings.glyph_preview.label')
-      }}</label>
-      <select
-        id="glyphPreviewMode"
-        :value="settings.glyphPreviewMode"
-        @change="
-          $emit('update:settings', {
-            ...settings,
-            glyphPreviewMode: ($event.target as HTMLSelectElement).value,
-          })
-        "
-      >
-        <option value="pixelOnly">
-          {{ $t('settings.glyph_preview.pixel_only') }}
-        </option>
-        <option value="browserOnly">
-          {{ $t('settings.glyph_preview.browser_only') }}
-        </option>
-        <option value="both">{{ $t('settings.glyph_preview.both') }}</option>
-      </select>
-    </div>
-
-    <div class="setting-option">
-      <div id="browserFont">{{ $t('settings.browser_preview_font') }}</div>
-      <button class="font-button" @click="openFontEdit">
-        {{ settings.browserPreviewFont }}
-      </button>
-    </div>
-
-    <div class="setting-option">
-      <label for="showBorder">{{ $t('settings.show_border') }}</label>
-      <div class="checkbox-wrapper">
-        <input
-          id="showBorder"
-          type="checkbox"
-          :checked="settings.showBorder"
-          @change="
-            $emit('update:settings', {
-              ...settings,
-              showBorder: ($event.target as HTMLInputElement).checked,
-            })
-          "
-        />
+      <div class="button-group">
+        <button class="reset-button" type="button" @click="showResetConfirm">
+          {{ $t('settings.reset') }}
+        </button>
+        <button
+          class="close-button"
+          type="button"
+          @click="$emit('update:modelValue', false)"
+        >
+          {{ $t('settings.close') }}
+        </button>
       </div>
-    </div>
 
-    <div class="setting-option">
-      <label for="confirmClear">{{ $t('settings.confirm_clear') }} </label>
-      <input
-        id="confirmClear"
-        type="checkbox"
-        :checked="settings.confirmClear"
-        @change="
-          $emit('update:settings', {
-            ...settings,
-            confirmClear: ($event.target as HTMLInputElement).checked,
-          })
-        "
-      />
-    </div>
-
-    <div class="setting-option">
-      <label for="enableSelection">{{ $t('settings.enable_selection') }}</label>
-      <input
-        id="enableSelection"
-        type="checkbox"
-        :checked="settings.enableSelection"
-        @change="
-          $emit('update:settings', {
-            ...settings,
-            enableSelection: ($event.target as HTMLInputElement).checked,
-          })
-        "
-      />
-    </div>
-
-    <div class="button-group">
-      <button class="reset-button" @click="showResetConfirm">
-        {{ $t('settings.reset') }}
-      </button>
-      <button class="close-button" @click="$emit('update:modelValue', false)">
-        {{ $t('settings.close') }}
-      </button>
-    </div>
-
-    <div v-if="showFontEdit" class="font-edit-modal">
-      <div class="font-edit-content">
-        <h3>{{ $t('settings.font_edit.title') }}</h3>
-        <textarea
-          v-model="tempFont"
-          class="font-input"
-          rows="3"
-          @keyup.enter.prevent="saveFontEdit"
-        ></textarea>
-        <div class="font-edit-buttons">
-          <button class="save-button" @click="saveFontEdit">
-            {{ $t('settings.font_edit.save') }}
-          </button>
-          <button class="cancel-button" @click="showFontEdit = false">
-            {{ $t('settings.font_edit.cancel') }}
-          </button>
+      <div v-if="showFontEdit" class="font-edit-modal">
+        <div class="font-edit-content">
+          <h3>{{ $t('settings.font_edit.title') }}</h3>
+          <textarea
+            v-model="tempFont"
+            class="font-input"
+            rows="3"
+            @keyup.enter.prevent="saveFontEdit"
+          ></textarea>
+          <div class="font-edit-buttons">
+            <button class="save-button" type="button" @click="saveFontEdit">
+              {{ $t('settings.font_edit.save') }}
+            </button>
+            <button
+              class="cancel-button"
+              type="button"
+              @click="showFontEdit = false"
+            >
+              {{ $t('settings.font_edit.cancel') }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </Teleport>
 
   <DialogBox
     :show="showResetDialog"
@@ -186,9 +192,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 
 import { useSettings } from '../composables/useSettings'
+import { acquireOverlayLock, releaseOverlayLock } from '../utils/overlayStack'
 import DialogBox from './DialogBox.vue'
 
 const { defaultSettings } = useSettings()
@@ -217,6 +224,64 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'update:settings'])
+const modalRef = ref<HTMLElement | null>(null)
+let registered = false
+let previouslyFocused: HTMLElement | null = null
+
+const closeModal = (): void => emit('update:modelValue', false)
+
+watch(
+  () => props.modelValue,
+  (open) => {
+    if (open && !registered) {
+      registered = true
+      previouslyFocused = document.activeElement as HTMLElement | null
+      acquireOverlayLock()
+      void nextTick(() => {
+        ;(
+          modalRef.value?.querySelector<HTMLElement>(
+            'select, input, textarea, button, [tabindex]:not([tabindex="-1"])',
+          ) ?? modalRef.value
+        )?.focus()
+      })
+    } else if (!open && registered) {
+      registered = false
+      releaseOverlayLock()
+      previouslyFocused?.focus()
+      previouslyFocused = null
+    }
+  },
+  { immediate: true },
+)
+
+onBeforeUnmount(() => {
+  if (registered) releaseOverlayLock()
+})
+
+const handleKeydown = (event: KeyboardEvent): void => {
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    if (showFontEdit.value) showFontEdit.value = false
+    else closeModal()
+    return
+  }
+  if (event.key !== 'Tab' || !modalRef.value) return
+  const focusable = Array.from(
+    modalRef.value.querySelectorAll<HTMLElement>(
+      'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+    ),
+  ).filter((element) => element.offsetParent !== null)
+  const first = focusable[0]
+  const last = focusable[focusable.length - 1]
+  if (!first || !last) return
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
 
 const showFontEdit = ref(false)
 const tempFont = ref('')
@@ -267,7 +332,19 @@ const confirmReset = () => {
   border-radius: 10px;
   box-shadow: 0 8px 16px var(--modal-shadow);
   z-index: 999;
-  width: 25em;
+  width: min(
+    25em,
+    calc(
+      100vw - max(1.5rem, env(safe-area-inset-left)) -
+        max(1.5rem, env(safe-area-inset-right))
+    )
+  );
+  max-height: calc(
+    100dvh - max(1.5rem, env(safe-area-inset-top)) -
+      max(1.5rem, env(safe-area-inset-bottom))
+  );
+  overflow: auto;
+  overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border-color);
@@ -476,9 +553,12 @@ input[type='number']:focus {
   background-color: var(--danger-hover);
 }
 
-@media (orientation: portrait) and (max-width: 768px) {
+@media (max-width: 720px), (pointer: coarse) {
   .settings-modal {
-    width: 20em;
+    width: calc(
+      100vw - max(1rem, env(safe-area-inset-left)) -
+        max(1rem, env(safe-area-inset-right))
+    );
     padding: 5px 10px 20px;
   }
 

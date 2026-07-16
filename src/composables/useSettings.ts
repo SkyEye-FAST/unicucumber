@@ -64,7 +64,7 @@ export const defaultSettings: Readonly<EditorSettings> = {
   confirmClear: true,
   glyphPreviewMode: 'pixelOnly',
   browserPreviewFont: defaultFontStack,
-  enableSelection: false,
+  enableSelection: true,
 }
 
 type StoredSettings = Partial<EditorSettings> & { version?: number }
@@ -107,10 +107,7 @@ export const parseSettings = (value: unknown): EditorSettings => {
       stored.browserPreviewFont.trim().length > 0
         ? stored.browserPreviewFont
         : defaultSettings.browserPreviewFont,
-    enableSelection:
-      typeof stored.enableSelection === 'boolean'
-        ? stored.enableSelection
-        : defaultSettings.enableSelection,
+    enableSelection: true,
   }
 }
 

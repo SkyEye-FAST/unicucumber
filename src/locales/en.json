@@ -57,6 +57,10 @@
       "redo": {
         "title": "Redo (Ctrl+Y)"
       },
+      "restore": {
+        "button": "Restore saved",
+        "title": "Restore this glyph to its last saved state"
+      },
       "show_encoding_info": "Show Encoding Info",
       "undo": {
         "title": "Undo (Ctrl+Z)"
@@ -68,11 +72,13 @@
     "copy_title": "Copy (Ctrl+C)",
     "cut_title": "Cut (Ctrl+X)",
     "glyph_data": "Glyph Data",
+    "invalid_code_point": "Enter a Unicode scalar value from U+0000 to U+10FFFF, excluding surrogates.",
     "move_hint": "Move to grid position",
     "paste_hint": "Click grid position to paste",
     "paste_title": "Paste (Ctrl+V)"
   },
   "glyph_manager": {
+    "backup_exported": "Glyph-library backup exported.",
     "add": {
       "add_button": "Add Glyph",
       "character": "Enter character",
@@ -83,6 +89,12 @@
       "update_button": "Update Glyph"
     },
     "batch_delete": "Batch Delete",
+    "hex_error_invalid_code_point": "invalid Unicode scalar value",
+    "hex_error_invalid_glyph_data": "glyph data must contain exactly 32 or 64 hexadecimal digits",
+    "hex_error_missing_separator": "missing code-point/data separator",
+    "hex_invalid_count": "{count} invalid .hex line was skipped. | {count} invalid .hex lines were skipped.",
+    "hex_invalid_line": "Line {line}: {reason}",
+    "hex_invalid_title": "Some .hex lines were not imported",
     "delete_selected": "Delete Selected {count}",
     "duplicate": {
       "cancel": "Cancel",
@@ -91,10 +103,16 @@
     },
     "error": {
       "loading_storage": "Error loading glyphs from storage",
+      "loading_unicode_names": "Unicode names could not be loaded. Code-point search remains available.",
       "loading_unifont": "Error loading Unifont data",
+      "unifont_not_found": "This code point is not present in the bundled Unifont data.",
       "saving_storage": "Error saving glyphs to storage"
     },
     "export": "Export Glyphs",
+    "export_backup": "Versioned backup (.json)",
+    "export_failed": "The glyph library could not be exported.",
+    "export_hex": "Unifont glyphs (.hex)",
+    "export_sheet": "Bitmap sheet (.png)",
     "glyph": {
       "code_point": "Code point:",
       "delete": "Delete",
@@ -103,6 +121,8 @@
       "hex": "Hex:"
     },
     "import": "Import from Unifont",
+    "navigation": "Glyph navigation",
+    "next": "Next",
     "manual_input": {
       "message": "Please input code point for this glyph:",
       "process": "Process",
@@ -110,12 +130,22 @@
       "skip_one": "Skip",
       "title": "Manual Code Point Input Required"
     },
-    "search": "Search glyphs...",
+    "position": "{current} of {total}",
+    "previous": "Previous",
+    "search": "Search code point, character, data, or Unicode name…",
+    "sheet_columns": "Columns",
+    "sheet_exported": "Bitmap sheet exported ({columns} columns, {scale}× pixel scale).",
+    "sheet_scale": "Pixel scale",
     "select_all": "Select All",
     "title": "Glyph Manager",
     "upload": {
+      "camera": "Camera",
+      "clipboard_failed": "The clipboard image could not be read.",
+      "drop_hint": "You can also drop .hex or image files here.",
       "hex_file": "Upload Hex File",
-      "image_file": "Upload Glyph Image"
+      "image_file": "Photo Library",
+      "no_clipboard_image": "No image was found on the clipboard.",
+      "paste_image": "Paste Image"
     },
     "validation": {
       "add_glyph": "Add glyph",
@@ -125,8 +155,138 @@
     }
   },
   "hex_input": {
+    "apply": "Apply",
+    "committed": "Glyph data is applied.",
     "copy": "Copy",
-    "placeholder": "Enter glyph data (32 or 64 hex digits)"
+    "invalid_characters": "Only hexadecimal digits are allowed.",
+    "invalid_length": "Enter exactly 32 digits for an 8×16 glyph or 64 digits for a 16×16 glyph.",
+    "label": "Hexadecimal glyph data",
+    "placeholder": "Enter glyph data (32 or 64 hex digits)",
+    "ready": "Valid glyph data is ready to apply.",
+    "width": "{width}px"
+  },
+  "image_import": {
+    "cancel": "Cancel",
+    "confirm": "Import glyph",
+    "crop": "Crop to fill",
+    "fit": "Fit inside",
+    "imported": "Image imported as a glyph.",
+    "invert": "Invert black and white",
+    "loading": "Preparing image…",
+    "load_failed": "The selected image could not be prepared. Choose another image.",
+    "mode": "Sizing mode",
+    "prepared": "Image converted. Enter or confirm its code point to finish importing.",
+    "preview": "Converted pixel glyph preview",
+    "target_width": "Glyph size",
+    "threshold": "Black threshold",
+    "title": "Prepare image as glyph",
+    "transparent_white": "Treat transparency as white"
+  },
+  "workspace": {
+    "fit": "Fit grid to screen",
+    "grid_label": "{width} by 16 pixel glyph grid",
+    "label": "Glyph editing workspace",
+    "reset_view": "Reset view",
+    "view_controls": "Grid view controls",
+    "zoom_in": "Zoom in",
+    "zoom_level": "Zoom level",
+    "zoom_out": "Zoom out"
+  },
+  "selection": {
+    "actions": "Selection actions",
+    "cancel_paste": "Cancel",
+    "confirm_paste": "Paste",
+    "copy": "Copy",
+    "cut": "Cut",
+    "delete": "Delete",
+    "deselect": "Deselect",
+    "duplicate": "Duplicate",
+    "move_down": "Move down",
+    "move_left": "Move left",
+    "move_right": "Move right",
+    "move_up": "Move up",
+    "paste_actions": "Paste preview actions"
+  },
+  "tools": {
+    "draw": "Draw",
+    "erase": "Erase",
+    "fill": "Flood fill",
+    "filled_rectangle": "Filled rectangle",
+    "flip_horizontal": "Flip horizontally",
+    "flip_vertical": "Flip vertically",
+    "invert": "Invert pixels",
+    "line": "Line",
+    "more": "More",
+    "pan": "Pan",
+    "rectangle": "Rectangle",
+    "secondary": "More drawing tools",
+    "select": "Select",
+    "shift_down": "Shift down",
+    "shift_left": "Shift left",
+    "shift_right": "Shift right",
+    "shift_up": "Shift up",
+    "toolbar": "Editor tools",
+    "transforms": "Grid transforms"
+  },
+  "mobile_toolbar": {
+    "close": "Close more actions",
+    "label": "Mobile editor commands",
+    "more_actions": "More tools and actions",
+    "redo": "Redo",
+    "undo": "Undo"
+  },
+  "header": {
+    "close_glyph_manager": "Close glyph manager",
+    "github": "Open the UniCucumber repository on GitHub",
+    "open_glyph_manager": "Open glyph manager",
+    "open_settings": "Open settings",
+    "toggle_theme": "Toggle color theme"
+  },
+  "notifications": {
+    "dismiss": "Dismiss notification"
+  },
+  "storage": {
+    "discard_draft": "Discard",
+    "draft_restore_failed": "The previous draft could not be restored.",
+    "draft_save_failed": "The current draft could not be saved. Export a backup before leaving.",
+    "fallback_warning": "IndexedDB is unavailable. Storage capacity may be limited.",
+    "glyph_save_failed": "The glyph library could not be saved.",
+    "glyph_saved": "Glyph saved.",
+    "keep_draft": "Keep",
+    "restored_draft": "An interrupted editing draft was restored.",
+    "status_error": "Save failed",
+    "status_saved": "Saved",
+    "status_saving": "Saving…",
+    "status_unsaved": "Unsaved"
+  },
+  "export": {
+    "copy_failed": "Clipboard access failed. Download the file instead.",
+    "copy_hex": "Copy hex",
+    "copy_image": "Copy image",
+    "download_ready": "{format} export is ready.",
+    "failed": "{format} export failed.",
+    "filename": "Filename",
+    "hex_copied": "Hexadecimal glyph data copied.",
+    "image_copied": "Glyph image copied.",
+    "options": "Export options",
+    "scale": "Pixel scale",
+    "share": "Share",
+    "share_failed": "The image could not be shared.",
+    "share_fallback": "Sharing is unavailable; the PNG was downloaded instead.",
+    "title": "Export glyph",
+    "transparent": "Transparent background"
+  },
+  "pwa": {
+    "apply_update": "Update now",
+    "offline": "Offline",
+    "offline_ready": "UniCucumber is ready to use offline.",
+    "online_again": "Back online.",
+    "registration_failed": "Offline support could not be enabled.",
+    "update_failed": "The update was not applied because the draft could not be preserved.",
+    "update_ready": "A new version is ready. Your draft will be saved before updating."
+  },
+  "errors": {
+    "unexpected": "An unexpected error occurred. The current draft is being preserved."
   },
   "settings": {
     "browser_preview_font": "Glyph Preview Font",

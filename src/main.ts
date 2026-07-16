@@ -9,7 +9,9 @@ import { createI18n } from 'vue-i18n'
 import { usePreferredLanguages, useTitle } from '@vueuse/core'
 
 import App from './App.vue'
+import { useNotifications } from './composables/useNotifications'
 import en from './locales/en.json'
+import { flushPendingDrafts } from './platform/draftFlush'
 import zh_cn from './locales/zh-cn.json'
 import zh_tw from './locales/zh-tw.json'
 import { normalizeLocale, type SupportedLocale } from './utils/locale'
@@ -51,4 +53,15 @@ watch(i18n.global.locale, (newLocale) => {
 useTitle(computed(() => i18n.global.t('title')))
 
 const app = createApp(App)
+const { notify } = useNotifications()
+app.config.errorHandler = (error, _instance, info) => {
+  console.error(`Unexpected Vue error (${info}).`, error)
+  void flushPendingDrafts().catch((flushError) =>
+    console.error(
+      'Draft preservation after an application error failed.',
+      flushError,
+    ),
+  )
+  notify({ tone: 'error', message: i18n.global.t('errors.unexpected') })
+}
 app.use(i18n).mount('#app')

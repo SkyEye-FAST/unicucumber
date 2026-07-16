@@ -17,7 +17,7 @@ import vue from '@vitejs/plugin-vue'
 const getUnifontVersion = (): string => {
   try {
     const content = readFileSync(
-      new URL('./public/unifont-map.json', import.meta.url),
+      new URL('./public/unifont/index.json', import.meta.url),
       'utf-8',
     )
     const parsed = JSON.parse(content)
@@ -49,7 +49,9 @@ export default defineConfig(({ command }) => ({
         },
       },
     }),
-    command === 'serve' && vueDevTools(),
+    command === 'serve' &&
+      process.env.VITE_ENABLE_DEVTOOLS === 'true' &&
+      vueDevTools(),
     nodePolyfills(),
     VueI18nPlugin({
       include: resolve(
@@ -71,8 +73,8 @@ export default defineConfig(({ command }) => ({
       autoInstall: false,
     }),
     VitePWA({
-      injectRegister: 'auto',
-      registerType: 'autoUpdate',
+      injectRegister: false,
+      registerType: 'prompt',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         globIgnores: [
@@ -84,9 +86,13 @@ export default defineConfig(({ command }) => ({
       },
       includeAssets: ['apple-touch-icon.png', 'favicon.ico'],
       manifest: {
+        id: '/',
         name: 'UniCucumber',
         short_name: 'UniCucumber',
+        start_url: '/',
+        scope: '/',
         display: 'standalone',
+        orientation: 'any',
         theme_color: '#4ea72e',
         description: 'A simple webpage for editing Unifont glyphs in browsers.',
         icons: [
@@ -115,8 +121,13 @@ export default defineConfig(({ command }) => ({
   build: {
     rollupOptions: {
       output: {
+        chunkFileNames(chunkInfo) {
+          if (chunkInfo.moduleIds.some((id) => id.includes('iconv-lite'))) {
+            return 'assets/encoding-[hash].js'
+          }
+          return 'assets/[name]-[hash].js'
+        },
         manualChunks(id) {
-          if (id.includes('iconv-lite')) return 'encoding'
           if (id.includes('unicode-name')) return 'unicode-name'
           return undefined
         },

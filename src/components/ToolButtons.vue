@@ -1,50 +1,130 @@
 <template>
-  <div class="tool-buttons">
+  <div class="tool-buttons" role="toolbar" :aria-label="$t('tools.toolbar')">
     <button
-      :class="{
-        active:
-          props.drawMode === 'doubleButtonDraw'
-            ? props.currentDrawValue === 1
-            : currentTool === 'draw' && modelValue === 1,
-      }"
-      :disabled="disabled && currentTool !== 'select'"
+      v-for="tool in primaryTools"
+      :key="tool.id"
+      type="button"
       class="tool-button"
-      @click="updateTool('draw', 1)"
+      :class="{ active: currentTool === tool.id }"
+      :title="`${$t(tool.label)} (${tool.shortcut})`"
+      :aria-label="$t(tool.label)"
+      @click="updateTool(tool.id)"
     >
-      <i-material-symbols-draw-outline class="icon" />
+      <i-material-symbols-draw-outline v-if="tool.id === 'draw'" class="icon" />
+      <i-material-symbols-ink-eraser-outline
+        v-else-if="tool.id === 'erase'"
+        class="icon"
+      />
+      <i-material-symbols-select v-else class="icon" />
     </button>
 
-    <button
-      :class="{
-        active:
-          props.drawMode === 'doubleButtonDraw'
-            ? props.currentDrawValue === 0
-            : currentTool === 'erase' && modelValue === 0,
-      }"
-      :disabled="disabled && currentTool !== 'select'"
-      class="tool-button"
-      @click="updateTool('erase', 0)"
-    >
-      <i-material-symbols-ink-eraser-outline class="icon" />
-    </button>
-
-    <button
-      v-if="enableSelection"
-      :class="{ active: currentTool === 'select' }"
-      class="tool-button"
-      @click="updateTool('select', 2)"
-    >
-      <i-material-symbols-select class="icon" />
-    </button>
+    <details class="tool-overflow">
+      <summary
+        class="tool-button"
+        :class="{
+          active: secondaryTools.some((tool) => tool.id === currentTool),
+        }"
+        :aria-label="$t('tools.more')"
+        :title="$t('tools.more')"
+      >
+        <i-material-symbols-more-horiz class="icon" />
+      </summary>
+      <div class="tool-sheet">
+        <div
+          class="tool-sheet-group"
+          role="group"
+          :aria-label="$t('tools.secondary')"
+        >
+          <button
+            v-for="tool in secondaryTools"
+            :key="tool.id"
+            type="button"
+            :class="{ active: currentTool === tool.id }"
+            :title="`${$t(tool.label)} (${tool.shortcut})`"
+            @click="updateTool(tool.id)"
+          >
+            <i-material-symbols-format-color-fill
+              v-if="tool.id === 'fill'"
+              class="icon"
+            />
+            <i-material-symbols-diagonal-line
+              v-else-if="tool.id === 'line'"
+              class="icon"
+            />
+            <i-material-symbols-rectangle-outline
+              v-else-if="tool.id === 'rectangle'"
+              class="icon"
+            />
+            <i-material-symbols-rectangle
+              v-else-if="tool.id === 'filledRectangle'"
+              class="icon"
+            />
+            <i-material-symbols-pan-tool-outline v-else class="icon" />
+            {{ $t(tool.label) }}
+          </button>
+        </div>
+        <div
+          class="tool-sheet-group"
+          role="group"
+          :aria-label="$t('tools.transforms')"
+        >
+          <button type="button" @click="emit('command', { type: 'invert' })">
+            <i-material-symbols-invert-colors class="icon" />{{
+              $t('tools.invert')
+            }}
+          </button>
+          <button
+            type="button"
+            @click="emit('command', { type: 'flipHorizontal' })"
+          >
+            <i-material-symbols-flip class="icon" />{{
+              $t('tools.flip_horizontal')
+            }}
+          </button>
+          <button
+            type="button"
+            @click="emit('command', { type: 'flipVertical' })"
+          >
+            <i-material-symbols-flip class="icon vertical" />{{
+              $t('tools.flip_vertical')
+            }}
+          </button>
+          <button
+            v-for="direction in shiftDirections"
+            :key="direction"
+            type="button"
+            @click="emit('command', { type: 'shiftGrid', direction })"
+          >
+            <i-material-symbols-arrow-upward
+              v-if="direction === 'up'"
+              class="icon"
+            />
+            <i-material-symbols-arrow-downward
+              v-else-if="direction === 'down'"
+              class="icon"
+            />
+            <i-material-symbols-arrow-back
+              v-else-if="direction === 'left'"
+              class="icon"
+            />
+            <i-material-symbols-arrow-forward v-else class="icon" />
+            {{ $t(`tools.shift_${direction}`) }}
+          </button>
+        </div>
+      </div>
+    </details>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { ToolType } from '@/composables/useSelection'
+import { useI18n } from 'vue-i18n'
+
+import type { EditorCommand, ShiftDirection } from '@/types/editor'
+import type { EditorTool } from '@/types/glyph'
 
 interface Props {
   modelValue: number
-  currentTool: ToolType
+  currentTool: EditorTool
   disabled?: boolean
   enableSelection?: boolean
   drawMode?: 'singleButtonDraw' | 'doubleButtonDraw'
@@ -53,98 +133,147 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
-  enableSelection: false,
+  enableSelection: true,
   drawMode: 'singleButtonDraw',
   currentDrawValue: undefined,
 })
 
-const emit = defineEmits(['update:modelValue', 'update:currentTool'])
+const emit = defineEmits<{
+  'update:modelValue': [value: number]
+  'update:currentTool': [tool: EditorTool]
+  command: [command: EditorCommand]
+}>()
 
-const updateTool = (tool: ToolType, value: number) => {
-  if (props.disabled && tool !== 'select') {
-    return
-  }
+const { t: $t } = useI18n()
 
+const primaryTools = [
+  { id: 'draw', label: 'tools.draw', shortcut: 'P' },
+  { id: 'erase', label: 'tools.erase', shortcut: 'E' },
+  { id: 'select', label: 'tools.select', shortcut: 'S' },
+] satisfies Array<{ id: EditorTool; label: string; shortcut: string }>
+
+const secondaryTools = [
+  { id: 'fill', label: 'tools.fill', shortcut: 'F' },
+  { id: 'line', label: 'tools.line', shortcut: 'L' },
+  { id: 'rectangle', label: 'tools.rectangle', shortcut: 'R' },
+  {
+    id: 'filledRectangle',
+    label: 'tools.filled_rectangle',
+    shortcut: 'Shift+R',
+  },
+  { id: 'pan', label: 'tools.pan', shortcut: 'H' },
+] satisfies Array<{ id: EditorTool; label: string; shortcut: string }>
+
+const shiftDirections: ShiftDirection[] = ['up', 'down', 'left', 'right']
+const updateTool = (tool: EditorTool): void => {
+  if (props.disabled && (tool === 'draw' || tool === 'erase')) return
   emit('update:currentTool', tool)
-  emit('update:modelValue', value)
+  if (tool === 'draw') emit('update:modelValue', 1)
+  else if (tool === 'erase') emit('update:modelValue', 0)
+  else if (tool === 'select') emit('update:modelValue', 2)
 }
 </script>
 
 <style scoped>
 .tool-buttons {
+  width: min(25rem, calc(100% - 1rem));
   display: flex;
-  margin: 10px 0 15px 0;
-  transition: none !important;
-  width: 24rem;
+  margin: 10px 0 15px;
+  position: relative;
 }
 
-.tool-button {
+.tool-button,
+.tool-overflow > summary {
+  min-width: 44px;
+  min-height: 44px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  font-size: 1.5em;
-  padding: 7px 0;
+  justify-content: center;
   flex: 1;
-  border: transparent 2px solid;
-  background-color: var(--border-color);
+  padding: 7px 0;
+  border: 2px solid transparent;
+  background: var(--border-color);
   color: var(--text-color);
   cursor: pointer;
-  transition: none !important;
+  list-style: none;
 }
 
-.tool-button.active {
+.tool-overflow {
+  display: flex;
+  flex: 1;
+}
+
+.tool-overflow > summary {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tool-overflow > summary::-webkit-details-marker {
+  display: none;
+}
+
+.tool-button.active,
+.tool-overflow > summary.active {
   background: var(--primary-color);
   color: white;
 }
 
-.tool-button:hover:not(.active) {
-  background-color: var(--background-hover);
+.tool-button:hover:not(.active),
+.tool-overflow > summary:hover:not(.active) {
   border-color: var(--border-hover);
+  background: var(--background-hover);
 }
 
-.tool-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  pointer-events: none;
+.tool-sheet {
+  width: min(32rem, calc(100vw - 1rem));
+  position: absolute;
+  z-index: 45;
+  top: calc(100% + 0.35rem);
+  left: 50%;
+  translate: -50% 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  padding: 0.6rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--background-light);
+  box-shadow: 0 4px 14px var(--modal-overlay);
 }
 
-@media (orientation: portrait) and (max-width: 768px) {
+.tool-sheet-group {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.25rem;
+}
+
+.tool-sheet button {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--background-base);
+  color: var(--text-color);
+  font-family: var(--normal-font);
+  cursor: pointer;
+}
+
+.tool-sheet button.active {
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+  color: white;
+}
+
+.vertical {
+  rotate: 90deg;
+}
+
+@media (max-width: 720px), (pointer: coarse) {
   .tool-buttons {
-    width: 20rem;
-    margin: 0.5rem 0 0.8rem;
-  }
-
-  .tool-button {
-    padding: 7px 12px;
-    min-width: 3.5em;
-  }
-}
-
-@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
-  .tool-buttons {
-    width: 40rem;
-  }
-
-  .tool-button {
-    font-size: 2em;
-    padding: 10px 20px;
-    min-width: 4em;
-  }
-}
-
-@media (orientation: portrait) and (min-width: 1024px) {
-  .tool-buttons {
-    margin: 1.2rem;
-  }
-
-  .tool-button {
-    padding: 16px 24px;
-    font-size: 3em;
-    min-width: 4em;
-  }
-
-  .tool-button .icon {
-    font-size: 1em !important;
+    display: none;
   }
 }
 </style>

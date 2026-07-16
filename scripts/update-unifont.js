@@ -5,11 +5,13 @@ import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
 
 import { parseUnifontVersions, unifontHexToMap } from './unifont-utils.js'
+import { writeUnifontChunks } from './chunk-unifont.js'
 
 const unzip = promisify(gunzip)
 const scriptDirectory = dirname(fileURLToPath(import.meta.url))
 const publicDirectory = join(scriptDirectory, '..', 'public')
 const outputFile = join(publicDirectory, 'unifont-map.json')
+const chunksDirectory = join(publicDirectory, 'unifont')
 const timeoutMs = 30_000
 
 const fetchWithTimeout = async (url) => {
@@ -55,6 +57,7 @@ const main = async () => {
   console.log(`Downloading Unifont ${version}…`)
   const map = await downloadUnifontMap(version)
   await replaceMapAtomically(map)
+  await writeUnifontChunks(map, chunksDirectory)
   console.log(
     `Updated ${outputFile} with ${Object.keys(map.glyphs).length} glyphs.`,
   )

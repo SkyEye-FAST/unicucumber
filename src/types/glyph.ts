@@ -6,7 +6,15 @@ export interface Glyph {
 export type GridCell = 0 | 1
 export type GlyphWidth = 8 | 16
 export type GridData = GridCell[][]
-export type EditorTool = 'draw' | 'erase' | 'select'
+export type EditorTool =
+  | 'draw'
+  | 'erase'
+  | 'select'
+  | 'fill'
+  | 'line'
+  | 'rectangle'
+  | 'filledRectangle'
+  | 'pan'
 export type DrawMode = 'singleButtonDraw' | 'doubleButtonDraw'
 export type GlyphPreviewMode = 'pixelOnly' | 'browserOnly' | 'both'
 
@@ -35,10 +43,6 @@ export interface EditorSettings {
 
 export interface PrefillData extends Glyph {
   [key: string]: unknown
-}
-
-export interface UnifontMapType {
-  [key: number]: string
 }
 
 export interface DialogConfig {
@@ -70,11 +74,13 @@ export interface GlyphManagerProps {
   glyphs: Glyph[]
   onGlyphChange: (glyphs: Glyph[]) => void
   prefillData?: PrefillData | null
+  activeCodePoint?: string
 }
 
 export interface GlyphManagerEmits {
   (e: 'edit-in-grid', hexValue: string, glyph?: Glyph): void
   (e: 'clear-prefill'): void
+  (e: 'saved', glyph: Glyph): void
 }
 
 export interface GlyphData {
@@ -90,7 +96,6 @@ export interface ImageWithDimensions extends HTMLImageElement {
 export interface GlyphAdderProps {
   modelValue: GlyphData
   prefillData?: PrefillData | null
-  unifontMap?: UnifontMapType
   editMode?: boolean
   duplicateGlyph?: Glyph | null
 }
