@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync, realpathSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath, URL } from 'node:url'
 
@@ -32,7 +32,23 @@ export default defineConfig({
     'import.meta.env.VITE_UNIFONT_VERSION': JSON.stringify(getUnifontVersion()),
   },
   plugins: [
-    vue(),
+    vue({
+      script: {
+        // Vite 8 runs the SFC compiler through Rolldown, where Vue cannot
+        // automatically access Node's file system to resolve imported types.
+        fs: {
+          fileExists: existsSync,
+          readFile: (file) => {
+            try {
+              return readFileSync(file, 'utf-8')
+            } catch {
+              return undefined
+            }
+          },
+          realpath: realpathSync,
+        },
+      },
+    }),
     vueDevTools(),
     nodePolyfills(),
     VueI18nPlugin({
@@ -86,8 +102,10 @@ export default defineConfig({
   assetsInclude: ['**/*.hex'],
   publicDir: 'public',
   optimizeDeps: {
-    esbuildOptions: {
-      define: { global: 'globalThis' },
+    rolldownOptions: {
+      transform: {
+        define: { global: 'globalThis' },
+      },
     },
   },
   build: {
