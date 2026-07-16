@@ -1,5 +1,9 @@
+import { normalizeHex } from './hexUtils'
+
 export const hexToBinary = (hexString: string): string => {
-  return hexString
+  const hex = normalizeHex(hexString)
+  if (hex === null) return ''
+  return hex
     .split('')
     .map((char: string) => parseInt(char, 16).toString(2).padStart(4, '0'))
     .join('')

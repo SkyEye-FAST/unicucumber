@@ -1,42 +1,72 @@
-export const hexToGrid = (hexStr: string): number[][] => {
-  const width = hexStr.length <= 32 ? 8 : 16
-  const height = 16
+import type { GridCell, GridData, GlyphWidth } from '@/types/glyph'
 
-  const binary = hexStr
-    .split('')
-    .map((char) => parseInt(char, 16).toString(2).padStart(4, '0'))
-    .join('')
+export const GRID_HEIGHT = 16
+const HEX_LENGTHS: Readonly<Record<GlyphWidth, number>> = { 8: 32, 16: 64 }
 
-  const grid: number[][] = []
-  for (let i = 0; i < height; i++) {
-    const row: number[] = []
-    for (let j = 0; j < width; j++) {
-      const index = i * width + j
-      row.push(index < binary.length ? (binary[index] === '1' ? 1 : 0) : 0)
-    }
-    grid.push(row)
+export class InvalidHexCodeError extends Error {
+  constructor(hex: string) {
+    super(
+      `Expected a 32- or 64-character hexadecimal glyph, received ${hex.length} characters.`,
+    )
+    this.name = 'InvalidHexCodeError'
   }
+}
 
+export const getGlyphWidthFromHex = (hex: string): GlyphWidth | null => {
+  if (!/^[\dA-Fa-f]+$/.test(hex)) return null
+  if (hex.length === HEX_LENGTHS[8]) return 8
+  if (hex.length === HEX_LENGTHS[16]) return 16
+  return null
+}
+
+export const normalizeHex = (hex: string): string | null => {
+  const trimmed = hex.trim()
+  return getGlyphWidthFromHex(trimmed) === null ? null : trimmed.toUpperCase()
+}
+
+export const createGrid = (width: GlyphWidth): GridData =>
+  Array.from({ length: GRID_HEIGHT }, () => Array<GridCell>(width).fill(0))
+
+export const hexToGrid = (hex: string): GridData | null => {
+  const normalized = normalizeHex(hex)
+  if (normalized === null) return null
+
+  const width = getGlyphWidthFromHex(normalized)
+  if (width === null) return null
+  const binary = Array.from(normalized, (character) =>
+    Number.parseInt(character, 16).toString(2).padStart(4, '0'),
+  ).join('')
+
+  return Array.from({ length: GRID_HEIGHT }, (_, row) =>
+    Array.from({ length: width }, (_, col) =>
+      binary[row * width + col] === '1' ? 1 : 0,
+    ),
+  )
+}
+
+export const requireHexGrid = (hex: string): GridData => {
+  const grid = hexToGrid(hex)
+  if (grid === null) throw new InvalidHexCodeError(hex)
   return grid
 }
 
-export const deepCloneGrid = <T extends number[][]>(grid: T): T => {
-  return grid.map((row) => [...row]) as T
-}
+export const deepCloneGrid = (grid: GridData): GridData =>
+  grid.map((row) => [...row])
 
-export const gridToHex = (grid: number[][]): string => {
-  if (!grid || !grid.length) return ''
+export const gridToHex = (grid: GridData): string => {
+  if (grid.length !== GRID_HEIGHT || grid[0] === undefined) return ''
+  const width = grid[0].length
+  if (width !== 8 && width !== 16) return ''
+  if (grid.some((row) => row.length !== width)) return ''
 
   const binary = grid
     .flat()
-    .map((cell) => (cell ? '1' : '0'))
+    .map((cell) => (cell === 1 ? '1' : '0'))
     .join('')
-
-  const hexStr: string[] = []
-  for (let i = 0; i < binary.length; i += 4) {
-    const chunk = binary.slice(i, i + 4)
-    hexStr.push(parseInt(chunk.padEnd(4, '0'), 2).toString(16))
-  }
-
-  return hexStr.join('').toUpperCase()
+  return (
+    binary
+      .match(/.{1,4}/g)
+      ?.map((bits) => Number.parseInt(bits, 2).toString(16).toUpperCase())
+      .join('') ?? ''
+  )
 }

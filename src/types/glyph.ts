@@ -3,6 +3,36 @@ export interface Glyph {
   hexValue: string
 }
 
+export type GridCell = 0 | 1
+export type GlyphWidth = 8 | 16
+export type GridData = GridCell[][]
+export type EditorTool = 'draw' | 'erase' | 'select'
+export type DrawMode = 'singleButtonDraw' | 'doubleButtonDraw'
+export type GlyphPreviewMode = 'pixelOnly' | 'browserOnly' | 'both'
+
+export interface GridPosition {
+  row: number
+  col: number
+}
+
+export interface SelectionRectangle {
+  startRow: number
+  startCol: number
+  endRow: number
+  endCol: number
+}
+
+export interface EditorSettings {
+  glyphWidth: GlyphWidth
+  drawMode: DrawMode
+  alwaysShowMouseCursor: boolean
+  showBorder: boolean
+  confirmClear: boolean
+  glyphPreviewMode: GlyphPreviewMode
+  browserPreviewFont: string
+  enableSelection: boolean
+}
+
 export interface PrefillData extends Glyph {
   [key: string]: unknown
 }

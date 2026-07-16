@@ -1,10 +1,4 @@
-import {
-  computed,
-  type ComputedRef,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-} from 'vue'
+import { computed, type ComputedRef, readonly, ref } from 'vue'
 
 import type { Position } from './useSelection'
 
@@ -79,25 +73,6 @@ export function useDrawing(
 
   const handleMouseLeave = () => {
     hoverCell.value = { row: -1, col: -1 }
-  }
-
-  const handleMouseUp = (event?: MouseEvent) => {
-    const props = propsRef.value
-    if (isDrawing.value) {
-      if (props.drawMode === 'doubleButtonDraw') {
-        const isCorrectButton =
-          (currentDrawValue.value === 1 && event?.button === 0) ||
-          (currentDrawValue.value === 0 && event?.button === 2)
-
-        if (!event || isCorrectButton) {
-          finishDrawing()
-        }
-      } else {
-        if (!event || event.button === 0) {
-          finishDrawing()
-        }
-      }
-    }
   }
 
   const handleContextMenu = (event: MouseEvent) => {
@@ -177,10 +152,6 @@ export function useDrawing(
     const oldValue = gridData[row]?.[col] ?? 0
 
     if (oldValue !== value) {
-      if (gridData[row]) {
-        gridData[row][col] = value
-      }
-
       const existingIndex = drawBuffer.value.findIndex(
         (change) => change.row === row && change.col === col,
       )
@@ -257,24 +228,6 @@ export function useDrawing(
     }
   }
 
-  const handleTouchEnd = () => {
-    if (isDrawing.value) {
-      finishDrawing()
-    }
-  }
-
-  onMounted(() => {
-    document.addEventListener('mouseup', handleMouseUp)
-    document.addEventListener('pointerup', handleMouseUp)
-    document.addEventListener('touchend', handleTouchEnd)
-  })
-
-  onBeforeUnmount(() => {
-    document.removeEventListener('mouseup', handleMouseUp)
-    document.removeEventListener('pointerup', handleMouseUp)
-    document.removeEventListener('touchend', handleTouchEnd)
-  })
-
   const stopDrawing = () => {
     if (isDrawing.value) {
       finishDrawing()
@@ -294,8 +247,4 @@ export function useDrawing(
     handleTouchMove,
     stopDrawing,
   }
-}
-
-function readonly<T>(ref: import('vue').Ref<T>) {
-  return ref as Readonly<import('vue').Ref<T>>
 }

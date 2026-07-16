@@ -1,14 +1,12 @@
 import { ref, type Ref, watch } from 'vue'
 
-import { gridToHex } from '@/utils/hexUtils'
-
-interface GridData {
-  value: number[][]
-}
-
-interface ResetGridFunction {
-  (width?: number): void
-}
+import type { GridData, GlyphWidth } from '@/types/glyph'
+import {
+  getGlyphWidthFromHex,
+  gridToHex,
+  hexToGrid,
+  normalizeHex,
+} from '@/utils/hexUtils'
 
 interface UseHexCodeReturn {
   hexCode: Ref<string>
@@ -17,8 +15,8 @@ interface UseHexCodeReturn {
 }
 
 export function useHexCode(
-  gridData: GridData,
-  resetGrid: ResetGridFunction,
+  gridData: Ref<GridData>,
+  resetGrid: (width?: GlyphWidth) => void,
 ): UseHexCodeReturn {
   const getInitialHexLength = () => {
     if (gridData.value && gridData.value[0]) {
@@ -34,46 +32,15 @@ export function useHexCode(
     hexCode.value = gridToHex(gridData.value)
   }
 
-  const updateGridFromHex = (): void => {
-    if (
-      !/^[0-9A-Fa-f]{32}$/i.test(hexCode.value) &&
-      !/^[0-9A-Fa-f]{64}$/i.test(hexCode.value)
-    ) {
-      console.warn('Invalid hex code format, must be 32 or 64 characters')
-      resetGrid()
-      return
-    }
-
-    const width: number = hexCode.value.length <= 32 ? 8 : 16
-    const height: number = 16
-
+  const updateGridFromHex = (): boolean => {
+    const normalized = normalizeHex(hexCode.value)
+    const grid = hexToGrid(hexCode.value)
+    const width = getGlyphWidthFromHex(hexCode.value)
+    if (normalized === null || grid === null || width === null) return false
     resetGrid(width)
-    if (!gridData.value || !Array.isArray(gridData.value)) {
-      return
-    }
-
-    const binary: string = hexCode.value
-      .split('')
-      .map((char) => parseInt(char, 16).toString(2).padStart(4, '0'))
-      .join('')
-
-    const newGrid: number[][] = []
-    for (let i = 0; i < height; i++) {
-      if (i < gridData.value.length) {
-        const row: number[] = []
-        for (let j = 0; j < width; j++) {
-          const index = i * width + j
-          if (index < binary.length) {
-            row.push(binary[index] === '1' ? 1 : 0)
-          } else {
-            row.push(0)
-          }
-        }
-        newGrid.push(row)
-      }
-    }
-
-    gridData.value = newGrid
+    gridData.value = grid
+    hexCode.value = normalized
+    return true
   }
 
   watch(

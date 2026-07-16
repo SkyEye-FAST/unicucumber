@@ -1,23 +1,24 @@
 import { ref, type Ref, watch } from 'vue'
 
-export type GridDataType = number[][]
+import type { GridData, GlyphWidth } from '@/types/glyph'
+import { createGrid } from '@/utils/hexUtils'
+
+export type GridDataType = GridData
 
 interface UseGridDataReturn {
   gridData: Ref<GridDataType>
-  resetGrid: (width?: number) => void
-  updateGrid: (newSize: number) => void
+  resetGrid: (width?: GlyphWidth) => void
+  updateGrid: (newSize: GlyphWidth) => void
 }
 
-export function useGridData(widthRef: Ref<number>): UseGridDataReturn {
-  const gridData = ref<number[][]>([])
+export function useGridData(widthRef: Ref<GlyphWidth>): UseGridDataReturn {
+  const gridData = ref<GridData>([])
 
-  const resetGrid = (width: number = 16): void => {
-    const size = typeof width === 'number' ? width : 16
-    const newGrid = Array.from({ length: 16 }, () => Array(size).fill(0))
-    gridData.value = newGrid
+  const resetGrid = (width: GlyphWidth = 16): void => {
+    gridData.value = createGrid(width)
   }
 
-  const updateGrid = (newSize: number): void => {
+  const updateGrid = (newSize: GlyphWidth): void => {
     resetGrid(newSize)
   }
 

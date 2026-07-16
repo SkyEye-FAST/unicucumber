@@ -1,128 +1,99 @@
-import { ref, type Ref } from 'vue'
+import { computed, ref, type ComputedRef, type Ref } from 'vue'
 
+import type { GridData } from '@/types/glyph'
 import { deepCloneGrid } from '@/utils/hexUtils'
 
-interface HistoryEntry {
-  grid: number[][]
-  action: string
+export type HistoryAction =
+  | 'initial'
+  | 'draw'
+  | 'erase'
+  | 'clear-grid'
+  | 'paste'
+  | 'cut'
+  | 'move-selection'
+  | 'replace-glyph'
+
+export interface HistoryEntry {
+  grid: GridData
+  action: HistoryAction
 }
 
-interface HistoryState {
+export interface HistoryState {
   history: Ref<HistoryEntry[]>
   currentIndex: Ref<number>
-  pushState: (newState: number[][], action: string) => void
-  undo: () => number[][] | null
-  redo: () => number[][] | null
-  canUndo: () => boolean
-  canRedo: () => boolean
-  resetHistory: (newState: number[][]) => void
-  clearHistory: () => void
-  initHistory: (newState: number[][]) => void
-  clearAndInitHistory: (newState: number[][]) => void
-  getLastAction: () => string | null
-  getCurrentState: () => number[][] | null
+  canUndo: ComputedRef<boolean>
+  canRedo: ComputedRef<boolean>
+  pushState: (
+    newState: GridData,
+    action: Exclude<HistoryAction, 'initial'>,
+  ) => void
+  undo: () => GridData | null
+  redo: () => GridData | null
+  reset: (newState: GridData, action?: HistoryAction) => void
+  getLastAction: () => HistoryAction | null
+  getCurrentState: () => GridData | null
 }
 
-export function useHistory(initialState: number[][]): HistoryState {
-  const history = ref<HistoryEntry[]>([
-    {
-      grid: deepCloneGrid(initialState),
-      action: 'initial',
-    },
-  ])
-  const currentIndex = ref(0)
+export function useHistory(initialState: GridData): HistoryState {
+  const history = ref<HistoryEntry[]>([])
+  const currentIndex = ref(-1)
+  const canUndo = computed(() => currentIndex.value > 0)
+  const canRedo = computed(
+    () =>
+      currentIndex.value >= 0 && currentIndex.value < history.value.length - 1,
+  )
 
-  const pushState = (newState: number[][], action: string) => {
+  const reset = (newState: GridData, action: HistoryAction = 'initial') => {
+    history.value = [{ grid: deepCloneGrid(newState), action }]
+    currentIndex.value = 0
+  }
+
+  const pushState = (
+    newState: GridData,
+    action: Exclude<HistoryAction, 'initial'>,
+  ) => {
+    const current = history.value[currentIndex.value]
+    if (
+      current !== undefined &&
+      JSON.stringify(current.grid) === JSON.stringify(newState)
+    )
+      return
     history.value = history.value.slice(0, currentIndex.value + 1)
-    history.value.push({
-      grid: deepCloneGrid(newState),
-      action: action,
-    })
-    currentIndex.value++
+    history.value.push({ grid: deepCloneGrid(newState), action })
+    currentIndex.value = history.value.length - 1
   }
 
-  const undo = () => {
-    if (currentIndex.value > 0) {
-      currentIndex.value--
-      return deepCloneGrid(
-        history.value[currentIndex.value]?.grid ?? [],
-      ) as number[][]
-    }
-    return null
+  const undo = (): GridData | null => {
+    if (!canUndo.value) return null
+    currentIndex.value -= 1
+    const entry = history.value[currentIndex.value]
+    return entry === undefined ? null : deepCloneGrid(entry.grid)
   }
 
-  const redo = () => {
-    if (currentIndex.value < history.value.length - 1) {
-      currentIndex.value++
-      return deepCloneGrid(
-        (history.value[currentIndex.value]?.grid ?? []) as number[][],
-      ) as number[][]
-    }
-    return null
+  const redo = (): GridData | null => {
+    if (!canRedo.value) return null
+    currentIndex.value += 1
+    const entry = history.value[currentIndex.value]
+    return entry === undefined ? null : deepCloneGrid(entry.grid)
   }
 
-  const canUndo = () => currentIndex.value > 0
-  const canRedo = () => currentIndex.value < history.value.length - 1
-
-  const resetHistory = (newState: number[][]) => {
-    history.value = [
-      {
-        grid: deepCloneGrid(newState),
-        action: 'reset',
-      },
-    ]
-    currentIndex.value = 0
+  const getLastAction = (): HistoryAction | null =>
+    history.value[currentIndex.value]?.action ?? null
+  const getCurrentState = (): GridData | null => {
+    const entry = history.value[currentIndex.value]
+    return entry === undefined ? null : deepCloneGrid(entry.grid)
   }
 
-  const clearHistory = () => {
-    history.value = []
-    currentIndex.value = 0
-  }
-
-  const initHistory = (newState: number[][]) => {
-    history.value = [
-      {
-        grid: deepCloneGrid(newState),
-        action: 'initial',
-      },
-    ]
-    currentIndex.value = 0
-  }
-
-  const clearAndInitHistory = (newState: number[][]) => {
-    history.value = [
-      {
-        grid: deepCloneGrid(newState),
-        action: 'initial',
-      },
-    ]
-    currentIndex.value = 0
-  }
-
-  const getLastAction = () => {
-    if (history.value.length === 0) return null
-    return history.value[currentIndex.value]?.action ?? null
-  }
-
-  const getCurrentState = () => {
-    if (history.value.length === 0) return null
-    return deepCloneGrid(
-      (history.value[currentIndex.value]?.grid ?? []) as number[][],
-    ) as number[][]
-  }
-
+  reset(initialState)
   return {
     history,
     currentIndex,
+    canUndo,
+    canRedo,
     pushState,
     undo,
     redo,
-    canUndo,
-    canRedo,
-    resetHistory,
-    clearHistory,
-    initHistory,
-    clearAndInitHistory,
+    reset,
     getLastAction,
     getCurrentState,
   }

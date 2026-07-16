@@ -27,7 +27,7 @@ const getUnifontVersion = (): string => {
   return ''
 }
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   define: {
     'import.meta.env.VITE_UNIFONT_VERSION': JSON.stringify(getUnifontVersion()),
   },
@@ -49,7 +49,7 @@ export default defineConfig({
         },
       },
     }),
-    vueDevTools(),
+    command === 'serve' && vueDevTools(),
     nodePolyfills(),
     VueI18nPlugin({
       include: resolve(
@@ -68,16 +68,20 @@ export default defineConfig({
       ],
     }),
     Icons({
-      autoInstall: true,
+      autoInstall: false,
     }),
     VitePWA({
       injectRegister: 'auto',
       registerType: 'autoUpdate',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globIgnores: [
+          'assets/encoding-*.js',
+          'assets/unicode-name-*.js',
+          'unifont-map.json',
+        ],
         maximumFileSizeToCacheInBytes: 3_000_000,
       },
-      devOptions: { enabled: true },
       includeAssets: ['apple-touch-icon.png', 'favicon.ico'],
       manifest: {
         name: 'UniCucumber',
@@ -109,7 +113,14 @@ export default defineConfig({
     },
   },
   build: {
-    chunkSizeWarningLimit: 2500,
-    rollupOptions: {},
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('iconv-lite')) return 'encoding'
+          if (id.includes('unicode-name')) return 'unicode-name'
+          return undefined
+        },
+      },
+    },
   },
-})
+}))

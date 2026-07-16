@@ -1,5 +1,7 @@
 import { computed, readonly, ref } from 'vue'
 
+import { normalizeSelectionRectangle } from '@/utils/selection'
+
 export interface Position {
   row: number
   col: number
@@ -20,11 +22,7 @@ export interface SelectionData {
 }
 
 export type SelectionState =
-  | 'none'
-  | 'selecting'
-  | 'selected'
-  | 'moving'
-  | 'copying'
+  'none' | 'selecting' | 'selected' | 'moving' | 'copying'
 
 export type ToolType = 'draw' | 'erase' | 'select'
 
@@ -51,12 +49,7 @@ export function useSelection(gridData: () => number[][]) {
     const rect = _tempRect.value || _selectionRect.value
     if (!rect) return null
 
-    return {
-      startRow: Math.min(rect.startRow, rect.endRow),
-      startCol: Math.min(rect.startCol, rect.endCol),
-      endRow: Math.max(rect.startRow, rect.endRow),
-      endCol: Math.max(rect.startCol, rect.endCol),
-    }
+    return normalizeSelectionRectangle(rect)
   })
 
   const setTool = (tool: ToolType) => {
@@ -95,12 +88,7 @@ export function useSelection(gridData: () => number[][]) {
   const finishSelection = () => {
     if (_state.value !== 'selecting' || !_tempRect.value) return
 
-    const normalized = {
-      startRow: Math.min(_tempRect.value.startRow, _tempRect.value.endRow),
-      startCol: Math.min(_tempRect.value.startCol, _tempRect.value.endCol),
-      endRow: Math.max(_tempRect.value.startRow, _tempRect.value.endRow),
-      endCol: Math.max(_tempRect.value.startCol, _tempRect.value.endCol),
-    }
+    const normalized = normalizeSelectionRectangle(_tempRect.value)
 
     if (
       normalized.endRow >= normalized.startRow &&

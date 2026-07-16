@@ -81,19 +81,10 @@
         :data-row="rowIndex"
         :data-col="cellIndex"
         :style="getCellStyle(rowIndex, cellIndex)"
-        @mousedown="handleMouseDown(rowIndex, cellIndex, $event)"
-        @mousemove="handleMouseMove(rowIndex, cellIndex)"
-        @pointerdown.prevent="handlePointerDown(rowIndex, cellIndex, $event)"
+        @pointerdown="handlePointerDown(rowIndex, cellIndex, $event)"
         @pointermove="handlePointerMove(rowIndex, cellIndex, $event)"
         @pointerup="handlePointerUp($event)"
-        @touchstart.stop.prevent="
-          handleTouchStartCell(rowIndex, cellIndex, $event)
-        "
-        @touchmove.stop.prevent="
-          handleTouchMoveCell(rowIndex, cellIndex, $event)
-        "
-        @touchend.stop.prevent="handleTouchEndCell($event)"
-        @mouseleave="handleMouseLeave"
+        @pointercancel="handlePointerUp($event)"
         @contextmenu="drawing.handleContextMenu"
         @click="handleCellClick(rowIndex, cellIndex)"
       ></div>
@@ -172,7 +163,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch, nextTick } from 'vue'
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  type CSSProperties,
+  watch,
+} from 'vue'
 
 import { useClipboard } from '@/composables/useClipboard'
 import { type DrawAction, useDrawing } from '@/composables/useDrawing'
@@ -484,10 +483,6 @@ const handleMouseMove = (row: number, col: number) => {
 const interactionStartPos = ref<{ row: number; col: number } | null>(null)
 const getInteractionStartPos = () => interactionStartPos.value
 
-const handleMouseLeave = () => {
-  drawing.handleMouseLeave()
-}
-
 const handleMouseUp = () => {
   if (!isInteracting.value) return
 
@@ -578,9 +573,8 @@ const handleCellClick = async (row: number, col: number) => {
 }
 
 const handlePointerDown = (row: number, col: number, event: PointerEvent) => {
-  try {
-    if (event.preventDefault) event.preventDefault()
-  } catch {}
+  event.preventDefault()
+  ;(event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId)
 
   lastInputWasTouch.value = event.pointerType === 'touch'
 
@@ -589,7 +583,7 @@ const handlePointerDown = (row: number, col: number, event: PointerEvent) => {
     return
   }
 
-  handleMouseDown(row, col, event as unknown as MouseEvent)
+  handleMouseDown(row, col, event)
 }
 
 const handlePointerMove = (row: number, col: number, event: PointerEvent) => {
@@ -598,148 +592,14 @@ const handlePointerMove = (row: number, col: number, event: PointerEvent) => {
 }
 
 const handlePointerUp = (event: PointerEvent) => {
-  void event
+  const target = event.currentTarget as HTMLElement
+  if (target.hasPointerCapture?.(event.pointerId)) {
+    target.releasePointerCapture(event.pointerId)
+  }
   lastInputWasTouch.value = event.pointerType === 'touch'
 
   drawing.stopDrawing()
   handleMouseUp()
-}
-
-const handleTouchStartCell = (row: number, col: number, event: TouchEvent) => {
-  lastInputWasTouch.value = true
-
-  if (props.currentTool === 'select') {
-    isInteracting.value = true
-    interactionStartPos.value = { row, col }
-
-    if (selection.isPositionInSelection({ row, col })) {
-      if (selection.startMove()) {
-        return
-      }
-    }
-
-    selection.clearSelection()
-    selection.startSelection({ row, col })
-  } else {
-    drawing.handleTouchStart(event)
-  }
-}
-
-const handleTouchMoveCell = (_row: number, _col: number, event: TouchEvent) => {
-  lastInputWasTouch.value = true
-  const touch = event.touches[0]
-  if (!touch) return
-  const target = document.elementFromPoint(
-    touch.clientX,
-    touch.clientY,
-  ) as HTMLElement
-  if (!target || !target.classList.contains('cell')) {
-    return
-  }
-  const row = parseInt(target.dataset.row ?? '-1')
-  const col = parseInt(target.dataset.col ?? '-1')
-  if (row < 0 || col < 0) return
-
-  lastValidMousePos.value = { row, col }
-
-  if (props.currentTool === 'select' && isInteracting.value) {
-    if (selection.isMoving.value) {
-      const startPos = getInteractionStartPos()
-      if (startPos && selection.selectionData.value) {
-        const deltaRow = row - startPos.row
-        const deltaCol = col - startPos.col
-
-        const originalRect = selection.selectionData.value.originalRect
-        const newPos = {
-          row: originalRect.startRow + deltaRow,
-          col: originalRect.startCol + deltaCol,
-        }
-
-        const gridHeight = props.gridData.length
-        const gridWidth = props.gridData[0]?.length ?? 0
-        const selectionHeight = selection.selectionData.value.height
-        const selectionWidth = selection.selectionData.value.width
-
-        const clampedNewPos = {
-          row: Math.max(0, Math.min(gridHeight - selectionHeight, newPos.row)),
-          col: Math.max(0, Math.min(gridWidth - selectionWidth, newPos.col)),
-        }
-
-        const tempRect = {
-          startRow: clampedNewPos.row,
-          startCol: clampedNewPos.col,
-          endRow: clampedNewPos.row + selectionHeight - 1,
-          endCol: clampedNewPos.col + selectionWidth - 1,
-        }
-
-        selection.setTempRect(tempRect)
-      }
-    } else if (selection.isSelecting.value) {
-      selection.updateSelection({ row, col })
-    }
-  } else {
-    drawing.handleTouchMove(event)
-  }
-}
-
-const handleTouchEndCell = (_event?: TouchEvent) => {
-  void _event
-  lastInputWasTouch.value = true
-
-  drawing.stopDrawing()
-
-  if (isInteracting.value && props.currentTool === 'select') {
-    if (selection.isMoving.value && interactionStartPos.value) {
-      const startPos = interactionStartPos.value
-      const currentPos = lastValidMousePos.value
-
-      if (selection.selectionData.value) {
-        const deltaRow = currentPos.row - startPos.row
-        const deltaCol = currentPos.col - startPos.col
-
-        const originalRect = selection.selectionData.value.originalRect
-        const rawNewPos = {
-          row: originalRect.startRow + deltaRow,
-          col: originalRect.startCol + deltaCol,
-        }
-
-        const gridHeight = props.gridData.length
-        const gridWidth = props.gridData[0]?.length ?? 0
-        const selectionHeight = selection.selectionData.value.height
-        const selectionWidth = selection.selectionData.value.width
-
-        const clampedNewPos = {
-          row: Math.max(
-            0,
-            Math.min(gridHeight - selectionHeight, rawNewPos.row),
-          ),
-          col: Math.max(0, Math.min(gridWidth - selectionWidth, rawNewPos.col)),
-        }
-
-        if (selection.moveSelectionTo(clampedNewPos)) {
-          const selectionDataValue = selection.selectionData.value
-          if (selectionDataValue) {
-            moveSelectionData(selectionDataValue, originalRect, clampedNewPos)
-
-            const newRect = {
-              startRow: clampedNewPos.row,
-              startCol: clampedNewPos.col,
-              endRow: clampedNewPos.row + selectionDataValue.height - 1,
-              endCol: clampedNewPos.col + selectionDataValue.width - 1,
-            }
-            selection.updateOriginalRect(newRect)
-          }
-        }
-      }
-
-      selection.setTempRect(null)
-    } else if (selection.isSelecting.value) {
-      selection.finishSelection()
-    }
-  }
-
-  isInteracting.value = false
-  interactionStartPos.value = null
 }
 
 const handleKeyDown = (event: KeyboardEvent) => {
@@ -964,7 +824,16 @@ const movePasteBy = (dRow: number, dCol: number) => {
   selection.setTempRect(tempRect)
 }
 
-const getPasteMoveButtonStyle = (dir: 'up' | 'down' | 'left' | 'right') => {
+const getOverlayButtonStyle = (left: string, top: string): CSSProperties => ({
+  position: 'absolute',
+  left,
+  top,
+  zIndex: 2000,
+})
+
+const getPasteMoveButtonStyle = (
+  dir: 'up' | 'down' | 'left' | 'right',
+): CSSProperties => {
   const rect =
     tempSelectionRect.value ||
     (drawing.hoverCell.value.row >= 0
@@ -990,27 +859,29 @@ const getPasteMoveButtonStyle = (dir: 'up' | 'down' | 'left' | 'right') => {
     case 'up': {
       const left = `calc(( ${normalized.startCol} + ${Math.floor((normalized.endCol - normalized.startCol + 1) / 2)} + 1) * ${cell})`
       const top = `calc(( ${normalized.startRow} + 1) * ${cell} - 0.6 * ${cell})`
-      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
+      return getOverlayButtonStyle(left, top)
     }
     case 'down': {
       const left = `calc(( ${normalized.startCol} + ${Math.floor((normalized.endCol - normalized.startCol + 1) / 2)} + 1) * ${cell})`
       const top = `calc(( ${normalized.endRow} + 2) * ${cell} + 0.2 * ${cell})`
-      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
+      return getOverlayButtonStyle(left, top)
     }
     case 'left': {
       const left = `calc(( ${normalized.startCol} + 1) * ${cell} - 0.6 * ${cell})`
       const top = `calc(( ${normalized.startRow} + ${Math.floor((normalized.endRow - normalized.startRow + 1) / 2)} + 1) * ${cell})`
-      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
+      return getOverlayButtonStyle(left, top)
     }
     case 'right': {
       const left = `calc(( ${normalized.endCol} + 2) * ${cell} + 0.2 * ${cell})`
       const top = `calc(( ${normalized.startRow} + ${Math.floor((normalized.endRow - normalized.startRow + 1) / 2)} + 1) * ${cell})`
-      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
+      return getOverlayButtonStyle(left, top)
     }
   }
 }
 
-const getMoveButtonStyle = (dir: 'up' | 'down' | 'left' | 'right') => {
+const getMoveButtonStyle = (
+  dir: 'up' | 'down' | 'left' | 'right',
+): CSSProperties => {
   const rect = selection.selectionRect.value
   if (!rect) return { display: 'none' }
 
@@ -1029,22 +900,22 @@ const getMoveButtonStyle = (dir: 'up' | 'down' | 'left' | 'right') => {
     case 'up': {
       const left = `calc(( ${normalized.startCol} + ${Math.floor(width / 2)} + 1) * ${cell})`
       const top = `calc(( ${normalized.startRow} + 1) * ${cell} - 0.6 * ${cell})`
-      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
+      return getOverlayButtonStyle(left, top)
     }
     case 'down': {
       const left = `calc(( ${normalized.startCol} + ${Math.floor(width / 2)} + 1) * ${cell})`
       const top = `calc(( ${normalized.endRow} + 2) * ${cell} + 0.2 * ${cell})`
-      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
+      return getOverlayButtonStyle(left, top)
     }
     case 'left': {
       const left = `calc(( ${normalized.startCol} + 1) * ${cell} - 0.6 * ${cell})`
       const top = `calc(( ${normalized.startRow} + ${Math.floor(height / 2)} + 1) * ${cell})`
-      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
+      return getOverlayButtonStyle(left, top)
     }
     case 'right': {
       const left = `calc(( ${normalized.endCol} + 2) * ${cell} + 0.2 * ${cell})`
       const top = `calc(( ${normalized.startRow} + ${Math.floor(height / 2)} + 1) * ${cell})`
-      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
+      return getOverlayButtonStyle(left, top)
     }
   }
 }
@@ -1069,18 +940,12 @@ const handleDocumentClick = (e: MouseEvent) => {
 }
 
 onMounted(() => {
-  document.addEventListener('mouseup', handleMouseUp)
   document.addEventListener('mousemove', updateMousePosition)
-  document.addEventListener('touchend', handleTouchEndCell)
-  document.addEventListener('keydown', handleKeyDown)
   document.addEventListener('click', handleDocumentClick)
 })
 
 onBeforeUnmount(() => {
-  document.removeEventListener('mouseup', handleMouseUp)
   document.removeEventListener('mousemove', updateMousePosition)
-  document.removeEventListener('touchend', handleTouchEndCell)
-  document.removeEventListener('keydown', handleKeyDown)
   document.removeEventListener('click', handleDocumentClick)
 })
 

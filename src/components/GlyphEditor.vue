@@ -45,6 +45,8 @@
           v-if="hasSelection"
           class="action-button icon-only"
           :title="$t('glyph_editor.cut_title')"
+          type="button"
+          :aria-label="$t('glyph_editor.cut_title')"
           @click="handleCut"
         >
           <i-material-symbols-content-cut class="icon" />
@@ -53,6 +55,8 @@
           v-if="hasSelection"
           class="action-button icon-only"
           :title="$t('glyph_editor.copy_title')"
+          type="button"
+          :aria-label="$t('glyph_editor.copy_title')"
           @click="handleCopy"
         >
           <i-material-symbols-content-copy class="icon" />
@@ -61,6 +65,8 @@
           v-if="hasClipboardData"
           class="action-button icon-only"
           :title="$t('glyph_editor.paste_title')"
+          type="button"
+          :aria-label="$t('glyph_editor.paste_title')"
           @click="handlePaste"
         >
           <i-material-symbols-content-paste class="icon" />
@@ -68,6 +74,7 @@
         <button
           class="action-button secondary"
           :title="$t('editor.actions.clear.title')"
+          type="button"
           @click="handleClear"
         >
           <i-material-symbols-mop-outline class="icon" />
@@ -76,6 +83,7 @@
         <button
           class="action-button primary"
           :title="$t('editor.actions.add_to_glyphset.title')"
+          type="button"
           @click="addToGlyphset"
         >
           <i-material-symbols-add-box-outline class="icon" />
@@ -87,6 +95,8 @@
           class="icon-button"
           :disabled="!canUndo"
           :title="$t('editor.actions.undo.title')"
+          type="button"
+          :aria-label="$t('editor.actions.undo.title')"
           @click="handleUndo"
         >
           <i-material-symbols-undo class="icon" />
@@ -95,6 +105,8 @@
           class="icon-button"
           :disabled="!canRedo"
           :title="$t('editor.actions.redo.title')"
+          type="button"
+          :aria-label="$t('editor.actions.redo.title')"
           @click="handleRedo"
         >
           <i-material-symbols-redo class="icon" />
@@ -115,7 +127,11 @@
 
     <div :class="['sidebar', { active: isSidebarActive }]">
       <div class="sidebar-resizer" @mousedown="startResize"></div>
-      <button class="btn-close-sidebar" @click="handleCloseSidebar">
+      <button
+        class="btn-close-sidebar"
+        type="button"
+        @click="handleCloseSidebar"
+      >
         <i-material-symbols-close class="icon" />
       </button>
       <GlyphManager
@@ -167,15 +183,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  provide,
-  ref,
-  watch,
-} from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import { useI18n } from 'vue-i18n'
 
@@ -184,9 +192,8 @@ import { useHexCode } from '@/composables/useHexCode'
 import { useHistory } from '@/composables/useHistory'
 import { useSettings } from '@/composables/useSettings'
 import { useSidebar } from '@/composables/useSidebar'
-import { useTheme } from '@/composables/useTheme'
-import type { Glyph, PrefillData } from '@/types/glyph'
-import { hexToGrid } from '@/utils/hexUtils'
+import type { Glyph, GridCell, GlyphWidth, PrefillData } from '@/types/glyph'
+import { getGlyphWidthFromHex, hexToGrid } from '@/utils/hexUtils'
 
 import DialogBox from './DialogBox.vue'
 import DownloadButtons from './DownloadButtons.vue'
@@ -198,27 +205,6 @@ import HexCodeInput from './HexCodeInput.vue'
 import SettingsModal from './SettingsModal.vue'
 import ToolButtons from './ToolButtons.vue'
 
-interface Position {
-  x: number
-  y: number
-}
-
-interface CellPosition {
-  row: number
-  col: number
-}
-
-interface Region {
-  start: CellPosition
-  end: CellPosition
-}
-
-interface ClipboardData {
-  data: number[][]
-  width: number
-  height: number
-}
-
 interface GlyphData {
   codePoint: string
   hexValue: string
@@ -229,11 +215,6 @@ interface CellChange {
   col: number
   oldValue: number
   newValue: number
-}
-
-interface DrawAction {
-  type: string
-  changes: CellChange[]
 }
 
 interface DialogConfigExtended {
@@ -336,15 +317,10 @@ const dialogConfig = ref<DialogConfigExtended>({
 })
 
 interface GlyphGridInstance {
-  selection: object
-  clipboard: object
   handleCopy: () => void
   handleCut: () => void
   handlePaste: () => void
-  handleSelectAll: () => void
-  handleDelete: () => void
   clearSelection: () => void
-  gridFontString?: string
   drawing?: {
     currentDrawValue?: {
       value?: number
@@ -352,18 +328,11 @@ interface GlyphGridInstance {
   }
 }
 
-const glyphGridRef = ref<GlyphGridInstance | null>(null)
 const gridRef = ref<GlyphGridInstance | null>(null)
-const gridFontRef = ref<HTMLElement | null>(null)
 
 const currentDrawValue = computed(() => {
   return gridRef.value?.drawing?.currentDrawValue?.value
 })
-
-const { isDark } = useTheme()
-provide('isDark', isDark)
-
-const mousePosition = ref<Position>({ x: 0, y: 0 })
 
 const currentCodePoint = ref<string>('0000')
 
@@ -372,59 +341,28 @@ const unifontVersion = ref<string>(
 )
 
 onMounted(() => {
-  updateGridFontPreview()
-  document.addEventListener('contextmenu', preventDefault)
   document.addEventListener('keydown', handleKeydown)
-  document.addEventListener('mousemove', updateMousePosition)
-  nextTick(updateGridFontPreview)
-
-  nextTick(() => {
-    if (gridRef.value) {
-      glyphGridRef.value = gridRef.value
-    }
-  })
 })
 
 onBeforeUnmount(() => {
-  document.removeEventListener('contextmenu', preventDefault)
   document.removeEventListener('keydown', handleKeydown)
-  document.removeEventListener('mousemove', updateMousePosition)
 })
 
-const updateMousePosition = (e: MouseEvent): void => {
-  mousePosition.value = { x: e.clientX, y: e.clientY }
-}
-
-const selectedRegion = ref<Region | null>(null)
-const clipboardData = ref<ClipboardData | null>(null)
-
-const copyMode = ref<boolean>(false)
-const moveMode = ref<boolean>(false)
-
-watch(
-  [drawValue, selectedRegion],
-  ([newDrawValue, newSelectedRegion]: [number, Region | null]): void => {
-    moveMode.value = newDrawValue === 2 && newSelectedRegion !== null
-  },
-  { immediate: true },
-)
-
-const pasteMode = ref<boolean>(false)
-
-defineEmits(['update:modelValue', 'selection-complete'])
-
 const handleKeydown = (e: KeyboardEvent): void => {
-  if (e.ctrlKey) {
+  const target = e.target as HTMLElement | null
+  if (target?.matches('input, textarea, select, [contenteditable="true"]'))
+    return
+  if (e.ctrlKey || e.metaKey) {
     if (e.key === 'z') {
       e.preventDefault()
       handleUndo()
     } else if (e.key === 'y') {
       e.preventDefault()
       handleRedo()
-    } else if (e.key === 'x' && selectedRegion.value) {
+    } else if (e.key === 'x' && hasSelection.value) {
       e.preventDefault()
       handleCut()
-    } else if (e.key === 'c' && selectedRegion.value) {
+    } else if (e.key === 'c' && hasSelection.value) {
       e.preventDefault()
       handleCopy()
     } else if (e.key === 'v') {
@@ -437,64 +375,25 @@ const handleKeydown = (e: KeyboardEvent): void => {
 }
 
 const handleCopy = (): void => {
-  if (glyphGridRef.value) {
-    glyphGridRef.value.handleCopy()
-  }
+  gridRef.value?.handleCopy()
 }
 
 const handleCut = (): void => {
-  if (glyphGridRef.value) {
-    glyphGridRef.value.handleCut()
-  }
+  gridRef.value?.handleCut()
 }
 
 const handlePaste = (): void => {
   if (!hasClipboardData.value) return
-  if (
-    glyphGridRef.value &&
-    typeof glyphGridRef.value.handlePaste === 'function'
-  ) {
-    glyphGridRef.value.handlePaste()
-    return
-  }
-  if (gridRef.value && typeof gridRef.value.handlePaste === 'function') {
-    gridRef.value.handlePaste()
-  }
+  gridRef.value?.handlePaste()
 }
-
-watch(
-  () => gridRef.value,
-  (newVal) => {
-    if (newVal) {
-      glyphGridRef.value = newVal
-    }
-  },
-)
 
 const clearSelection = (): void => {
-  if (glyphGridRef.value) {
-    glyphGridRef.value.clearSelection()
-  }
-  selectedRegion.value = null
-  clipboardData.value = null
-  copyMode.value = false
-  moveMode.value = false
+  gridRef.value?.clearSelection()
 }
-
-watch(
-  () => selectedRegion.value,
-  (): void => {
-    if (selectedRegion.value) {
-      pushState(gridData.value, 'selection')
-    }
-  },
-)
 
 const setGlyphs = (newGlyphs: Glyph[]): void => {
   glyphs.value = newGlyphs
 }
-
-const preventDefault = (e: Event): void => e.preventDefault()
 
 const addToGlyphset = (): void => {
   prefillData.value = {
@@ -559,10 +458,9 @@ const loadGlyph = async (hexValue: string, glyph: Glyph): Promise<void> => {
   }
 
   const newGrid = hexToGrid(hexValue)
-  if (newGrid && newGrid[0]) {
-    const newWidth = newGrid[0].length
-
-    settings.value.glyphWidth = newWidth === 8 ? 8 : 16
+  const newWidth = getGlyphWidthFromHex(hexValue)
+  if (newGrid && newWidth !== null) {
+    settings.value.glyphWidth = newWidth
     await nextTick()
     updateGrid(newWidth)
     await nextTick()
@@ -574,8 +472,7 @@ const loadGlyph = async (hexValue: string, glyph: Glyph): Promise<void> => {
     }
     currentCodePoint.value = glyph.codePoint
     hasUnsavedChanges.value = false
-    await nextTick()
-    updateGridFontPreview()
+    resetHistory(newGrid, 'replace-glyph')
   }
 }
 
@@ -583,13 +480,20 @@ const clearPrefillData = (): void => {
   prefillData.value = null
 }
 
-const { pushState, undo, redo, canUndo, canRedo, clearAndInitHistory } =
-  useHistory(gridData.value)
+const {
+  pushState,
+  undo,
+  redo,
+  canUndo,
+  canRedo,
+  reset: resetHistory,
+} = useHistory(gridData.value)
 
 const handleClear = (): void => {
   const doClear = () => {
     if (gridData.value && gridData.value[0]) {
-      resetGrid(gridData.value[0].length)
+      const width: GlyphWidth = gridData.value[0]?.length === 8 ? 8 : 16
+      resetGrid(width)
       updateHexCode()
       hasUnsavedChanges.value = false
       currentCodePoint.value = '0000'
@@ -633,7 +537,7 @@ const handleRedo = (): void => {
 const updateCell = (
   rowIndex: number,
   cellIndex: number,
-  value: number,
+  value: GridCell,
 ): void => {
   if (gridData.value) {
     const newGrid = gridData.value.map((row) => [...row])
@@ -652,42 +556,8 @@ const updateSettings = (newSettings: typeof settings.value): void => {
   Object.assign(settings.value, newSettings)
 }
 
-const updateGridFontPreview = (): void => {
-  if (
-    gridFontRef.value &&
-    glyphGridRef.value &&
-    glyphGridRef.value.gridFontString
-  ) {
-    gridFontRef.value.textContent = glyphGridRef.value.gridFontString
-  }
-}
-
-watch(() => gridData.value, updateGridFontPreview, { deep: true })
-
-onBeforeUnmount(() => {
-  document.removeEventListener('contextmenu', preventDefault)
-  document.removeEventListener('keydown', handleKeydown)
-  if (pasteMode.value) {
-    pasteMode.value = false
-  }
-})
-
-watch(
-  () => currentGlyph.value,
-  (newGlyph): void => {
-    if (newGlyph) {
-      clearAndInitHistory(gridData.value)
-    }
-  },
-  { deep: true },
-)
-
 const handleDrawComplete = (changes: CellChange[]): void => {
-  const action: DrawAction = {
-    type: 'draw',
-    changes: changes,
-  }
-  pushState(gridData.value, JSON.stringify(action))
+  if (changes.length > 0) pushState(gridData.value, 'draw')
 }
 
 const handlePasteStart = (): void => {

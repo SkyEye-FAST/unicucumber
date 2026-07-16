@@ -1,7 +1,7 @@
 <div align="center">
 <img src="https://raw.githubusercontent.com/SkyEye-FAST/unicucumber/master/src/assets/icon.png">
 
-----
+---
 
 # UniCucumber
 
@@ -14,7 +14,7 @@ This is a project for editing Unifont glyphs in browsers.
 
 See [_Unifoundry.com_ Unifont Utilities](https://unifoundry.com/unifont/unifont-utilities.html) for more information.
 
-## Demostration
+## Demonstration
 
 You can try the demo at the following links:
 
@@ -41,50 +41,71 @@ You can try the demo at the following links:
 - ~~Font support~~
   - [ ] ~~Export multiple glyphs as an OpenType font file~~
 
-## Usage
+## Development
 
-To use this project, you need to have Node.js installed on your computer. Then, follow these steps:
+UniCucumber supports Node.js 24 LTS or later and uses pnpm 11.10.0 through Corepack. Modern evergreen browsers with Pointer Events and ES modules are supported.
 
-1. Install pnpm (if not already installed). See <https://pnpm.io/installation> for more information.
-
-   You can use another package manager instead.
-
-2. Clone this repository:
+1. Clone this repository:
 
    ```shell
    git clone https://github.com/SkyEye-FAST/unicucumber.git
    ```
 
-3. Install dependencies:
+2. Enable Corepack and install dependencies:
 
    ```shell
    cd unicucumber
-   pnpm install
+   corepack enable
+   pnpm install --frozen-lockfile
    ```
 
-4. Start the development server:
+3. Start the development server:
 
    ```shell
    pnpm dev
    ```
 
-5. Open your browser and go to `http://localhost:5173/`.
+4. Open your browser and go to `http://localhost:5173/`.
 
-### Production Build
-
-To build for production:
+The main commands are:
 
 ```shell
-pnpm build
+pnpm dev             # start Vite
+pnpm check           # type-check, lint, format check, and tests
+pnpm test            # run Vitest tests
+pnpm test:coverage   # run tests with coverage output
+pnpm build           # type-check and create a production build
+pnpm preview         # serve the production build locally
 ```
 
-The built files will be in the `dist` directory.
+`pnpm format` applies Prettier formatting; `pnpm lint:fix` applies ESLint fixes. The non-mutating `lint` and `format:check` commands are appropriate for CI.
+
+### Architecture
+
+- `src/components` contains the presentation and focused editor UI components.
+- `src/composables` contains app-scoped settings, editor interaction, history, selection, and clipboard behavior.
+- `src/utils` contains pure glyph conversion, selection, locale, export, and Unicode helpers, with Vitest coverage for high-value domain behavior.
+- `public/unifont-map.json` is generated data used by glyph lookup.
+
+### PWA notes
+
+The production build registers the PWA service worker automatically. Development intentionally does not register a service worker, so stale cached assets do not hide normal local changes. Test installation and update behavior with `pnpm build && pnpm preview`.
+
+### Updating Unifont
+
+To download the latest release and atomically replace the generated glyph map:
+
+```shell
+pnpm update-unifont
+```
+
+The script validates the release listing and `.hex` records, times out failed requests, and leaves the current map untouched if an update fails.
 
 ## License
 
 The project is released under the [GPL v3 License](LICENSE).
 
-``` text
+```text
     UniCucumber
     Copyright (C) 2024-2026 SkyEye_FAST
 

@@ -35,7 +35,7 @@
           display-mode="editor"
         />
         <span class="unicode-char" :style="previewStyle">
-          {{ String.fromCodePoint(parseInt(modelValue || '0000', 16)) }}
+          {{ previewCharacter }}
         </span>
       </div>
     </div>
@@ -62,12 +62,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
 
-import * as iconvLite from 'iconv-lite'
 import { useI18n } from 'vue-i18n'
 
-import { isCJKChar } from '@/utils/charUtils'
+import { characterFromCodePoint, isCJKChar } from '@/utils/charUtils'
 import { useToggle, useVModel } from '@vueuse/core'
 
 import PixelPreview from './GlyphManager/PixelPreview.vue'
@@ -131,31 +130,47 @@ const previewStyle = computed(() => ({
   fontFamily: props.browserPreviewFont,
 }))
 
+const previewCharacter = computed(
+  () => characterFromCodePoint(parseInt(props.modelValue || '0000', 16)) ?? '�',
+)
+
 const ziToolsUrl = computed(() => {
   const codePoint = parseInt(props.modelValue || '0000', 16)
-  const char = String.fromCodePoint(codePoint)
+  const char = characterFromCodePoint(codePoint) ?? ''
   return `https://zi.tools/zi/${char}`
 })
 
 const showZiToolsLink = computed(() => {
   const codePoint = parseInt(props.modelValue || '0000', 16)
-  const char = String.fromCodePoint(codePoint)
+  const char = characterFromCodePoint(codePoint)
+  if (char === null) return false
   return isCJKChar(char)
 })
 
+type IconvLiteModule = typeof import('iconv-lite')
+const iconvLiteModule = shallowRef<IconvLiteModule | null>(null)
+let iconvLoadPromise: Promise<IconvLiteModule | null> | null = null
+
+const loadIconvLite = async (): Promise<IconvLiteModule | null> => {
+  if (iconvLiteModule.value !== null) return iconvLiteModule.value
+  iconvLoadPromise ??= import('iconv-lite')
+    .then((module) => (iconvLiteModule.value = module))
+    .catch(() => null)
+  return iconvLoadPromise
+}
+
 const convertEncoding = (char: string, encoding: string): string => {
+  if (iconvLiteModule.value === null) return '—'
   try {
-    const encoded = iconvLite.encode(char, encoding)
+    const encoded = iconvLiteModule.value.encode(char, encoding)
     if (char === '?' && encoded.length === 1 && encoded[0] === 0x3f) {
       return '3F'
     }
     if (encoded.every((b: number) => b === 0x3f)) {
       return '—'
     }
-    return Array.from(encoded)
-      .map((b: unknown) =>
-        (b as number).toString(16).toUpperCase().padStart(2, '0'),
-      )
+    return Array.from(encoded as Uint8Array)
+      .map((byte) => byte.toString(16).toUpperCase().padStart(2, '0'))
       .join(' ')
   } catch {
     return '—'
@@ -163,12 +178,17 @@ const convertEncoding = (char: string, encoding: string): string => {
 }
 
 const unicodeNameCache = ref<Record<number, string>>({})
-let unicodeNameModule: unknown = null
+type UnicodeNameLookup = (character: string) => string | undefined
+type UnicodeNameModule = { unicodeName?: UnicodeNameLookup }
+let unicodeNameModule: UnicodeNameModule | null = null
 
 async function loadUnicodeModule() {
   if (unicodeNameModule) return
   try {
-    unicodeNameModule = await import('unicode-name')
+    const module = await import('unicode-name')
+    unicodeNameModule = {
+      unicodeName: module.unicodeName ?? module.default?.unicodeName,
+    }
   } catch {
     unicodeNameModule = null
   }
@@ -178,17 +198,13 @@ async function ensureUnicodeNameFor(codePoint: number) {
   if (unicodeNameCache.value[codePoint] !== undefined) return
   try {
     await loadUnicodeModule()
-    let fn: unknown = null
-    if (unicodeNameModule && typeof unicodeNameModule === 'object') {
-      const m = unicodeNameModule as Record<string, unknown>
-      fn = m.unicodeName || m.default || m
-    } else {
-      fn = unicodeNameModule
-    }
-    if (typeof fn === 'function') {
-      const name = (fn as (s: string) => string)(
-        String.fromCodePoint(codePoint),
-      )
+    const lookup = unicodeNameModule?.unicodeName
+    const character = characterFromCodePoint(codePoint)
+    if (lookup && character !== null) {
+      const name = lookup(character)
+      if (Object.keys(unicodeNameCache.value).length >= 200) {
+        unicodeNameCache.value = {}
+      }
       unicodeNameCache.value[codePoint] = name || '—'
       return
     }
@@ -206,7 +222,7 @@ const unicodeNameStr = computed(() => {
 watch(showingEncodingInfo, async (v) => {
   if (!v) return
   const codePoint = parseInt(props.modelValue || '0000', 16)
-  await ensureUnicodeNameFor(codePoint)
+  await Promise.all([ensureUnicodeNameFor(codePoint), loadIconvLite()])
 })
 
 watch(
@@ -220,7 +236,8 @@ watch(
 
 const encodingInfo = computed(() => {
   const codePoint = parseInt(props.modelValue || '0000', 16)
-  const char = String.fromCodePoint(codePoint)
+  const char = characterFromCodePoint(codePoint)
+  if (char === null) return {}
 
   return {
     NCR: `&#${codePoint};`,

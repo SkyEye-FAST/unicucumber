@@ -2,6 +2,15 @@ interface CJKCharFunction {
   (char: string): boolean
 }
 
+export const isUnicodeScalarValue = (value: number): boolean =>
+  Number.isInteger(value) &&
+  value >= 0 &&
+  value <= 0x10ffff &&
+  (value < 0xd800 || value > 0xdfff)
+
+export const characterFromCodePoint = (value: number): string | null =>
+  isUnicodeScalarValue(value) ? String.fromCodePoint(value) : null
+
 export const isCJKChar: CJKCharFunction = function (char) {
   const code = char.codePointAt(0)
   if (code === undefined) return false
