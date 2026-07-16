@@ -1,76 +1,76 @@
 {
-  "dialog":{
-    "batch_delete":{
+  "dialog": {
+    "batch_delete": {
       "confirm": "删除",
       "message": "确定要删除选中的{count}个字形吗？",
       "title": "批量删除字形"
     },
     "cancel": "取消",
-    "clear_confirm":{
+    "clear_confirm": {
       "confirm": "清空",
       "message": "是否确认清空当前网格？",
       "title": "确认清空"
     },
     "confirm": "确定",
-    "dimension_error":{
+    "dimension_error": {
       "message": "图片尺寸必须为8x16或16x16像素",
       "title": "图片尺寸错误"
     },
-    "format_error":{
+    "format_error": {
       "message": "图片必须为黑白色",
       "title": "图片格式错误"
     },
     "glyph_hex": "字形数据",
-    "hex_import":{
+    "hex_import": {
       "cancel": "跳过",
       "confirm": "更新选中字形",
       "message": "以下字形已存在，请选择要更新的字形：",
       "title": "发现重复的字形"
     },
-    "image_error":{
+    "image_error": {
       "message": "加载图片时出错，请重试",
       "title": "图片加载错误"
     },
     "select_all": "全选",
-    "settings_reset":{
+    "settings_reset": {
       "confirm": "重置",
       "message": "确定要将所有设置重置为默认值吗？",
       "title": "重置设置"
     },
-    "unsaved_changes":{
+    "unsaved_changes": {
       "confirm": "继续",
       "message": "当前字形有未保存的更改，是否继续？",
       "title": "未保存的更改"
     }
   },
-  "editor":{
-    "actions":{
-      "add_to_glyphset":{
+  "editor": {
+    "actions": {
+      "add_to_glyphset": {
         "button": "添加到字形集",
         "title": "将当前字形添加到字形集"
       },
-      "clear":{
+      "clear": {
         "button": "清空",
         "title": "清空编辑器"
       },
       "open_in_zitools": "在zi.tools中打开",
-      "redo":{
+      "redo": {
         "title": "重做(Ctrl+Y)"
       },
-      "restore":{
+      "restore": {
         "button": "恢复已保存",
         "title": "将此字形恢复到上次保存的状态"
       },
       "show_encoding_info": "显示编码信息",
-      "undo":{
+      "undo": {
         "title": "撤销(Ctrl+Z)"
       }
     }
   },
-  "errors":{
+  "errors": {
     "unexpected": "发生意外错误，正在保留当前草稿。"
   },
-  "export":{
+  "export": {
     "copy_failed": "无法访问剪贴板，请改为下载文件。",
     "copy_hex": "复制HEX",
     "copy_image": "复制图像",
@@ -87,7 +87,7 @@
     "title": "导出字形",
     "transparent": "透明背景"
   },
-  "glyph_editor":{
+  "glyph_editor": {
     "code_point": "码位：U+{value}",
     "copy_title": "复制(Ctrl+C)",
     "cut_title": "剪切(Ctrl+X)",
@@ -97,8 +97,8 @@
     "paste_hint": "点击网格位置以粘贴",
     "paste_title": "粘贴(Ctrl+V)"
   },
-  "glyph_manager":{
-    "add":{
+  "glyph_manager": {
+    "add": {
       "add_button": "添加字形",
       "character": "输入字符",
       "clear_button": "清除",
@@ -110,12 +110,12 @@
     "backup_exported": "字形库备份已导出。",
     "batch_delete": "批量删除",
     "delete_selected": "删除选中的{count}项",
-    "duplicate":{
+    "duplicate": {
       "cancel": "取消",
       "update": "更新现有字形",
       "warning": "已存在码位为U+{codePoint}的字形！"
     },
-    "error":{
+    "error": {
       "loading_storage": "从存储加载字形时出错",
       "loading_unicode_names": "无法加载Unicode名称，仍可使用码位搜索。",
       "loading_unifont": "加载Unifont数据出错",
@@ -127,7 +127,7 @@
     "export_failed": "无法导出字形库。",
     "export_hex": "Unifont字形（.hex）",
     "export_sheet": "位图表（.png）",
-    "glyph":{
+    "glyph": {
       "code_point": "码位:",
       "delete": "删除",
       "edit": "编辑",
@@ -141,7 +141,7 @@
     "hex_invalid_line": "第{line}行：{reason}",
     "hex_invalid_title": "部分.hex行未导入",
     "import": "从Unifont读取",
-    "manual_input":{
+    "manual_input": {
       "message": "请为该字形输入码位：",
       "process": "处理",
       "skip_all": "跳过全部",
@@ -158,7 +158,7 @@
     "sheet_exported": "位图表已导出（{columns}列，{scale}倍像素缩放）。",
     "sheet_scale": "像素缩放",
     "title": "字形管理器",
-    "upload":{
+    "upload": {
       "camera": "相机",
       "clipboard_failed": "无法读取剪贴板图像。",
       "drop_hint": "也可将.hex或图像文件拖放到此处。",
@@ -167,21 +167,21 @@
       "no_clipboard_image": "剪贴板中没有图像。",
       "paste_image": "粘贴图像"
     },
-    "validation":{
+    "validation": {
       "add_glyph": "添加字形",
       "enter_code_point": "请输入Unicode码位",
       "invalid_code_point": "码位必须是4-6位16进制数",
       "invalid_hex": "请输入有效的16进制字形数据(32或64位)"
     }
   },
-  "header":{
+  "header": {
     "close_glyph_manager": "关闭字形管理器",
     "github": "在GitHub打开UniCucumber仓库",
     "open_glyph_manager": "打开字形管理器",
     "open_settings": "打开设置",
     "toggle_theme": "切换颜色主题"
   },
-  "hex_input":{
+  "hex_input": {
     "apply": "应用",
     "committed": "字形数据已应用。",
     "copy": "复制",
@@ -192,7 +192,7 @@
     "ready": "有效的字形数据已可应用。",
     "width": "{width}像素"
   },
-  "image_import":{
+  "image_import": {
     "cancel": "取消",
     "confirm": "导入字形",
     "crop": "裁剪填满",
@@ -209,17 +209,17 @@
     "title": "将图片处理为字形",
     "transparent_white": "将透明区域视为白色"
   },
-  "mobile_toolbar":{
+  "mobile_toolbar": {
     "close": "关闭更多操作",
     "label": "移动端编辑命令",
     "more_actions": "更多工具和操作",
     "redo": "重做",
     "undo": "撤销"
   },
-  "notifications":{
+  "notifications": {
     "dismiss": "关闭通知"
   },
-  "pwa":{
+  "pwa": {
     "apply_update": "立即更新",
     "offline": "离线",
     "offline_ready": "UniCucumber已可离线使用。",
@@ -228,7 +228,7 @@
     "update_failed": "由于无法保留草稿，未应用更新。",
     "update_ready": "新版本已就绪，更新前会先保存当前草稿。"
   },
-  "selection":{
+  "selection": {
     "actions": "选区操作",
     "cancel_paste": "取消",
     "confirm_paste": "粘贴",
@@ -243,30 +243,30 @@
     "move_up": "向上移动",
     "paste_actions": "粘贴预览操作"
   },
-  "settings":{
+  "settings": {
     "always_show_mouse_cursor": "始终显示鼠标光标",
     "browser_preview_font": "字形预览字体",
     "close": "保存并关闭",
     "confirm_clear": "清空时需要确认",
     "cursor_effect": "光标效果（鼠标）",
-    "draw_mode":{
+    "draw_mode": {
       "double_button": "左键绘制，右键擦除",
       "label": "绘制模式",
       "single_button": "左键绘制或擦除"
     },
     "enable_selection": "启用选择功能（Beta）",
-    "font_edit":{
+    "font_edit": {
       "cancel": "取消",
       "save": "保存",
       "title": "编辑预览字体"
     },
-    "glyph_preview":{
+    "glyph_preview": {
       "both": "双重预览",
       "browser_only": "仅浏览器显示",
       "label": "字形预览模式",
       "pixel_only": "仅像素预览"
     },
-    "glyph_width":{
+    "glyph_width": {
       "16px": "16像素",
       "8px": "8像素",
       "label": "字形宽度"
@@ -275,7 +275,7 @@
     "show_border": "显示网格边框",
     "title": "设置"
   },
-  "storage":{
+  "storage": {
     "discard_draft": "丢弃",
     "draft_restore_failed": "无法恢复上次的草稿。",
     "draft_save_failed": "无法保存当前草稿，请在离开前导出备份。",
@@ -290,7 +290,7 @@
     "status_unsaved": "未保存"
   },
   "title": "UniCucumber - Unifont网页编辑器",
-  "tools":{
+  "tools": {
     "draw": "绘制",
     "erase": "擦除",
     "fill": "油漆桶",
@@ -311,7 +311,7 @@
     "toolbar": "编辑工具",
     "transforms": "网格变换"
   },
-  "workspace":{
+  "workspace": {
     "fit": "适应屏幕",
     "grid_label": "{width}×16像素字形网格",
     "label": "字形编辑工作区",
