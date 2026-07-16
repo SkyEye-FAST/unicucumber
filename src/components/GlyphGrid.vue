@@ -1,891 +1,1192 @@
 <template>
-  <div
-    class="grid-container"
-    :style="gridStyle"
-    tabindex="0"
-    @keydown="handleKeyDown"
-  >
-    <div class="header-row">
-      <div class="corner-cell"></div>
-      <div
-        v-for="colIndex in gridData[0]?.length || 0"
-        :key="`col-${colIndex}`"
-        class="header-cell"
-        :style="{
-          color: colIndex % 2 ? 'var(--text-color)' : 'var(--danger-color)',
-        }"
-      >
-        {{ (colIndex - 1).toString(16).toUpperCase() }}
-      </div>
-    </div>
-
-    <template
-      v-if="
-        currentSelectionRect &&
-        props.currentTool === 'select' &&
-        lastInputWasTouch
-      "
-    >
-      <button
-        class="move-button move-up"
-        :style="getMoveButtonStyle('up')"
-        @click.stop.prevent="moveUp"
-        aria-label="Move selection up"
-      >
-        ▲
-      </button>
-      <button
-        class="move-button move-down"
-        :style="getMoveButtonStyle('down')"
-        @click.stop.prevent="moveDown"
-        aria-label="Move selection down"
-      >
-        ▼
-      </button>
-      <button
-        class="move-button move-left"
-        :style="getMoveButtonStyle('left')"
-        @click.stop.prevent="moveLeft"
-        aria-label="Move selection left"
-      >
-        ◀
-      </button>
-      <button
-        class="move-button move-right"
-        :style="getMoveButtonStyle('right')"
-        @click.stop.prevent="moveRight"
-        aria-label="Move selection right"
-      >
-        ▶
-      </button>
-    </template>
-
+  <section class="workspace" :aria-label="$t('workspace.label')">
     <div
-      v-for="(row, rowIndex) in gridData"
-      :key="`row-${rowIndex}`"
-      class="grid-row"
+      class="view-controls"
+      role="toolbar"
+      :aria-label="$t('workspace.view_controls')"
     >
-      <div
-        class="header-cell"
-        :style="{
-          color: rowIndex % 2 ? 'var(--danger-color)' : 'var(--text-color)',
-        }"
+      <button
+        type="button"
+        :aria-label="$t('workspace.zoom_out')"
+        :title="$t('workspace.zoom_out')"
+        @click="zoomBy(-ZOOM_STEP)"
       >
-        {{ rowIndex.toString(16).toUpperCase() }}
-      </div>
-
-      <div
-        v-for="(cell, cellIndex) in row"
-        :key="`cell-${rowIndex}-${cellIndex}`"
-        :class="getCellClasses(rowIndex, cellIndex, cell)"
-        :data-row="rowIndex"
-        :data-col="cellIndex"
-        :style="getCellStyle(rowIndex, cellIndex)"
-        @mousedown="handleMouseDown(rowIndex, cellIndex, $event)"
-        @mousemove="handleMouseMove(rowIndex, cellIndex)"
-        @pointerdown.prevent="handlePointerDown(rowIndex, cellIndex, $event)"
-        @pointermove="handlePointerMove(rowIndex, cellIndex, $event)"
-        @pointerup="handlePointerUp($event)"
-        @touchstart.stop.prevent="
-          handleTouchStartCell(rowIndex, cellIndex, $event)
-        "
-        @touchmove.stop.prevent="
-          handleTouchMoveCell(rowIndex, cellIndex, $event)
-        "
-        @touchend.stop.prevent="handleTouchEndCell($event)"
-        @mouseleave="handleMouseLeave"
-        @contextmenu="drawing.handleContextMenu"
-        @click="handleCellClick(rowIndex, cellIndex)"
-      ></div>
+        <i-material-symbols-zoom-out class="icon" />
+      </button>
+      <output class="zoom-value" :aria-label="$t('workspace.zoom_level')">
+        {{ zoomPercent }}%
+      </output>
+      <button
+        type="button"
+        :aria-label="$t('workspace.zoom_in')"
+        :title="$t('workspace.zoom_in')"
+        @click="zoomBy(ZOOM_STEP)"
+      >
+        <i-material-symbols-zoom-in class="icon" />
+      </button>
+      <button
+        type="button"
+        :class="{ active: fitMode }"
+        :aria-label="$t('workspace.fit')"
+        :title="$t('workspace.fit')"
+        @click="fitToScreen"
+      >
+        <i-material-symbols-fit-screen class="icon" />
+      </button>
+      <button
+        type="button"
+        :aria-label="$t('workspace.reset_view')"
+        :title="$t('workspace.reset_view')"
+        @click="resetView"
+      >
+        <i-material-symbols-center-focus-strong-outline class="icon" />
+      </button>
     </div>
 
     <div
-      v-if="currentSelectionRect"
-      class="selection-overlay"
-      :class="selectionStateClass"
-      :style="getSelectionOverlayStyle(currentSelectionRect)"
-    ></div>
+      ref="viewportRef"
+      class="grid-viewport"
+      :class="{
+        interacting: interaction.kind !== 'idle',
+        panning:
+          interaction.kind === 'panning' || interaction.kind === 'gesturing',
+      }"
+      :style="viewportStyle"
+      tabindex="0"
+      role="application"
+      :aria-label="$t('workspace.grid_label', { width: gridWidth })"
+      @contextmenu="handleContextMenu"
+      @keydown="handleKeyDown"
+      @lostpointercapture="handleLostPointerCapture"
+      @pointercancel="handlePointerCancel"
+      @pointerdown="handlePointerDown"
+      @pointerleave="handlePointerLeave"
+      @pointermove="handlePointerMove"
+      @pointerup="handlePointerUp"
+      @wheel="handleWheel"
+    >
+      <div ref="gridRef" class="grid-container" :style="gridStyle">
+        <div class="header-row" aria-hidden="true">
+          <div class="corner-cell"></div>
+          <div
+            v-for="colIndex in gridWidth"
+            :key="`col-${colIndex}`"
+            class="header-cell"
+            :class="{ alternate: colIndex % 2 === 0 }"
+          >
+            {{ (colIndex - 1).toString(16).toUpperCase() }}
+          </div>
+        </div>
+
+        <div
+          v-for="(row, rowIndex) in gridData"
+          :key="`row-${rowIndex}`"
+          class="grid-row"
+          aria-hidden="true"
+        >
+          <div class="header-cell" :class="{ alternate: rowIndex % 2 === 1 }">
+            {{ rowIndex.toString(16).toUpperCase() }}
+          </div>
+          <div
+            v-for="(cell, colIndex) in row"
+            :key="`cell-${rowIndex}-${colIndex}`"
+            class="cell"
+            :class="{ filled: cell === 1, bordered: showBorder }"
+            :data-row="rowIndex"
+            :data-col="colIndex"
+          ></div>
+        </div>
+
+        <div
+          v-for="point in previewPoints"
+          :key="`preview-${point.row}-${point.col}`"
+          class="preview-cell"
+          :class="{ erase: previewValue === 0 }"
+          :style="cellOverlayStyle(point)"
+        ></div>
+
+        <div
+          v-if="normalizedSelection"
+          class="selection-overlay"
+          :class="{ moving: interaction.kind === 'movingSelection' }"
+          :style="rectangleOverlayStyle(normalizedSelection)"
+        ></div>
+
+        <div
+          v-if="pasteRectangle && clipboard.clipboardData.value"
+          class="paste-overlay"
+          :style="pasteOverlayStyle"
+        >
+          <template
+            v-for="(row, rowIndex) in clipboard.clipboardData.value.data"
+            :key="`paste-row-${rowIndex}`"
+          >
+            <span
+              v-for="(cell, colIndex) in row"
+              :key="`paste-${rowIndex}-${colIndex}`"
+              class="paste-cell"
+              :class="{ filled: cell === 1 }"
+              :style="{
+                gridRow: rowIndex + 1,
+                gridColumn: colIndex + 1,
+              }"
+            ></span>
+          </template>
+        </div>
+      </div>
+    </div>
 
     <div
-      v-if="tempSelectionRect"
-      class="selection-overlay temp-selection"
-      :class="tempSelectionStateClass"
-      :style="getSelectionOverlayStyle(tempSelectionRect)"
-    ></div>
+      v-if="clipboard.isPasteMode.value"
+      class="context-toolbar paste-toolbar"
+      role="toolbar"
+      :aria-label="$t('selection.paste_actions')"
+    >
+      <div class="nudge-controls">
+        <button
+          type="button"
+          :aria-label="$t('selection.move_up')"
+          @click="nudgePaste(-1, 0)"
+        >
+          <i-material-symbols-arrow-upward />
+        </button>
+        <button
+          type="button"
+          :aria-label="$t('selection.move_left')"
+          @click="nudgePaste(0, -1)"
+        >
+          <i-material-symbols-arrow-back />
+        </button>
+        <button
+          type="button"
+          :aria-label="$t('selection.move_right')"
+          @click="nudgePaste(0, 1)"
+        >
+          <i-material-symbols-arrow-forward />
+        </button>
+        <button
+          type="button"
+          :aria-label="$t('selection.move_down')"
+          @click="nudgePaste(1, 0)"
+        >
+          <i-material-symbols-arrow-downward />
+        </button>
+      </div>
+      <button class="confirm" type="button" @click="confirmPaste">
+        <i-material-symbols-check class="icon" />
+        {{ $t('selection.confirm_paste') }}
+      </button>
+      <button type="button" @click="cancelPaste">
+        <i-material-symbols-close class="icon" />
+        {{ $t('selection.cancel_paste') }}
+      </button>
+    </div>
 
     <div
-      v-if="clipboard.isPasteMode.value && drawing.hoverCell.value.row >= 0"
-      class="paste-cursor"
-      :style="pasteCursorStyle"
-    ></div>
-  </div>
+      v-else-if="normalizedSelection"
+      class="context-toolbar selection-toolbar"
+      role="toolbar"
+      :aria-label="$t('selection.actions')"
+    >
+      <button
+        type="button"
+        :title="$t('glyph_editor.cut_title')"
+        @click="handleCut"
+      >
+        <i-material-symbols-content-cut class="icon" />
+        <span>{{ $t('selection.cut') }}</span>
+      </button>
+      <button
+        type="button"
+        :title="$t('glyph_editor.copy_title')"
+        @click="handleCopy"
+      >
+        <i-material-symbols-content-copy class="icon" />
+        <span>{{ $t('selection.copy') }}</span>
+      </button>
+      <button type="button" @click="handleDuplicate">
+        <i-material-symbols-control-point-duplicate class="icon" />
+        <span>{{ $t('selection.duplicate') }}</span>
+      </button>
+      <button type="button" @click="handleDelete">
+        <i-material-symbols-delete-outline class="icon" />
+        <span>{{ $t('selection.delete') }}</span>
+      </button>
+      <div class="nudge-controls">
+        <button
+          type="button"
+          :aria-label="$t('selection.move_up')"
+          @click="nudgeSelection(-1, 0)"
+        >
+          <i-material-symbols-arrow-upward />
+        </button>
+        <button
+          type="button"
+          :aria-label="$t('selection.move_left')"
+          @click="nudgeSelection(0, -1)"
+        >
+          <i-material-symbols-arrow-back />
+        </button>
+        <button
+          type="button"
+          :aria-label="$t('selection.move_right')"
+          @click="nudgeSelection(0, 1)"
+        >
+          <i-material-symbols-arrow-forward />
+        </button>
+        <button
+          type="button"
+          :aria-label="$t('selection.move_down')"
+          @click="nudgeSelection(1, 0)"
+        >
+          <i-material-symbols-arrow-downward />
+        </button>
+      </div>
+      <button type="button" @click="clearSelection">
+        <i-material-symbols-deselect class="icon" />
+        <span>{{ $t('selection.deselect') }}</span>
+      </button>
+    </div>
+  </section>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+  watch,
+  type CSSProperties,
+} from 'vue'
+
+import { useI18n } from 'vue-i18n'
 
 import { useClipboard } from '@/composables/useClipboard'
-import { type DrawAction, useDrawing } from '@/composables/useDrawing'
+import { extractSelection, linePositions } from '@/domain/grid'
+import type { EditorCommand } from '@/types/editor'
+import type {
+  EditorTool,
+  GridCell,
+  GridData,
+  GridPosition,
+  SelectionRectangle,
+} from '@/types/glyph'
 import {
-  type Rectangle,
-  type ToolType,
-  useSelection,
-} from '@/composables/useSelection'
-import { useSettings } from '@/composables/useSettings'
+  clampSelectionPosition,
+  normalizeSelectionRectangle,
+} from '@/utils/selection'
 
 interface Props {
-  gridData: number[][]
+  gridData: GridData
   drawMode: 'singleButtonDraw' | 'doubleButtonDraw'
   drawValue: number
   showBorder: boolean
-  currentTool?: ToolType
+  currentTool?: EditorTool
   enableSelection?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   currentTool: 'draw',
-  enableSelection: false,
+  enableSelection: true,
 })
 
-const emit = defineEmits([
-  'update:cell',
-  'update:drawValue',
-  'update:draw-value',
-  'selection-change',
-  'tool-change',
-  'tool-state-change',
-  'draw-complete',
-  'clipboard-change',
-])
+const emit = defineEmits<{
+  'update:cell': [row: number, col: number, value: GridCell]
+  'update:draw-value': [value: number]
+  'selection-change': [hasSelection: boolean]
+  'tool-change': [tool: EditorTool]
+  'tool-state-change': [tool: 'draw' | 'erase']
+  'draw-complete': [action: { type: 'draw' | 'erase'; changes: never[] }]
+  'clipboard-change': [hasData: boolean]
+  'paste-start': []
+  command: [command: EditorCommand]
+}>()
 
-const selection = useSelection(() => props.gridData)
+const { t: $t } = useI18n()
 const clipboard = useClipboard()
+const viewportRef = ref<HTMLElement | null>(null)
+const gridRef = ref<HTMLElement | null>(null)
+const gridWidth = computed(() => props.gridData[0]?.length ?? 16)
 
-const drawing = useDrawing(
-  computed(() => ({
-    drawMode: props.drawMode,
-    drawValue: props.drawValue,
-    gridData: () => props.gridData,
-    disabled: !props.enableSelection && props.currentTool === 'select',
-  })),
-  {
-    'cell-change': (row: number, col: number, value: number) =>
-      emit('update:cell', row, col, value),
-    'draw-complete': (action: DrawAction) => emit('draw-complete', action),
-    'tool-change': (value: number) => emit('update:draw-value', value),
-    'tool-state-change': (tool: 'draw' | 'erase') =>
-      emit('tool-state-change', tool),
-  },
+const DEFAULT_CELL_SIZE = 25
+const MIN_CELL_SIZE = 10
+const MAX_CELL_SIZE = 64
+const ZOOM_STEP = 2
+const cellSize = ref(DEFAULT_CELL_SIZE)
+const fitMode = ref(true)
+const pan = reactive({ x: 0, y: 0 })
+
+const zoomPercent = computed(() =>
+  Math.round((cellSize.value / DEFAULT_CELL_SIZE) * 100),
 )
-
-const { settings } = useSettings()
-
-const lastInputWasTouch = ref(false)
-
-const isInteracting = ref(false)
-const mousePosition = ref({ x: 0, y: 0 })
-const lastValidMousePos = ref({ row: -1, col: -1 })
-
-const gridStyle = computed(() => ({
-  gridTemplateColumns: props.gridData[0]
-    ? `var(--cell-size) repeat(${props.gridData[0].length}, var(--cell-size))`
-    : '',
+const documentWidth = computed(() => (gridWidth.value + 1) * cellSize.value)
+const documentHeight = computed(
+  () => (props.gridData.length + 1) * cellSize.value,
+)
+const viewportStyle = computed<CSSProperties>(() => ({
+  height: `${Math.min(
+    documentHeight.value + 2,
+    Math.max(
+      260,
+      Math.round((window.visualViewport?.height ?? window.innerHeight) * 0.62),
+    ),
+  )}px`,
+}))
+const gridStyle = computed<CSSProperties>(() => ({
+  '--cell-size': `${cellSize.value}px`,
+  gridTemplateColumns: `repeat(${gridWidth.value + 1}, var(--cell-size))`,
+  transform: `translate3d(${Math.round(pan.x)}px, ${Math.round(pan.y)}px, 0)`,
 }))
 
-const getCellClasses = (row: number, col: number, value: number) => {
-  const classes = ['cell']
-  if (value === 1) classes.push('filled')
-  return classes.join(' ')
+type PointerMetadata = {
+  x: number
+  y: number
+  pointerType: string
+  pressure: number
+  tiltX: number
+  tiltY: number
+  twist: number
 }
 
-const getCellStyle = (row: number, col: number) => {
-  const style: Record<string, string> = {}
-
-  const shouldShowCursorEffect =
-    settings.value?.alwaysShowMouseCursor || !lastInputWasTouch.value
-
-  if (
-    shouldShowCursorEffect &&
-    drawing.hoverCell.value.row === row &&
-    drawing.hoverCell.value.col === col &&
-    props.currentTool !== 'select'
-  ) {
-    const drawValue =
-      props.drawMode === 'doubleButtonDraw'
-        ? drawing.currentDrawValue.value
-        : drawing.effectiveDrawValue.value
-    if (drawValue === 1) {
-      style.backgroundColor = 'black'
-    } else if (drawValue === 0) {
-      style.backgroundColor = 'white'
+type InteractionState =
+  | { kind: 'idle' }
+  | {
+      kind: 'drawing'
+      pointerId: number
+      value: GridCell
+      points: GridPosition[]
     }
-  }
-
-  if (props.showBorder) {
-    style.boxShadow = 'inset 0 0 0 0.3px var(--primary-darker)'
-  }
-
-  return style
-}
-
-const currentSelectionRect = computed(() => {
-  return selection.selectionRect.value
-})
-
-const tempSelectionRect = computed(() => {
-  return selection.tempRect.value
-})
-
-const selectionStateClass = computed(() => {
-  const state = selection.state.value
-  return {
-    'selection-selecting': state === 'selecting',
-    'selection-selected': state === 'selected',
-    'selection-moving': state === 'moving',
-    'selection-copying': state === 'copying',
-  }
-})
-
-const tempSelectionStateClass = computed(() => {
-  const state = selection.state.value
-  return {
-    'selection-temp': true,
-    'selection-selecting': state === 'selecting',
-    'selection-moving': state === 'moving',
-    'selection-copying': state === 'copying',
-  }
-})
-
-const getSelectionOverlayStyle = (rect: Rectangle | null) => {
-  if (!rect) return {}
-
-  const normalized = {
-    startRow: Math.min(rect.startRow, rect.endRow),
-    startCol: Math.min(rect.startCol, rect.endCol),
-    endRow: Math.max(rect.startRow, rect.endRow),
-    endCol: Math.max(rect.startCol, rect.endCol),
-  }
-
-  const cellSize = 'var(--cell-size)'
-  const top = `calc(${normalized.startRow + 1} * ${cellSize})`
-  const left = `calc(${normalized.startCol + 1} * ${cellSize})`
-  const width = `calc(${normalized.endCol - normalized.startCol + 1} * ${cellSize})`
-  const height = `calc(${normalized.endRow - normalized.startRow + 1} * ${cellSize})`
-
-  return {
-    position: 'absolute' as const,
-    top,
-    left,
-    width,
-    height,
-    pointerEvents: 'none' as const,
-    boxSizing: 'border-box' as const,
-  }
-}
-
-const pasteCursorStyle = computed(() => {
-  if (!clipboard.isPasteMode.value || !clipboard.clipboardData.value) {
-    return { display: 'none' }
-  }
-
-  const { width, height } = clipboard.clipboardData.value
-  const hoverCell = drawing.hoverCell.value
-
-  if (hoverCell.row >= 0 && hoverCell.col >= 0) {
-    return {
-      position: 'absolute' as const,
-      gridRowStart: hoverCell.row + 2,
-      gridRowEnd: hoverCell.row + height + 2,
-      gridColumnStart: hoverCell.col + 2,
-      gridColumnEnd: hoverCell.col + width + 2,
-      border: '2px dashed var(--primary-color)',
-      backgroundColor: 'rgba(var(--primary-color-rgb), 0.1)',
-      pointerEvents: 'none' as const,
-      zIndex: 1000,
+  | {
+      kind: 'selecting'
+      pointerId: number
+      anchor: GridPosition
+      current: GridPosition
     }
-  }
-
-  return {
-    position: 'fixed' as const,
-    left: `${mousePosition.value.x}px`,
-    top: `${mousePosition.value.y}px`,
-    width: `calc(${width} * var(--cell-size))`,
-    height: `calc(${height} * var(--cell-size))`,
-    border: '2px dashed var(--primary-color)',
-    backgroundColor: 'rgba(var(--primary-color-rgb), 0.1)',
-    pointerEvents: 'none' as const,
-    zIndex: 1000,
-  }
-})
-
-const handleMouseDown = (row: number, col: number, event: MouseEvent) => {
-  isInteracting.value = true
-  interactionStartPos.value = { row, col }
-
-  if (props.currentTool === 'select') {
-    event.preventDefault()
-    event.stopPropagation()
-
-    if (selection.isPositionInSelection({ row, col })) {
-      if (selection.startMove()) {
-        return
-      }
+  | {
+      kind: 'movingSelection'
+      pointerId: number
+      anchor: GridPosition
+      original: SelectionRectangle
+      target: GridPosition
+    }
+  | {
+      kind: 'shaping'
+      pointerId: number
+      tool: 'line' | 'rectangle' | 'filledRectangle'
+      start: GridPosition
+      current: GridPosition
+    }
+  | {
+      kind: 'panning'
+      pointerId: number
+      startClient: { x: number; y: number }
+      startPan: { x: number; y: number }
+    }
+  | {
+      kind: 'gesturing'
+      pointerIds: [number, number]
+      startDistance: number
+      startCellSize: number
+      documentFocal: { x: number; y: number }
     }
 
-    selection.clearSelection()
-    selection.startSelection({ row, col })
-  } else {
-    selection.clearSelection()
-    drawing.handleMouseDown(row, col, event)
-  }
-}
+const interaction = ref<InteractionState>({ kind: 'idle' })
+const pointers = new Map<number, PointerMetadata>()
+const activePenPointerId = ref<number | null>(null)
+const hoverCell = ref<GridPosition | null>(null)
+const selectionRect = ref<SelectionRectangle | null>(null)
+const pasteTarget = ref<GridPosition>({ row: 0, col: 0 })
+const currentDrawValue = ref(1)
+const drawing = { currentDrawValue }
 
-const handleMouseMove = (row: number, col: number) => {
-  lastValidMousePos.value = { row, col }
-
-  drawing.handleMouseMove(row, col)
-
-  if (props.currentTool === 'select' && isInteracting.value) {
-    if (selection.isMoving.value) {
-      const startPos = getInteractionStartPos()
-      if (startPos && selection.selectionData.value) {
-        const deltaRow = row - startPos.row
-        const deltaCol = col - startPos.col
-
-        const originalRect = selection.selectionData.value.originalRect
-        const rawNewPos = {
-          row: originalRect.startRow + deltaRow,
-          col: originalRect.startCol + deltaCol,
-        }
-
-        const gridHeight = props.gridData.length
-        const gridWidth = props.gridData[0]?.length ?? 0
-        const selectionHeight = selection.selectionData.value.height
-        const selectionWidth = selection.selectionData.value.width
-
-        const clampedNewPos = {
-          row: Math.max(
-            0,
-            Math.min(gridHeight - selectionHeight, rawNewPos.row),
-          ),
-          col: Math.max(0, Math.min(gridWidth - selectionWidth, rawNewPos.col)),
-        }
-
-        const tempRect = {
-          startRow: clampedNewPos.row,
-          startCol: clampedNewPos.col,
-          endRow: clampedNewPos.row + selectionHeight - 1,
-          endCol: clampedNewPos.col + selectionWidth - 1,
-        }
-
-        selection.setTempRect(tempRect)
-      }
-    } else if (selection.isSelecting.value) {
-      selection.updateSelection({ row, col })
-    }
-  }
-}
-const interactionStartPos = ref<{ row: number; col: number } | null>(null)
-const getInteractionStartPos = () => interactionStartPos.value
-
-const handleMouseLeave = () => {
-  drawing.handleMouseLeave()
-}
-
-const handleMouseUp = () => {
-  if (!isInteracting.value) return
-
-  if (props.currentTool === 'select') {
-    if (selection.isMoving.value && interactionStartPos.value) {
-      const startPos = interactionStartPos.value
-
-      const currentPos = lastValidMousePos.value
-
-      if (selection.selectionData.value) {
-        const deltaRow = currentPos.row - startPos.row
-        const deltaCol = currentPos.col - startPos.col
-
-        const originalRect = selection.selectionData.value.originalRect
-        const rawNewPos = {
-          row: originalRect.startRow + deltaRow,
-          col: originalRect.startCol + deltaCol,
-        }
-
-        const gridHeight = props.gridData.length
-        const gridWidth = props.gridData[0]?.length ?? 0
-        const selectionHeight = selection.selectionData.value.height
-        const selectionWidth = selection.selectionData.value.width
-
-        const clampedNewPos = {
-          row: Math.max(
-            0,
-            Math.min(gridHeight - selectionHeight, rawNewPos.row),
-          ),
-          col: Math.max(0, Math.min(gridWidth - selectionWidth, rawNewPos.col)),
-        }
-
-        if (selection.moveSelectionTo(clampedNewPos)) {
-          const selectionDataValue = selection.selectionData.value
-          if (selectionDataValue) {
-            moveSelectionData(selectionDataValue, originalRect, clampedNewPos)
-
-            const newRect = {
-              startRow: clampedNewPos.row,
-              startCol: clampedNewPos.col,
-              endRow: clampedNewPos.row + selectionDataValue.height - 1,
-              endCol: clampedNewPos.col + selectionDataValue.width - 1,
-            }
-            selection.updateOriginalRect(newRect)
-          }
-        } else {
-        }
-      }
-
-      selection.setTempRect(null)
-    } else if (selection.isSelecting.value) {
-      selection.finishSelection()
-    }
-  }
-
-  isInteracting.value = false
-  interactionStartPos.value = null
-}
-
-const moveSelectionData = (
-  selectionData: {
-    readonly data: readonly (readonly number[])[]
-    readonly width: number
-    readonly height: number
-    readonly originalRect: Rectangle
-  },
-  fromRect: Rectangle,
-  toPos: { row: number; col: number },
-) => {
-  for (let row = fromRect.startRow; row <= fromRect.endRow; row++) {
-    for (let col = fromRect.startCol; col <= fromRect.endCol; col++) {
-      emit('update:cell', row, col, 0)
-    }
-  }
-
-  selectionData.data.forEach((rowData, rowIndex) => {
-    rowData.forEach((value, colIndex) => {
-      emit('update:cell', toPos.row + rowIndex, toPos.col + colIndex, value)
+const normalizedSelection = computed(() => {
+  if (interaction.value.kind === 'selecting') {
+    return normalizeSelectionRectangle({
+      startRow: interaction.value.anchor.row,
+      startCol: interaction.value.anchor.col,
+      endRow: interaction.value.current.row,
+      endCol: interaction.value.current.col,
     })
+  }
+  if (interaction.value.kind === 'movingSelection') {
+    const original = normalizeSelectionRectangle(interaction.value.original)
+    const width = original.endCol - original.startCol + 1
+    const height = original.endRow - original.startRow + 1
+    return {
+      startRow: interaction.value.target.row,
+      startCol: interaction.value.target.col,
+      endRow: interaction.value.target.row + height - 1,
+      endCol: interaction.value.target.col + width - 1,
+    }
+  }
+  return selectionRect.value
+    ? normalizeSelectionRectangle(selectionRect.value)
+    : null
+})
+
+const pasteRectangle = computed<SelectionRectangle | null>(() => {
+  const data = clipboard.clipboardData.value
+  if (!clipboard.isPasteMode.value || !data) return null
+  return {
+    startRow: pasteTarget.value.row,
+    startCol: pasteTarget.value.col,
+    endRow: pasteTarget.value.row + data.height - 1,
+    endCol: pasteTarget.value.col + data.width - 1,
+  }
+})
+
+const pasteOverlayStyle = computed<CSSProperties>(() => {
+  const rectangle = pasteRectangle.value
+  const data = clipboard.clipboardData.value
+  if (!rectangle || !data) return { display: 'none' }
+  return {
+    ...rectangleOverlayStyle(rectangle),
+    gridTemplateColumns: `repeat(${data.width}, var(--cell-size))`,
+    gridTemplateRows: `repeat(${data.height}, var(--cell-size))`,
+  }
+})
+
+const dedupePoints = (points: readonly GridPosition[]): GridPosition[] => {
+  const seen = new Set<string>()
+  return points.filter((point) => {
+    const key = `${point.row}:${point.col}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
   })
 }
 
-const handleCellClick = (row: number, col: number) => {
-  if (clipboard.isPasteMode.value) {
-    pasteAt(row, col)
-  }
-}
-
-const handlePointerDown = (row: number, col: number, event: PointerEvent) => {
-  try {
-    if (event.preventDefault) event.preventDefault()
-  } catch {}
-
-  lastInputWasTouch.value = event.pointerType === 'touch'
-
-  handleMouseDown(row, col, event as unknown as MouseEvent)
-}
-
-const handlePointerMove = (row: number, col: number, event: PointerEvent) => {
-  lastInputWasTouch.value = event.pointerType === 'touch'
-  handleMouseMove(row, col)
-}
-
-const handlePointerUp = (event: PointerEvent) => {
-  void event
-  lastInputWasTouch.value = event.pointerType === 'touch'
-
-  drawing.stopDrawing()
-  handleMouseUp()
-}
-
-const handleTouchStartCell = (row: number, col: number, event: TouchEvent) => {
-  lastInputWasTouch.value = true
-
-  if (props.currentTool === 'select') {
-    isInteracting.value = true
-    interactionStartPos.value = { row, col }
-
-    if (selection.isPositionInSelection({ row, col })) {
-      if (selection.startMove()) {
-        return
+const previewPoints = computed<GridPosition[]>(() => {
+  const state = interaction.value
+  if (state.kind === 'drawing') return dedupePoints(state.points)
+  if (state.kind === 'shaping') {
+    if (state.tool === 'line') return linePositions(state.start, state.current)
+    const points: GridPosition[] = []
+    const startRow = Math.min(state.start.row, state.current.row)
+    const endRow = Math.max(state.start.row, state.current.row)
+    const startCol = Math.min(state.start.col, state.current.col)
+    const endCol = Math.max(state.start.col, state.current.col)
+    for (let row = startRow; row <= endRow; row++) {
+      for (let col = startCol; col <= endCol; col++) {
+        if (
+          state.tool === 'filledRectangle' ||
+          row === startRow ||
+          row === endRow ||
+          col === startCol ||
+          col === endCol
+        ) {
+          points.push({ row, col })
+        }
       }
     }
+    return points
+  }
+  if (
+    hoverCell.value &&
+    (props.currentTool === 'draw' || props.currentTool === 'erase')
+  ) {
+    return [hoverCell.value]
+  }
+  return []
+})
 
-    selection.clearSelection()
-    selection.startSelection({ row, col })
-  } else {
-    drawing.handleTouchStart(event)
+const previewValue = computed<GridCell>(() => {
+  if (interaction.value.kind === 'drawing') return interaction.value.value
+  return props.currentTool === 'erase' ? 0 : 1
+})
+
+const cellOverlayStyle = (position: GridPosition): CSSProperties => ({
+  top: `calc(${position.row + 1} * var(--cell-size))`,
+  left: `calc(${position.col + 1} * var(--cell-size))`,
+  width: 'var(--cell-size)',
+  height: 'var(--cell-size)',
+})
+
+const rectangleOverlayStyle = (
+  rectangle: SelectionRectangle,
+): CSSProperties => {
+  const normalized = normalizeSelectionRectangle(rectangle)
+  return {
+    top: `calc(${normalized.startRow + 1} * var(--cell-size))`,
+    left: `calc(${normalized.startCol + 1} * var(--cell-size))`,
+    width: `calc(${normalized.endCol - normalized.startCol + 1} * var(--cell-size))`,
+    height: `calc(${normalized.endRow - normalized.startRow + 1} * var(--cell-size))`,
   }
 }
 
-const handleTouchMoveCell = (_row: number, _col: number, event: TouchEvent) => {
-  lastInputWasTouch.value = true
-  const touch = event.touches[0]
-  if (!touch) return
-  const target = document.elementFromPoint(
-    touch.clientX,
-    touch.clientY,
-  ) as HTMLElement
-  if (!target || !target.classList.contains('cell')) {
+const clampPan = (): void => {
+  const viewport = viewportRef.value
+  if (!viewport) return
+  const minX = Math.min(0, viewport.clientWidth - documentWidth.value)
+  const minY = Math.min(0, viewport.clientHeight - documentHeight.value)
+  if (documentWidth.value <= viewport.clientWidth) {
+    pan.x = Math.round((viewport.clientWidth - documentWidth.value) / 2)
+  } else {
+    pan.x = Math.max(minX, Math.min(0, pan.x))
+  }
+  if (documentHeight.value <= viewport.clientHeight) {
+    pan.y = 0
+  } else {
+    pan.y = Math.max(minY, Math.min(0, pan.y))
+  }
+}
+
+const calculateFitCellSize = (): number => {
+  const available = Math.max(
+    1,
+    (viewportRef.value?.clientWidth ?? window.innerWidth) - 4,
+  )
+  return Math.max(
+    MIN_CELL_SIZE,
+    Math.min(DEFAULT_CELL_SIZE, Math.floor(available / (gridWidth.value + 1))),
+  )
+}
+
+const fitToScreen = async (): Promise<void> => {
+  fitMode.value = true
+  cellSize.value = calculateFitCellSize()
+  await nextTick()
+  pan.x = 0
+  pan.y = 0
+  clampPan()
+}
+
+const resetView = async (): Promise<void> => {
+  fitMode.value = false
+  cellSize.value = DEFAULT_CELL_SIZE
+  pan.x = 0
+  pan.y = 0
+  await nextTick()
+  clampPan()
+}
+
+const applyZoom = (
+  nextCellSize: number,
+  focal?: { x: number; y: number },
+): void => {
+  const viewport = viewportRef.value
+  if (!viewport) return
+  const previous = cellSize.value
+  const next = Math.max(
+    MIN_CELL_SIZE,
+    Math.min(MAX_CELL_SIZE, Math.round(nextCellSize)),
+  )
+  if (next === previous) return
+  fitMode.value = false
+  const localFocal = focal ?? {
+    x: viewport.clientWidth / 2,
+    y: viewport.clientHeight / 2,
+  }
+  const documentX = (localFocal.x - pan.x) / previous
+  const documentY = (localFocal.y - pan.y) / previous
+  cellSize.value = next
+  pan.x = localFocal.x - documentX * next
+  pan.y = localFocal.y - documentY * next
+  nextTick(clampPan)
+}
+
+const zoomBy = (delta: number): void => applyZoom(cellSize.value + delta)
+
+const updatePointer = (event: PointerEvent): void => {
+  pointers.set(event.pointerId, {
+    x: event.clientX,
+    y: event.clientY,
+    pointerType: event.pointerType,
+    pressure: event.pressure,
+    tiltX: event.tiltX,
+    tiltY: event.tiltY,
+    twist: event.twist,
+  })
+}
+
+const pointDistance = (
+  first: PointerMetadata,
+  second: PointerMetadata,
+): number => Math.hypot(second.x - first.x, second.y - first.y)
+
+const pointMidpoint = (first: PointerMetadata, second: PointerMetadata) => ({
+  x: (first.x + second.x) / 2,
+  y: (first.y + second.y) / 2,
+})
+
+const eventCell = (event: PointerEvent, clamp = false): GridPosition | null => {
+  const grid = gridRef.value
+  if (!grid) return null
+  const bounds = grid.getBoundingClientRect()
+  let row = Math.floor((event.clientY - bounds.top) / cellSize.value) - 1
+  let col = Math.floor((event.clientX - bounds.left) / cellSize.value) - 1
+  if (clamp) {
+    row = Math.max(0, Math.min(props.gridData.length - 1, row))
+    col = Math.max(0, Math.min(gridWidth.value - 1, col))
+  }
+  if (
+    row < 0 ||
+    col < 0 ||
+    row >= props.gridData.length ||
+    col >= gridWidth.value
+  ) {
+    return null
+  }
+  return { row, col }
+}
+
+const isInsideSelection = (position: GridPosition): boolean => {
+  const rectangle = normalizedSelection.value
+  return Boolean(
+    rectangle &&
+    position.row >= rectangle.startRow &&
+    position.row <= rectangle.endRow &&
+    position.col >= rectangle.startCol &&
+    position.col <= rectangle.endCol,
+  )
+}
+
+const startGesture = (): void => {
+  const entries = [...pointers.entries()].filter(
+    ([, pointer]) => pointer.pointerType === 'touch',
+  )
+  if (entries.length < 2) return
+  const [[firstId, first], [secondId, second]] = entries
+  if (!first || !second || firstId === undefined || secondId === undefined)
+    return
+  const viewportBounds = viewportRef.value?.getBoundingClientRect()
+  if (!viewportBounds) return
+  const midpoint = pointMidpoint(first, second)
+  interaction.value = {
+    kind: 'gesturing',
+    pointerIds: [firstId, secondId],
+    startDistance: Math.max(1, pointDistance(first, second)),
+    startCellSize: cellSize.value,
+    documentFocal: {
+      x: (midpoint.x - viewportBounds.left - pan.x) / cellSize.value,
+      y: (midpoint.y - viewportBounds.top - pan.y) / cellSize.value,
+    },
+  }
+  hoverCell.value = null
+}
+
+const handlePointerDown = (event: PointerEvent): void => {
+  if (event.pointerType === 'touch' && activePenPointerId.value !== null) return
+  if (event.pointerType === 'pen') activePenPointerId.value = event.pointerId
+  if (event.pointerType === 'mouse' && event.button !== 0 && event.button !== 2)
+    return
+  if (event.pointerType !== 'mouse' && !event.isPrimary && pointers.size === 0)
+    return
+
+  updatePointer(event)
+  if (event.isTrusted) {
+    viewportRef.value?.setPointerCapture?.(event.pointerId)
+  }
+
+  if (
+    event.pointerType === 'touch' &&
+    [...pointers.values()].filter((pointer) => pointer.pointerType === 'touch')
+      .length >= 2
+  ) {
+    startGesture()
+    event.preventDefault()
     return
   }
-  const row = parseInt(target.dataset.row ?? '-1')
-  const col = parseInt(target.dataset.col ?? '-1')
-  if (row < 0 || col < 0) return
 
-  lastValidMousePos.value = { row, col }
-
-  if (props.currentTool === 'select' && isInteracting.value) {
-    if (selection.isMoving.value) {
-      const startPos = getInteractionStartPos()
-      if (startPos && selection.selectionData.value) {
-        const deltaRow = row - startPos.row
-        const deltaCol = col - startPos.col
-
-        const originalRect = selection.selectionData.value.originalRect
-        const newPos = {
-          row: originalRect.startRow + deltaRow,
-          col: originalRect.startCol + deltaCol,
-        }
-
-        const gridHeight = props.gridData.length
-        const gridWidth = props.gridData[0]?.length ?? 0
-        const selectionHeight = selection.selectionData.value.height
-        const selectionWidth = selection.selectionData.value.width
-
-        const clampedNewPos = {
-          row: Math.max(0, Math.min(gridHeight - selectionHeight, newPos.row)),
-          col: Math.max(0, Math.min(gridWidth - selectionWidth, newPos.col)),
-        }
-
-        const tempRect = {
-          startRow: clampedNewPos.row,
-          startCol: clampedNewPos.col,
-          endRow: clampedNewPos.row + selectionHeight - 1,
-          endCol: clampedNewPos.col + selectionWidth - 1,
-        }
-
-        selection.setTempRect(tempRect)
-      }
-    } else if (selection.isSelecting.value) {
-      selection.updateSelection({ row, col })
-    }
-  } else {
-    drawing.handleTouchMove(event)
-  }
-}
-
-const handleTouchEndCell = (_event?: TouchEvent) => {
-  void _event
-  lastInputWasTouch.value = true
-
-  drawing.stopDrawing()
-
-  if (isInteracting.value && props.currentTool === 'select') {
-    if (selection.isMoving.value && interactionStartPos.value) {
-      const startPos = interactionStartPos.value
-      const currentPos = lastValidMousePos.value
-
-      if (selection.selectionData.value) {
-        const deltaRow = currentPos.row - startPos.row
-        const deltaCol = currentPos.col - startPos.col
-
-        const originalRect = selection.selectionData.value.originalRect
-        const rawNewPos = {
-          row: originalRect.startRow + deltaRow,
-          col: originalRect.startCol + deltaCol,
-        }
-
-        const gridHeight = props.gridData.length
-        const gridWidth = props.gridData[0]?.length ?? 0
-        const selectionHeight = selection.selectionData.value.height
-        const selectionWidth = selection.selectionData.value.width
-
-        const clampedNewPos = {
-          row: Math.max(
-            0,
-            Math.min(gridHeight - selectionHeight, rawNewPos.row),
-          ),
-          col: Math.max(0, Math.min(gridWidth - selectionWidth, rawNewPos.col)),
-        }
-
-        if (selection.moveSelectionTo(clampedNewPos)) {
-          const selectionDataValue = selection.selectionData.value
-          if (selectionDataValue) {
-            moveSelectionData(selectionDataValue, originalRect, clampedNewPos)
-
-            const newRect = {
-              startRow: clampedNewPos.row,
-              startCol: clampedNewPos.col,
-              endRow: clampedNewPos.row + selectionDataValue.height - 1,
-              endCol: clampedNewPos.col + selectionDataValue.width - 1,
-            }
-            selection.updateOriginalRect(newRect)
-          }
-        }
-      }
-
-      selection.setTempRect(null)
-    } else if (selection.isSelecting.value) {
-      selection.finishSelection()
-    }
-  }
-
-  isInteracting.value = false
-  interactionStartPos.value = null
-}
-
-const handleKeyDown = (event: KeyboardEvent) => {
-  if (event.ctrlKey || event.metaKey) {
-    switch (event.key.toLowerCase()) {
-      case 'c':
-        handleCopy()
-        event.preventDefault()
-        break
-      case 'x':
-        handleCut()
-        event.preventDefault()
-        break
-      case 'v':
-        handlePaste()
-        event.preventDefault()
-        break
-      case 'a':
-        handleSelectAll()
-        event.preventDefault()
-        break
-    }
-  } else {
-    switch (event.key) {
-      case 'Delete':
-        handleDelete()
-        event.preventDefault()
-        break
-      case 'Escape':
-        handleEscape()
-        event.preventDefault()
-        break
-    }
-  }
-}
-
-const handleCopy = () => {
-  if (selection.hasSelection.value && selection.selectionData.value) {
-    const data = selection.selectionData.value
-    clipboard.copy({
-      data: data.data.map((row) => [...row]),
-      width: data.width,
-      height: data.height,
-      originalRect: { ...data.originalRect },
-    })
-    emit('clipboard-change', true)
-  }
-}
-
-const handleCut = () => {
-  if (selection.hasSelection.value && selection.selectionData.value) {
-    const data = selection.selectionData.value
-    clipboard.cut({
-      data: data.data.map((row) => [...row]),
-      width: data.width,
-      height: data.height,
-      originalRect: { ...data.originalRect },
-    })
-
-    const rect = selection.selectionRect.value!
-    for (let row = rect.startRow; row <= rect.endRow; row++) {
-      for (let col = rect.startCol; col <= rect.endCol; col++) {
-        emit('update:cell', row, col, 0)
-      }
-    }
-
-    emit('clipboard-change', true)
-  }
-}
-
-const handlePaste = () => {
-  if (clipboard.hasClipboardData()) {
-    clipboard.enterPasteMode()
-  }
-}
-
-const handleSelectAll = () => {
-  if (props.currentTool === 'select' && props.enableSelection) {
-    const maxRow = props.gridData.length - 1
-    const maxCol = (props.gridData[0]?.length ?? 0) - 1
-
-    if (maxRow >= 0 && maxCol >= 0) {
-      selection.clearSelection()
-      selection.startSelection({ row: 0, col: 0 })
-      selection.updateSelection({ row: maxRow, col: maxCol })
-      selection.finishSelection()
-    }
-  }
-}
-
-const handleDelete = () => {
-  if (selection.hasSelection.value && selection.selectionRect.value) {
-    const rect = selection.selectionRect.value
-    for (let row = rect.startRow; row <= rect.endRow; row++) {
-      for (let col = rect.startCol; col <= rect.endCol; col++) {
-        emit('update:cell', row, col, 0)
-      }
-    }
-  }
-}
-
-const handleEscape = () => {
+  const position = eventCell(event)
   if (clipboard.isPasteMode.value) {
-    clipboard.exitPasteMode()
-  } else if (selection.hasSelection.value) {
-    selection.clearSelection()
+    if (position) setPasteTarget(position)
+    event.preventDefault()
+    return
   }
-}
 
-const pasteAt = (row: number, col: number) => {
-  if (!clipboard.isPasteMode.value) return false
+  if (props.currentTool === 'pan') {
+    interaction.value = {
+      kind: 'panning',
+      pointerId: event.pointerId,
+      startClient: { x: event.clientX, y: event.clientY },
+      startPan: { ...pan },
+    }
+    event.preventDefault()
+    return
+  }
+  if (!position) return
 
-  const pasteData = clipboard.getPasteData({ row, col })
-  if (!pasteData) return false
-
-  if (
-    !clipboard.canPasteAt(
-      { row, col },
-      props.gridData[0]?.length ?? 0,
-      props.gridData.length,
-    )
+  if (props.currentTool === 'fill') {
+    emit('command', { type: 'fillRegion', origin: position, value: 1 })
+  } else if (
+    props.currentTool === 'line' ||
+    props.currentTool === 'rectangle' ||
+    props.currentTool === 'filledRectangle'
   ) {
-    return false
+    interaction.value = {
+      kind: 'shaping',
+      pointerId: event.pointerId,
+      tool: props.currentTool,
+      start: position,
+      current: position,
+    }
+  } else if (props.currentTool === 'select') {
+    if (selectionRect.value && isInsideSelection(position)) {
+      interaction.value = {
+        kind: 'movingSelection',
+        pointerId: event.pointerId,
+        anchor: position,
+        original: normalizeSelectionRectangle(selectionRect.value),
+        target: {
+          row: selectionRect.value.startRow,
+          col: selectionRect.value.startCol,
+        },
+      }
+    } else {
+      interaction.value = {
+        kind: 'selecting',
+        pointerId: event.pointerId,
+        anchor: position,
+        current: position,
+      }
+    }
+  } else {
+    const value: GridCell =
+      props.currentTool === 'erase' ||
+      (props.drawMode === 'doubleButtonDraw' && event.button === 2)
+        ? 0
+        : props.drawValue === 0
+          ? 0
+          : 1
+    currentDrawValue.value = value
+    interaction.value = {
+      kind: 'drawing',
+      pointerId: event.pointerId,
+      value,
+      points: [position],
+    }
+  }
+  event.preventDefault()
+}
+
+const handlePointerMove = (event: PointerEvent): void => {
+  if (pointers.has(event.pointerId)) updatePointer(event)
+  const state = interaction.value
+  if (state.kind === 'idle') {
+    hoverCell.value = event.pointerType === 'touch' ? null : eventCell(event)
+    return
+  }
+  if (state.kind === 'gesturing') {
+    const first = pointers.get(state.pointerIds[0])
+    const second = pointers.get(state.pointerIds[1])
+    const viewportBounds = viewportRef.value?.getBoundingClientRect()
+    if (!first || !second || !viewportBounds) return
+    const midpoint = pointMidpoint(first, second)
+    const nextSize = Math.max(
+      MIN_CELL_SIZE,
+      Math.min(
+        MAX_CELL_SIZE,
+        Math.round(
+          state.startCellSize *
+            (pointDistance(first, second) / state.startDistance),
+        ),
+      ),
+    )
+    cellSize.value = nextSize
+    fitMode.value = false
+    pan.x = midpoint.x - viewportBounds.left - state.documentFocal.x * nextSize
+    pan.y = midpoint.y - viewportBounds.top - state.documentFocal.y * nextSize
+    clampPan()
+    event.preventDefault()
+    return
+  }
+  if ('pointerId' in state && state.pointerId !== event.pointerId) return
+
+  if (state.kind === 'panning') {
+    pan.x = state.startPan.x + event.clientX - state.startClient.x
+    pan.y = state.startPan.y + event.clientY - state.startClient.y
+    clampPan()
+  } else {
+    const position = eventCell(event, true)
+    if (!position) return
+    if (state.kind === 'drawing') {
+      const last = state.points[state.points.length - 1] ?? position
+      state.points.push(...linePositions(last, position))
+    } else if (state.kind === 'selecting' || state.kind === 'shaping') {
+      state.current = position
+    } else if (state.kind === 'movingSelection') {
+      const original = normalizeSelectionRectangle(state.original)
+      const width = original.endCol - original.startCol + 1
+      const height = original.endRow - original.startRow + 1
+      state.target = clampSelectionPosition(
+        {
+          row: original.startRow + position.row - state.anchor.row,
+          col: original.startCol + position.col - state.anchor.col,
+        },
+        width,
+        height,
+        gridWidth.value,
+        props.gridData.length,
+      )
+    }
+  }
+  event.preventDefault()
+}
+
+const finishInteraction = (pointerId: number, commit: boolean): void => {
+  const state = interaction.value
+  if (state.kind === 'gesturing') {
+    if (state.pointerIds.includes(pointerId))
+      interaction.value = { kind: 'idle' }
+    return
+  }
+  if ('pointerId' in state && state.pointerId !== pointerId) return
+  if (!commit) {
+    interaction.value = { kind: 'idle' }
+    currentDrawValue.value = 1
+    return
   }
 
-  pasteData.data.forEach((rowData, rowIndex) => {
-    rowData.forEach((value, colIndex) => {
-      emit('update:cell', row + rowIndex, col + colIndex, value)
+  if (state.kind === 'drawing') {
+    const points = dedupePoints(state.points)
+    emit('command', { type: 'applyStroke', points, value: state.value })
+  } else if (state.kind === 'selecting') {
+    selectionRect.value = normalizeSelectionRectangle({
+      startRow: state.anchor.row,
+      startCol: state.anchor.col,
+      endRow: state.current.row,
+      endCol: state.current.col,
     })
-  })
+  } else if (state.kind === 'movingSelection') {
+    const original = normalizeSelectionRectangle(state.original)
+    if (
+      state.target.row !== original.startRow ||
+      state.target.col !== original.startCol
+    ) {
+      emit('command', {
+        type: 'moveSelection',
+        rectangle: original,
+        target: state.target,
+      })
+      const width = original.endCol - original.startCol
+      const height = original.endRow - original.startRow
+      selectionRect.value = {
+        startRow: state.target.row,
+        startCol: state.target.col,
+        endRow: state.target.row + height,
+        endCol: state.target.col + width,
+      }
+    }
+  } else if (state.kind === 'shaping') {
+    if (state.tool === 'line') {
+      emit('command', {
+        type: 'drawLine',
+        start: state.start,
+        end: state.current,
+        value: 1,
+      })
+    } else {
+      emit('command', {
+        type: 'drawRectangle',
+        start: state.start,
+        end: state.current,
+        value: 1,
+        mode: state.tool === 'filledRectangle' ? 'filled' : 'outline',
+      })
+    }
+  }
+  interaction.value = { kind: 'idle' }
+  currentDrawValue.value = 1
+}
 
-  selection.clearSelection()
-  selection.startSelection({ row, col })
-  selection.updateSelection({
-    row: row + pasteData.height - 1,
-    col: col + pasteData.width - 1,
-  })
-  selection.finishSelection()
+const releasePointer = (event: PointerEvent): void => {
+  const target = viewportRef.value
+  if (target?.hasPointerCapture?.(event.pointerId)) {
+    target.releasePointerCapture(event.pointerId)
+  }
+  pointers.delete(event.pointerId)
+  if (activePenPointerId.value === event.pointerId)
+    activePenPointerId.value = null
+}
 
+const handlePointerUp = (event: PointerEvent): void => {
+  finishInteraction(event.pointerId, true)
+  releasePointer(event)
+}
+
+const handlePointerCancel = (event: PointerEvent): void => {
+  finishInteraction(event.pointerId, false)
+  releasePointer(event)
+}
+
+const handleLostPointerCapture = (event: PointerEvent): void => {
+  if (pointers.has(event.pointerId)) {
+    finishInteraction(event.pointerId, false)
+    pointers.delete(event.pointerId)
+  }
+}
+
+const cancelInteraction = (): void => {
+  interaction.value = { kind: 'idle' }
+  pointers.clear()
+  activePenPointerId.value = null
+  currentDrawValue.value = 1
+}
+
+const handlePointerLeave = (event: PointerEvent): void => {
+  if (interaction.value.kind === 'idle' && event.pointerType !== 'touch') {
+    hoverCell.value = null
+  }
+}
+
+const handleWheel = (event: WheelEvent): void => {
+  if (!event.ctrlKey && !event.metaKey) return
+  const bounds = viewportRef.value?.getBoundingClientRect()
+  if (!bounds) return
+  event.preventDefault()
+  applyZoom(cellSize.value + (event.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP), {
+    x: event.clientX - bounds.left,
+    y: event.clientY - bounds.top,
+  })
+}
+
+const handleContextMenu = (event: MouseEvent): void => {
+  if (
+    props.drawMode === 'doubleButtonDraw' &&
+    gridRef.value?.contains(event.target as Node)
+  ) {
+    event.preventDefault()
+  }
+}
+
+const clearSelection = (): void => {
+  selectionRect.value = null
+}
+
+const selectionPayload = () => {
+  const rectangle = normalizedSelection.value
+  if (!rectangle) return null
+  const data = extractSelection(props.gridData, rectangle)
+  return {
+    data,
+    width: data[0]?.length ?? 0,
+    height: data.length,
+    originalRect: rectangle,
+  }
+}
+
+const copyToSystemClipboard = async (data: GridData): Promise<void> => {
+  if (!navigator.clipboard?.writeText) return
+  const text = `UNICUCUMBER/1\n${data.map((row) => row.join('')).join('\n')}`
+  try {
+    await navigator.clipboard.writeText(text)
+  } catch (error) {
+    console.info(
+      'System clipboard unavailable; internal glyph clipboard remains available.',
+      error,
+    )
+  }
+}
+
+const handleCopy = (): void => {
+  const payload = selectionPayload()
+  if (!payload) return
+  clipboard.copy(payload)
+  void copyToSystemClipboard(payload.data)
+  emit('clipboard-change', true)
+}
+
+const handleCut = (): void => {
+  const payload = selectionPayload()
+  if (!payload || !normalizedSelection.value) return
+  clipboard.cut(payload)
+  void copyToSystemClipboard(payload.data)
+  emit('command', {
+    type: 'deleteSelection',
+    rectangle: normalizedSelection.value,
+  })
+  clearSelection()
+  emit('clipboard-change', true)
+}
+
+const setPasteTarget = (target: GridPosition): void => {
+  const data = clipboard.clipboardData.value
+  if (!data) return
+  pasteTarget.value = clampSelectionPosition(
+    target,
+    Math.min(data.width, gridWidth.value),
+    Math.min(data.height, props.gridData.length),
+    gridWidth.value,
+    props.gridData.length,
+  )
+}
+
+const handlePaste = (): void => {
+  if (!clipboard.enterPasteMode()) return
+  const target = normalizedSelection.value
+    ? {
+        row: normalizedSelection.value.startRow,
+        col: normalizedSelection.value.startCol,
+      }
+    : { row: 0, col: 0 }
+  setPasteTarget(target)
+  emit('paste-start')
+}
+
+const confirmPaste = (): void => {
+  const data = clipboard.clipboardData.value
+  if (!data) return
+  emit('command', {
+    type: 'pasteSelection',
+    data: data.data.map((row) =>
+      row.map((cell): GridCell => (cell === 1 ? 1 : 0)),
+    ),
+    target: pasteTarget.value,
+  })
+  selectionRect.value = pasteRectangle.value
   clipboard.exitPasteMode()
-  return true
 }
 
-const updateMousePosition = (event: MouseEvent) => {
-  mousePosition.value = { x: event.clientX, y: event.clientY }
+const cancelPaste = (): void => clipboard.exitPasteMode()
+
+const nudgePaste = (row: number, col: number): void => {
+  setPasteTarget({
+    row: pasteTarget.value.row + row,
+    col: pasteTarget.value.col + col,
+  })
 }
 
-const moveSelectionBy = (dRow: number, dCol: number) => {
-  if (!selection.hasSelection.value || !selection.selectionData.value) return
+const handleDelete = (): void => {
+  if (!normalizedSelection.value) return
+  emit('command', {
+    type: 'deleteSelection',
+    rectangle: normalizedSelection.value,
+  })
+}
 
-  const rect = selection.selectionRect.value
-  if (!rect) return
-
-  const newPos = { row: rect.startRow + dRow, col: rect.startCol + dCol }
-
-  const gridHeight = props.gridData.length
-  const gridWidth = props.gridData[0]?.length ?? 0
-  const selHeight = selection.selectionData.value.height
-  const selWidth = selection.selectionData.value.width
-
-  const clamped = {
-    row: Math.max(0, Math.min(gridHeight - selHeight, newPos.row)),
-    col: Math.max(0, Math.min(gridWidth - selWidth, newPos.col)),
-  }
-
-  const originalRect = selection.selectionRect.value!
-  if (selection.moveSelectionTo(clamped)) {
-    moveSelectionData(selection.selectionData.value!, originalRect, clamped)
-    selection.updateOriginalRect({
-      startRow: clamped.row,
-      startCol: clamped.col,
-      endRow: clamped.row + selHeight - 1,
-      endCol: clamped.col + selWidth - 1,
-    })
+const handleDuplicate = (): void => {
+  const payload = selectionPayload()
+  const rectangle = normalizedSelection.value
+  if (!payload || !rectangle) return
+  clipboard.copy(payload)
+  emit('clipboard-change', true)
+  const target = clampSelectionPosition(
+    { row: rectangle.startRow + 1, col: rectangle.startCol + 1 },
+    payload.width,
+    payload.height,
+    gridWidth.value,
+    props.gridData.length,
+  )
+  emit('command', {
+    type: 'pasteSelection',
+    data: payload.data,
+    target,
+  })
+  selectionRect.value = {
+    startRow: target.row,
+    startCol: target.col,
+    endRow: target.row + payload.height - 1,
+    endCol: target.col + payload.width - 1,
   }
 }
 
-const moveUp = () => moveSelectionBy(-1, 0)
-const moveDown = () => moveSelectionBy(1, 0)
-const moveLeft = () => moveSelectionBy(0, -1)
-const moveRight = () => moveSelectionBy(0, 1)
-
-const getMoveButtonStyle = (dir: 'up' | 'down' | 'left' | 'right') => {
-  const rect = selection.selectionRect.value
-  if (!rect) return { display: 'none' }
-
-  const normalized = {
-    startRow: Math.min(rect.startRow, rect.endRow),
-    startCol: Math.min(rect.startCol, rect.endCol),
-    endRow: Math.max(rect.startRow, rect.endRow),
-    endCol: Math.max(rect.startCol, rect.endCol),
+const handleSelectAll = (): void => {
+  selectionRect.value = {
+    startRow: 0,
+    startCol: 0,
+    endRow: props.gridData.length - 1,
+    endCol: gridWidth.value - 1,
   }
+}
 
-  const width = normalized.endCol - normalized.startCol + 1
-  const height = normalized.endRow - normalized.startRow + 1
-  const cell = 'var(--cell-size)'
-
-  switch (dir) {
-    case 'up': {
-      const left = `calc(( ${normalized.startCol} + ${Math.floor(width / 2)} + 1) * ${cell})`
-      const top = `calc(( ${normalized.startRow} + 1) * ${cell} - 0.6 * ${cell})`
-      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
-    }
-    case 'down': {
-      const left = `calc(( ${normalized.startCol} + ${Math.floor(width / 2)} + 1) * ${cell})`
-      const top = `calc(( ${normalized.endRow} + 2) * ${cell} + 0.2 * ${cell})`
-      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
-    }
-    case 'left': {
-      const left = `calc(( ${normalized.startCol} + 1) * ${cell} - 0.6 * ${cell})`
-      const top = `calc(( ${normalized.startRow} + ${Math.floor(height / 2)} + 1) * ${cell})`
-      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
-    }
-    case 'right': {
-      const left = `calc(( ${normalized.endCol} + 2) * ${cell} + 0.2 * ${cell})`
-      const top = `calc(( ${normalized.startRow} + ${Math.floor(height / 2)} + 1) * ${cell})`
-      return `${`position:absolute;left:${left};top:${top};z-index:2000;`}`
-    }
+const nudgeSelection = (row: number, col: number): void => {
+  const rectangle = normalizedSelection.value
+  if (!rectangle) return
+  const width = rectangle.endCol - rectangle.startCol + 1
+  const height = rectangle.endRow - rectangle.startRow + 1
+  const target = clampSelectionPosition(
+    { row: rectangle.startRow + row, col: rectangle.startCol + col },
+    width,
+    height,
+    gridWidth.value,
+    props.gridData.length,
+  )
+  if (target.row === rectangle.startRow && target.col === rectangle.startCol)
+    return
+  emit('command', { type: 'moveSelection', rectangle, target })
+  selectionRect.value = {
+    startRow: target.row,
+    startCol: target.col,
+    endRow: target.row + height - 1,
+    endCol: target.col + width - 1,
   }
+}
+
+const handleKeyDown = (event: KeyboardEvent): void => {
+  const modifier = event.ctrlKey || event.metaKey
+  const key = event.key.toLowerCase()
+  if (modifier && key === 'c') handleCopy()
+  else if (modifier && key === 'x') handleCut()
+  else if (modifier && key === 'v') handlePaste()
+  else if (modifier && key === 'a') handleSelectAll()
+  else if (key === 'delete' || key === 'backspace') handleDelete()
+  else if (key === 'escape') {
+    if (clipboard.isPasteMode.value) cancelPaste()
+    else if (interaction.value.kind !== 'idle') cancelInteraction()
+    else clearSelection()
+  } else if (event.key === 'Enter' && clipboard.isPasteMode.value)
+    confirmPaste()
+  else if (event.key === 'ArrowUp') nudgeSelection(-1, 0)
+  else if (event.key === 'ArrowDown') nudgeSelection(1, 0)
+  else if (event.key === 'ArrowLeft') nudgeSelection(0, -1)
+  else if (event.key === 'ArrowRight') nudgeSelection(0, 1)
+  else return
+  event.preventDefault()
+  event.stopPropagation()
+}
+
+let resizeObserver: ResizeObserver | null = null
+const handleViewportChange = (): void => {
+  if (fitMode.value) void fitToScreen()
+  else nextTick(clampPan)
 }
 
 onMounted(() => {
-  document.addEventListener('mouseup', handleMouseUp)
-  document.addEventListener('mousemove', updateMousePosition)
-  document.addEventListener('touchend', handleTouchEndCell)
-  document.addEventListener('keydown', handleKeyDown)
+  resizeObserver = new ResizeObserver(handleViewportChange)
+  if (viewportRef.value) resizeObserver.observe(viewportRef.value)
+  window.visualViewport?.addEventListener('resize', handleViewportChange)
+  window.addEventListener('blur', cancelInteraction)
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+  void fitToScreen()
 })
 
+const handleVisibilityChange = (): void => {
+  if (document.visibilityState !== 'visible') cancelInteraction()
+}
+
 onBeforeUnmount(() => {
-  document.removeEventListener('mouseup', handleMouseUp)
-  document.removeEventListener('mousemove', updateMousePosition)
-  document.removeEventListener('touchend', handleTouchEndCell)
-  document.removeEventListener('keydown', handleKeyDown)
+  resizeObserver?.disconnect()
+  window.visualViewport?.removeEventListener('resize', handleViewportChange)
+  window.removeEventListener('blur', cancelInteraction)
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 
 watch(
   () => props.currentTool,
-  (newTool) => {
-    selection.setTool(newTool)
-    drawing.stopDrawing()
-    selection.cancelOperation()
-    clipboard.exitPasteMode()
-    emit('tool-change', newTool)
+  (tool) => {
+    cancelInteraction()
+    if (tool !== 'select') clearSelection()
+    if (tool !== 'select' && clipboard.isPasteMode.value) {
+      clipboard.exitPasteMode()
+    }
+    emit('tool-change', tool)
   },
 )
 
-watch(selection.hasSelection, (hasSelection) => {
-  emit('selection-change', hasSelection)
+watch(
+  () => props.gridData[0]?.length,
+  () => {
+    clearSelection()
+    if (fitMode.value) void fitToScreen()
+  },
+)
+
+watch(normalizedSelection, (selection) => {
+  emit('selection-change', selection !== null)
 })
 
 watch(clipboard.clipboardData, () => {
@@ -893,7 +1194,6 @@ watch(clipboard.clipboardData, () => {
 })
 
 defineExpose({
-  selection,
   clipboard,
   drawing,
   handleCopy,
@@ -901,22 +1201,100 @@ defineExpose({
   handlePaste,
   handleSelectAll,
   handleDelete,
-  clearSelection: () => selection.clearSelection(),
+  handleDuplicate,
+  nudgeSelection,
+  confirmPaste,
+  cancelPaste,
+  clearSelection,
+  fitToScreen,
+  resetView,
+  zoomBy,
 })
 </script>
 
 <style scoped>
-.grid-container {
-  display: grid;
-  gap: 0;
-  padding-right: calc(var(--cell-size) * 0.5);
-  width: fit-content;
+.workspace {
+  width: min(100%, 52rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.view-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.2rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--background-light);
+}
+
+.view-controls button,
+.context-toolbar button {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.view-controls button:hover,
+.view-controls button:focus-visible,
+.view-controls button.active,
+.context-toolbar button:hover,
+.context-toolbar button:focus-visible {
+  border-color: var(--border-hover);
+  background: var(--background-hover);
+}
+
+.zoom-value {
+  min-width: 3.4rem;
+  color: var(--text-secondary);
+  font-family: var(--monospace-font);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.grid-viewport {
+  width: min(100%, 48rem);
+  min-height: 260px;
   position: relative;
+  overflow: hidden;
+  overscroll-behavior: contain;
   touch-action: none;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
   outline: none;
+  border-radius: 2px;
+}
+
+.grid-viewport:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.grid-viewport.panning {
+  cursor: grabbing;
+}
+
+.grid-container {
+  --cell-size: 25px;
+  width: fit-content;
+  display: grid;
+  grid-auto-rows: var(--cell-size);
+  gap: 0;
+  position: absolute;
+  inset: 0 auto auto 0;
+  transform-origin: 0 0;
+  will-change: transform;
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
 .header-row,
@@ -924,185 +1302,158 @@ defineExpose({
   display: contents;
 }
 
-.corner-cell {
-  width: var(--cell-size);
-  height: var(--cell-size);
-}
-
-.header-cell {
-  width: var(--cell-size);
-  height: var(--cell-size);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1em;
-  font-family: var(--monospace-font);
-}
-
+.corner-cell,
+.header-cell,
 .cell {
   width: var(--cell-size);
   height: var(--cell-size);
-  background-color: white;
-  cursor: pointer;
-  transition: none !important;
-  box-sizing: border-box;
-  position: relative;
-}
-
-.cell.filled {
-  background-color: black;
-}
-
-.selection-layer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 10;
-  display: grid;
-  gap: 0;
-}
-
-.selection-row {
-  display: contents;
-}
-
-.selection-header-cell {
-  width: var(--cell-size);
-  height: var(--cell-size);
-  pointer-events: none;
-}
-
-.selection-cell {
-  width: var(--cell-size);
-  height: var(--cell-size);
-  pointer-events: none;
-  position: relative;
-}
-
-.selection-overlay {
-  z-index: 15;
   box-sizing: border-box;
 }
 
-.selection-overlay.selection-selecting {
-  border: 2px solid var(--primary-color);
-  background-color: rgba(78, 167, 46, 0.1);
-}
-
-.selection-overlay.selection-selected {
-  border: 2px dashed var(--primary-color);
-  background-color: rgba(78, 167, 46, 0.1);
-  animation: marching-ants 1s linear infinite;
-}
-
-.selection-overlay.selection-moving {
-  border: 2px dashed #0ea5e9;
-  background-color: rgba(14, 165, 233, 0.2);
-}
-
-.selection-overlay.selection-copying {
-  border: 2px dashed #22c55e;
-  background-color: rgba(34, 197, 94, 0.1);
-}
-
-.selection-overlay.temp-selection {
-  opacity: 0.8;
-}
-
-.selection-cell-selected {
-  background-color: rgba(var(--primary-color-rgb), 0.15);
-}
-
-.selection-cell-temp {
-  background-color: rgba(var(--info-color-rgb), 0.2);
-}
-
-.selection-cell-top {
-  border-top: 1px solid var(--primary-color);
-}
-
-.selection-cell-bottom {
-  border-bottom: 1px solid var(--primary-color);
-}
-
-.selection-cell-left {
-  border-left: 1px solid var(--primary-color);
-}
-
-.selection-cell-right {
-  border-right: 1px solid var(--primary-color);
-}
-
-@keyframes marching-ants {
-  0% {
-    border-image: repeating-linear-gradient(
-        90deg,
-        var(--primary-color) 0,
-        var(--primary-color) 4px,
-        transparent 4px,
-        transparent 8px
-      )
-      2;
-  }
-  100% {
-    border-image: repeating-linear-gradient(
-        90deg,
-        var(--primary-color) 4px,
-        var(--primary-color) 8px,
-        transparent 8px,
-        transparent 12px
-      )
-      2;
-  }
-}
-
-.paste-cursor {
-  pointer-events: none;
-  opacity: 0.8;
-  animation: pulse 1s ease-in-out infinite alternate;
-}
-
-.move-button {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  border: none;
+.header-cell {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  cursor: pointer;
+  color: var(--text-color);
+  font-family: var(--monospace-font);
+  font-size: max(9px, calc(var(--cell-size) * 0.55));
 }
 
-.move-button:active {
-  transform: scale(0.95);
+.header-cell.alternate {
+  color: var(--danger-color);
 }
 
-@keyframes pulse {
-  from {
-    opacity: 0.4;
+.cell {
+  background: white;
+  box-shadow: inset 0 0 0 0.3px var(--primary-darker);
+}
+
+.cell.filled {
+  background: black;
+}
+
+.cell:not(.bordered) {
+  box-shadow: inset 0 0 0 0.3px
+    color-mix(in srgb, var(--primary-darker) 45%, transparent);
+}
+
+.preview-cell {
+  position: absolute;
+  z-index: 4;
+  background: black;
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.preview-cell.erase {
+  background: white;
+  box-shadow: inset 0 0 0 1px var(--danger-color);
+}
+
+.selection-overlay,
+.paste-overlay {
+  position: absolute;
+  z-index: 5;
+  box-sizing: border-box;
+  border: 2px dashed var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 12%, transparent);
+  pointer-events: none;
+}
+
+.selection-overlay.moving {
+  border-style: solid;
+}
+
+.paste-overlay {
+  display: grid;
+  grid-template-columns: repeat(var(--paste-columns, 1), var(--cell-size));
+  border-color: var(--info-color);
+  opacity: 0.8;
+  overflow: hidden;
+}
+
+.paste-cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  background: white;
+  box-shadow: inset 0 0 0 0.3px var(--primary-darker);
+}
+
+.paste-cell.filled {
+  background: black;
+}
+
+.context-toolbar {
+  max-width: calc(100vw - 1rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.35rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--background-light);
+  box-shadow: 0 2px 6px var(--modal-overlay);
+}
+
+.context-toolbar button {
+  padding: 0.45rem 0.65rem;
+  font-family: var(--normal-font);
+}
+
+.context-toolbar .confirm {
+  background: var(--primary-color);
+  color: white;
+}
+
+.nudge-controls {
+  display: flex;
+  gap: 2px;
+}
+
+.nudge-controls button {
+  padding: 0;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 720px), (pointer: coarse) {
+  .workspace {
+    width: 100%;
+    gap: 0;
   }
-  to {
-    opacity: 0.8;
+
+  .view-controls {
+    align-self: stretch;
+    justify-content: center;
+    margin-inline: 0.5rem;
+    margin-bottom: 0;
+  }
+
+  .grid-viewport {
+    width: calc(
+      100vw - max(0.5rem, env(safe-area-inset-left)) -
+        max(0.5rem, env(safe-area-inset-right))
+    );
+    max-width: 100%;
+  }
+
+  .context-toolbar {
+    position: sticky;
+    bottom: calc(4.25rem + env(safe-area-inset-bottom));
+    z-index: 40;
+  }
+
+  .selection-toolbar button span {
+    display: none;
   }
 }
 
-@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
-  .header-cell {
-    font-size: 1.5em;
-  }
-}
-
-@media (orientation: portrait) and (min-width: 1024px) {
-  .header-cell {
-    font-size: 2em;
+@media (prefers-reduced-motion: reduce) {
+  .grid-container,
+  .view-controls button,
+  .context-toolbar button {
+    transition: none;
   }
 }
 </style>

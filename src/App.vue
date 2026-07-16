@@ -1,18 +1,11 @@
 <template>
   <UniCucumber :hex-value="''" :width="16" />
+  <NotificationCenter />
+  <PwaStatus />
 </template>
 
-<script lang="ts">
-import { useI18n } from 'vue-i18n'
+<script setup lang="ts">
 import UniCucumber from './components/GlyphEditor.vue'
-
-export default {
-  components: {
-    UniCucumber,
-  },
-  setup() {
-    const { t } = useI18n({ useScope: 'global' })
-    return { t }
-  },
-}
+import NotificationCenter from './components/NotificationCenter.vue'
+import PwaStatus from './components/PwaStatus.vue'
 </script>

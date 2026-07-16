@@ -62,9 +62,13 @@ body {
 }
 
 /* Responsive */
-@media (orientation: portrait) and (max-width: 768px) {
+@media (max-width: 720px), (pointer: coarse) {
   :root {
     --cell-size: 21px;
+  }
+
+  .container {
+    padding: 4px 8px;
   }
 }
 

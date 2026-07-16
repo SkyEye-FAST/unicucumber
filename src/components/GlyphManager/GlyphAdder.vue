@@ -118,10 +118,6 @@ const props = defineProps({
     type: Object as () => GlyphData | null | undefined,
     default: undefined,
   },
-  unifontMap: {
-    type: Object,
-    default: () => ({}),
-  },
 })
 
 const emit = defineEmits<{

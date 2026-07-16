@@ -25,7 +25,17 @@
           v-model="localModelValue"
           maxlength="6"
           pattern="[0-9A-Fa-f]{1,6}"
+          inputmode="text"
+          autocapitalize="characters"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+          :aria-invalid="codePointError !== null"
+          :aria-describedby="codePointError ? 'codePointError' : undefined"
           @input="handleInput"
+          @blur="commitCodePoint"
+          @keydown.enter.prevent="commitCodePoint"
+          @keydown.escape.prevent="revertCodePoint"
         />
       </div>
       <div class="glyph-preview">
@@ -35,10 +45,18 @@
           display-mode="editor"
         />
         <span class="unicode-char" :style="previewStyle">
-          {{ String.fromCodePoint(parseInt(modelValue || '0000', 16)) }}
+          {{ previewCharacter }}
         </span>
       </div>
     </div>
+    <span
+      v-if="codePointError"
+      id="codePointError"
+      class="code-point-error"
+      aria-live="polite"
+    >
+      {{ codePointError }}
+    </span>
 
     <Transition name="slide">
       <div v-if="showingEncodingInfo" class="encoding-info-panel">
@@ -62,13 +80,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
 
-import * as iconvLite from 'iconv-lite'
 import { useI18n } from 'vue-i18n'
 
-import { isCJKChar } from '@/utils/charUtils'
-import { useToggle, useVModel } from '@vueuse/core'
+import {
+  characterFromCodePoint,
+  isCJKChar,
+  normalizeCodePointHex,
+} from '@/utils/charUtils'
+import { useToggle } from '@vueuse/core'
 
 import PixelPreview from './GlyphManager/PixelPreview.vue'
 
@@ -95,7 +116,20 @@ const props = defineProps({
 
 const emit = defineEmits(['update:model-value'])
 
-const localModelValue = useVModel(props, 'modelValue', emit)
+const localModelValue = ref(props.modelValue)
+const codePointError = computed(() => {
+  if (localModelValue.value === props.modelValue) return null
+  return normalizeCodePointHex(localModelValue.value) === null
+    ? $t('glyph_editor.invalid_code_point')
+    : null
+})
+
+watch(
+  () => props.modelValue,
+  (value) => {
+    localModelValue.value = value
+  },
+)
 
 const wrapperRef = ref<HTMLElement | null>(null)
 const [showingEncodingInfo, toggleEncodingInfo] = useToggle()
@@ -120,42 +154,68 @@ onUnmounted(() => {
 
 const handleInput = (event: Event) => {
   let value = (event.target as HTMLInputElement).value.toUpperCase()
-  value = value.replace(/[^0-9A-F]/g, '')
   if (value.length > 6) {
     value = value.slice(0, 6)
   }
   localModelValue.value = value
 }
 
+const commitCodePoint = () => {
+  const normalized = normalizeCodePointHex(localModelValue.value)
+  if (normalized === null) return
+  localModelValue.value = normalized
+  if (normalized !== props.modelValue) emit('update:model-value', normalized)
+}
+
+const revertCodePoint = () => {
+  localModelValue.value = props.modelValue
+}
+
 const previewStyle = computed(() => ({
   fontFamily: props.browserPreviewFont,
 }))
 
+const previewCharacter = computed(
+  () => characterFromCodePoint(parseInt(props.modelValue || '0000', 16)) ?? '�',
+)
+
 const ziToolsUrl = computed(() => {
   const codePoint = parseInt(props.modelValue || '0000', 16)
-  const char = String.fromCodePoint(codePoint)
+  const char = characterFromCodePoint(codePoint) ?? ''
   return `https://zi.tools/zi/${char}`
 })
 
 const showZiToolsLink = computed(() => {
   const codePoint = parseInt(props.modelValue || '0000', 16)
-  const char = String.fromCodePoint(codePoint)
+  const char = characterFromCodePoint(codePoint)
+  if (char === null) return false
   return isCJKChar(char)
 })
 
+type IconvLiteModule = typeof import('iconv-lite')
+const iconvLiteModule = shallowRef<IconvLiteModule | null>(null)
+let iconvLoadPromise: Promise<IconvLiteModule | null> | null = null
+
+const loadIconvLite = async (): Promise<IconvLiteModule | null> => {
+  if (iconvLiteModule.value !== null) return iconvLiteModule.value
+  iconvLoadPromise ??= import('iconv-lite')
+    .then((module) => (iconvLiteModule.value = module))
+    .catch(() => null)
+  return iconvLoadPromise
+}
+
 const convertEncoding = (char: string, encoding: string): string => {
+  if (iconvLiteModule.value === null) return '—'
   try {
-    const encoded = iconvLite.encode(char, encoding)
+    const encoded = iconvLiteModule.value.encode(char, encoding)
     if (char === '?' && encoded.length === 1 && encoded[0] === 0x3f) {
       return '3F'
     }
     if (encoded.every((b: number) => b === 0x3f)) {
       return '—'
     }
-    return Array.from(encoded)
-      .map((b: unknown) =>
-        (b as number).toString(16).toUpperCase().padStart(2, '0'),
-      )
+    return Array.from(encoded as Uint8Array)
+      .map((byte) => byte.toString(16).toUpperCase().padStart(2, '0'))
       .join(' ')
   } catch {
     return '—'
@@ -163,12 +223,17 @@ const convertEncoding = (char: string, encoding: string): string => {
 }
 
 const unicodeNameCache = ref<Record<number, string>>({})
-let unicodeNameModule: unknown = null
+type UnicodeNameLookup = (character: string) => string | undefined
+type UnicodeNameModule = { unicodeName?: UnicodeNameLookup }
+let unicodeNameModule: UnicodeNameModule | null = null
 
 async function loadUnicodeModule() {
   if (unicodeNameModule) return
   try {
-    unicodeNameModule = await import('unicode-name')
+    const module = await import('unicode-name')
+    unicodeNameModule = {
+      unicodeName: module.unicodeName ?? module.default?.unicodeName,
+    }
   } catch {
     unicodeNameModule = null
   }
@@ -178,17 +243,13 @@ async function ensureUnicodeNameFor(codePoint: number) {
   if (unicodeNameCache.value[codePoint] !== undefined) return
   try {
     await loadUnicodeModule()
-    let fn: unknown = null
-    if (unicodeNameModule && typeof unicodeNameModule === 'object') {
-      const m = unicodeNameModule as Record<string, unknown>
-      fn = m.unicodeName || m.default || m
-    } else {
-      fn = unicodeNameModule
-    }
-    if (typeof fn === 'function') {
-      const name = (fn as (s: string) => string)(
-        String.fromCodePoint(codePoint),
-      )
+    const lookup = unicodeNameModule?.unicodeName
+    const character = characterFromCodePoint(codePoint)
+    if (lookup && character !== null) {
+      const name = lookup(character)
+      if (Object.keys(unicodeNameCache.value).length >= 200) {
+        unicodeNameCache.value = {}
+      }
       unicodeNameCache.value[codePoint] = name || '—'
       return
     }
@@ -206,7 +267,7 @@ const unicodeNameStr = computed(() => {
 watch(showingEncodingInfo, async (v) => {
   if (!v) return
   const codePoint = parseInt(props.modelValue || '0000', 16)
-  await ensureUnicodeNameFor(codePoint)
+  await Promise.all([ensureUnicodeNameFor(codePoint), loadIconvLite()])
 })
 
 watch(
@@ -220,7 +281,8 @@ watch(
 
 const encodingInfo = computed(() => {
   const codePoint = parseInt(props.modelValue || '0000', 16)
-  const char = String.fromCodePoint(codePoint)
+  const char = characterFromCodePoint(codePoint)
+  if (char === null) return {}
 
   return {
     NCR: `&#${codePoint};`,
@@ -300,6 +362,19 @@ const encodingInfo = computed(() => {
 .code-point-input input:focus {
   background: var(--background-active);
   border-radius: 2px;
+}
+
+.code-point-input input[aria-invalid='true'] {
+  color: var(--danger-color);
+}
+
+.code-point-error {
+  display: block;
+  max-width: 24rem;
+  margin: -0.25rem auto 0.35rem;
+  color: var(--danger-color);
+  font-size: 0.75rem;
+  text-align: center;
 }
 
 .zi-tools-link {

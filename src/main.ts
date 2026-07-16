@@ -2,24 +2,26 @@ import './styles/base.css'
 import './styles/font.css'
 import './styles/theme.css'
 
-import { createApp, watch } from 'vue'
+import { computed, createApp, watch } from 'vue'
 
 import { createI18n } from 'vue-i18n'
 
 import { usePreferredLanguages, useTitle } from '@vueuse/core'
 
 import App from './App.vue'
+import { useNotifications } from './composables/useNotifications'
 import en from './locales/en.json'
+import { flushPendingDrafts } from './platform/draftFlush'
 import zh_cn from './locales/zh-cn.json'
 import zh_tw from './locales/zh-tw.json'
+import { normalizeLocale, type SupportedLocale } from './utils/locale'
 
 const languages = usePreferredLanguages()
 
 const i18n = createI18n({
   legacy: false,
-  locale: navigator.language || 'en',
+  locale: normalizeLocale(navigator.language),
   fallbackLocale: 'en',
-  silentTranslationWarn: true,
   messages: {
     en: en,
     zh: zh_cn,
@@ -28,35 +30,14 @@ const i18n = createI18n({
   },
 })
 
-interface LocaleType {
-  locale: 'en' | 'zh' | 'zh-CN' | 'zh-TW'
-}
-
-const updateHtmlLang = (locale: LocaleType['locale']): void => {
-  const htmlElement = document.querySelector('html')
-  if (htmlElement) {
-    htmlElement.lang = locale
-  }
+const updateHtmlLang = (locale: SupportedLocale): void => {
+  document.documentElement.lang = locale
 }
 
 const setLocaleFromPreference = (preferredLanguages: readonly string[]) => {
-  if (preferredLanguages.length > 0) {
-    const lang = preferredLanguages[0]?.toLowerCase() ?? 'en'
-    let locale: LocaleType['locale'] = 'en'
-
-    if (lang.startsWith('zh')) {
-      if (lang.includes('cn') || lang.includes('hans')) {
-        locale = 'zh-CN'
-      } else if (lang.includes('tw') || lang.includes('hant')) {
-        locale = 'zh-TW'
-      } else {
-        locale = 'zh'
-      }
-    }
-
-    i18n.global.locale.value = locale
-    updateHtmlLang(locale)
-  }
+  const locale = normalizeLocale(preferredLanguages[0])
+  i18n.global.locale.value = locale
+  updateHtmlLang(locale)
 }
 
 setLocaleFromPreference(languages.value)
@@ -66,11 +47,21 @@ watch(languages, (newLanguages) => {
 })
 
 watch(i18n.global.locale, (newLocale) => {
-  updateHtmlLang(newLocale)
-  useTitle(i18n.global.t('title'))
+  updateHtmlLang(normalizeLocale(newLocale))
 })
 
-useTitle(i18n.global.t('title'))
+useTitle(computed(() => i18n.global.t('title')))
 
 const app = createApp(App)
+const { notify } = useNotifications()
+app.config.errorHandler = (error, _instance, info) => {
+  console.error(`Unexpected Vue error (${info}).`, error)
+  void flushPendingDrafts().catch((flushError) =>
+    console.error(
+      'Draft preservation after an application error failed.',
+      flushError,
+    ),
+  )
+  notify({ tone: 'error', message: i18n.global.t('errors.unexpected') })
+}
 app.use(i18n).mount('#app')

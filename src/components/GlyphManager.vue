@@ -6,12 +6,13 @@
       v-model:search-query="searchQuery"
       :glyphs="props.glyphs"
       @export="exportToHex"
+      @backup="exportBackup"
+      @sheet="exportBitmapSheet"
     />
 
     <GlyphAdder
       v-model="newGlyph"
       :prefill-data="props.prefillData"
-      :unifont-map="unifontMap"
       :edit-mode="editMode"
       :duplicate-glyph="duplicateGlyph"
       @add="handleAdd"
@@ -24,6 +25,31 @@
       @hex-upload="handleHexFileUpload"
       @image-upload="handleImageFileUpload"
     />
+
+    <nav class="glyph-navigation" :aria-label="$t('glyph_manager.navigation')">
+      <button
+        type="button"
+        :disabled="!filteredGlyphs.length"
+        @click="navigateGlyph(-1)"
+      >
+        <i-material-symbols-chevron-left />
+        {{ $t('glyph_manager.previous') }}
+      </button>
+      <span>{{
+        $t('glyph_manager.position', {
+          current: currentGlyphPosition,
+          total: filteredGlyphs.length,
+        })
+      }}</span>
+      <button
+        type="button"
+        :disabled="!filteredGlyphs.length"
+        @click="navigateGlyph(1)"
+      >
+        {{ $t('glyph_manager.next') }}
+        <i-material-symbols-chevron-right />
+      </button>
+    </nav>
 
     <GlyphList
       :glyphs="filteredGlyphs"
@@ -55,6 +81,12 @@
       @cancel="handleDialogCancel"
       @custom-action="handleDialogCustomAction"
     />
+
+    <ImageImportDialog
+      :file="pendingImageFile"
+      @confirm="handlePreparedImage"
+      @cancel="pendingImageFile = null"
+    />
   </div>
 </template>
 
@@ -64,23 +96,31 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useSettings } from '@/composables/useSettings'
+import { useNotifications } from '@/composables/useNotifications'
+import { getGlyphRepository } from '@/storage/glyphRepository'
 import type {
   DialogConfig,
   Glyph,
   GlyphData,
+  GridData,
   GlyphManagerEmits,
   GlyphManagerProps,
   ImageWithDimensions,
-  UnifontMapType,
 } from '@/types/glyph'
+import { parseHexFile } from '@/utils/hexImport'
+import { gridToHex } from '@/utils/hexUtils'
+import { canvasToBlob } from '@/utils/exportUtils'
+import { createBitmapSheet, createGlyphBackup } from '@/utils/libraryExport'
 
 import DialogBox from './DialogBox.vue'
+import ImageImportDialog from './ImageImportDialog.vue'
 import GlyphAdder from './GlyphManager/GlyphAdder.vue'
 import GlyphList from './GlyphManager/GlyphList.vue'
 import SearchToolbar from './GlyphManager/SearchToolbar.vue'
 import UploadSection from './GlyphManager/UploadSection.vue'
 
 const { t: $t } = useI18n()
+const { notify } = useNotifications()
 
 const props = defineProps<GlyphManagerProps>()
 
@@ -90,11 +130,13 @@ const newGlyph = ref<GlyphData>({ codePoint: '', hexValue: '' })
 const searchQuery = ref<string>('')
 const editMode = ref<boolean>(false)
 const duplicateGlyph = ref<Glyph | null>(null)
-const unifontMap = ref<UnifontMapType>({})
+const pendingImageFile = ref<File | null>(null)
+const unicodeNames = ref<Record<string, string>>({})
+let nameLookupRequest = 0
 
 const { settings } = useSettings()
 
-const STORAGE_KEY = 'unicucumber_glyphs'
+const glyphRepository = getGlyphRepository()
 
 const normalizeCodePoint = (input: string): string => {
   let normalized = input.trim().toUpperCase()
@@ -130,23 +172,25 @@ const normalizeCodePointForExport = (codePoint: string): string => {
   return codePoint
 }
 
-const loadStoredGlyphs = (): void => {
+const loadStoredGlyphs = async (): Promise<void> => {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      const parsedGlyphs = JSON.parse(stored) as Glyph[]
-      props.onGlyphChange(parsedGlyphs)
-    }
+    props.onGlyphChange(await glyphRepository.listGlyphs())
   } catch (error) {
     console.error($t('glyph_manager.error.loading_storage'), error)
   }
 }
 
-const saveGlyphsToStorage = (glyphs: Glyph[]): void => {
+const saveGlyphsToStorage = async (glyphs: Glyph[]): Promise<boolean> => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(glyphs))
+    await glyphRepository.replaceGlyphs(glyphs)
+    return true
   } catch (error) {
     console.error($t('glyph_manager.error.saving_storage'), error)
+    notify({
+      tone: 'error',
+      message: $t('storage.glyph_save_failed'),
+    })
+    return false
   }
 }
 
@@ -175,7 +219,10 @@ const addGlyph = (): void => {
   ]
 
   props.onGlyphChange(updatedGlyphs)
-  saveGlyphsToStorage(updatedGlyphs)
+  const savedGlyph = { codePoint, hexValue }
+  void saveGlyphsToStorage(updatedGlyphs).then((saved) => {
+    if (saved) emit('saved', savedGlyph)
+  })
   clearForm(false)
 
   if (manualInputQueue.value.length > 0) {
@@ -223,7 +270,10 @@ const updateExistingGlyph = (): void => {
   )
 
   props.onGlyphChange(updatedGlyphs)
-  saveGlyphsToStorage(updatedGlyphs)
+  const savedGlyph = { codePoint, hexValue }
+  void saveGlyphsToStorage(updatedGlyphs).then((saved) => {
+    if (saved) emit('saved', savedGlyph)
+  })
   clearForm(false)
 
   if (manualInputQueue.value.length > 0) {
@@ -277,17 +327,79 @@ watch(
 const filteredGlyphs = computed<Glyph[]>(() => {
   const query = searchQuery.value.toLowerCase()
   return props.glyphs
-    .filter(
-      (glyph) =>
+    .filter((glyph) => {
+      const character = String.fromCodePoint(
+        parseInt(glyph.codePoint, 16),
+      ).toLowerCase()
+      return (
         glyph.codePoint.toLowerCase().includes(query) ||
-        glyph.hexValue.toLowerCase().includes(query),
-    )
+        glyph.hexValue.toLowerCase().includes(query) ||
+        character.includes(query) ||
+        (unicodeNames.value[glyph.codePoint] || '')
+          .toLowerCase()
+          .includes(query)
+      )
+    })
     .sort((a, b) => {
       const codePointA = parseInt(a.codePoint, 16)
       const codePointB = parseInt(b.codePoint, 16)
       return codePointA - codePointB
     })
 })
+
+watch(searchQuery, async (query) => {
+  const request = ++nameLookupRequest
+  if (query.trim().length < 2 || !/[g-z\s-]/i.test(query)) return
+  try {
+    const module = await import('unicode-name')
+    const lookup = module.unicodeName ?? module.default?.unicodeName
+    if (!lookup) return
+    for (let index = 0; index < props.glyphs.length; index += 50) {
+      if (request !== nameLookupRequest) return
+      const additions: Record<string, string> = {}
+      props.glyphs.slice(index, index + 50).forEach((glyph) => {
+        if (unicodeNames.value[glyph.codePoint] !== undefined) return
+        additions[glyph.codePoint] =
+          lookup(String.fromCodePoint(parseInt(glyph.codePoint, 16))) || ''
+      })
+      unicodeNames.value = { ...unicodeNames.value, ...additions }
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 0))
+    }
+  } catch (error) {
+    console.error($t('glyph_manager.error.loading_unicode_names'), error)
+    notify({
+      tone: 'warning',
+      message: $t('glyph_manager.error.loading_unicode_names'),
+    })
+  }
+})
+
+const activeListIndex = computed(() => {
+  const active = normalizeCodePoint(
+    props.activeCodePoint || newGlyph.value.codePoint,
+  )
+  return filteredGlyphs.value.findIndex(
+    (glyph) => normalizeCodePoint(glyph.codePoint) === active,
+  )
+})
+
+const currentGlyphPosition = computed(() =>
+  activeListIndex.value < 0 ? 0 : activeListIndex.value + 1,
+)
+
+const navigateGlyph = (direction: -1 | 1): void => {
+  const glyphs = filteredGlyphs.value
+  if (!glyphs.length) return
+  const current = activeListIndex.value
+  const index =
+    current < 0
+      ? direction > 0
+        ? 0
+        : glyphs.length - 1
+      : (current + direction + glyphs.length) % glyphs.length
+  const glyph = glyphs[index]
+  if (glyph) handleEditInGrid(glyph)
+}
 
 const removeGlyph = (codePoint: string): void => {
   const updatedGlyphs = props.glyphs.filter(
@@ -341,29 +453,90 @@ const exportToHex = (): void => {
   URL.revokeObjectURL(url)
 }
 
-const loadUnifontData = async (): Promise<void> => {
+const downloadBlob = (blob: Blob, filename: string): void => {
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
+}
+
+const exportBackup = (): void => {
   try {
-    const response = await fetch('/unifont-map.json')
-    const data = await response.json()
-    unifontMap.value = data.glyphs
+    const backup = createGlyphBackup(props.glyphs)
+    downloadBlob(
+      new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }),
+      `unicucumber-backup-${Date.now()}.json`,
+    )
+    notify({ tone: 'success', message: $t('glyph_manager.backup_exported') })
   } catch (error) {
-    console.error($t('glyph_manager.error.loading_unifont'), error)
+    console.error('Unable to export glyph backup.', error)
+    notify({ tone: 'error', message: $t('glyph_manager.export_failed') })
   }
 }
 
-const importFromUnifont = (): void => {
+const exportBitmapSheet = async (
+  options: { columns: number; scale: number } = { columns: 16, scale: 2 },
+): Promise<void> => {
+  try {
+    const canvas = createBitmapSheet(props.glyphs, options)
+    const blob = await canvasToBlob(canvas)
+    downloadBlob(blob, `unicucumber-sheet-${Date.now()}.png`)
+    notify({
+      tone: 'success',
+      message: $t('glyph_manager.sheet_exported', options),
+    })
+  } catch (error) {
+    console.error('Unable to export bitmap sheet.', error)
+    notify({ tone: 'error', message: $t('glyph_manager.export_failed') })
+  }
+}
+
+const unifontChunkCache = new Map<string, Record<string, string>>()
+
+const importFromUnifont = async (): Promise<void> => {
   if (!newGlyph.value.codePoint) return
 
   const normalizedCodePoint = normalizeCodePoint(newGlyph.value.codePoint)
   const codePoint = parseInt(normalizedCodePoint, 16)
-  const hexValue = unifontMap.value[codePoint]
+  const chunkId = Math.floor(codePoint / 0x1000)
+    .toString(16)
+    .toUpperCase()
+    .padStart(3, '0')
 
-  if (hexValue) {
-    if (props.prefillData) {
-      emit('edit-in-grid', hexValue)
-    } else {
-      newGlyph.value.hexValue = hexValue
+  try {
+    let chunk = unifontChunkCache.get(chunkId)
+    if (!chunk) {
+      const response = await fetch(`/unifont/${chunkId}.json`)
+      if (!response.ok) {
+        throw new Error(`Unifont chunk ${chunkId}: ${response.status}`)
+      }
+      chunk = (await response.json()) as Record<string, string>
+      if (unifontChunkCache.size >= 8) {
+        const oldest = unifontChunkCache.keys().next().value
+        if (oldest) unifontChunkCache.delete(oldest)
+      }
+      unifontChunkCache.set(chunkId, chunk)
     }
+    const hexValue = chunk[String(codePoint)]
+    if (hexValue) {
+      if (props.prefillData) emit('edit-in-grid', hexValue)
+      else newGlyph.value.hexValue = hexValue
+    } else {
+      notify({
+        tone: 'warning',
+        message: $t('glyph_manager.error.unifont_not_found'),
+      })
+    }
+  } catch (error) {
+    console.error($t('glyph_manager.error.loading_unifont'), error)
+    notify({
+      tone: 'warning',
+      message: $t('glyph_manager.error.loading_unifont'),
+    })
   }
 }
 
@@ -373,32 +546,43 @@ const handleHexFileUpload = async (event: Event): Promise<void> => {
   if (!file) return
 
   const text = await file.text()
-  const lines = text.split('\n')
+  const parsed = parseHexFile(text)
   const newGlyphs: Glyph[] = []
   const conflicts: Glyph[] = []
 
-  for (const line of lines) {
-    if (line && line.includes(':')) {
-      const parts = line.split(':')
-      if (parts[0]) {
-        const codePoint = normalizeCodePointForStorage(parts[0])
-        const hexValue = parts[1]?.trim().toUpperCase() || ''
-        const existing = findExistingGlyph(parts[0])
+  for (const glyph of parsed.glyphs) {
+    if (findExistingGlyph(glyph.codePoint)) conflicts.push(glyph)
+    else newGlyphs.push(glyph)
+  }
 
-        if (existing) {
-          conflicts.push({ codePoint, hexValue })
-        } else {
-          newGlyphs.push({ codePoint, hexValue })
-        }
-      }
-    }
+  const invalidSummary = parsed.errors
+    .slice(0, 20)
+    .map((error) =>
+      $t('glyph_manager.hex_invalid_line', {
+        line: error.line,
+        reason: $t(
+          `glyph_manager.hex_error_${error.reason.replaceAll('-', '_')}`,
+        ),
+      }),
+    )
+    .join('\n')
+  if (parsed.errors.length > 0) {
+    console.warn('Invalid .hex import lines:', parsed.errors)
+    notify({
+      tone: 'warning',
+      message: $t('glyph_manager.hex_invalid_count', {
+        count: parsed.errors.length,
+      }),
+    })
   }
 
   if (conflicts.length > 0) {
     dialog.value = {
       show: true,
       title: $t('dialog.hex_import.title'),
-      message: $t('dialog.hex_import.message'),
+      message: [$t('dialog.hex_import.message'), invalidSummary]
+        .filter(Boolean)
+        .join('\n\n'),
       type: 'list',
       items: conflicts,
       confirmText: $t('dialog.hex_import.confirm'),
@@ -429,6 +613,33 @@ const handleHexFileUpload = async (event: Event): Promise<void> => {
     const updatedGlyphs = [...props.glyphs, ...newGlyphs]
     props.onGlyphChange(updatedGlyphs)
     saveGlyphsToStorage(updatedGlyphs)
+    if (parsed.errors.length > 0) {
+      dialog.value = {
+        show: true,
+        title: $t('glyph_manager.hex_invalid_title'),
+        message: invalidSummary,
+        type: 'alert',
+        showCancel: false,
+        confirmText: $t('dialog.confirm'),
+        items: [],
+        onConfirm: () => {
+          dialog.value.show = false
+        },
+      }
+    }
+  } else if (parsed.errors.length > 0) {
+    dialog.value = {
+      show: true,
+      title: $t('glyph_manager.hex_invalid_title'),
+      message: invalidSummary,
+      type: 'alert',
+      showCancel: false,
+      confirmText: $t('dialog.confirm'),
+      items: [],
+      onConfirm: () => {
+        dialog.value.show = false
+      },
+    }
   }
 
   target.value = ''
@@ -577,6 +788,19 @@ const handleImageFileUpload = async (event: Event): Promise<void> => {
   const files = target.files
   if (!files || files.length === 0) return
 
+  if (files.length === 1 && files[0]) {
+    try {
+      const image = await loadImage(files[0])
+      if (!validateImageDimensions(image as ImageWithDimensions)) {
+        pendingImageFile.value = files[0]
+        target.value = ''
+        return
+      }
+    } catch (error) {
+      console.error('Error loading image:', error)
+    }
+  }
+
   const results: Array<{
     glyph: Glyph | null
     error: string | null
@@ -676,6 +900,43 @@ const handleImageFileUpload = async (event: Event): Promise<void> => {
   }
 
   target.value = ''
+}
+
+const handlePreparedImage = (grid: GridData): void => {
+  const file = pendingImageFile.value
+  if (!file) return
+
+  pendingImageFile.value = null
+  const fileName = file.name.match(/^([^.]+)/)?.[0] || ''
+  const normalizedCodePoint = normalizeCodePoint(fileName)
+  const codePoint = /^[0-9A-F]{1,6}$/.test(normalizedCodePoint)
+    ? normalizeCodePointForStorage(fileName)
+    : ''
+  const glyph: Glyph = { codePoint, hexValue: gridToHex(grid) }
+
+  if (!codePoint) {
+    handleManualInputGlyphs([glyph])
+    notify({ tone: 'info', message: $t('image_import.prepared') })
+    return
+  }
+
+  const existing = findExistingGlyph(codePoint)
+  if (existing) {
+    newGlyph.value = { ...glyph }
+    editMode.value = false
+    duplicateGlyph.value = existing
+    notify({ tone: 'info', message: $t('image_import.prepared') })
+    return
+  }
+
+  const updatedGlyphs = [...props.glyphs, glyph]
+  props.onGlyphChange(updatedGlyphs)
+  void saveGlyphsToStorage(updatedGlyphs).then((saved) => {
+    if (saved) {
+      emit('saved', glyph)
+      notify({ tone: 'success', message: $t('image_import.imported') })
+    }
+  })
 }
 
 const manualInputQueue = ref<Glyph[]>([])
@@ -802,9 +1063,16 @@ const handleDialogCustomAction = (action: string): void => {
 const loadImage = (file: File): Promise<HTMLImageElement> => {
   return new Promise((resolve, reject) => {
     const img = new Image()
-    img.onload = () => resolve(img)
-    img.onerror = reject
-    img.src = URL.createObjectURL(file)
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      resolve(img)
+    }
+    img.onerror = (error) => {
+      URL.revokeObjectURL(url)
+      reject(error)
+    }
+    img.src = url
   })
 }
 
@@ -853,8 +1121,7 @@ const handleBatchDelete = (codePoints: string[]): void => {
 }
 
 onMounted(() => {
-  loadStoredGlyphs()
-  loadUnifontData()
+  void loadStoredGlyphs()
 })
 </script>
 
@@ -877,6 +1144,48 @@ onMounted(() => {
 
 .icon {
   font-size: 20px;
+}
+
+.glyph-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.glyph-navigation button {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--background-light);
+  color: var(--text-color);
+}
+
+@media (max-width: 720px), (pointer: coarse) {
+  .glyph-manager {
+    box-sizing: border-box;
+    min-height: 0;
+    height: 100dvh;
+    padding: max(0.75rem, env(safe-area-inset-top))
+      max(0.75rem, env(safe-area-inset-right))
+      max(0.75rem, env(safe-area-inset-bottom))
+      max(0.75rem, env(safe-area-inset-left));
+    gap: 0.65rem;
+  }
+
+  .title {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding-right: 3rem;
+    background: var(--background-light);
+  }
 }
 
 @media (orientation: portrait) and (min-width: 768px) {

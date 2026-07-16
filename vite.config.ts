@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync, realpathSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath, URL } from 'node:url'
 
@@ -17,7 +17,7 @@ import vue from '@vitejs/plugin-vue'
 const getUnifontVersion = (): string => {
   try {
     const content = readFileSync(
-      new URL('./public/unifont-map.json', import.meta.url),
+      new URL('./public/unifont/index.json', import.meta.url),
       'utf-8',
     )
     const parsed = JSON.parse(content)
@@ -27,13 +27,31 @@ const getUnifontVersion = (): string => {
   return ''
 }
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   define: {
     'import.meta.env.VITE_UNIFONT_VERSION': JSON.stringify(getUnifontVersion()),
   },
   plugins: [
-    vue(),
-    vueDevTools(),
+    vue({
+      script: {
+        // Vite 8 runs the SFC compiler through Rolldown, where Vue cannot
+        // automatically access Node's file system to resolve imported types.
+        fs: {
+          fileExists: existsSync,
+          readFile: (file) => {
+            try {
+              return readFileSync(file, 'utf-8')
+            } catch {
+              return undefined
+            }
+          },
+          realpath: realpathSync,
+        },
+      },
+    }),
+    command === 'serve' &&
+      process.env.VITE_ENABLE_DEVTOOLS === 'true' &&
+      vueDevTools(),
     nodePolyfills(),
     VueI18nPlugin({
       include: resolve(
@@ -52,21 +70,29 @@ export default defineConfig({
       ],
     }),
     Icons({
-      autoInstall: true,
+      autoInstall: false,
     }),
     VitePWA({
-      injectRegister: 'auto',
-      registerType: 'autoUpdate',
+      injectRegister: false,
+      registerType: 'prompt',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globIgnores: [
+          'assets/encoding-*.js',
+          'assets/unicode-name-*.js',
+          'unifont-map.json',
+        ],
         maximumFileSizeToCacheInBytes: 3_000_000,
       },
-      devOptions: { enabled: true },
       includeAssets: ['apple-touch-icon.png', 'favicon.ico'],
       manifest: {
+        id: '/',
         name: 'UniCucumber',
         short_name: 'UniCucumber',
+        start_url: '/',
+        scope: '/',
         display: 'standalone',
+        orientation: 'any',
         theme_color: '#4ea72e',
         description: 'A simple webpage for editing Unifont glyphs in browsers.',
         icons: [
@@ -86,12 +112,26 @@ export default defineConfig({
   assetsInclude: ['**/*.hex'],
   publicDir: 'public',
   optimizeDeps: {
-    esbuildOptions: {
-      define: { global: 'globalThis' },
+    rolldownOptions: {
+      transform: {
+        define: { global: 'globalThis' },
+      },
     },
   },
   build: {
-    chunkSizeWarningLimit: 2500,
-    rollupOptions: {},
+    rollupOptions: {
+      output: {
+        chunkFileNames(chunkInfo) {
+          if (chunkInfo.moduleIds.some((id) => id.includes('iconv-lite'))) {
+            return 'assets/encoding-[hash].js'
+          }
+          return 'assets/[name]-[hash].js'
+        },
+        manualChunks(id) {
+          if (id.includes('unicode-name')) return 'unicode-name'
+          return undefined
+        },
+      },
+    },
   },
-})
+}))

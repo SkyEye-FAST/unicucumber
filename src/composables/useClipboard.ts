@@ -1,9 +1,16 @@
 import { readonly, ref } from 'vue'
 
-import type { Position, SelectionData } from './useSelection'
+import type { GridData, GridPosition, SelectionRectangle } from '@/types/glyph'
+
+interface SelectionData {
+  data: GridData
+  width: number
+  height: number
+  originalRect: SelectionRectangle
+}
 
 export interface ClipboardData {
-  data: number[][]
+  data: GridData
   width: number
   height: number
   timestamp: number
@@ -32,7 +39,7 @@ export function useClipboard() {
   }
 
   const canPasteAt = (
-    targetPos: Position,
+    targetPos: GridPosition,
     gridWidth: number,
     gridHeight: number,
   ): boolean => {
@@ -48,7 +55,7 @@ export function useClipboard() {
     )
   }
 
-  const getPasteData = (targetPos: Position) => {
+  const getPasteData = (targetPos: GridPosition) => {
     if (!_clipboardData.value) return null
 
     const { data, width, height } = _clipboardData.value

@@ -1,0 +1,9 @@
+node_modules/
+dist/
+dev-dist/
+coverage/
+auto-imports.d.ts
+components.d.ts
+pnpm-lock.yaml
+public/unifont-map.json
+public/unifont/

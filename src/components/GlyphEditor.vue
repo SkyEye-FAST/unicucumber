@@ -12,6 +12,25 @@
       :browser-preview-font="settings.browserPreviewFont"
     />
 
+    <div class="document-status" :class="saveStatus" aria-live="polite">
+      <span class="status-dot" aria-hidden="true"></span>
+      {{ saveStatusLabel }}
+    </div>
+
+    <div
+      v-if="pendingRestoredDraft"
+      class="restored-draft-notice"
+      role="status"
+    >
+      <span>{{ $t('storage.restored_draft') }}</span>
+      <button type="button" @click="keepRestoredDraft">
+        {{ $t('storage.keep_draft') }}
+      </button>
+      <button type="button" @click="discardRestoredDraft">
+        {{ $t('storage.discard_draft') }}
+      </button>
+    </div>
+
     <SettingsModal
       v-model="showSettings"
       :settings="settings"
@@ -29,36 +48,61 @@
       :show-border="settings.showBorder"
       :current-tool="currentTool"
       :enable-selection="settings.enableSelection"
-      @update:cell="updateCell"
       @update:draw-value="updateDrawValue"
       @selection-change="handleSelectionChange"
       @tool-change="handleToolChange"
       @tool-state-change="handleToolStateChange"
-      @draw-complete="handleDrawComplete"
+      @command="handleGridCommand"
       @clipboard-change="handleClipboardChange"
+      @paste-start="handlePasteStart"
     />
 
     <div class="editor-actions">
       <div class="action-group">
         <button
           v-if="hasSelection"
-          class="action-button"
+          class="action-button icon-only"
           :title="$t('glyph_editor.cut_title')"
+          type="button"
+          :aria-label="$t('glyph_editor.cut_title')"
           @click="handleCut"
         >
           <i-material-symbols-content-cut class="icon" />
         </button>
         <button
           v-if="hasSelection"
-          class="action-button"
+          class="action-button icon-only"
           :title="$t('glyph_editor.copy_title')"
+          type="button"
+          :aria-label="$t('glyph_editor.copy_title')"
           @click="handleCopy"
         >
           <i-material-symbols-content-copy class="icon" />
         </button>
         <button
+          v-if="hasClipboardData"
+          class="action-button icon-only"
+          :title="$t('glyph_editor.paste_title')"
+          type="button"
+          :aria-label="$t('glyph_editor.paste_title')"
+          @click="handlePaste"
+        >
+          <i-material-symbols-content-paste class="icon" />
+        </button>
+        <button
+          class="action-button restore-action"
+          type="button"
+          :disabled="!hasUnsavedChanges || !activeGlyphId"
+          :title="$t('editor.actions.restore.title')"
+          @click="restoreSavedGlyph"
+        >
+          <i-material-symbols-restore-page-outline class="icon" />
+          {{ $t('editor.actions.restore.button') }}
+        </button>
+        <button
           class="action-button secondary"
           :title="$t('editor.actions.clear.title')"
+          type="button"
           @click="handleClear"
         >
           <i-material-symbols-mop-outline class="icon" />
@@ -67,6 +111,7 @@
         <button
           class="action-button primary"
           :title="$t('editor.actions.add_to_glyphset.title')"
+          type="button"
           @click="addToGlyphset"
         >
           <i-material-symbols-add-box-outline class="icon" />
@@ -78,6 +123,8 @@
           class="icon-button"
           :disabled="!canUndo"
           :title="$t('editor.actions.undo.title')"
+          type="button"
+          :aria-label="$t('editor.actions.undo.title')"
           @click="handleUndo"
         >
           <i-material-symbols-undo class="icon" />
@@ -86,6 +133,8 @@
           class="icon-button"
           :disabled="!canRedo"
           :title="$t('editor.actions.redo.title')"
+          type="button"
+          :aria-label="$t('editor.actions.redo.title')"
           @click="handleRedo"
         >
           <i-material-symbols-redo class="icon" />
@@ -99,14 +148,20 @@
       :enable-selection="settings.enableSelection"
       :draw-mode="settings.drawMode"
       :current-draw-value="currentDrawValue"
+      @command="handleGridCommand"
       @update:model-value="updateDrawValue"
     />
-    <HexCodeInput v-model:hex-code="hexCode" @update:grid="updateGridFromHex" />
+    <HexCodeInput :hex-code="hexCode" @apply="applyHexCode" />
     <DownloadButtons :grid-data="gridData" :codepoint="currentCodePoint" />
 
     <div :class="['sidebar', { active: isSidebarActive }]">
-      <div class="sidebar-resizer" @mousedown="startResize"></div>
-      <button class="btn-close-sidebar" @click="handleCloseSidebar">
+      <div class="sidebar-resizer" @pointerdown="startResize"></div>
+      <button
+        class="btn-close-sidebar"
+        type="button"
+        :aria-label="$t('header.close_glyph_manager')"
+        @click="handleCloseSidebar"
+      >
         <i-material-symbols-close class="icon" />
       </button>
       <GlyphManager
@@ -114,8 +169,10 @@
         :glyphs="glyphs"
         :on-glyph-change="setGlyphs"
         :prefill-data="prefillData"
+        :active-code-point="currentCodePoint"
         @edit-in-grid="handleGlyphEdit"
         @clear-prefill="clearPrefillData"
+        @saved="handleGlyphSaved"
       />
     </div>
 
@@ -127,6 +184,16 @@
       :cancel-text="dialogConfig.cancelText"
       @confirm="dialogConfig.onConfirm"
       @cancel="dialogConfig.onCancel"
+    />
+    <MobileCommandBar
+      :current-tool="currentTool"
+      :can-undo="canUndo"
+      :can-redo="canRedo"
+      :has-clipboard-data="hasClipboardData"
+      @tool="selectTool"
+      @undo="handleUndo"
+      @redo="handleRedo"
+      @action="handleMobileAction"
     />
     <div class="copyright-text" role="contentinfo">
       <div class="copyright-line copyright-line-top">
@@ -158,26 +225,19 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  provide,
-  ref,
-  watch,
-} from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import { useI18n } from 'vue-i18n'
 
-import { useGridData } from '@/composables/useGridData'
-import { useHexCode } from '@/composables/useHexCode'
-import { useHistory } from '@/composables/useHistory'
+import { useEditorDocument } from '@/composables/useEditorDocument'
+import { useNotifications } from '@/composables/useNotifications'
 import { useSettings } from '@/composables/useSettings'
 import { useSidebar } from '@/composables/useSidebar'
-import { useTheme } from '@/composables/useTheme'
-import type { Glyph, PrefillData } from '@/types/glyph'
-import { hexToGrid } from '@/utils/hexUtils'
+import { registerDraftFlusher } from '@/platform/draftFlush'
+import type { EditorCommand, MobileAction } from '@/types/editor'
+import type { EditorTool, Glyph, GridCell, PrefillData } from '@/types/glyph'
+import { getGlyphRepository, type StoredDraft } from '@/storage/glyphRepository'
+import { getGlyphWidthFromHex, gridToHex, hexToGrid } from '@/utils/hexUtils'
 
 import DialogBox from './DialogBox.vue'
 import DownloadButtons from './DownloadButtons.vue'
@@ -186,46 +246,9 @@ import GlyphGrid from './GlyphGrid.vue'
 import GlyphInfo from './GlyphInfo.vue'
 import GlyphManager from './GlyphManager.vue'
 import HexCodeInput from './HexCodeInput.vue'
+import MobileCommandBar from './MobileCommandBar.vue'
 import SettingsModal from './SettingsModal.vue'
 import ToolButtons from './ToolButtons.vue'
-
-interface Position {
-  x: number
-  y: number
-}
-
-interface CellPosition {
-  row: number
-  col: number
-}
-
-interface Region {
-  start: CellPosition
-  end: CellPosition
-}
-
-interface ClipboardData {
-  data: number[][]
-  width: number
-  height: number
-}
-
-interface GlyphData {
-  codePoint: string
-  hexValue: string
-}
-
-interface CellChange {
-  row: number
-  col: number
-  oldValue: number
-  newValue: number
-}
-
-interface DrawAction {
-  type: string
-  changes: CellChange[]
-}
 
 interface DialogConfigExtended {
   title: string
@@ -237,19 +260,51 @@ interface DialogConfigExtended {
 }
 
 const { t: $t } = useI18n()
+const { notify } = useNotifications()
 
 const { settings, showSettings } = useSettings()
-const width = computed(() => settings.value.glyphWidth)
-const { gridData, resetGrid, updateGrid } = useGridData(width)
-const { hexCode, updateHexCode, updateGridFromHex } = useHexCode(
-  gridData,
-  resetGrid,
-)
+const editorDocument = useEditorDocument({ width: settings.value.glyphWidth })
+const glyphRepository = getGlyphRepository()
+const gridData = editorDocument.grid
+const width = editorDocument.width
+const activeGlyphId = editorDocument.activeGlyphId
+const hexCode = computed(() => gridToHex(gridData.value))
 const { isSidebarActive, sidebarWidth, toggleSidebar, startResize } =
   useSidebar()
 
+let previousBodyOverflow = ''
+watch(isSidebarActive, (active) => {
+  if (
+    active &&
+    window.matchMedia('(max-width: 720px), (pointer: coarse)').matches
+  ) {
+    previousBodyOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = previousBodyOverflow
+  }
+})
+
+watch(
+  () => settings.value.glyphWidth,
+  (newWidth) => {
+    if (newWidth === width.value) return
+    editorDocument.execute({
+      type: 'replaceGrid',
+      grid: Array.from({ length: 16 }, () => Array<GridCell>(newWidth).fill(0)),
+      reason: 'width-change',
+    })
+  },
+)
+
+watch(width, (newWidth) => {
+  if (settings.value.glyphWidth !== newWidth) {
+    settings.value.glyphWidth = newWidth
+  }
+})
+
 const drawValue = ref<number>(1)
-const currentTool = ref<'draw' | 'erase' | 'select'>('draw')
+const currentTool = ref<EditorTool>('draw')
 const hasSelection = ref<boolean>(false)
 const hasClipboardData = ref<boolean>(false)
 
@@ -284,7 +339,7 @@ const handleSelectionChange = (hasSelectionValue: boolean): void => {
   hasSelection.value = hasSelectionValue
 }
 
-const handleToolChange = (tool: 'draw' | 'erase' | 'select'): void => {
+const handleToolChange = (tool: EditorTool): void => {
   currentTool.value = tool
 }
 
@@ -314,11 +369,16 @@ defineExpose({
 
 const glyphs = ref<Glyph[]>([])
 const prefillData = ref<PrefillData | null>(null)
-const currentGlyph = ref<GlyphData>({
-  codePoint: '0000',
-  hexValue: '',
-})
-const hasUnsavedChanges = ref<boolean>(false)
+const hasUnsavedChanges = editorDocument.dirty
+type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error'
+const saveStatus = ref<SaveStatus>('saved')
+const saveStatusLabel = computed(() => $t(`storage.status_${saveStatus.value}`))
+const pendingRestoredDraft = ref<StoredDraft | null>(null)
+let draftTimer: number | null = null
+let storageReady = false
+let draftFlushPromise: Promise<void> | null = null
+let draftRevision = 0
+let unregisterDraftFlusher: (() => void) | null = null
 const showDialog = ref<boolean>(false)
 const dialogConfig = ref<DialogConfigExtended>({
   title: '',
@@ -327,126 +387,285 @@ const dialogConfig = ref<DialogConfigExtended>({
 })
 
 interface GlyphGridInstance {
-  selection: object
-  clipboard: object
   handleCopy: () => void
   handleCut: () => void
   handlePaste: () => void
   handleSelectAll: () => void
   handleDelete: () => void
+  cancelPaste: () => void
+  nudgeSelection: (row: number, col: number) => void
   clearSelection: () => void
-  gridFontString?: string
+  drawing?: {
+    currentDrawValue?: {
+      value?: number
+    }
+  }
 }
 
-const glyphGridRef = ref<GlyphGridInstance | null>(null)
-const gridRef = ref<InstanceType<typeof GlyphGrid> | null>(null)
-const gridFontRef = ref<HTMLElement | null>(null)
+const gridRef = ref<GlyphGridInstance | null>(null)
 
 const currentDrawValue = computed(() => {
   return gridRef.value?.drawing?.currentDrawValue?.value
 })
 
-const { isDark } = useTheme()
-provide('isDark', isDark)
-
-const mousePosition = ref<Position>({ x: 0, y: 0 })
-
-const currentCodePoint = ref<string>('0000')
+const currentCodePoint = computed({
+  get: () => editorDocument.codePoint.value,
+  set: (codePoint: string) => {
+    editorDocument.execute({ type: 'setCodePoint', codePoint })
+  },
+})
 
 const unifontVersion = ref<string>(
   (import.meta.env.VITE_UNIFONT_VERSION as string) || '',
 )
 
 onMounted(() => {
-  updateGridFontPreview()
-  document.addEventListener('contextmenu', preventDefault)
   document.addEventListener('keydown', handleKeydown)
-  document.addEventListener('mousemove', updateMousePosition)
-  nextTick(updateGridFontPreview)
+  window.addEventListener('beforeunload', handleBeforeUnload)
+  document.addEventListener('visibilitychange', handleDraftVisibilityChange)
+  unregisterDraftFlusher = registerDraftFlusher(flushDraft)
+  void initializeDraftStorage()
 })
 
 onBeforeUnmount(() => {
-  document.removeEventListener('contextmenu', preventDefault)
   document.removeEventListener('keydown', handleKeydown)
-  document.removeEventListener('mousemove', updateMousePosition)
+  window.removeEventListener('beforeunload', handleBeforeUnload)
+  document.removeEventListener('visibilitychange', handleDraftVisibilityChange)
+  unregisterDraftFlusher?.()
+  document.body.style.overflow = previousBodyOverflow
+  if (saveStatus.value !== 'saved') void flushDraft().catch(() => undefined)
 })
 
-const updateMousePosition = (e: MouseEvent): void => {
-  mousePosition.value = { x: e.clientX, y: e.clientY }
+const initializeDraftStorage = async (): Promise<void> => {
+  try {
+    const draft = await glyphRepository.loadDraft()
+    if (draft) {
+      editorDocument.load(draft.snapshot, 'restored-draft', false)
+      settings.value.glyphWidth = draft.snapshot.width
+      pendingRestoredDraft.value = draft
+      saveStatus.value = 'unsaved'
+    }
+    if (!glyphRepository.persistent) {
+      notify({ tone: 'warning', message: $t('storage.fallback_warning') })
+    }
+  } catch (error) {
+    console.error('Unable to restore the editor draft.', error)
+    saveStatus.value = 'error'
+    notify({ tone: 'error', message: $t('storage.draft_restore_failed') })
+  } finally {
+    storageReady = true
+  }
 }
 
-const selectedRegion = ref<Region | null>(null)
-const clipboardData = ref<ClipboardData | null>(null)
+const flushDraft = async (): Promise<void> => {
+  if (!storageReady) return
+  if (saveStatus.value === 'saved') return
+  if (draftFlushPromise) return draftFlushPromise
+  if (draftTimer !== null) {
+    window.clearTimeout(draftTimer)
+    draftTimer = null
+  }
+  saveStatus.value = 'saving'
+  const revision = draftRevision
+  draftFlushPromise = glyphRepository
+    .saveDraft({
+      id: 'current',
+      schemaVersion: 1,
+      updatedAt: Date.now(),
+      snapshot: editorDocument.snapshot(),
+    })
+    .then(() => {
+      if (draftRevision === revision) {
+        saveStatus.value = 'saved'
+      } else {
+        saveStatus.value = 'unsaved'
+        draftTimer = window.setTimeout(
+          () => void flushDraft().catch(() => undefined),
+          0,
+        )
+      }
+    })
+    .catch((error: unknown) => {
+      const isExpectedUnloadAbort =
+        document.visibilityState === 'hidden' &&
+        error instanceof Error &&
+        ['AbortError', 'InvalidStateError', 'UnknownError'].includes(error.name)
+      if (isExpectedUnloadAbort) {
+        saveStatus.value = 'unsaved'
+        return
+      }
+      console.error('Unable to autosave the editor draft.', error)
+      saveStatus.value = 'error'
+      notify({ tone: 'error', message: $t('storage.draft_save_failed') })
+      throw error
+    })
+    .finally(() => {
+      draftFlushPromise = null
+    })
+  return draftFlushPromise
+}
 
-const copyMode = ref<boolean>(false)
-const moveMode = ref<boolean>(false)
+const scheduleDraftSave = (): void => {
+  if (!storageReady) return
+  draftRevision += 1
+  saveStatus.value = 'unsaved'
+  if (draftTimer !== null) window.clearTimeout(draftTimer)
+  draftTimer = window.setTimeout(
+    () => void flushDraft().catch(() => undefined),
+    350,
+  )
+}
 
 watch(
-  [drawValue, selectedRegion],
-  ([newDrawValue, newSelectedRegion]: [number, Region | null]): void => {
-    moveMode.value = newDrawValue === 2 && newSelectedRegion !== null
-  },
-  { immediate: true },
+  [gridData, editorDocument.codePoint, editorDocument.activeGlyphId],
+  scheduleDraftSave,
 )
 
-const pasteMode = ref<boolean>(false)
+const handleBeforeUnload = (event: BeforeUnloadEvent): void => {
+  if (saveStatus.value === 'saved') return
+  event.preventDefault()
+  event.returnValue = ''
+}
 
-defineEmits(['update:modelValue', 'selection-complete', 'paste-complete'])
+const handleDraftVisibilityChange = (): void => {
+  if (document.visibilityState !== 'visible' && saveStatus.value !== 'saved') {
+    void flushDraft().catch(() => undefined)
+  }
+}
+
+const keepRestoredDraft = (): void => {
+  pendingRestoredDraft.value = null
+  scheduleDraftSave()
+}
+
+const discardRestoredDraft = async (): Promise<void> => {
+  pendingRestoredDraft.value = null
+  await glyphRepository.deleteDraft()
+  editorDocument.load(
+    {
+      codePoint: '0000',
+      width: settings.value.glyphWidth,
+      activeGlyphId: null,
+    },
+    'discard-restored-draft',
+  )
+  saveStatus.value = 'saved'
+}
+
+const handleGlyphSaved = (glyph: Glyph): void => {
+  editorDocument.markSaved(glyph.codePoint)
+  pendingRestoredDraft.value = null
+  void glyphRepository.deleteDraft()
+  saveStatus.value = 'saved'
+  notify({ tone: 'success', message: $t('storage.glyph_saved') })
+}
 
 const handleKeydown = (e: KeyboardEvent): void => {
-  if (e.ctrlKey) {
-    if (e.key === 'z') {
-      e.preventDefault()
-      handleUndo()
-    } else if (e.key === 'y') {
+  const target = e.target as HTMLElement | null
+  if (target?.matches('input, textarea, select, [contenteditable="true"]'))
+    return
+  if (e.ctrlKey || e.metaKey) {
+    const key = e.key.toLowerCase()
+    if (key === 'z' && e.shiftKey) {
       e.preventDefault()
       handleRedo()
-    } else if (e.key === 'x' && selectedRegion.value) {
+    } else if (key === 'z') {
+      e.preventDefault()
+      handleUndo()
+    } else if (key === 'y') {
+      e.preventDefault()
+      handleRedo()
+    } else if (key === 'x' && hasSelection.value) {
       e.preventDefault()
       handleCut()
-    } else if (e.key === 'c' && selectedRegion.value) {
+    } else if (key === 'c' && hasSelection.value) {
       e.preventDefault()
       handleCopy()
+    } else if (key === 'v') {
+      e.preventDefault()
+      if (hasClipboardData.value) {
+        handlePaste()
+      }
+    } else if (key === 'a') {
+      e.preventDefault()
+      selectTool('select')
+      nextTick(() => gridRef.value?.handleSelectAll())
     }
+    return
+  }
+
+  if (e.key === 'Delete' || e.key === 'Backspace') {
+    if (hasSelection.value) {
+      e.preventDefault()
+      gridRef.value?.handleDelete()
+    }
+    return
+  }
+  if (e.key === 'Escape') {
+    gridRef.value?.cancelPaste()
+    clearSelection()
+    return
+  }
+  if (hasSelection.value && e.key.startsWith('Arrow')) {
+    const offsets: Record<string, [number, number]> = {
+      ArrowUp: [-1, 0],
+      ArrowDown: [1, 0],
+      ArrowLeft: [0, -1],
+      ArrowRight: [0, 1],
+    }
+    const offset = offsets[e.key]
+    if (offset) {
+      e.preventDefault()
+      gridRef.value?.nudgeSelection(...offset)
+    }
+    return
+  }
+
+  const key = e.key.toLowerCase()
+  const shortcutTool: EditorTool | undefined =
+    key === 'p'
+      ? 'draw'
+      : key === 'e'
+        ? 'erase'
+        : key === 's'
+          ? 'select'
+          : key === 'f'
+            ? 'fill'
+            : key === 'l'
+              ? 'line'
+              : key === 'r'
+                ? e.shiftKey
+                  ? 'filledRectangle'
+                  : 'rectangle'
+                : key === 'h'
+                  ? 'pan'
+                  : undefined
+  if (shortcutTool) {
+    e.preventDefault()
+    selectTool(shortcutTool)
   }
 }
 
 const handleCopy = (): void => {
-  if (glyphGridRef.value) {
-    glyphGridRef.value.handleCopy()
-  }
+  gridRef.value?.handleCopy()
 }
 
 const handleCut = (): void => {
-  if (glyphGridRef.value) {
-    glyphGridRef.value.handleCut()
-  }
+  gridRef.value?.handleCut()
+}
+
+const handlePaste = (): void => {
+  if (!hasClipboardData.value) return
+  gridRef.value?.handlePaste()
 }
 
 const clearSelection = (): void => {
-  if (glyphGridRef.value) {
-    glyphGridRef.value.clearSelection()
-  }
-  selectedRegion.value = null
-  clipboardData.value = null
-  copyMode.value = false
-  moveMode.value = false
+  gridRef.value?.clearSelection()
 }
-
-watch(
-  () => selectedRegion.value,
-  (): void => {
-    if (selectedRegion.value) {
-      pushState(gridData.value, 'selection')
-    }
-  },
-)
 
 const setGlyphs = (newGlyphs: Glyph[]): void => {
   glyphs.value = newGlyphs
 }
-
-const preventDefault = (e: Event): void => e.preventDefault()
 
 const addToGlyphset = (): void => {
   prefillData.value = {
@@ -486,7 +705,7 @@ const showConfirmDialog = ({
 
 const handleGlyphEdit = (hexValue: string, glyph?: Glyph): void => {
   try {
-    if (hasUnsavedChanges.value && currentGlyph.value) {
+    if (hasUnsavedChanges.value) {
       showConfirmDialog({
         title: $t('dialog.unsaved_changes.title'),
         message: $t('dialog.unsaved_changes.message'),
@@ -511,23 +730,18 @@ const loadGlyph = async (hexValue: string, glyph: Glyph): Promise<void> => {
   }
 
   const newGrid = hexToGrid(hexValue)
-  if (newGrid && newGrid[0]) {
-    const newWidth = newGrid[0].length
-
-    settings.value.glyphWidth = newWidth === 8 ? 8 : 16
+  const newWidth = getGlyphWidthFromHex(hexValue)
+  if (newGrid && newWidth !== null) {
+    editorDocument.load(
+      {
+        codePoint: glyph.codePoint,
+        grid: newGrid,
+        activeGlyphId: glyph.codePoint,
+      },
+      'glyph',
+    )
+    settings.value.glyphWidth = newWidth
     await nextTick()
-    updateGrid(newWidth)
-    await nextTick()
-    gridData.value = newGrid
-    hexCode.value = hexValue
-    currentGlyph.value = {
-      codePoint: glyph.codePoint,
-      hexValue: hexValue,
-    }
-    currentCodePoint.value = glyph.codePoint
-    hasUnsavedChanges.value = false
-    await nextTick()
-    updateGridFontPreview()
   }
 }
 
@@ -535,23 +749,12 @@ const clearPrefillData = (): void => {
   prefillData.value = null
 }
 
-const { pushState, undo, redo, canUndo, canRedo, clearAndInitHistory } =
-  useHistory(gridData.value)
+const { canUndo, canRedo } = editorDocument
 
 const handleClear = (): void => {
   const doClear = () => {
-    if (gridData.value && gridData.value[0]) {
-      resetGrid(gridData.value[0].length)
-      updateHexCode()
-      hasUnsavedChanges.value = false
-      currentCodePoint.value = '0000'
-      currentGlyph.value = {
-        codePoint: '0000',
-        hexValue: '',
-      }
-      pushState(gridData.value, 'clear-grid')
-      showDialog.value = false
-    }
+    editorDocument.execute({ type: 'clearGrid' })
+    showDialog.value = false
   }
 
   if (settings.value.confirmClear) {
@@ -567,33 +770,24 @@ const handleClear = (): void => {
 }
 
 const handleUndo = (): void => {
-  const prevState = undo()
-  if (prevState) {
-    gridData.value = prevState
-    updateHexCode()
-  }
+  editorDocument.undo()
 }
 
 const handleRedo = (): void => {
-  const nextState = redo()
-  if (nextState) {
-    gridData.value = nextState
-    updateHexCode()
-  }
+  editorDocument.redo()
 }
 
-const updateCell = (
-  rowIndex: number,
-  cellIndex: number,
-  value: number,
-): void => {
-  if (gridData.value) {
-    const newGrid = gridData.value.map((row) => [...row])
-    if (newGrid[rowIndex]) {
-      newGrid[rowIndex][cellIndex] = value
-      gridData.value = newGrid
-    }
-  }
+const restoreSavedGlyph = (): void => {
+  editorDocument.restoreSaved()
+}
+
+const applyHexCode = (value: string): void => {
+  const nextGrid = hexToGrid(value)
+  const nextWidth = getGlyphWidthFromHex(value)
+  if (nextGrid === null || nextWidth === null) return
+
+  editorDocument.execute({ type: 'replaceGrid', grid: nextGrid, reason: 'hex' })
+  settings.value.glyphWidth = nextWidth
 }
 
 const handleCloseSidebar = (): void => {
@@ -604,52 +798,117 @@ const updateSettings = (newSettings: typeof settings.value): void => {
   Object.assign(settings.value, newSettings)
 }
 
-const updateGridFontPreview = (): void => {
+const handleGridCommand = (command: EditorCommand): void => {
+  editorDocument.execute(command)
+}
+
+const selectTool = (tool: EditorTool): void => {
+  currentTool.value = tool
+  if (tool === 'draw') drawValue.value = 1
+  else if (tool === 'erase') drawValue.value = 0
+  else if (tool === 'select') drawValue.value = 2
+}
+
+const handleMobileAction = (action: MobileAction): void => {
+  if (action === 'paste') {
+    handlePaste()
+    return
+  }
+  if (action === 'clear') {
+    handleClear()
+    return
+  }
+  if (action === 'restore') {
+    restoreSavedGlyph()
+    return
+  }
+  if (action.startsWith('shift-')) {
+    const direction = action.slice('shift-'.length) as
+      'up' | 'down' | 'left' | 'right'
+    handleGridCommand({ type: 'shiftGrid', direction })
+    return
+  }
   if (
-    gridFontRef.value &&
-    glyphGridRef.value &&
-    glyphGridRef.value.gridFontString
+    action === 'invert' ||
+    action === 'flipHorizontal' ||
+    action === 'flipVertical'
   ) {
-    gridFontRef.value.textContent = glyphGridRef.value.gridFontString
+    handleGridCommand({ type: action })
   }
 }
 
-watch(() => gridData.value, updateGridFontPreview, { deep: true })
-
-onBeforeUnmount(() => {
-  document.removeEventListener('contextmenu', preventDefault)
-  document.removeEventListener('keydown', handleKeydown)
-  if (pasteMode.value) {
-    pasteMode.value = false
+const handlePasteStart = (): void => {
+  if (settings.value.enableSelection) {
+    drawValue.value = 2
+    currentTool.value = 'select'
   }
-})
-
-watch(
-  () => currentGlyph.value,
-  (newGlyph): void => {
-    if (newGlyph) {
-      clearAndInitHistory(gridData.value)
-    }
-  },
-  { deep: true },
-)
-
-const handleDrawComplete = (changes: CellChange[]): void => {
-  const action: DrawAction = {
-    type: 'draw',
-    changes: changes,
-  }
-  pushState(gridData.value, JSON.stringify(action))
 }
 </script>
 
 <style scoped>
+.document-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 1.5rem;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--grey-color);
+}
+
+.document-status.saved .status-dot {
+  background: var(--primary-color);
+}
+
+.document-status.saving .status-dot,
+.document-status.unsaved .status-dot {
+  background: var(--warning-color);
+}
+
+.document-status.error .status-dot {
+  background: var(--danger-color);
+}
+
+.restored-draft-notice {
+  width: min(36rem, calc(100% - 1rem));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.4rem;
+  padding: 0.55rem;
+  border: 1px solid var(--warning-border);
+  border-radius: 4px;
+  background: var(--warning-background);
+  color: var(--warning-text);
+}
+
+.restored-draft-notice span {
+  flex: 1 1 14rem;
+}
+
+.restored-draft-notice button {
+  min-height: 44px;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+}
+
 .sidebar {
   position: fixed;
   top: 0;
   left: 0;
   width: v-bind(sidebarWidth + 'px');
-  height: 100%;
+  height: 100dvh;
   background-color: var(--background-light);
   box-shadow: 2px 0 5px var(--modal-overlay);
   transition: transform 0.3s ease;
@@ -705,9 +964,42 @@ const handleDrawComplete = (changes: CellChange[]): void => {
   transition: background-color 0.2s;
 }
 
+.action-button.icon-only {
+  padding: 8px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--text-secondary);
+}
+
+.action-button.icon-only .icon {
+  font-size: 20px;
+}
+
+.action-button.icon-only:hover,
+.action-button.icon-only:focus {
+  background: transparent;
+  color: var(--text-color);
+}
+
 .action-button.primary {
   background: var(--primary-color);
   color: white;
+}
+
+.action-button.restore-action {
+  border: 1px solid var(--border-color);
+  background: var(--background-light);
+  color: var(--text-color);
+}
+
+.action-button.restore-action:hover:not(:disabled) {
+  background: var(--background-hover);
+}
+
+.action-button.restore-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .action-button.primary:hover {
@@ -850,7 +1142,11 @@ const handleDrawComplete = (changes: CellChange[]): void => {
   font-size: 0.95em;
 }
 
-@media (orientation: portrait) and (max-width: 768px) {
+@media (max-width: 720px), (pointer: coarse) {
+  .container {
+    padding-bottom: calc(4.75rem + env(safe-area-inset-bottom));
+  }
+
   .btn-close-sidebar {
     padding: 12px;
   }
@@ -861,6 +1157,10 @@ const handleDrawComplete = (changes: CellChange[]): void => {
 
   .sidebar {
     width: 100%;
+    padding-top: env(safe-area-inset-top);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
   }
 
   .sidebar-resizer {
@@ -876,6 +1176,10 @@ const handleDrawComplete = (changes: CellChange[]): void => {
   .editor-actions {
     margin: 1rem 0.2rem 0.8rem;
     gap: 12px;
+  }
+
+  .restore-action {
+    display: none;
   }
 
   .action-button {

@@ -2,6 +2,23 @@ interface CJKCharFunction {
   (char: string): boolean
 }
 
+export const isUnicodeScalarValue = (value: number): boolean =>
+  Number.isInteger(value) &&
+  value >= 0 &&
+  value <= 0x10ffff &&
+  (value < 0xd800 || value > 0xdfff)
+
+export const characterFromCodePoint = (value: number): string | null =>
+  isUnicodeScalarValue(value) ? String.fromCodePoint(value) : null
+
+export const normalizeCodePointHex = (value: string): string | null => {
+  const normalized = value.trim().toUpperCase()
+  if (!/^[0-9A-F]{1,6}$/.test(normalized)) return null
+  const codePoint = Number.parseInt(normalized, 16)
+  if (!isUnicodeScalarValue(codePoint)) return null
+  return normalized.padStart(4, '0')
+}
+
 export const isCJKChar: CJKCharFunction = function (char) {
   const code = char.codePointAt(0)
   if (code === undefined) return false

@@ -1,104 +1,126 @@
 <template>
-  <div v-if="show" class="dialog-overlay">
-    <div class="dialog-box" :style="{ maxWidth: dialogMaxWidth }">
-      <h3 class="dialog-title">{{ title }}</h3>
-      <div class="dialog-content">
-        <p>{{ message }}</p>
-        <div v-if="showProgress" class="progress-section">
-          <div class="progress-info">
-            <span>{{ progressCurrent }} / {{ progressTotal }}</span>
-            <span>{{ progressPercentage }}%</span>
+  <Teleport to="body">
+    <div v-if="show" class="dialog-overlay" @keydown="handleDialogKeydown">
+      <div
+        ref="dialogRef"
+        class="dialog-box"
+        role="dialog"
+        aria-modal="true"
+        :aria-labelledby="titleId"
+        :aria-describedby="message ? messageId : undefined"
+        tabindex="-1"
+      >
+        <h3 :id="titleId" class="dialog-title">{{ title }}</h3>
+        <div class="dialog-content">
+          <p v-if="message" :id="messageId">{{ message }}</p>
+          <div v-if="showProgress" class="progress-section">
+            <div class="progress-info">
+              <span>{{ progressCurrent }} / {{ progressTotal }}</span>
+              <span>{{ progressPercentage }}%</span>
+            </div>
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                :style="{ width: progressPercentage + '%' }"
+              ></div>
+            </div>
           </div>
-          <div class="progress-bar">
-            <div
-              class="progress-fill"
-              :style="{ width: progressPercentage + '%' }"
-            ></div>
-          </div>
-        </div>
-        <div
-          v-if="hexValue && displayMode === 'glyph-input'"
-          class="glyph-preview-section"
-        >
-          <div class="glyph-preview-container">
-            <PixelPreview
-              :hex-value="hexValue"
-              :width="hexValue.length <= 32 ? 8 : 16"
-              display-mode="dialog"
-            />
-          </div>
-          <div class="glyph-info">
-            <span class="hex-label">{{ $t('dialog.glyph_hex') }}:</span>
-            <span class="hex-display">{{ hexValue }}</span>
-          </div>
-        </div>
-        <div v-if="type === 'list'" class="conflict-list">
-          <div class="select-all-row">
-            <label class="checkbox-label">
-              <input
-                type="checkbox"
-                :checked="isAllSelected"
-                @change="toggleSelectAll"
+          <div
+            v-if="hexValue && displayMode === 'glyph-input'"
+            class="glyph-preview-section"
+          >
+            <div class="glyph-preview-container">
+              <PixelPreview
+                :hex-value="hexValue"
+                :width="hexValue.length <= 32 ? 8 : 16"
+                display-mode="dialog"
               />
-              {{ $t('dialog.select_all') }}
-            </label>
+            </div>
+            <div class="glyph-info">
+              <span class="hex-label">{{ $t('dialog.glyph_hex') }}:</span>
+              <span class="hex-display">{{ hexValue }}</span>
+            </div>
           </div>
-          <div class="conflict-items-container">
-            <div
-              v-for="item in items"
-              :key="item.codePoint"
-              class="conflict-item"
-            >
+          <div v-if="type === 'list'" class="conflict-list">
+            <div class="select-all-row">
               <label class="checkbox-label">
-                <input v-model="selectedItems" type="checkbox" :value="item" />
-                <span class="item-details">
-                  <span class="code-info">
-                    <span class="code-point">U+{{ item.codePoint }}</span>
-                    <span class="hex-value">{{ item.hexValue }}</span>
-                  </span>
-                  <span class="glyph-preview">
-                    {{ String.fromCodePoint(parseInt(item.codePoint, 16)) }}
-                  </span>
-                </span>
+                <input
+                  type="checkbox"
+                  :checked="isAllSelected"
+                  @change="toggleSelectAll"
+                />
+                {{ $t('dialog.select_all') }}
               </label>
+            </div>
+            <div class="conflict-items-container">
+              <div
+                v-for="item in items"
+                :key="item.codePoint"
+                class="conflict-item"
+              >
+                <label class="checkbox-label">
+                  <input
+                    v-model="selectedItems"
+                    type="checkbox"
+                    :value="item"
+                  />
+                  <span class="item-details">
+                    <span class="code-info">
+                      <span class="code-point">U+{{ item.codePoint }}</span>
+                      <span class="hex-value">{{ item.hexValue }}</span>
+                    </span>
+                    <span class="glyph-preview">
+                      {{ String.fromCodePoint(parseInt(item.codePoint, 16)) }}
+                    </span>
+                  </span>
+                </label>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="dialog-actions">
-        <template v-if="customButtons && customButtons.length > 0">
-          <button
-            v-for="(button, index) in customButtons"
-            :key="index"
-            :class="['btn-custom', button.class || 'btn-secondary']"
-            @click="handleCustomButton(button.action)"
-          >
-            {{ button.text }}
-          </button>
-        </template>
-        <template v-else>
-          <button v-if="showCancel" class="btn-secondary" @click="handleCancel">
-            {{ cancelText }}
-          </button>
-          <button
-            :class="{ 'btn-primary': !danger, 'btn-danger': danger }"
-            @click="handleConfirm"
-          >
-            {{ confirmText }}
-          </button>
-        </template>
+        <div class="dialog-actions">
+          <template v-if="customButtons && customButtons.length > 0">
+            <button
+              v-for="(button, index) in customButtons"
+              :key="index"
+              :class="['btn-custom', button.class || 'btn-secondary']"
+              type="button"
+              @click="handleCustomButton(button.action)"
+            >
+              {{ button.text }}
+            </button>
+          </template>
+          <template v-else>
+            <button
+              v-if="showCancel"
+              class="btn-secondary"
+              type="button"
+              @click="handleCancel"
+            >
+              {{ cancelText }}
+            </button>
+            <button
+              :class="{ 'btn-primary': !danger, 'btn-danger': danger }"
+              type="button"
+              @click="handleConfirm"
+            >
+              {{ confirmText }}
+            </button>
+          </template>
+        </div>
       </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
 
 import { useI18n } from 'vue-i18n'
 
 import PixelPreview from '@/components/GlyphManager/PixelPreview.vue'
 import type { Glyph } from '@/types/glyph'
+import { acquireOverlayLock, releaseOverlayLock } from '@/utils/overlayStack'
 
 const { t: $t } = useI18n()
 
@@ -180,6 +202,44 @@ const props = defineProps({
 
 const emit = defineEmits(['confirm', 'cancel', 'customAction'])
 const selectedItems = ref<Glyph[]>([])
+const dialogRef = ref<HTMLElement | null>(null)
+const titleId = `dialog-title-${useId()}`
+const messageId = `dialog-message-${useId()}`
+let previouslyFocused: HTMLElement | null = null
+let dialogIsRegistered = false
+
+const registerDialog = (): void => {
+  if (dialogIsRegistered) return
+  dialogIsRegistered = true
+  previouslyFocused = document.activeElement as HTMLElement | null
+  acquireOverlayLock()
+  void nextTick(() => {
+    const firstControl = dialogRef.value?.querySelector<HTMLElement>(
+      'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+    )
+    ;(firstControl ?? dialogRef.value)?.focus()
+  })
+}
+
+const unregisterDialog = (): void => {
+  if (!dialogIsRegistered) return
+  dialogIsRegistered = false
+  releaseOverlayLock()
+  previouslyFocused?.focus()
+  previouslyFocused = null
+}
+
+watch(
+  () => props.show,
+  (show) => {
+    selectedItems.value = []
+    if (show) registerDialog()
+    else unregisterDialog()
+  },
+  { immediate: true },
+)
+
+onBeforeUnmount(unregisterDialog)
 
 const confirmText = computed(() => props.confirmText || $t('dialog.confirm'))
 const cancelText = computed(() => props.cancelText || $t('dialog.cancel'))
@@ -218,12 +278,34 @@ const handleCustomButton = (action: string) => {
   selectedItems.value = []
 }
 
-const dialogMaxWidth = computed(() => {
-  const viewportWidth = window.innerWidth
-  if (viewportWidth <= 480) return '95%'
-  if (viewportWidth <= 1024) return '90%'
-  return '800px'
-})
+const handleDialogKeydown = (event: KeyboardEvent): void => {
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    if (props.showCancel) handleCancel()
+    else handleConfirm()
+    return
+  }
+  if (event.key !== 'Tab' || !dialogRef.value) return
+  const focusable = Array.from(
+    dialogRef.value.querySelectorAll<HTMLElement>(
+      'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [href], [tabindex]:not([tabindex="-1"])',
+    ),
+  ).filter((element) => element.offsetParent !== null)
+  if (focusable.length === 0) {
+    event.preventDefault()
+    dialogRef.value.focus()
+    return
+  }
+  const first = focusable[0]!
+  const last = focusable[focusable.length - 1]!
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
 </script>
 
 <style scoped>
@@ -238,8 +320,10 @@ const dialogMaxWidth = computed(() => {
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 20px;
-  pointer-events: none;
+  padding: max(12px, env(safe-area-inset-top))
+    max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom))
+    max(12px, env(safe-area-inset-left));
+  pointer-events: auto;
 }
 
 .dialog-box {
@@ -247,7 +331,13 @@ const dialogMaxWidth = computed(() => {
   border: 1px solid var(--dialog-border);
   border-radius: 8px;
   padding: 20px;
-  width: 100%;
+  width: min(800px, 100%);
+  max-height: calc(
+    100dvh - max(24px, env(safe-area-inset-top)) -
+      max(24px, env(safe-area-inset-bottom))
+  );
+  display: flex;
+  flex-direction: column;
   box-shadow: 0 2px 12px var(--modal-shadow);
   pointer-events: auto;
 }
@@ -261,12 +351,17 @@ const dialogMaxWidth = computed(() => {
 .dialog-content {
   margin-bottom: 20px;
   color: var(--text-color);
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+  flex: 0 0 auto;
+  padding-top: 0.5rem;
+  background: var(--dialog-background);
 }
 
 .conflict-list {

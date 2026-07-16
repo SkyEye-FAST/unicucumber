@@ -57,6 +57,10 @@
       "redo": {
         "title": "重做(Ctrl+Y)"
       },
+      "restore": {
+        "button": "還原已儲存",
+        "title": "將此字形還原到上次儲存的狀態"
+      },
       "show_encoding_info": "顯示編碼資訊",
       "undo": {
         "title": "復原(Ctrl+Z)"
@@ -68,11 +72,13 @@
     "copy_title": "複製 (Ctrl+C)",
     "cut_title": "剪下 (Ctrl+X)",
     "glyph_data": "字形資料",
+    "invalid_code_point": "請輸入 U+0000 至 U+10FFFF 的 Unicode 純量值（不含代理碼位）。",
     "move_hint": "移動到網格位置",
     "paste_hint": "點擊網格位置以貼上",
     "paste_title": "貼上 (Ctrl+V)"
   },
   "glyph_manager": {
+    "backup_exported": "字形庫備份已匯出。",
     "add": {
       "add_button": "新增字形",
       "character": "輸入字符",
@@ -83,6 +89,12 @@
       "update_button": "更新字形"
     },
     "batch_delete": "批量刪除",
+    "hex_error_invalid_code_point": "Unicode 純量值無效",
+    "hex_error_invalid_glyph_data": "字形資料必須恰好包含 32 或 64 位十六進位數字",
+    "hex_error_missing_separator": "缺少碼位與資料分隔符",
+    "hex_invalid_count": "已略過 {count} 行無效的 .hex 資料。",
+    "hex_invalid_line": "第 {line} 行：{reason}",
+    "hex_invalid_title": "部分 .hex 行未匯入",
     "delete_selected": "刪除選中的 {count} 項",
     "duplicate": {
       "cancel": "取消",
@@ -91,10 +103,16 @@
     },
     "error": {
       "loading_storage": "從存儲載入字形時出錯",
+      "loading_unicode_names": "無法載入 Unicode 名稱，仍可使用碼位搜尋。",
       "loading_unifont": "載入 Unifont 資料出錯",
+      "unifont_not_found": "內建 Unifont 資料中沒有此碼位。",
       "saving_storage": "儲存字形到存儲時出錯"
     },
     "export": "匯出字形",
+    "export_backup": "帶版本的備份（.json）",
+    "export_failed": "無法匯出字形庫。",
+    "export_hex": "Unifont 字形（.hex）",
+    "export_sheet": "點陣圖表（.png）",
     "glyph": {
       "code_point": "碼位：",
       "delete": "刪除",
@@ -103,6 +121,8 @@
       "hex": "Hex："
     },
     "import": "從 Unifont 讀取",
+    "navigation": "字形導覽",
+    "next": "下一個",
     "manual_input": {
       "message": "請為該字形輸入碼位：",
       "process": "處理",
@@ -110,12 +130,22 @@
       "skip_one": "跳過",
       "title": "需要手動輸入碼位"
     },
-    "search": "搜尋字形...",
+    "position": "第 {current} 個，共 {total} 個",
+    "previous": "上一個",
+    "search": "搜尋碼位、字元、資料或 Unicode 名稱…",
+    "sheet_columns": "欄數",
+    "sheet_exported": "點陣圖表已匯出（{columns} 欄，{scale} 倍像素縮放）。",
+    "sheet_scale": "像素縮放",
     "select_all": "全選",
     "title": "字形管理器",
     "upload": {
+      "camera": "相機",
+      "clipboard_failed": "無法讀取剪貼簿影像。",
+      "drop_hint": "也可將 .hex 或影像檔案拖放到此處。",
       "hex_file": "上傳 Hex 檔案",
-      "image_file": "上傳字形圖片"
+      "image_file": "照片圖庫",
+      "no_clipboard_image": "剪貼簿中沒有影像。",
+      "paste_image": "貼上影像"
     },
     "validation": {
       "add_glyph": "新增字形",
@@ -125,8 +155,138 @@
     }
   },
   "hex_input": {
+    "apply": "套用",
+    "committed": "字形資料已套用。",
     "copy": "複製",
-    "placeholder": "輸入 16 進位字形資料 (32 或 64 位)"
+    "invalid_characters": "只能輸入十六進位數字。",
+    "invalid_length": "8×16 字形需輸入 32 位，16×16 字形需輸入 64 位。",
+    "label": "十六進位字形資料",
+    "placeholder": "輸入 16 進位字形資料 (32 或 64 位)",
+    "ready": "有效的字形資料已可套用。",
+    "width": "{width} 像素"
+  },
+  "image_import": {
+    "cancel": "取消",
+    "confirm": "匯入字形",
+    "crop": "裁切填滿",
+    "fit": "完整適配",
+    "imported": "圖片已匯入為字形。",
+    "invert": "黑白反轉",
+    "loading": "正在處理圖片…",
+    "load_failed": "無法處理所選圖片，請選擇其他圖片。",
+    "mode": "縮放方式",
+    "prepared": "圖片已轉換，請輸入或確認碼位以完成匯入。",
+    "preview": "轉換後的像素字形預覽",
+    "target_width": "字形尺寸",
+    "threshold": "黑色閾值",
+    "title": "將圖片處理為字形",
+    "transparent_white": "將透明區域視為白色"
+  },
+  "workspace": {
+    "fit": "符合螢幕",
+    "grid_label": "{width}×16 像素字形網格",
+    "label": "字形編輯工作區",
+    "reset_view": "重設檢視",
+    "view_controls": "網格檢視控制",
+    "zoom_in": "放大",
+    "zoom_level": "縮放層級",
+    "zoom_out": "縮小"
+  },
+  "selection": {
+    "actions": "選取範圍操作",
+    "cancel_paste": "取消",
+    "confirm_paste": "貼上",
+    "copy": "複製",
+    "cut": "剪下",
+    "delete": "刪除",
+    "deselect": "取消選取",
+    "duplicate": "建立副本",
+    "move_down": "向下移動",
+    "move_left": "向左移動",
+    "move_right": "向右移動",
+    "move_up": "向上移動",
+    "paste_actions": "貼上預覽操作"
+  },
+  "tools": {
+    "draw": "繪製",
+    "erase": "擦除",
+    "fill": "油漆桶",
+    "filled_rectangle": "實心矩形",
+    "flip_horizontal": "水平翻轉",
+    "flip_vertical": "垂直翻轉",
+    "invert": "反轉像素",
+    "line": "直線",
+    "more": "更多",
+    "pan": "平移",
+    "rectangle": "矩形",
+    "secondary": "更多繪圖工具",
+    "select": "選取",
+    "shift_down": "下移",
+    "shift_left": "左移",
+    "shift_right": "右移",
+    "shift_up": "上移",
+    "toolbar": "編輯工具",
+    "transforms": "網格變換"
+  },
+  "mobile_toolbar": {
+    "close": "關閉更多操作",
+    "label": "行動裝置編輯命令",
+    "more_actions": "更多工具與操作",
+    "redo": "重做",
+    "undo": "復原"
+  },
+  "header": {
+    "close_glyph_manager": "關閉字形管理器",
+    "github": "在 GitHub 開啟 UniCucumber 儲存庫",
+    "open_glyph_manager": "開啟字形管理器",
+    "open_settings": "開啟設定",
+    "toggle_theme": "切換色彩主題"
+  },
+  "notifications": {
+    "dismiss": "關閉通知"
+  },
+  "storage": {
+    "discard_draft": "捨棄",
+    "draft_restore_failed": "無法還原上次的草稿。",
+    "draft_save_failed": "無法儲存目前草稿，請在離開前匯出備份。",
+    "fallback_warning": "IndexedDB 無法使用，儲存容量可能受限。",
+    "glyph_save_failed": "無法儲存字形庫。",
+    "glyph_saved": "字形已儲存。",
+    "keep_draft": "保留",
+    "restored_draft": "已還原意外中斷的編輯草稿。",
+    "status_error": "儲存失敗",
+    "status_saved": "已儲存",
+    "status_saving": "正在儲存…",
+    "status_unsaved": "未儲存"
+  },
+  "export": {
+    "copy_failed": "無法存取剪貼簿，請改為下載檔案。",
+    "copy_hex": "複製十六進位",
+    "copy_image": "複製影像",
+    "download_ready": "{format} 匯出已就緒。",
+    "failed": "{format} 匯出失敗。",
+    "filename": "檔案名稱",
+    "hex_copied": "已複製十六進位字形資料。",
+    "image_copied": "已複製字形影像。",
+    "options": "匯出選項",
+    "scale": "像素縮放",
+    "share": "分享",
+    "share_failed": "無法分享影像。",
+    "share_fallback": "分享無法使用，已改為下載 PNG。",
+    "title": "匯出字形",
+    "transparent": "透明背景"
+  },
+  "pwa": {
+    "apply_update": "立即更新",
+    "offline": "離線",
+    "offline_ready": "UniCucumber 已可離線使用。",
+    "online_again": "已恢復連線。",
+    "registration_failed": "無法啟用離線支援。",
+    "update_failed": "由於無法保留草稿，未套用更新。",
+    "update_ready": "新版本已就緒，更新前會先儲存目前草稿。"
+  },
+  "errors": {
+    "unexpected": "發生未預期的錯誤，正在保留目前草稿。"
   },
   "settings": {
     "browser_preview_font": "字形預覽字體",
