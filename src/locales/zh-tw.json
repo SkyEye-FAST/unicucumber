@@ -178,8 +178,7 @@
     "close_glyph_manager": "關閉字形管理器",
     "github": "在GitHub開啟UniCucumber儲存庫",
     "open_glyph_manager": "開啟字形管理器",
-    "open_settings": "開啟設定",
-    "toggle_theme": "切換色彩主題"
+    "open_settings": "開啟設定"
   },
   "hex_input": {
     "apply": "套用",
@@ -245,16 +244,21 @@
   },
   "settings": {
     "always_show_mouse_cursor": "始終顯示滑鼠游標",
+    "appearance": {
+      "auto": "自動",
+      "dark": "深色",
+      "follow_system": "跟隨系統外觀",
+      "label": "外觀",
+      "light": "淺色"
+    },
     "browser_preview_font": "字形預覽字體",
-    "close": "儲存並關閉",
-    "confirm_clear": "清空時需要確認",
-    "cursor_effect": "游標效果（滑鼠）",
+    "close_sidebar": "關閉設定",
+    "confirm_clear": "清空前確認",
     "draw_mode": {
       "double_button": "左鍵繪製，右鍵擦除",
       "label": "繪製模式",
       "single_button": "左鍵繪製或擦除"
     },
-    "enable_selection": "啟用選擇功能（Beta）",
     "font_edit": {
       "cancel": "取消",
       "save": "儲存",
@@ -272,6 +276,11 @@
       "label": "字形寬度"
     },
     "reset": "重設為預設值",
+    "sections": {
+      "behaviour": "行為",
+      "drawing": "繪製",
+      "glyph_preview": "字形與預覽"
+    },
     "show_border": "顯示網格邊框",
     "title": "設定"
   },

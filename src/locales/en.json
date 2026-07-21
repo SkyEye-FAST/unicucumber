@@ -178,8 +178,7 @@
     "close_glyph_manager": "Close glyph manager",
     "github": "Open the UniCucumber repository on GitHub",
     "open_glyph_manager": "Open glyph manager",
-    "open_settings": "Open settings",
-    "toggle_theme": "Toggle color theme"
+    "open_settings": "Open settings"
   },
   "hex_input": {
     "apply": "Apply",
@@ -245,34 +244,44 @@
   },
   "settings": {
     "always_show_mouse_cursor": "Always show mouse cursor",
-    "browser_preview_font": "Glyph Preview Font",
-    "close": "Save & Close",
-    "confirm_clear": "Confirm Clear",
-    "cursor_effect": "Cursor Effect (Mouse)",
-    "draw_mode": {
-      "double_button": "Left Draw, Right Erase",
-      "label": "Draw Mode",
-      "single_button": "Left Draw & Erase"
+    "appearance": {
+      "auto": "Auto",
+      "dark": "Dark",
+      "follow_system": "Follow system appearance",
+      "label": "Appearance",
+      "light": "Light"
     },
-    "enable_selection": "Enable Selection Feature (Beta)",
+    "browser_preview_font": "Glyph preview font",
+    "close_sidebar": "Close settings",
+    "confirm_clear": "Confirm before clearing",
+    "draw_mode": {
+      "double_button": "Left draw, right erase",
+      "label": "Draw mode",
+      "single_button": "Left draw and erase"
+    },
     "font_edit": {
       "cancel": "Cancel",
       "save": "Save",
-      "title": "Edit Preview Font"
+      "title": "Edit preview font"
     },
     "glyph_preview": {
       "both": "Both",
-      "browser_only": "Browser Only",
-      "label": "Glyph Preview Mode",
-      "pixel_only": "Pixel Only"
+      "browser_only": "Browser only",
+      "label": "Glyph preview mode",
+      "pixel_only": "Pixel only"
     },
     "glyph_width": {
       "16px": "16 pixels",
       "8px": "8 pixels",
-      "label": "Glyph Width"
+      "label": "Glyph width"
     },
-    "reset": "Reset to Default",
-    "show_border": "Show Grid Border",
+    "reset": "Reset to defaults",
+    "sections": {
+      "behaviour": "Behaviour",
+      "drawing": "Drawing",
+      "glyph_preview": "Glyph & preview"
+    },
+    "show_border": "Show grid border",
     "title": "Settings"
   },
   "storage": {

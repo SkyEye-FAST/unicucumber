@@ -319,7 +319,7 @@ const handleDialogKeydown = (event: KeyboardEvent): void => {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 1100;
   padding: max(12px, env(safe-area-inset-top))
     max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom))
     max(12px, env(safe-area-inset-left));

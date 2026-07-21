@@ -19,11 +19,9 @@
       </button>
     </div>
 
-    <SettingsModal
+    <SettingsSidebar
       v-model="showSettings"
       :settings="settings"
-      :hex-value="hexCode"
-      :width="settings.glyphWidth"
       @update:settings="updateSettings"
     />
 
@@ -250,7 +248,7 @@ import GlyphInfo from './GlyphInfo.vue'
 import GlyphManager from './GlyphManager.vue'
 import HexCodeInput from './HexCodeInput.vue'
 import MobileCommandBar from './MobileCommandBar.vue'
-import SettingsModal from './SettingsModal.vue'
+import SettingsSidebar from './SettingsSidebar.vue'
 import ToolButtons from './ToolButtons.vue'
 
 interface DialogConfigExtended {

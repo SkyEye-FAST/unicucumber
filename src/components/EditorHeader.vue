@@ -21,15 +21,6 @@
       >
         <i-material-symbols-glyphs class="icon" />
       </button>
-      <button
-        class="modal-button ui-icon-button"
-        type="button"
-        :aria-label="$t('header.toggle_theme')"
-        @click="toggleTheme"
-      >
-        <i-material-symbols-light-mode v-if="isDark" class="icon" />
-        <i-material-symbols-dark-mode v-else class="icon" />
-      </button>
       <a
         class="modal-button ui-icon-button"
         href="https://github.com/SkyEye-FAST/unicucumber"
@@ -42,18 +33,10 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { useTheme } from '@/composables/useTheme'
-
-const { isDark, toggleTheme, initTheme } = useTheme()
 const { t: $t } = useI18n()
 defineEmits(['openSettings', 'toggleSidebar'])
-
-onMounted(() => {
-  initTheme()
-})
 </script>
 
 <style scoped>
