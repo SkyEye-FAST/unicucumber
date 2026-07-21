@@ -281,6 +281,7 @@ const handleCustomButton = (action: string) => {
 const handleDialogKeydown = (event: KeyboardEvent): void => {
   if (event.key === 'Escape') {
     event.preventDefault()
+    event.stopPropagation()
     if (props.showCancel) handleCancel()
     else handleConfirm()
     return

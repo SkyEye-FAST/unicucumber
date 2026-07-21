@@ -36,3 +36,30 @@ describe('settings localization', () => {
     expect(locale.settings.sections.behaviour).toBeTruthy()
   })
 })
+
+describe('glyph-library localization', () => {
+  it.each([en, zhCn, zhTw])(
+    'defines the complete full-screen glyph-library vocabulary',
+    (locale) => {
+      const library = locale.glyph_manager.library
+      expect(
+        [
+          library.expand,
+          library.exit_fullscreen,
+          library.title,
+          library.density.compact,
+          library.density.comfortable,
+          library.density.large,
+          library.selection_mode,
+          library.select_filtered,
+          library.clear_selection,
+          library.selected_count,
+          library.no_matches,
+          library.open_in_editor,
+          library.browser_preview,
+          library.bitmap_preview,
+        ].every(Boolean),
+      ).toBe(true)
+    },
+  )
+})

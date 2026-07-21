@@ -3,12 +3,13 @@ import { ref, watch } from 'vue'
 import type {
   DrawMode,
   EditorSettings,
+  GlyphLibraryDensity,
   GlyphPreviewMode,
   GlyphWidth,
 } from '@/types/glyph'
 
 export const SETTINGS_KEY = 'unicucumber_settings'
-const SETTINGS_VERSION = 1
+const SETTINGS_VERSION = 2
 
 export const FONT_LIST = [
   'Noto Sans',
@@ -63,6 +64,7 @@ export const defaultSettings: Readonly<EditorSettings> = {
   showBorder: true,
   confirmClear: true,
   glyphPreviewMode: 'pixelOnly',
+  glyphLibraryDensity: 'comfortable',
   browserPreviewFont: defaultFontStack,
   enableSelection: true,
 }
@@ -75,6 +77,8 @@ const isDrawMode = (value: unknown): value is DrawMode =>
   value === 'singleButtonDraw' || value === 'doubleButtonDraw'
 const isPreviewMode = (value: unknown): value is GlyphPreviewMode =>
   value === 'pixelOnly' || value === 'browserOnly' || value === 'both'
+const isGlyphLibraryDensity = (value: unknown): value is GlyphLibraryDensity =>
+  value === 'compact' || value === 'comfortable' || value === 'large'
 
 export const parseSettings = (value: unknown): EditorSettings => {
   const stored =
@@ -102,6 +106,9 @@ export const parseSettings = (value: unknown): EditorSettings => {
     glyphPreviewMode: isPreviewMode(stored.glyphPreviewMode)
       ? stored.glyphPreviewMode
       : defaultSettings.glyphPreviewMode,
+    glyphLibraryDensity: isGlyphLibraryDensity(stored.glyphLibraryDensity)
+      ? stored.glyphLibraryDensity
+      : defaultSettings.glyphLibraryDensity,
     browserPreviewFont:
       typeof stored.browserPreviewFont === 'string' &&
       stored.browserPreviewFont.trim().length > 0

@@ -2,7 +2,7 @@
   <div class="container">
     <EditorHeader
       @open-settings="showSettings = true"
-      @toggle-sidebar="toggleSidebar"
+      @toggle-sidebar="handleToggleSidebar"
     />
 
     <div
@@ -172,7 +172,15 @@
       </div>
     </main>
 
-    <div :class="['sidebar', { active: isSidebarActive }]">
+    <div
+      :class="[
+        'sidebar',
+        {
+          active: isSidebarActive,
+          'glyph-library-expanded': isGlyphLibraryExpanded,
+        },
+      ]"
+    >
       <div class="sidebar-resizer" @pointerdown="startResize"></div>
       <button
         class="btn-close-sidebar"
@@ -184,6 +192,8 @@
       </button>
       <GlyphManager
         v-if="isSidebarActive"
+        ref="glyphManagerRef"
+        v-model:expanded="isGlyphLibraryExpanded"
         :glyphs="glyphs"
         :on-glyph-change="setGlyphs"
         :prefill-data="prefillData"
@@ -291,14 +301,41 @@ const { isSidebarActive, sidebarWidth, toggleSidebar, startResize } =
   useSidebar()
 
 let previousBodyOverflow = ''
+let bodyScrollLocked = false
+const narrowSidebarQuery = window.matchMedia('(max-width: 719px)')
+const isNarrowSidebar = ref(narrowSidebarQuery.matches)
+const isGlyphLibraryExpanded = ref(false)
+const glyphManagerRef = ref<{ handleEscape: () => boolean } | null>(null)
+
+watch(
+  [isSidebarActive, isGlyphLibraryExpanded, isNarrowSidebar],
+  ([active, expanded, narrow]) => {
+    const shouldLock = expanded || (active && narrow)
+    if (shouldLock && !bodyScrollLocked) {
+      previousBodyOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      bodyScrollLocked = true
+    } else if (!shouldLock && bodyScrollLocked) {
+      document.body.style.overflow = previousBodyOverflow
+      bodyScrollLocked = false
+    }
+  },
+)
+
 watch(isSidebarActive, (active) => {
-  if (active && window.matchMedia('(max-width: 719px)').matches) {
-    previousBodyOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = previousBodyOverflow
-  }
+  if (!active) isGlyphLibraryExpanded.value = false
 })
+
+const handleSidebarMediaChange = (event: MediaQueryListEvent): void => {
+  isNarrowSidebar.value = event.matches
+}
+
+const releaseBodyScrollLock = (): void => {
+  if (bodyScrollLocked) {
+    document.body.style.overflow = previousBodyOverflow
+    bodyScrollLocked = false
+  }
+}
 
 watch(
   () => settings.value.glyphWidth,
@@ -436,6 +473,7 @@ const unifontVersion = ref<string>(
 
 onMounted(() => {
   document.addEventListener('keydown', handleKeydown)
+  narrowSidebarQuery.addEventListener('change', handleSidebarMediaChange)
   window.addEventListener('beforeunload', handleBeforeUnload)
   document.addEventListener('visibilitychange', handleDraftVisibilityChange)
   unregisterDraftFlusher = registerDraftFlusher(flushDraft)
@@ -444,10 +482,11 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', handleKeydown)
+  narrowSidebarQuery.removeEventListener('change', handleSidebarMediaChange)
   window.removeEventListener('beforeunload', handleBeforeUnload)
   document.removeEventListener('visibilitychange', handleDraftVisibilityChange)
   unregisterDraftFlusher?.()
-  document.body.style.overflow = previousBodyOverflow
+  releaseBodyScrollLock()
   if (saveStatus.value !== 'saved') void flushDraft().catch(() => undefined)
 })
 
@@ -577,6 +616,11 @@ const handleGlyphSaved = (glyph: Glyph): void => {
 
 const handleKeydown = (e: KeyboardEvent): void => {
   const target = e.target as HTMLElement | null
+  if (e.key === 'Escape' && isSidebarActive.value) {
+    e.preventDefault()
+    if (!glyphManagerRef.value?.handleEscape()) handleCloseSidebar()
+    return
+  }
   if (target?.matches('input, textarea, select, [contenteditable="true"]'))
     return
   if (e.ctrlKey || e.metaKey) {
@@ -727,11 +771,15 @@ const handleGlyphEdit = (hexValue: string, glyph?: Glyph): void => {
         confirmText: $t('dialog.unsaved_changes.confirm'),
         onConfirm: () => {
           if (glyph) loadGlyph(hexValue, glyph)
+          if (glyph) isGlyphLibraryExpanded.value = false
           showDialog.value = false
         },
       })
     } else {
-      if (glyph) loadGlyph(hexValue, glyph)
+      if (glyph) {
+        loadGlyph(hexValue, glyph)
+        isGlyphLibraryExpanded.value = false
+      }
     }
   } catch (error) {
     console.error('Error loading glyph:', error)
@@ -806,7 +854,13 @@ const applyHexCode = (value: string): void => {
 }
 
 const handleCloseSidebar = (): void => {
+  isGlyphLibraryExpanded.value = false
   isSidebarActive.value = false
+}
+
+const handleToggleSidebar = (): void => {
+  if (isSidebarActive.value) handleCloseSidebar()
+  else toggleSidebar()
 }
 
 const updateSettings = (newSettings: typeof settings.value): void => {
@@ -938,6 +992,18 @@ const handlePasteStart = (): void => {
 
 .sidebar.active {
   transform: translateX(0);
+}
+
+.sidebar.glyph-library-expanded {
+  width: 100vw;
+  max-width: none;
+  border-right: 0;
+  box-shadow: none;
+}
+
+.sidebar.glyph-library-expanded .sidebar-resizer,
+.sidebar.glyph-library-expanded .btn-close-sidebar {
+  display: none;
 }
 
 .sidebar-resizer {
@@ -1174,6 +1240,12 @@ const handlePasteStart = (): void => {
 
   .copyright-text {
     font-size: 0.8em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar {
+    transition: none;
   }
 }
 

@@ -189,6 +189,7 @@ const confirm = (): void => {
 const handleKeydown = (event: KeyboardEvent): void => {
   if (event.key === 'Escape') {
     event.preventDefault()
+    event.stopPropagation()
     emit('cancel')
     return
   }

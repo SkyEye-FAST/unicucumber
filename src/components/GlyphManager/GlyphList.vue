@@ -6,20 +6,20 @@
           <input
             type="checkbox"
             :checked="isAllSelected"
-            @change="toggleSelectAll"
+            @change="$emit('select-all-filtered')"
           />
           {{ $t('glyph_manager.select_all') }}
         </label>
         <button
-          v-if="selectedGlyphs.length > 0"
+          v-if="selectedCodePoints.length > 0"
           class="btn-danger batch-delete"
           :title="$t('glyph_manager.batch_delete')"
-          @click="handleBatchDelete"
+          @click="$emit('batch-delete', selectedCodePoints)"
         >
           <i-material-symbols-delete-outline class="icon" />
           {{
             $t('glyph_manager.delete_selected', {
-              count: selectedGlyphs.length,
+              count: selectedCodePoints.length,
             })
           }}
         </button>
@@ -28,10 +28,9 @@
     <div v-for="glyph in glyphs" :key="glyph.codePoint" class="glyph-card">
       <label class="checkbox-label">
         <input
-          v-model="selectedGlyphs"
           type="checkbox"
-          :value="glyph"
-          @change="emitSelectionChange"
+          :checked="selectedSet.has(glyph.codePoint)"
+          @change="$emit('toggle-selection', glyph.codePoint)"
         />
       </label>
       <div
@@ -88,7 +87,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed } from 'vue'
 
 import { useI18n } from 'vue-i18n'
 
@@ -108,14 +107,16 @@ const { t: $t } = useI18n()
 
 const props = defineProps<{
   glyphs: Glyph[]
+  selectedCodePoints: string[]
   settings: Settings
 }>()
 
-const emit = defineEmits<{
+defineEmits<{
   (event: 'edit', glyph: Glyph): void
   (event: 'remove', codePoint: string): void
   (event: 'edit-in-grid', glyph: Glyph): void
-  (event: 'selection-change', selectedGlyphs: Glyph[]): void
+  (event: 'toggle-selection', codePoint: string): void
+  (event: 'select-all-filtered'): void
   (event: 'batch-delete', codePoints: string[]): void
 }>()
 
@@ -127,42 +128,14 @@ const showBrowserPreview = computed(() => {
   return ['browserOnly', 'both'].includes(props.settings.glyphPreviewMode)
 })
 
-watch(
-  () => props.settings.glyphPreviewMode,
-  () => {
-    nextTick()
-  },
-)
-
-const selectedGlyphs = ref<Glyph[]>([])
+const selectedSet = computed(() => new Set(props.selectedCodePoints))
 
 const isAllSelected = computed(() => {
   return (
     props.glyphs.length > 0 &&
-    selectedGlyphs.value.length === props.glyphs.length
+    props.glyphs.every((glyph) => selectedSet.value.has(glyph.codePoint))
   )
 })
-
-const toggleSelectAll = () => {
-  if (isAllSelected.value) {
-    selectedGlyphs.value = []
-  } else {
-    selectedGlyphs.value = [...props.glyphs]
-  }
-  emitSelectionChange()
-}
-
-const emitSelectionChange = () => {
-  emit('selection-change', selectedGlyphs.value)
-}
-
-const handleBatchDelete = () => {
-  emit(
-    'batch-delete',
-    selectedGlyphs.value.map((glyph) => glyph.codePoint),
-  )
-  selectedGlyphs.value = []
-}
 
 const browserPreviewStyle = computed(() => {
   return {
