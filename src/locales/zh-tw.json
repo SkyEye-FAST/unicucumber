@@ -13,7 +13,7 @@
     },
     "confirm": "確定",
     "dimension_error": {
-      "message": "圖片尺寸必須為8x16或16x16像素",
+      "message": "圖片尺寸必須為8×16或16×16像素",
       "title": "圖片尺寸錯誤"
     },
     "format_error": {
@@ -55,7 +55,7 @@
       },
       "open_in_zitools": "在zi.tools中打開",
       "redo": {
-        "title": "重做(Ctrl+Y)"
+        "title": "重做 (Ctrl+Y)"
       },
       "restore": {
         "button": "還原已儲存",
@@ -63,7 +63,7 @@
       },
       "show_encoding_info": "顯示編碼資訊",
       "undo": {
-        "title": "復原(Ctrl+Z)"
+        "title": "復原 (Ctrl+Z)"
       }
     }
   },
@@ -89,13 +89,13 @@
   },
   "glyph_editor": {
     "code_point": "碼位：U+{value}",
-    "copy_title": "複製(Ctrl+C)",
-    "cut_title": "剪下(Ctrl+X)",
+    "copy_title": "複製 (Ctrl+C)",
+    "cut_title": "剪下 (Ctrl+X)",
     "glyph_data": "字形資料",
     "invalid_code_point": "請輸入U+0000至U+10FFFF的Unicode純量值（不含代理碼位）。",
     "move_hint": "移動到網格位置",
     "paste_hint": "點擊網格位置以貼上",
-    "paste_title": "貼上(Ctrl+V)"
+    "paste_title": "貼上 (Ctrl+V)"
   },
   "glyph_manager": {
     "add": {
@@ -103,7 +103,7 @@
       "character": "輸入字符",
       "clear_button": "清除",
       "code_point": "輸入Unicode碼位",
-      "hex_value": "輸入16進位字形資料(32或64位)",
+      "hex_value": "輸入16進位字形資料（32或64位）",
       "preview": "字形預覽",
       "update_button": "更新字形"
     },
@@ -171,7 +171,7 @@
       "add_glyph": "新增字形",
       "enter_code_point": "請輸入Unicode碼位",
       "invalid_code_point": "碼位必須是4-6位16進位數",
-      "invalid_hex": "請輸入有效的16進位字形資料(32或64位)"
+      "invalid_hex": "請輸入有效的16進位字形資料（32或64位）"
     }
   },
   "header": {
@@ -187,7 +187,7 @@
     "invalid_characters": "只能輸入16進位數字。",
     "invalid_length": "8×16字形需輸入32位，16×16字形需輸入64位。",
     "label": "16進位字形資料",
-    "placeholder": "輸入16進位字形資料(32或64位)",
+    "placeholder": "輸入16進位字形資料（32或64位）",
     "ready": "有效的字形資料已可套用。",
     "width": "{width}像素"
   },

@@ -13,7 +13,7 @@
     },
     "confirm": "Confirm",
     "dimension_error": {
-      "message": "Image dimensions must be 8x16 or 16x16 pixels",
+      "message": "Image dimensions must be 8×16 or 16×16 pixels",
       "title": "Invalid Image Dimensions"
     },
     "format_error": {
