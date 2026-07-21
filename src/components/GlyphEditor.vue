@@ -9,14 +9,31 @@
       v-if="pendingRestoredDraft"
       class="restored-draft-notice"
       role="status"
+      aria-live="polite"
+      aria-atomic="true"
     >
-      <span>{{ $t('storage.restored_draft') }}</span>
-      <button type="button" @click="keepRestoredDraft">
-        {{ $t('storage.keep_draft') }}
-      </button>
-      <button type="button" @click="discardRestoredDraft">
-        {{ $t('storage.discard_draft') }}
-      </button>
+      <span class="restored-draft-icon" aria-hidden="true">
+        <i-material-symbols-restore-page-outline />
+      </span>
+      <span class="restored-draft-message">
+        {{ $t('storage.restored_draft') }}
+      </span>
+      <div class="restored-draft-actions">
+        <button
+          class="ui-button ui-button--quiet"
+          type="button"
+          @click="discardRestoredDraft"
+        >
+          {{ $t('storage.discard_draft') }}
+        </button>
+        <button
+          class="ui-button ui-button--primary"
+          type="button"
+          @click="keepRestoredDraft"
+        >
+          {{ $t('storage.keep_draft') }}
+        </button>
+      </div>
     </div>
 
     <SettingsSidebar
@@ -845,31 +862,61 @@ const handlePasteStart = (): void => {
 
 <style scoped>
 .restored-draft-notice {
-  width: min(36rem, calc(100% - 1rem));
-  display: flex;
+  box-sizing: border-box;
+  width: min(100%, var(--workspace-max));
+  min-height: 3.25rem;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0.5rem 0.55rem 0.5rem 0.75rem;
+  border: 1px solid
+    color-mix(in srgb, var(--primary-color) 24%, var(--border-color));
+  border-left: 3px solid var(--primary-color);
+  border-radius: var(--radius-md);
+  background: color-mix(
+    in srgb,
+    var(--primary-color) 6%,
+    var(--background-light)
+  );
+  color: var(--text-color);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--shadow-color) 65%, transparent);
+}
+
+.restored-draft-icon {
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  margin-bottom: 0.4rem;
-  padding: 0.55rem;
-  border: 1px solid var(--warning-border);
-  border-radius: 4px;
-  background: var(--warning-background);
-  color: var(--warning-text);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--primary-color) 14%, transparent);
+  color: var(--primary-color);
+  font-size: 1.15rem;
 }
 
-.restored-draft-notice span {
-  flex: 1 1 14rem;
+.restored-draft-message {
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
-.restored-draft-notice button {
-  min-height: 44px;
-  padding: 0.4rem 0.7rem;
-  border: 1px solid currentColor;
-  border-radius: 4px;
-  background: transparent;
-  color: inherit;
+.restored-draft-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.restored-draft-actions button {
+  min-height: var(--control-height-compact);
+  padding: 0.45rem 0.7rem;
+  font-size: 0.8125rem;
+}
+
+.restored-draft-actions .ui-button--quiet {
+  border-color: transparent;
+  color: var(--text-secondary);
 }
 
 .sidebar {
@@ -1064,6 +1111,21 @@ const handlePasteStart = (): void => {
 }
 
 @media (max-width: 719px) {
+  .restored-draft-notice {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-2);
+    padding: 0.65rem;
+  }
+
+  .restored-draft-actions {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .restored-draft-actions button {
+    flex: 1;
+  }
+
   .btn-close-sidebar {
     padding: 12px;
   }

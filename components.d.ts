@@ -63,6 +63,7 @@ declare module 'vue' {
     IMaterialSymbolsMopOutline: typeof import('~icons/material-symbols/mop-outline')['default']
     IMaterialSymbolsMoreHoriz: typeof import('~icons/material-symbols/more-horiz')['default']
     IMaterialSymbolsPanToolOutline: typeof import('~icons/material-symbols/pan-tool-outline')['default']
+    IMaterialSymbolsPhotoCameraOutline: typeof import('~icons/material-symbols/photo-camera-outline')['default']
     IMaterialSymbolsRectangle: typeof import('~icons/material-symbols/rectangle')['default']
     IMaterialSymbolsRectangleOutline: typeof import('~icons/material-symbols/rectangle-outline')['default']
     IMaterialSymbolsRedo: typeof import('~icons/material-symbols/redo')['default']

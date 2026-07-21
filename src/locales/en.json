@@ -292,7 +292,7 @@
     "glyph_save_failed": "The glyph library could not be saved.",
     "glyph_saved": "Glyph saved.",
     "keep_draft": "Keep",
-    "restored_draft": "An interrupted editing draft was restored.",
+    "restored_draft": "Your unfinished editing draft has been restored.",
     "status_error": "Save failed",
     "status_saved": "Saved",
     "status_saving": "Saving…",

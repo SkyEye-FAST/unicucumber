@@ -292,7 +292,7 @@
     "glyph_save_failed": "无法保存字形库。",
     "glyph_saved": "字形已保存。",
     "keep_draft": "保留",
-    "restored_draft": "已恢复意外中断的编辑草稿。",
+    "restored_draft": "已恢复上次未完成的编辑草稿。",
     "status_error": "保存失败",
     "status_saved": "已保存",
     "status_saving": "正在保存…",
