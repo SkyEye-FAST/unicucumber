@@ -7,7 +7,11 @@
     @drop.prevent="handleDrop"
   >
     <div class="upload-buttons" :class="{ 'drag-active': dragActive }">
-      <button class="btn-upload" type="button" @click="openHexDialog()">
+      <button
+        class="btn-upload btn-upload--primary"
+        type="button"
+        @click="openHexDialog()"
+      >
         <i-material-symbols-upload-file-outline class="icon" />
         {{ $t('glyph_manager.upload.hex_file') }}
       </button>
@@ -106,17 +110,23 @@ const pasteImage = async (): Promise<void> => {
 
 <style scoped>
 .upload-section {
-  border-radius: 8px;
-  background: var(--background-light);
+  padding: 0.45rem;
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  background: color-mix(
+    in srgb,
+    var(--background-light) 88%,
+    var(--background-color)
+  );
 }
 
 .upload-buttons {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
   gap: 0.5rem;
-  padding: 0.35rem;
-  border: 1px dashed transparent;
-  border-radius: 6px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
 }
 
 .upload-buttons.drag-active {
@@ -126,27 +136,48 @@ const pasteImage = async (): Promise<void> => {
 
 .btn-upload {
   min-width: 0;
-  min-height: 44px;
+  min-height: var(--control-height);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5em;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 4px;
-  background: var(--primary-color);
-  color: white;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--background-hover);
+  color: var(--text-color);
   font-family: var(--normal-font);
   font-weight: 600;
   cursor: pointer;
 }
 
 .btn-upload:hover {
+  border-color: var(--primary-color);
+  background: color-mix(
+    in srgb,
+    var(--primary-color) 10%,
+    var(--background-light)
+  );
+}
+
+.btn-upload--primary {
+  border-color: transparent;
+  background: var(--primary-color);
+  color: white;
+}
+
+.btn-upload--primary:hover {
+  border-color: transparent;
   background: var(--primary-dark);
 }
 
+/* Clipboard import is the final action in the two-column compact layout. */
+.btn-upload:nth-child(3):last-child {
+  grid-column: 1 / -1;
+}
+
 .drop-hint {
-  margin: 0.2rem 0 0;
+  margin: 0.5rem 0 0.05rem;
   color: var(--text-secondary);
   font-size: 0.78rem;
   text-align: center;
