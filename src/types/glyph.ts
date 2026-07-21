@@ -17,6 +17,7 @@ export type EditorTool =
   | 'pan'
 export type DrawMode = 'singleButtonDraw' | 'doubleButtonDraw'
 export type GlyphPreviewMode = 'pixelOnly' | 'browserOnly' | 'both'
+export type GlyphLibraryDensity = 'compact' | 'comfortable' | 'large'
 
 export interface GridPosition {
   row: number
@@ -37,6 +38,7 @@ export interface EditorSettings {
   showBorder: boolean
   confirmClear: boolean
   glyphPreviewMode: GlyphPreviewMode
+  glyphLibraryDensity: GlyphLibraryDensity
   browserPreviewFont: string
   enableSelection: boolean
 }

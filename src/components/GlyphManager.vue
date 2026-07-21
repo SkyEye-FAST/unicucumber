@@ -1,8 +1,28 @@
 <template>
-  <div class="glyph-manager">
-    <h2 class="title">{{ $t('glyph_manager.title') }}</h2>
+  <div
+    class="glyph-manager"
+    :class="{ 'is-expanded': isExpanded }"
+    :role="isExpanded ? 'region' : undefined"
+    :aria-label="
+      isExpanded ? $t('glyph_manager.library.workspace_label') : undefined
+    "
+  >
+    <header v-if="!isExpanded" class="glyph-manager-heading">
+      <h2 class="title">{{ $t('glyph_manager.title') }}</h2>
+      <button
+        ref="expandButton"
+        class="ui-icon-button glyph-manager-expand"
+        type="button"
+        :aria-label="$t('glyph_manager.library.expand')"
+        :title="$t('glyph_manager.library.expand')"
+        @click="expandLibrary"
+      >
+        <i-material-symbols-fullscreen aria-hidden="true" />
+      </button>
+    </header>
 
     <SearchToolbar
+      v-if="!isExpanded"
       v-model:search-query="searchQuery"
       :glyphs="props.glyphs"
       @export="exportToHex"
@@ -10,23 +30,82 @@
       @sheet="exportBitmapSheet"
     />
 
-    <GlyphAdder
-      v-model="newGlyph"
-      :prefill-data="props.prefillData"
-      :edit-mode="editMode"
-      :duplicate-glyph="duplicateGlyph"
-      @add="handleAdd"
-      @update="updateExistingGlyph"
-      @import="importFromUnifont"
-      @clear="handleClear"
+    <GlyphLibraryToolbar
+      v-else
+      ref="libraryToolbar"
+      :inert="inspectorOpen && isNarrowInspector"
+      v-model:search-query="searchQuery"
+      :density="settings.glyphLibraryDensity"
+      :filtered-count="filteredGlyphs.length"
+      :inspector-open="inspectorOpen"
+      :selected-count="selectedCodePoints.length"
+      :selection-mode="selectionMode"
+      :total-count="props.glyphs.length"
+      @backup="exportBackup"
+      @collapse="collapseLibrary"
+      @clear-selection="clearSelection"
+      @delete-selected="handleBatchDelete(selectedCodePoints)"
+      @export="exportToHex"
+      @select-filtered="selectFilteredGlyphs"
+      @sheet="exportBitmapSheet"
+      @toggle-inspector="toggleInspector"
+      @toggle-selection-mode="toggleSelectionMode"
+      @update:density="settings.glyphLibraryDensity = $event"
     />
 
-    <UploadSection
-      @hex-upload="handleHexFileUpload"
-      @image-upload="handleImageFileUpload"
+    <button
+      v-if="isExpanded && inspectorOpen"
+      class="inspector-scrim"
+      type="button"
+      :aria-label="$t('glyph_manager.library.close_inspector')"
+      @click="closeInspector"
     />
 
-    <nav class="glyph-navigation" :aria-label="$t('glyph_manager.navigation')">
+    <aside
+      v-show="!isExpanded || inspectorOpen"
+      ref="inspector"
+      class="glyph-manager-inspector"
+      :role="isExpanded && isNarrowInspector ? 'dialog' : 'complementary'"
+      :aria-modal="
+        isExpanded && isNarrowInspector && inspectorOpen ? 'true' : undefined
+      "
+      :aria-label="$t('glyph_manager.library.inspector_title')"
+      @keydown="handleInspectorKeydown"
+    >
+      <header v-if="isExpanded" class="inspector-heading">
+        <h3>{{ $t('glyph_manager.library.inspector_title') }}</h3>
+        <button
+          class="ui-icon-button"
+          type="button"
+          :aria-label="$t('glyph_manager.library.close_inspector')"
+          @click="closeInspector"
+        >
+          <i-material-symbols-close aria-hidden="true" />
+        </button>
+      </header>
+
+      <GlyphAdder
+        v-model="newGlyph"
+        :prefill-data="props.prefillData"
+        :edit-mode="editMode"
+        :duplicate-glyph="duplicateGlyph"
+        @add="handleAdd"
+        @update="updateExistingGlyph"
+        @import="importFromUnifont"
+        @clear="handleClear"
+      />
+
+      <UploadSection
+        @hex-upload="handleHexFileUpload"
+        @image-upload="handleImageFileUpload"
+      />
+    </aside>
+
+    <nav
+      v-if="!isExpanded"
+      class="glyph-navigation"
+      :aria-label="$t('glyph_manager.navigation')"
+    >
       <button
         type="button"
         :disabled="!filteredGlyphs.length"
@@ -35,12 +114,27 @@
         <i-material-symbols-chevron-left />
         {{ $t('glyph_manager.previous') }}
       </button>
-      <span>{{
-        $t('glyph_manager.position', {
-          current: currentGlyphPosition,
-          total: filteredGlyphs.length,
-        })
-      }}</span>
+      <span
+        class="glyph-position"
+        :aria-label="
+          $t('glyph_manager.position_accessible', {
+            current: currentGlyphPosition,
+            total: filteredGlyphs.length,
+          })
+        "
+        :title="
+          $t('glyph_manager.position_accessible', {
+            current: currentGlyphPosition,
+            total: filteredGlyphs.length,
+          })
+        "
+        >{{
+          $t('glyph_manager.position', {
+            current: currentGlyphPosition,
+            total: filteredGlyphs.length,
+          })
+        }}</span
+      >
       <button
         type="button"
         :disabled="!filteredGlyphs.length"
@@ -52,13 +146,37 @@
     </nav>
 
     <GlyphList
+      v-if="!isExpanded"
       :glyphs="filteredGlyphs"
+      :selected-code-points="selectedCodePoints"
       :settings="settings"
       @edit="editGlyph"
       @remove="removeGlyph"
       @edit-in-grid="handleEditInGrid"
       @batch-delete="handleBatchDelete"
+      @select-all-filtered="toggleFilteredSelection"
+      @toggle-selection="toggleGlyphSelection"
     />
+
+    <GlyphLibraryGrid
+      v-else
+      :inert="inspectorOpen && isNarrowInspector"
+      :active-code-point="props.activeCodePoint"
+      :browser-preview-font="settings.browserPreviewFont"
+      :density="settings.glyphLibraryDensity"
+      :glyphs="filteredGlyphs"
+      :initial-scroll-top="matrixScrollTop"
+      :preview-mode="settings.glyphPreviewMode"
+      :selected-code-points="selectedCodePoints"
+      :selection-mode="selectionMode"
+      @open="handleLibraryOpen"
+      @scroll-position="matrixScrollTop = $event"
+      @toggle-selection="toggleGlyphSelection"
+    />
+
+    <p class="visually-hidden" aria-live="polite" aria-atomic="true">
+      {{ libraryAnnouncement }}
+    </p>
 
     <DialogBox
       :show="dialog.show"
@@ -91,7 +209,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import { useI18n } from 'vue-i18n'
 
@@ -115,6 +233,8 @@ import { createBitmapSheet, createGlyphBackup } from '@/utils/libraryExport'
 import DialogBox from './DialogBox.vue'
 import ImageImportDialog from './ImageImportDialog.vue'
 import GlyphAdder from './GlyphManager/GlyphAdder.vue'
+import GlyphLibraryGrid from './GlyphManager/GlyphLibraryGrid.vue'
+import GlyphLibraryToolbar from './GlyphManager/GlyphLibraryToolbar.vue'
 import GlyphList from './GlyphManager/GlyphList.vue'
 import SearchToolbar from './GlyphManager/SearchToolbar.vue'
 import UploadSection from './GlyphManager/UploadSection.vue'
@@ -123,6 +243,7 @@ const { t: $t } = useI18n()
 const { notify } = useNotifications()
 
 const props = defineProps<GlyphManagerProps>()
+const isExpanded = defineModel<boolean>('expanded', { default: false })
 
 const emit = defineEmits<GlyphManagerEmits>()
 
@@ -132,11 +253,169 @@ const editMode = ref<boolean>(false)
 const duplicateGlyph = ref<Glyph | null>(null)
 const pendingImageFile = ref<File | null>(null)
 const unicodeNames = ref<Record<string, string>>({})
+const selectedCodePoints = ref<string[]>([])
+const selectionMode = ref(false)
+const inspectorOpen = ref(false)
+const matrixScrollTop = ref(0)
+const libraryAnnouncement = ref('')
+const expandButton = ref<HTMLButtonElement | null>(null)
+const inspector = ref<HTMLElement | null>(null)
+const libraryToolbar = ref<{
+  focusInspectorButton: () => void
+} | null>(null)
+const narrowInspectorQuery = window.matchMedia('(max-width: 719px)')
+const isNarrowInspector = ref(narrowInspectorQuery.matches)
 let nameLookupRequest = 0
 
 const { settings } = useSettings()
 
 const glyphRepository = getGlyphRepository()
+
+const normalizedSelectionCodePoint = (value: string): string =>
+  value.trim().toUpperCase().padStart(4, '0')
+
+const clearSelection = (): void => {
+  selectedCodePoints.value = []
+}
+
+const toggleGlyphSelection = (codePoint: string): void => {
+  const normalized = normalizedSelectionCodePoint(codePoint)
+  selectedCodePoints.value = selectedCodePoints.value.includes(normalized)
+    ? selectedCodePoints.value.filter((value) => value !== normalized)
+    : [...selectedCodePoints.value, normalized]
+}
+
+const selectFilteredGlyphs = (): void => {
+  selectedCodePoints.value = Array.from(
+    new Set([
+      ...selectedCodePoints.value,
+      ...filteredGlyphs.value.map((glyph) =>
+        normalizedSelectionCodePoint(glyph.codePoint),
+      ),
+    ]),
+  )
+}
+
+const toggleFilteredSelection = (): void => {
+  const filtered = new Set(
+    filteredGlyphs.value.map((glyph) =>
+      normalizedSelectionCodePoint(glyph.codePoint),
+    ),
+  )
+  const allFilteredSelected =
+    filtered.size > 0 &&
+    Array.from(filtered).every((value) =>
+      selectedCodePoints.value.includes(value),
+    )
+  selectedCodePoints.value = allFilteredSelected
+    ? selectedCodePoints.value.filter((value) => !filtered.has(value))
+    : Array.from(new Set([...selectedCodePoints.value, ...filtered]))
+}
+
+const toggleSelectionMode = (): void => {
+  selectionMode.value = !selectionMode.value
+  if (!selectionMode.value) clearSelection()
+}
+
+const expandLibrary = (): void => {
+  if (selectedCodePoints.value.length > 0) selectionMode.value = true
+  isExpanded.value = true
+}
+
+const collapseLibrary = (): void => {
+  inspectorOpen.value = false
+  isExpanded.value = false
+}
+
+const toggleInspector = (): void => {
+  if (inspectorOpen.value) closeInspector()
+  else openInspector()
+}
+
+const openInspector = (): void => {
+  inspectorOpen.value = true
+  nextTick(() => {
+    inspector.value
+      ?.querySelector<HTMLElement>(
+        'input:not(:disabled), button:not(:disabled)',
+      )
+      ?.focus()
+  })
+}
+
+const closeInspector = (): void => {
+  inspectorOpen.value = false
+  nextTick(() => libraryToolbar.value?.focusInspectorButton())
+}
+
+const handleInspectorMediaChange = (event: MediaQueryListEvent): void => {
+  isNarrowInspector.value = event.matches
+}
+
+const handleInspectorKeydown = (event: KeyboardEvent): void => {
+  if (
+    event.key !== 'Tab' ||
+    !isExpanded.value ||
+    !isNarrowInspector.value ||
+    !inspector.value
+  ) {
+    return
+  }
+  const focusable = Array.from(
+    inspector.value.querySelectorAll<HTMLElement>(
+      'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [href], [tabindex]:not([tabindex="-1"])',
+    ),
+  ).filter((element) => element.offsetParent !== null)
+  const first = focusable[0]
+  const last = focusable[focusable.length - 1]
+  if (!first || !last) return
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
+
+const handleEscape = (): boolean => {
+  if (dialog.value.show || pendingImageFile.value) return true
+  if (selectionMode.value) {
+    selectionMode.value = false
+    clearSelection()
+    return true
+  }
+  if (inspectorOpen.value) {
+    closeInspector()
+    return true
+  }
+  if (isExpanded.value) {
+    collapseLibrary()
+    return true
+  }
+  return false
+}
+
+watch(isExpanded, (expanded, wasExpanded) => {
+  if (expanded) {
+    libraryAnnouncement.value = $t('glyph_manager.library.entered_fullscreen')
+  } else if (wasExpanded) {
+    libraryAnnouncement.value = $t('glyph_manager.library.exited_fullscreen')
+    nextTick(() => expandButton.value?.focus())
+  }
+})
+
+watch(
+  () => props.glyphs,
+  (glyphs) => {
+    const validCodePoints = new Set(
+      glyphs.map((glyph) => normalizedSelectionCodePoint(glyph.codePoint)),
+    )
+    selectedCodePoints.value = selectedCodePoints.value.filter((codePoint) =>
+      validCodePoints.has(codePoint),
+    )
+  },
+)
 
 const normalizeCodePoint = (input: string): string => {
   let normalized = input.trim().toUpperCase()
@@ -311,10 +590,10 @@ watch(
   () => props.prefillData,
   (newData) => {
     if (newData) {
+      if (isExpanded.value) inspectorOpen.value = true
       nextTick(() => {
-        const codePointInput = document.querySelector(
-          '.add-glyph input',
-        ) as HTMLInputElement | null
+        const codePointInput =
+          inspector.value?.querySelector<HTMLInputElement>('.add-glyph input')
         if (codePointInput) {
           codePointInput.focus()
         }
@@ -416,6 +695,10 @@ const editGlyph = (glyph: Glyph): void => {
 
 const handleEditInGrid = (glyph: Glyph): void => {
   emit('edit-in-grid', glyph.hexValue, glyph)
+}
+
+const handleLibraryOpen = (glyph: Glyph): void => {
+  handleEditInGrid(glyph)
 }
 
 const exportToHex = (): void => {
@@ -955,9 +1238,9 @@ const handleManualInputGlyphs = (manualInputGlyphs: Glyph[]): void => {
         manualInputQueue.value.shift()
 
         nextTick(() => {
-          const codePointInput = document.querySelector(
+          const codePointInput = inspector.value?.querySelector(
             '.add-glyph input',
-          ) as HTMLInputElement
+          ) as HTMLInputElement | undefined
           if (codePointInput) {
             codePointInput.focus()
           }
@@ -1039,9 +1322,9 @@ const handleDialogCustomAction = (action: string): void => {
       manualInputQueue.value.shift()
 
       nextTick(() => {
-        const codePointInput = document.querySelector(
+        const codePointInput = inspector.value?.querySelector(
           '.add-glyph input',
-        ) as HTMLInputElement
+        ) as HTMLInputElement | undefined
         if (codePointInput) {
           codePointInput.focus()
         }
@@ -1112,6 +1395,8 @@ const handleBatchDelete = (codePoints: string[]): void => {
       )
       props.onGlyphChange(updatedGlyphs)
       saveGlyphsToStorage(updatedGlyphs)
+      clearSelection()
+      selectionMode.value = false
       dialog.value.show = false
     },
     onCancel: () => {
@@ -1121,18 +1406,49 @@ const handleBatchDelete = (codePoints: string[]): void => {
 }
 
 onMounted(() => {
+  narrowInspectorQuery.addEventListener('change', handleInspectorMediaChange)
   void loadStoredGlyphs()
 })
+
+onBeforeUnmount(() => {
+  narrowInspectorQuery.removeEventListener('change', handleInspectorMediaChange)
+})
+
+defineExpose({ handleEscape })
 </script>
 
 <style scoped>
 .glyph-manager {
+  position: relative;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
   font-family: var(--normal-font);
   padding: 16px;
   height: 100%;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  overflow: hidden;
+  background: var(--background-light);
+}
+
+.glyph-manager.is-expanded {
+  width: 100%;
+  height: 100dvh;
+  padding: 0;
+  gap: 0;
+  isolation: isolate;
+  background: var(--background-color);
+}
+
+.glyph-manager-heading {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-inline-end: 2.85rem;
 }
 
 .title {
@@ -1142,8 +1458,79 @@ onMounted(() => {
   font-weight: bold;
 }
 
+.glyph-manager-expand {
+  flex: none;
+  width: var(--control-height-compact);
+  min-width: var(--control-height-compact);
+  min-height: var(--control-height-compact);
+  color: var(--text-secondary);
+}
+
 .icon {
   font-size: 20px;
+}
+
+.glyph-manager-inspector {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.is-expanded .glyph-manager-inspector {
+  position: absolute;
+  z-index: 30;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: min(24rem, calc(100vw - 3rem));
+  box-sizing: border-box;
+  padding: 0 var(--space-4) max(1rem, env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-inline-start: 1px solid var(--border-color);
+  background: var(--background-light);
+  box-shadow: -6px 0 20px
+    color-mix(in srgb, var(--shadow-color) 75%, transparent);
+  animation: inspector-in 160ms ease-out;
+}
+
+.inspector-heading {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+  min-height: 3.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-inline: calc(var(--space-4) * -1);
+  padding: max(0.5rem, env(safe-area-inset-top)) var(--space-4) 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--background-light);
+}
+
+.inspector-heading h3 {
+  margin: 0;
+  color: var(--text-color);
+  font-size: 0.95rem;
+}
+
+.is-expanded .glyph-manager-inspector :deep(.add-glyph) {
+  padding: var(--space-4) 0;
+  border: 0;
+  border-bottom: 1px solid var(--border-color);
+  border-radius: 0;
+  background: transparent;
+}
+
+.is-expanded .glyph-manager-inspector :deep(.upload-section) {
+  padding-block-end: var(--space-4);
+  border-bottom: 1px solid var(--border-color);
+  border-radius: 0;
+  background: transparent;
+}
+
+.inspector-scrim {
+  display: none;
 }
 
 .glyph-navigation {
@@ -1167,10 +1554,15 @@ onMounted(() => {
   color: var(--text-color);
 }
 
-@media (max-width: 720px), (pointer: coarse) {
+@keyframes inspector-in {
+  from {
+    transform: translateX(1rem);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 719px) {
   .glyph-manager {
-    box-sizing: border-box;
-    min-height: 0;
     height: 100dvh;
     padding: max(0.75rem, env(safe-area-inset-top))
       max(0.75rem, env(safe-area-inset-right))
@@ -1179,23 +1571,41 @@ onMounted(() => {
     gap: 0.65rem;
   }
 
+  .glyph-manager.is-expanded {
+    padding: 0;
+    gap: 0;
+  }
+
   .title {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    padding-right: 3rem;
-    background: var(--background-light);
+    font-size: 1.25rem;
+  }
+
+  .glyph-manager-heading {
+    padding-inline-end: 3.25rem;
+  }
+
+  .is-expanded .glyph-manager-inspector {
+    position: fixed;
+    width: 100%;
+    max-width: none;
+    padding-inline: max(var(--space-4), env(safe-area-inset-left))
+      max(var(--space-4), env(safe-area-inset-right));
+    border-inline-start: 0;
+  }
+
+  .inspector-scrim {
+    position: fixed;
+    z-index: 29;
+    inset: 0;
+    display: block;
+    border: 0;
+    background: var(--modal-overlay);
   }
 }
 
-@media (orientation: portrait) and (min-width: 768px) {
-  .glyph-manager {
-    padding: 24px;
-    gap: 24px;
-  }
-
-  .title {
-    font-size: 2.5rem;
+@media (prefers-reduced-motion: reduce) {
+  .is-expanded .glyph-manager-inspector {
+    animation: none;
   }
 }
 </style>

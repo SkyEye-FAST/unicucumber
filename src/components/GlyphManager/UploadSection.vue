@@ -15,10 +15,6 @@
         <i-material-symbols-image-outline class="icon" />
         {{ $t('glyph_manager.upload.image_file') }}
       </button>
-      <button class="btn-upload" type="button" @click="cameraInput?.click()">
-        <i-material-symbols-photo-camera-outline class="icon" />
-        {{ $t('glyph_manager.upload.camera') }}
-      </button>
       <button
         v-if="canReadClipboard"
         class="btn-upload"
@@ -30,14 +26,6 @@
       </button>
     </div>
     <p class="drop-hint">{{ $t('glyph_manager.upload.drop_hint') }}</p>
-    <input
-      ref="cameraInput"
-      class="visually-hidden"
-      type="file"
-      accept="image/*"
-      capture="environment"
-      @change="handleCameraFile"
-    />
   </div>
 </template>
 
@@ -53,7 +41,6 @@ const emit = defineEmits(['hex-upload', 'image-upload'])
 const { t: $t } = useI18n()
 const { notify } = useNotifications()
 const dragActive = ref(false)
-const cameraInput = ref<HTMLInputElement | null>(null)
 const canReadClipboard =
   typeof navigator.clipboard?.read === 'function' &&
   typeof ClipboardItem !== 'undefined'
@@ -78,12 +65,6 @@ onHexChange((files) => {
 onImageChange((files) => {
   if (files) emitImageFiles(Array.from(files))
 })
-
-const handleCameraFile = (event: Event): void => {
-  const input = event.target as HTMLInputElement
-  emitImageFiles(Array.from(input.files ?? []))
-  input.value = ''
-}
 
 const handleDrop = (event: DragEvent): void => {
   dragActive.value = false
@@ -169,15 +150,6 @@ const pasteImage = async (): Promise<void> => {
   color: var(--text-secondary);
   font-size: 0.78rem;
   text-align: center;
-}
-
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
 }
 
 @media (max-width: 420px) {

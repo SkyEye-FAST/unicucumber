@@ -1,7 +1,9 @@
 <template>
   <section class="export-panel" :aria-label="$t('export.title')">
     <details>
-      <summary>{{ $t('export.options') }}</summary>
+      <summary>
+        <span class="section-heading">{{ $t('export.options') }}</span>
+      </summary>
       <div class="export-options">
         <label>
           {{ $t('export.scale') }}
@@ -25,7 +27,7 @@
       <button
         v-for="format in downloadFormats"
         :key="format"
-        class="download-button"
+        class="download-button ui-button ui-button--primary"
         type="button"
         @click="downloadFile(format)"
       >
@@ -35,15 +37,25 @@
     </div>
 
     <div class="export-actions">
-      <button type="button" @click="copyHex">
+      <button class="ui-button" type="button" @click="copyHex">
         <i-material-symbols-content-copy-outline class="icon" />
         {{ $t('export.copy_hex') }}
       </button>
-      <button v-if="canCopyImage" type="button" @click="copyImage">
+      <button
+        v-if="canCopyImage"
+        class="ui-button"
+        type="button"
+        @click="copyImage"
+      >
         <i-material-symbols-imagesmode-outline class="icon" />
         {{ $t('export.copy_image') }}
       </button>
-      <button v-if="canShare" type="button" @click="shareImage">
+      <button
+        v-if="canShare"
+        class="ui-button"
+        type="button"
+        @click="shareImage"
+      >
         <i-material-symbols-share-outline class="icon" />
         {{ $t('export.share') }}
       </button>
@@ -192,44 +204,54 @@ const shareImage = async (): Promise<void> => {
 
 <style scoped>
 .export-panel {
-  width: min(32rem, calc(100% - 1rem));
-  margin: 1.25rem 0 0.75rem;
+  width: 100%;
+  margin: 0.35rem 0 0;
   display: grid;
-  gap: 0.65rem;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-color);
 }
 
 .export-panel details {
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background: var(--background-light);
+  min-width: 0;
 }
 
 .export-panel summary {
-  min-height: 44px;
+  min-height: 2rem;
   display: flex;
   align-items: center;
-  padding: 0 0.7rem;
+  gap: var(--space-2);
+  padding: 0;
   cursor: pointer;
-  font-weight: 600;
+  color: var(--text-color);
+}
+
+.export-panel summary::marker {
+  color: var(--text-secondary);
 }
 
 .export-options {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.7rem;
-  padding: 0 0.7rem 0.7rem;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--background-hover);
 }
 
 .export-options label {
-  min-height: 44px;
+  min-height: var(--control-height-compact);
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
 }
 
 .export-options select {
-  min-height: 36px;
+  min-height: var(--control-height-compact);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
 }
 
 .checkbox-option input {
@@ -249,45 +271,20 @@ const shareImage = async (): Promise<void> => {
 .export-actions {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.45rem;
+  gap: var(--space-2);
 }
 
 .download-button,
 .export-actions button {
   min-width: 0;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  padding: 0.5rem;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  font-family: var(--normal-font);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.download-button {
-  border-color: transparent;
-  background: var(--primary-color);
-  color: white;
-}
-
-.download-button:hover {
-  background: var(--primary-dark);
+  width: 100%;
 }
 
 .export-actions {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
 }
 
-.export-actions button {
-  background: var(--background-light);
-  color: var(--text-color);
-}
-
-@media (max-width: 420px) {
+@media (max-width: 519px) {
   .download-buttons {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

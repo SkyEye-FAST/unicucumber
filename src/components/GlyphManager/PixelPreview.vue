@@ -7,7 +7,6 @@
       width: getCanvasWidth,
       height: getCanvasHeight,
     }"
-    :class="{ tablet: isTablet, mobile: isMobile }"
   ></canvas>
 </template>
 
@@ -31,81 +30,13 @@ const props = defineProps({
 
 const canvas = ref<HTMLCanvasElement | null>(null)
 
-const isTablet = computed(() => {
-  return window.matchMedia(
-    '(orientation: portrait) and (min-width: 768px) and (max-width: 1024px)',
-  ).matches
-})
-
-const isMobile = computed(() => {
-  return window.matchMedia('(orientation: portrait) and (max-width: 767px)')
-    .matches
-})
-
 const getCanvasWidth = computed(() => {
-  const baseWidth = props.width === 8 ? 16 : 32
-
-  if (props.displayMode === 'editor') {
-    if (isMobile.value) {
-      return props.width === 8 ? '16px' : '32px'
-    }
-    if (isTablet.value) {
-      return props.width === 8 ? '24px' : '48px'
-    }
-    if (
-      window.matchMedia('(orientation: portrait) and (min-width: 1023px)')
-        .matches
-    ) {
-      return props.width === 8 ? '32px' : '64px'
-    }
-    return `${baseWidth}px`
-  } else {
-    if (isMobile.value) {
-      return props.width === 8 ? '24px' : '48px'
-    }
-    if (isTablet.value) {
-      return props.width === 8 ? '32px' : '64px'
-    }
-    if (
-      window.matchMedia('(orientation: portrait) and (min-width: 1023px)')
-        .matches
-    ) {
-      return props.width === 8 ? '48px' : '96px'
-    }
-    return `${baseWidth}px`
-  }
+  const scale = props.displayMode === 'editor' ? 2 : 3
+  return `${props.width * scale}px`
 })
 
 const getCanvasHeight = computed(() => {
-  if (props.displayMode === 'editor') {
-    if (isMobile.value) {
-      return '32px'
-    }
-    if (isTablet.value) {
-      return '48px'
-    }
-    if (
-      window.matchMedia('(orientation: portrait) and (min-width: 1024px)')
-        .matches
-    ) {
-      return '64px'
-    }
-    return '32px'
-  } else {
-    if (isMobile.value) {
-      return '48px'
-    }
-    if (isTablet.value) {
-      return '64px'
-    }
-    if (
-      window.matchMedia('(orientation: portrait) and (min-width: 1024px)')
-        .matches
-    ) {
-      return '96px'
-    }
-    return '32px'
-  }
+  return props.displayMode === 'editor' ? '32px' : '48px'
 })
 
 const drawGlyph = () => {

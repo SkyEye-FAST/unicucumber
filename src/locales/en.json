@@ -13,7 +13,7 @@
     },
     "confirm": "Confirm",
     "dimension_error": {
-      "message": "Image dimensions must be 8x16 or 16x16 pixels",
+      "message": "Image dimensions must be 8×16 or 16×16 pixels",
       "title": "Invalid Image Dimensions"
     },
     "format_error": {
@@ -141,6 +141,41 @@
     "hex_invalid_line": "Line {line}: {reason}",
     "hex_invalid_title": "Some .hex lines were not imported",
     "import": "Import from Unifont",
+    "library": {
+      "add_import": "Add / Import",
+      "bitmap_preview": "Bitmap preview",
+      "browser_preview": "Browser preview",
+      "cell_accessible": "{character}, U+{codePoint}, {width}-pixel glyph{states}",
+      "clear_search": "Clear glyph search",
+      "clear_selection": "Clear selection",
+      "close_inspector": "Close add and import panel",
+      "delete_selected": "Delete selected",
+      "density": {
+        "compact": "Compact",
+        "comfortable": "Comfortable",
+        "large": "Large"
+      },
+      "density_label": "Glyph matrix density",
+      "entered_fullscreen": "Full-screen glyph library opened.",
+      "exit_fullscreen": "Exit full-screen view",
+      "exited_fullscreen": "Returned to the glyph-manager sidebar.",
+      "expand": "Expand glyph manager",
+      "filtered_count": "{filtered} / {total}",
+      "glyph_count": "{count} glyph | {count} glyphs",
+      "grid_label": "Saved glyphs",
+      "inspector_title": "Add / Import",
+      "no_matches": "No matching glyphs",
+      "no_matches_hint": "Clear the search or try another character or code point.",
+      "open_in_editor": "Open glyph in editor",
+      "search_label": "Search glyph library",
+      "select_filtered": "Select filtered glyphs",
+      "selected_count": "{count} selected",
+      "selection_mode": "Select",
+      "state_active": "currently being edited",
+      "state_selected": "selected",
+      "title": "Glyph Library",
+      "workspace_label": "Full-screen glyph library"
+    },
     "manual_input": {
       "message": "Please input code point for this glyph:",
       "process": "Process",
@@ -150,7 +185,8 @@
     },
     "navigation": "Glyph navigation",
     "next": "Next",
-    "position": "{current} of {total}",
+    "position": "{current} / {total}",
+    "position_accessible": "Item {current} of {total}",
     "previous": "Previous",
     "search": "Search code point, character, data, or Unicode name…",
     "select_all": "Select All",
@@ -159,7 +195,6 @@
     "sheet_scale": "Pixel scale",
     "title": "Glyph Manager",
     "upload": {
-      "camera": "Camera",
       "clipboard_failed": "The clipboard image could not be read.",
       "drop_hint": "You can also drop .hex or image files here.",
       "hex_file": "Upload Hex File",
@@ -178,8 +213,7 @@
     "close_glyph_manager": "Close glyph manager",
     "github": "Open the UniCucumber repository on GitHub",
     "open_glyph_manager": "Open glyph manager",
-    "open_settings": "Open settings",
-    "toggle_theme": "Toggle color theme"
+    "open_settings": "Open settings"
   },
   "hex_input": {
     "apply": "Apply",
@@ -245,34 +279,44 @@
   },
   "settings": {
     "always_show_mouse_cursor": "Always show mouse cursor",
-    "browser_preview_font": "Glyph Preview Font",
-    "close": "Save & Close",
-    "confirm_clear": "Confirm Clear",
-    "cursor_effect": "Cursor Effect (Mouse)",
-    "draw_mode": {
-      "double_button": "Left Draw, Right Erase",
-      "label": "Draw Mode",
-      "single_button": "Left Draw & Erase"
+    "appearance": {
+      "auto": "Auto",
+      "dark": "Dark",
+      "follow_system": "Follow system appearance",
+      "label": "Appearance",
+      "light": "Light"
     },
-    "enable_selection": "Enable Selection Feature (Beta)",
+    "browser_preview_font": "Glyph preview font",
+    "close_sidebar": "Close settings",
+    "confirm_clear": "Confirm before clearing",
+    "draw_mode": {
+      "double_button": "Left draw, right erase",
+      "label": "Draw mode",
+      "single_button": "Left draw and erase"
+    },
     "font_edit": {
       "cancel": "Cancel",
       "save": "Save",
-      "title": "Edit Preview Font"
+      "title": "Edit preview font"
     },
     "glyph_preview": {
       "both": "Both",
-      "browser_only": "Browser Only",
-      "label": "Glyph Preview Mode",
-      "pixel_only": "Pixel Only"
+      "browser_only": "Browser only",
+      "label": "Glyph preview mode",
+      "pixel_only": "Pixel only"
     },
     "glyph_width": {
       "16px": "16 pixels",
       "8px": "8 pixels",
-      "label": "Glyph Width"
+      "label": "Glyph width"
     },
-    "reset": "Reset to Default",
-    "show_border": "Show Grid Border",
+    "reset": "Reset to defaults",
+    "sections": {
+      "behaviour": "Behaviour",
+      "drawing": "Drawing",
+      "glyph_preview": "Glyph & preview"
+    },
+    "show_border": "Show grid border",
     "title": "Settings"
   },
   "storage": {
@@ -283,7 +327,7 @@
     "glyph_save_failed": "The glyph library could not be saved.",
     "glyph_saved": "Glyph saved.",
     "keep_draft": "Keep",
-    "restored_draft": "An interrupted editing draft was restored.",
+    "restored_draft": "Your unfinished editing draft has been restored.",
     "status_error": "Save failed",
     "status_saved": "Saved",
     "status_saving": "Saving…",

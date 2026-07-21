@@ -10,6 +10,7 @@ import { usePreferredLanguages, useTitle } from '@vueuse/core'
 
 import App from './App.vue'
 import { useNotifications } from './composables/useNotifications'
+import { disposeTheme, initializeTheme } from './composables/useTheme'
 import en from './locales/en.json'
 import { flushPendingDrafts } from './platform/draftFlush'
 import zh_cn from './locales/zh-cn.json'
@@ -51,6 +52,12 @@ watch(i18n.global.locale, (newLocale) => {
 })
 
 useTitle(computed(() => i18n.global.t('title')))
+
+initializeTheme()
+
+if (import.meta.hot) {
+  import.meta.hot.dispose(disposeTheme)
+}
 
 const app = createApp(App)
 const { notify } = useNotifications()

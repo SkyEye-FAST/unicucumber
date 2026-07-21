@@ -1,8 +1,10 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 
 const widthForViewport = (viewportWidth: number): number => {
-  if (viewportWidth <= 720) return viewportWidth
-  if (viewportWidth <= 1025) return Math.min(800, viewportWidth)
+  if (viewportWidth < 720) return viewportWidth
+  if (viewportWidth < 1024)
+    return Math.min(560, Math.max(320, viewportWidth - 48))
+  if (viewportWidth < 1280) return 480
   return 450
 }
 
@@ -13,8 +15,15 @@ export function useSidebar() {
   let resizeTarget: HTMLElement | null = null
 
   const handleViewportResize = (): void => {
-    if (window.innerWidth <= 720) sidebarWidth.value = window.innerWidth
-    else sidebarWidth.value = Math.min(sidebarWidth.value, window.innerWidth)
+    const viewportWidth = window.visualViewport?.width ?? window.innerWidth
+    if (viewportWidth < 720) {
+      sidebarWidth.value = viewportWidth
+      return
+    }
+    sidebarWidth.value = Math.min(
+      Math.max(sidebarWidth.value, Math.min(320, viewportWidth - 32)),
+      viewportWidth - 32,
+    )
   }
 
   const toggleSidebar = (): void => {
@@ -41,7 +50,10 @@ export function useSidebar() {
     if (event.pointerId !== resizingPointerId) return
     const viewportWidth = window.visualViewport?.width ?? window.innerWidth
     const minWidth = Math.min(300, viewportWidth)
-    const maxWidth = Math.min(viewportWidth, viewportWidth <= 1025 ? 1000 : 600)
+    const maxWidth = Math.min(
+      viewportWidth - 32,
+      viewportWidth < 1024 ? 720 : 640,
+    )
     sidebarWidth.value = Math.min(
       Math.max(startWidth + event.clientX - startX, minWidth),
       maxWidth,
@@ -49,7 +61,7 @@ export function useSidebar() {
   }
 
   const startResize = (event: PointerEvent): void => {
-    if (window.innerWidth <= 720 || resizingPointerId !== null) return
+    if (window.innerWidth < 720 || resizingPointerId !== null) return
     resizingPointerId = event.pointerId
     resizeTarget = event.currentTarget as HTMLElement
     startX = event.clientX

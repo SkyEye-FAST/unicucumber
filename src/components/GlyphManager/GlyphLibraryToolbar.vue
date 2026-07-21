@@ -1,0 +1,580 @@
+<template>
+  <header class="library-toolbar">
+    <div class="library-toolbar__main">
+      <div class="library-identity">
+        <h2>{{ $t('glyph_manager.library.title') }}</h2>
+        <span class="library-count" aria-live="polite">
+          {{ countLabel }}
+        </span>
+      </div>
+
+      <div class="library-search">
+        <i-material-symbols-search aria-hidden="true" />
+        <input
+          :value="searchQuery"
+          type="search"
+          :aria-label="$t('glyph_manager.library.search_label')"
+          :placeholder="$t('glyph_manager.search')"
+          @input="handleSearchInput"
+        />
+        <button
+          v-if="searchQuery"
+          class="library-clear-search"
+          type="button"
+          :aria-label="$t('glyph_manager.library.clear_search')"
+          @click="$emit('update:searchQuery', '')"
+        >
+          <i-material-symbols-close aria-hidden="true" />
+        </button>
+      </div>
+
+      <div class="library-actions">
+        <button
+          ref="inspectorButton"
+          class="ui-button library-action"
+          type="button"
+          :aria-label="$t('glyph_manager.library.add_import')"
+          :aria-expanded="inspectorOpen"
+          @click="$emit('toggle-inspector')"
+        >
+          <i-material-symbols-add-box-outline aria-hidden="true" />
+          <span>{{ $t('glyph_manager.library.add_import') }}</span>
+        </button>
+
+        <details ref="exportMenu" class="library-export-menu">
+          <summary
+            class="ui-button library-action"
+            :aria-disabled="totalCount === 0"
+            :aria-label="$t('glyph_manager.export')"
+          >
+            <i-material-symbols-download aria-hidden="true" />
+            <span>{{ $t('glyph_manager.export') }}</span>
+          </summary>
+          <div class="library-export-options">
+            <button
+              type="button"
+              :disabled="totalCount === 0"
+              @click="exportHex"
+            >
+              {{ $t('glyph_manager.export_hex') }}
+            </button>
+            <button
+              type="button"
+              :disabled="totalCount === 0"
+              @click="exportBackup"
+            >
+              {{ $t('glyph_manager.export_backup') }}
+            </button>
+            <button
+              type="button"
+              :disabled="totalCount === 0"
+              @click="exportSheet"
+            >
+              {{ $t('glyph_manager.export_sheet') }}
+            </button>
+            <label>
+              {{ $t('glyph_manager.sheet_columns') }}
+              <select v-model.number="sheetColumns">
+                <option :value="8">8</option>
+                <option :value="16">16</option>
+                <option :value="32">32</option>
+              </select>
+            </label>
+            <label>
+              {{ $t('glyph_manager.sheet_scale') }}
+              <select v-model.number="sheetScale">
+                <option :value="1">1×</option>
+                <option :value="2">2×</option>
+                <option :value="4">4×</option>
+              </select>
+            </label>
+          </div>
+        </details>
+
+        <button
+          class="ui-button library-action"
+          type="button"
+          :class="{ 'is-active': selectionMode }"
+          :aria-pressed="selectionMode"
+          @click="$emit('toggle-selection-mode')"
+        >
+          <i-material-symbols-select-check-box aria-hidden="true" />
+          <span>{{ $t('glyph_manager.library.selection_mode') }}</span>
+        </button>
+
+        <fieldset class="density-control">
+          <legend class="visually-hidden">
+            {{ $t('glyph_manager.library.density_label') }}
+          </legend>
+          <label v-for="option in densityOptions" :key="option">
+            <input
+              :checked="density === option"
+              type="radio"
+              name="glyph-library-density"
+              :value="option"
+              @change="$emit('update:density', option)"
+            />
+            <span>{{ $t(`glyph_manager.library.density.${option}`) }}</span>
+          </label>
+        </fieldset>
+
+        <button
+          class="ui-icon-button library-collapse"
+          type="button"
+          :aria-label="$t('glyph_manager.library.exit_fullscreen')"
+          :title="$t('glyph_manager.library.exit_fullscreen')"
+          @click="$emit('collapse')"
+        >
+          <i-material-symbols-fullscreen-exit aria-hidden="true" />
+        </button>
+      </div>
+    </div>
+
+    <div v-if="selectionMode" class="library-selection-bar">
+      <strong>{{ selectedLabel }}</strong>
+      <span class="library-selection-spacer" />
+      <button
+        class="ui-button ui-button--quiet"
+        type="button"
+        @click="$emit('select-filtered')"
+      >
+        {{ $t('glyph_manager.library.select_filtered') }}
+      </button>
+      <button
+        class="ui-button ui-button--quiet"
+        type="button"
+        :disabled="selectedCount === 0"
+        @click="$emit('clear-selection')"
+      >
+        {{ $t('glyph_manager.library.clear_selection') }}
+      </button>
+      <button
+        v-if="selectedCount > 0"
+        class="ui-button ui-button--danger"
+        type="button"
+        @click="$emit('delete-selected')"
+      >
+        <i-material-symbols-delete-outline aria-hidden="true" />
+        {{ $t('glyph_manager.library.delete_selected') }}
+      </button>
+    </div>
+  </header>
+</template>
+
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+import type { GlyphLibraryDensity } from '@/types/glyph'
+
+const { t: $t } = useI18n()
+
+const props = defineProps<{
+  density: GlyphLibraryDensity
+  filteredCount: number
+  inspectorOpen: boolean
+  searchQuery: string
+  selectedCount: number
+  selectionMode: boolean
+  totalCount: number
+}>()
+
+const emit = defineEmits<{
+  backup: []
+  collapse: []
+  'clear-selection': []
+  'delete-selected': []
+  export: []
+  'select-filtered': []
+  sheet: [options: { columns: number; scale: number }]
+  'toggle-inspector': []
+  'toggle-selection-mode': []
+  'update:density': [value: GlyphLibraryDensity]
+  'update:searchQuery': [value: string]
+}>()
+
+const densityOptions: GlyphLibraryDensity[] = [
+  'compact',
+  'comfortable',
+  'large',
+]
+const exportMenu = ref<HTMLDetailsElement | null>(null)
+const inspectorButton = ref<HTMLButtonElement | null>(null)
+const sheetColumns = ref(16)
+const sheetScale = ref(2)
+
+const countLabel = computed(() =>
+  props.filteredCount === props.totalCount
+    ? $t('glyph_manager.library.glyph_count', { count: props.totalCount })
+    : $t('glyph_manager.library.filtered_count', {
+        filtered: props.filteredCount,
+        total: props.totalCount,
+      }),
+)
+const selectedLabel = computed(() =>
+  $t('glyph_manager.library.selected_count', { count: props.selectedCount }),
+)
+
+const handleSearchInput = (event: Event): void => {
+  emit('update:searchQuery', (event.target as HTMLInputElement).value)
+}
+
+const closeExportMenu = (): void => {
+  if (exportMenu.value) exportMenu.value.open = false
+}
+const exportHex = (): void => {
+  emit('export')
+  closeExportMenu()
+}
+const exportBackup = (): void => {
+  emit('backup')
+  closeExportMenu()
+}
+const exportSheet = (): void => {
+  emit('sheet', { columns: sheetColumns.value, scale: sheetScale.value })
+  closeExportMenu()
+}
+
+defineExpose({
+  focusInspectorButton: () => inspectorButton.value?.focus(),
+})
+</script>
+
+<style scoped>
+.library-toolbar {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 12;
+  flex: none;
+  border-bottom: 1px solid var(--border-color);
+  background: color-mix(in srgb, var(--background-light) 96%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.library-toolbar__main {
+  min-height: 3.75rem;
+  display: grid;
+  grid-template-columns: max-content minmax(12rem, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0.55rem max(0.75rem, env(safe-area-inset-right)) 0.55rem
+    max(0.75rem, env(safe-area-inset-left));
+}
+
+.library-identity {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  white-space: nowrap;
+}
+
+.library-identity h2 {
+  margin: 0;
+  color: var(--text-color);
+  font-size: 1rem;
+  font-weight: 750;
+}
+
+.library-count {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.library-search {
+  min-width: 0;
+  height: var(--control-height);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+  padding-inline: 0.7rem 0.3rem;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  background: var(--input-background);
+  color: var(--text-secondary);
+}
+
+.library-search:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--focus-ring);
+}
+
+.library-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-color);
+  font-family: var(--normal-font);
+  font-size: 0.875rem;
+}
+
+.library-search input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.library-clear-search {
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.library-actions {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.library-action,
+.library-collapse {
+  min-height: var(--control-height-compact);
+  height: var(--control-height-compact);
+  font-size: 0.78rem;
+}
+
+.library-action {
+  padding-inline: 0.65rem;
+}
+
+.library-action.is-active {
+  border-color: color-mix(
+    in srgb,
+    var(--primary-color) 55%,
+    var(--border-color)
+  );
+  background: color-mix(
+    in srgb,
+    var(--primary-color) 11%,
+    var(--background-light)
+  );
+  color: var(--primary-darker);
+  box-shadow: inset 0 -2px var(--primary-color);
+}
+
+.library-export-menu {
+  position: relative;
+}
+
+.library-export-menu summary {
+  list-style: none;
+}
+
+.library-export-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.library-export-options {
+  position: absolute;
+  inset-block-start: calc(100% + 0.35rem);
+  inset-inline-end: 0;
+  width: min(15rem, calc(100vw - 1.5rem));
+  display: grid;
+  gap: 1px;
+  padding: 0.35rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--dialog-background);
+  box-shadow: 0 8px 24px var(--shadow-color);
+}
+
+.library-export-options button,
+.library-export-options label {
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-inline: 0.6rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-color);
+  font-size: 0.8125rem;
+  text-align: start;
+}
+
+.library-export-options button:hover,
+.library-export-options button:focus-visible {
+  background: var(--background-hover);
+}
+
+.library-export-options select {
+  min-height: 2rem;
+}
+
+.density-control {
+  height: var(--control-height-compact);
+  display: inline-flex;
+  align-items: stretch;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--background-light);
+}
+
+.density-control label {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.density-control input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.density-control span {
+  min-width: 3.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 0.45rem;
+  border-inline-start: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.density-control label:first-of-type span {
+  border-inline-start: 0;
+}
+
+.density-control input:checked + span {
+  background: var(--primary-color);
+  color: white;
+  font-weight: 700;
+}
+
+.density-control input:focus-visible + span {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.library-selection-bar {
+  min-height: 3rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.35rem max(0.75rem, env(safe-area-inset-right)) 0.35rem
+    max(0.75rem, env(safe-area-inset-left));
+  border-top: 1px solid var(--border-color);
+  background: color-mix(
+    in srgb,
+    var(--primary-color) 5%,
+    var(--background-light)
+  );
+  font-size: 0.8125rem;
+}
+
+.library-selection-spacer {
+  flex: 1;
+}
+
+.library-selection-bar .ui-button {
+  min-height: var(--control-height-compact);
+  padding: 0.45rem 0.65rem;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 1199px) {
+  .library-toolbar__main {
+    grid-template-columns: max-content minmax(12rem, 1fr);
+  }
+
+  .library-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .library-collapse {
+    margin-inline-start: auto;
+  }
+}
+
+@media (max-width: 719px) {
+  .library-toolbar__main {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-2);
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+  }
+
+  .library-identity {
+    min-width: 0;
+    gap: var(--space-2);
+  }
+
+  .library-search {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .library-actions {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .library-action span {
+    white-space: nowrap;
+  }
+
+  .library-action:first-child span {
+    display: none;
+  }
+
+  .library-collapse {
+    position: absolute;
+    inset-block-start: max(0.5rem, env(safe-area-inset-top));
+    inset-inline-end: max(0.75rem, env(safe-area-inset-right));
+  }
+
+  .library-selection-bar {
+    flex-wrap: wrap;
+    padding-block: 0.45rem;
+  }
+
+  .library-selection-spacer {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .library-identity {
+    padding-inline-end: 2.5rem;
+  }
+
+  .library-identity h2 {
+    font-size: 0.95rem;
+  }
+
+  .library-count {
+    font-size: 0.72rem;
+  }
+
+  .density-control {
+    flex: none;
+  }
+
+  .density-control span {
+    min-width: 2.65rem;
+    padding-inline: 0.3rem;
+    font-size: 0.66rem;
+  }
+}
+</style>

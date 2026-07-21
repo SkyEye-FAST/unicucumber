@@ -195,7 +195,7 @@ const chooseAction = (action: MobileAction): void => {
   display: none;
 }
 
-@media (max-width: 720px), (pointer: coarse) {
+@media (max-width: 719px) {
   .mobile-command-bar {
     position: fixed;
     z-index: 60;

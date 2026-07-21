@@ -13,7 +13,7 @@
     },
     "confirm": "确定",
     "dimension_error": {
-      "message": "图片尺寸必须为8x16或16x16像素",
+      "message": "图片尺寸必须为8×16或16×16像素",
       "title": "图片尺寸错误"
     },
     "format_error": {
@@ -55,7 +55,7 @@
       },
       "open_in_zitools": "在zi.tools中打开",
       "redo": {
-        "title": "重做(Ctrl+Y)"
+        "title": "重做 (Ctrl+Y)"
       },
       "restore": {
         "button": "恢复已保存",
@@ -63,7 +63,7 @@
       },
       "show_encoding_info": "显示编码信息",
       "undo": {
-        "title": "撤销(Ctrl+Z)"
+        "title": "撤销 (Ctrl+Z)"
       }
     }
   },
@@ -89,13 +89,13 @@
   },
   "glyph_editor": {
     "code_point": "码位：U+{value}",
-    "copy_title": "复制(Ctrl+C)",
-    "cut_title": "剪切(Ctrl+X)",
+    "copy_title": "复制 (Ctrl+C)",
+    "cut_title": "剪切 (Ctrl+X)",
     "glyph_data": "字形数据",
     "invalid_code_point": "请输入U+0000至U+10FFFF的Unicode标量值（不含代理码位）。",
     "move_hint": "移动到网格位置",
     "paste_hint": "点击网格位置以粘贴",
-    "paste_title": "粘贴(Ctrl+V)"
+    "paste_title": "粘贴 (Ctrl+V)"
   },
   "glyph_manager": {
     "add": {
@@ -103,7 +103,7 @@
       "character": "输入字符",
       "clear_button": "清除",
       "code_point": "输入Unicode码位",
-      "hex_value": "输入16进制字形数据(32或64位)",
+      "hex_value": "输入16进制字形数据（32或64位）",
       "preview": "字形预览",
       "update_button": "更新字形"
     },
@@ -128,11 +128,11 @@
     "export_hex": "Unifont字形（.hex）",
     "export_sheet": "位图表（.png）",
     "glyph": {
-      "code_point": "码位:",
+      "code_point": "码位：",
       "delete": "删除",
       "edit": "编辑",
       "edit_in_grid": "点击编辑字形：U+{codePoint}",
-      "hex": "Hex:"
+      "hex": "Hex："
     },
     "hex_error_invalid_code_point": "Unicode标量值无效",
     "hex_error_invalid_glyph_data": "字形数据必须恰好包含32或64位16进制数字",
@@ -141,6 +141,41 @@
     "hex_invalid_line": "第{line}行：{reason}",
     "hex_invalid_title": "部分.hex行未导入",
     "import": "从Unifont读取",
+    "library": {
+      "add_import": "添加 / 导入",
+      "bitmap_preview": "位图预览",
+      "browser_preview": "浏览器预览",
+      "cell_accessible": "{character}，U+{codePoint}，{width}像素字形{states}",
+      "clear_search": "清除字形搜索",
+      "clear_selection": "清除选择",
+      "close_inspector": "关闭添加和导入面板",
+      "delete_selected": "删除选中项",
+      "density": {
+        "compact": "紧凑",
+        "comfortable": "舒适",
+        "large": "大"
+      },
+      "density_label": "字形矩阵密度",
+      "entered_fullscreen": "已打开全屏字形库。",
+      "exit_fullscreen": "退出全屏视图",
+      "exited_fullscreen": "已返回字形管理器侧栏。",
+      "expand": "展开字形管理器",
+      "filtered_count": "{filtered} / {total}",
+      "glyph_count": "{count}个字形",
+      "grid_label": "已保存的字形",
+      "inspector_title": "添加 / 导入",
+      "no_matches": "没有匹配的字形",
+      "no_matches_hint": "请清除搜索，或尝试其他字符或码位。",
+      "open_in_editor": "在编辑器中打开字形",
+      "search_label": "搜索字形库",
+      "select_filtered": "选择筛选出的字形",
+      "selected_count": "已选择{count}项",
+      "selection_mode": "选择",
+      "state_active": "正在编辑",
+      "state_selected": "已选择",
+      "title": "字形库",
+      "workspace_label": "全屏字形库"
+    },
     "manual_input": {
       "message": "请为该字形输入码位：",
       "process": "处理",
@@ -150,7 +185,8 @@
     },
     "navigation": "字形导航",
     "next": "下一个",
-    "position": "第{current}个，共{total}个",
+    "position": "{current} / {total}",
+    "position_accessible": "第{current}个，共{total}个",
     "previous": "上一个",
     "search": "搜索码位、字符、数据或Unicode名称…",
     "select_all": "全选",
@@ -159,7 +195,6 @@
     "sheet_scale": "像素缩放",
     "title": "字形管理器",
     "upload": {
-      "camera": "相机",
       "clipboard_failed": "无法读取剪贴板图像。",
       "drop_hint": "也可将.hex或图像文件拖放到此处。",
       "hex_file": "上传Hex文件",
@@ -171,15 +206,14 @@
       "add_glyph": "添加字形",
       "enter_code_point": "请输入Unicode码位",
       "invalid_code_point": "码位必须是4-6位16进制数",
-      "invalid_hex": "请输入有效的16进制字形数据(32或64位)"
+      "invalid_hex": "请输入有效的16进制字形数据（32或64位）"
     }
   },
   "header": {
     "close_glyph_manager": "关闭字形管理器",
     "github": "在GitHub打开UniCucumber仓库",
     "open_glyph_manager": "打开字形管理器",
-    "open_settings": "打开设置",
-    "toggle_theme": "切换颜色主题"
+    "open_settings": "打开设置"
   },
   "hex_input": {
     "apply": "应用",
@@ -188,7 +222,7 @@
     "invalid_characters": "只能输入16进制数字。",
     "invalid_length": "8×16字形需输入32位，16×16字形需输入64位。",
     "label": "16进制字形数据",
-    "placeholder": "输入16进制字形数据(32或64位)",
+    "placeholder": "输入16进制字形数据（32或64位）",
     "ready": "有效的字形数据已可应用。",
     "width": "{width}像素"
   },
@@ -245,16 +279,21 @@
   },
   "settings": {
     "always_show_mouse_cursor": "始终显示鼠标光标",
+    "appearance": {
+      "auto": "自动",
+      "dark": "深色",
+      "follow_system": "跟随系统外观",
+      "label": "外观",
+      "light": "浅色"
+    },
     "browser_preview_font": "字形预览字体",
-    "close": "保存并关闭",
-    "confirm_clear": "清空时需要确认",
-    "cursor_effect": "光标效果（鼠标）",
+    "close_sidebar": "关闭设置",
+    "confirm_clear": "清空前确认",
     "draw_mode": {
       "double_button": "左键绘制，右键擦除",
       "label": "绘制模式",
       "single_button": "左键绘制或擦除"
     },
-    "enable_selection": "启用选择功能（Beta）",
     "font_edit": {
       "cancel": "取消",
       "save": "保存",
@@ -272,6 +311,11 @@
       "label": "字形宽度"
     },
     "reset": "重置为默认",
+    "sections": {
+      "behaviour": "行为",
+      "drawing": "绘制",
+      "glyph_preview": "字形与预览"
+    },
     "show_border": "显示网格边框",
     "title": "设置"
   },
@@ -283,7 +327,7 @@
     "glyph_save_failed": "无法保存字形库。",
     "glyph_saved": "字形已保存。",
     "keep_draft": "保留",
-    "restored_draft": "已恢复意外中断的编辑草稿。",
+    "restored_draft": "已恢复上次未完成的编辑草稿。",
     "status_error": "保存失败",
     "status_saved": "已保存",
     "status_saving": "正在保存…",

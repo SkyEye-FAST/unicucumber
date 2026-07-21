@@ -2,159 +2,185 @@
   <div class="container">
     <EditorHeader
       @open-settings="showSettings = true"
-      @toggle-sidebar="toggleSidebar"
+      @toggle-sidebar="handleToggleSidebar"
     />
-
-    <GlyphInfo
-      v-model="currentCodePoint"
-      :hex-value="hexCode"
-      :width="settings.glyphWidth"
-      :browser-preview-font="settings.browserPreviewFont"
-    />
-
-    <div class="document-status" :class="saveStatus" aria-live="polite">
-      <span class="status-dot" aria-hidden="true"></span>
-      {{ saveStatusLabel }}
-    </div>
 
     <div
       v-if="pendingRestoredDraft"
       class="restored-draft-notice"
       role="status"
+      aria-live="polite"
+      aria-atomic="true"
     >
-      <span>{{ $t('storage.restored_draft') }}</span>
-      <button type="button" @click="keepRestoredDraft">
-        {{ $t('storage.keep_draft') }}
-      </button>
-      <button type="button" @click="discardRestoredDraft">
-        {{ $t('storage.discard_draft') }}
-      </button>
+      <span class="restored-draft-icon" aria-hidden="true">
+        <i-material-symbols-restore-page-outline />
+      </span>
+      <span class="restored-draft-message">
+        {{ $t('storage.restored_draft') }}
+      </span>
+      <div class="restored-draft-actions">
+        <button
+          class="ui-button ui-button--quiet"
+          type="button"
+          @click="discardRestoredDraft"
+        >
+          {{ $t('storage.discard_draft') }}
+        </button>
+        <button
+          class="ui-button ui-button--primary"
+          type="button"
+          @click="keepRestoredDraft"
+        >
+          {{ $t('storage.keep_draft') }}
+        </button>
+      </div>
     </div>
 
-    <SettingsModal
+    <SettingsSidebar
       v-model="showSettings"
       :settings="settings"
-      :hex-value="hexCode"
-      :width="settings.glyphWidth"
       @update:settings="updateSettings"
     />
 
-    <GlyphGrid
-      ref="gridRef"
-      :grid-data="gridData"
-      :draw-mode="settings.drawMode"
-      :draw-value="drawValue"
-      :cursor-effect="settings.alwaysShowMouseCursor"
-      :show-border="settings.showBorder"
-      :current-tool="currentTool"
-      :enable-selection="settings.enableSelection"
-      @update:draw-value="updateDrawValue"
-      @selection-change="handleSelectionChange"
-      @tool-change="handleToolChange"
-      @tool-state-change="handleToolStateChange"
-      @command="handleGridCommand"
-      @clipboard-change="handleClipboardChange"
-      @paste-start="handlePasteStart"
-    />
+    <main class="editor-layout">
+      <GlyphGrid
+        ref="gridRef"
+        :grid-data="gridData"
+        :draw-mode="settings.drawMode"
+        :draw-value="drawValue"
+        :cursor-effect="settings.alwaysShowMouseCursor"
+        :show-border="settings.showBorder"
+        :current-tool="currentTool"
+        :enable-selection="settings.enableSelection"
+        @update:draw-value="updateDrawValue"
+        @selection-change="handleSelectionChange"
+        @tool-change="handleToolChange"
+        @tool-state-change="handleToolStateChange"
+        @command="handleGridCommand"
+        @clipboard-change="handleClipboardChange"
+        @paste-start="handlePasteStart"
+      >
+        <template #toolbar>
+          <GlyphInfo
+            v-model="currentCodePoint"
+            :hex-value="hexCode"
+            :width="settings.glyphWidth"
+            :browser-preview-font="settings.browserPreviewFont"
+            :save-status="saveStatus"
+            :save-status-label="saveStatusLabel"
+          />
+        </template>
+      </GlyphGrid>
 
-    <div class="editor-actions">
-      <div class="action-group">
-        <button
-          v-if="hasSelection"
-          class="action-button icon-only"
-          :title="$t('glyph_editor.cut_title')"
-          type="button"
-          :aria-label="$t('glyph_editor.cut_title')"
-          @click="handleCut"
-        >
-          <i-material-symbols-content-cut class="icon" />
-        </button>
-        <button
-          v-if="hasSelection"
-          class="action-button icon-only"
-          :title="$t('glyph_editor.copy_title')"
-          type="button"
-          :aria-label="$t('glyph_editor.copy_title')"
-          @click="handleCopy"
-        >
-          <i-material-symbols-content-copy class="icon" />
-        </button>
-        <button
-          v-if="hasClipboardData"
-          class="action-button icon-only"
-          :title="$t('glyph_editor.paste_title')"
-          type="button"
-          :aria-label="$t('glyph_editor.paste_title')"
-          @click="handlePaste"
-        >
-          <i-material-symbols-content-paste class="icon" />
-        </button>
-        <button
-          class="action-button restore-action"
-          type="button"
-          :disabled="!hasUnsavedChanges || !activeGlyphId"
-          :title="$t('editor.actions.restore.title')"
-          @click="restoreSavedGlyph"
-        >
-          <i-material-symbols-restore-page-outline class="icon" />
-          {{ $t('editor.actions.restore.button') }}
-        </button>
-        <button
-          class="action-button secondary"
-          :title="$t('editor.actions.clear.title')"
-          type="button"
-          @click="handleClear"
-        >
-          <i-material-symbols-mop-outline class="icon" />
-          {{ $t('editor.actions.clear.button') }}
-        </button>
-        <button
-          class="action-button primary"
-          :title="$t('editor.actions.add_to_glyphset.title')"
-          type="button"
-          @click="addToGlyphset"
-        >
-          <i-material-symbols-add-box-outline class="icon" />
-          {{ $t('editor.actions.add_to_glyphset.button') }}
-        </button>
+      <div class="editor-control-stack">
+        <div class="editor-actions">
+          <div class="action-group">
+            <button
+              v-if="hasSelection"
+              class="action-button icon-only ui-icon-button"
+              :title="$t('glyph_editor.cut_title')"
+              type="button"
+              :aria-label="$t('glyph_editor.cut_title')"
+              @click="handleCut"
+            >
+              <i-material-symbols-content-cut class="icon" />
+            </button>
+            <button
+              v-if="hasSelection"
+              class="action-button icon-only ui-icon-button"
+              :title="$t('glyph_editor.copy_title')"
+              type="button"
+              :aria-label="$t('glyph_editor.copy_title')"
+              @click="handleCopy"
+            >
+              <i-material-symbols-content-copy class="icon" />
+            </button>
+            <button
+              v-if="hasClipboardData"
+              class="action-button icon-only ui-icon-button"
+              :title="$t('glyph_editor.paste_title')"
+              type="button"
+              :aria-label="$t('glyph_editor.paste_title')"
+              @click="handlePaste"
+            >
+              <i-material-symbols-content-paste class="icon" />
+            </button>
+            <button
+              class="action-button restore-action ui-button"
+              type="button"
+              :disabled="!hasUnsavedChanges || !activeGlyphId"
+              :title="$t('editor.actions.restore.title')"
+              @click="restoreSavedGlyph"
+            >
+              <i-material-symbols-restore-page-outline class="icon" />
+              {{ $t('editor.actions.restore.button') }}
+            </button>
+            <button
+              class="action-button ui-button ui-button--danger"
+              :title="$t('editor.actions.clear.title')"
+              type="button"
+              @click="handleClear"
+            >
+              <i-material-symbols-mop-outline class="icon" />
+              {{ $t('editor.actions.clear.button') }}
+            </button>
+            <button
+              class="action-button ui-button ui-button--primary"
+              :title="$t('editor.actions.add_to_glyphset.title')"
+              type="button"
+              @click="addToGlyphset"
+            >
+              <i-material-symbols-add-box-outline class="icon" />
+              {{ $t('editor.actions.add_to_glyphset.button') }}
+            </button>
+          </div>
+          <div class="history-controls">
+            <button
+              class="icon-button ui-icon-button"
+              :disabled="!canUndo"
+              :title="$t('editor.actions.undo.title')"
+              type="button"
+              :aria-label="$t('editor.actions.undo.title')"
+              @click="handleUndo"
+            >
+              <i-material-symbols-undo class="icon" />
+            </button>
+            <button
+              class="icon-button ui-icon-button"
+              :disabled="!canRedo"
+              :title="$t('editor.actions.redo.title')"
+              type="button"
+              :aria-label="$t('editor.actions.redo.title')"
+              @click="handleRedo"
+            >
+              <i-material-symbols-redo class="icon" />
+            </button>
+          </div>
+        </div>
+        <ToolButtons
+          v-model:model-value="drawValue"
+          v-model:current-tool="currentTool"
+          :disabled="shouldDisableTools"
+          :enable-selection="settings.enableSelection"
+          :draw-mode="settings.drawMode"
+          :current-draw-value="currentDrawValue"
+          @command="handleGridCommand"
+          @update:model-value="updateDrawValue"
+        />
+        <HexCodeInput :hex-code="hexCode" @apply="applyHexCode" />
+        <DownloadButtons :grid-data="gridData" :codepoint="currentCodePoint" />
       </div>
-      <div class="history-controls">
-        <button
-          class="icon-button"
-          :disabled="!canUndo"
-          :title="$t('editor.actions.undo.title')"
-          type="button"
-          :aria-label="$t('editor.actions.undo.title')"
-          @click="handleUndo"
-        >
-          <i-material-symbols-undo class="icon" />
-        </button>
-        <button
-          class="icon-button"
-          :disabled="!canRedo"
-          :title="$t('editor.actions.redo.title')"
-          type="button"
-          :aria-label="$t('editor.actions.redo.title')"
-          @click="handleRedo"
-        >
-          <i-material-symbols-redo class="icon" />
-        </button>
-      </div>
-    </div>
-    <ToolButtons
-      v-model:model-value="drawValue"
-      v-model:current-tool="currentTool"
-      :disabled="shouldDisableTools"
-      :enable-selection="settings.enableSelection"
-      :draw-mode="settings.drawMode"
-      :current-draw-value="currentDrawValue"
-      @command="handleGridCommand"
-      @update:model-value="updateDrawValue"
-    />
-    <HexCodeInput :hex-code="hexCode" @apply="applyHexCode" />
-    <DownloadButtons :grid-data="gridData" :codepoint="currentCodePoint" />
+    </main>
 
-    <div :class="['sidebar', { active: isSidebarActive }]">
+    <div
+      :class="[
+        'sidebar',
+        {
+          active: isSidebarActive,
+          'glyph-library-expanded': isGlyphLibraryExpanded,
+        },
+      ]"
+    >
       <div class="sidebar-resizer" @pointerdown="startResize"></div>
       <button
         class="btn-close-sidebar"
@@ -166,6 +192,8 @@
       </button>
       <GlyphManager
         v-if="isSidebarActive"
+        ref="glyphManagerRef"
+        v-model:expanded="isGlyphLibraryExpanded"
         :glyphs="glyphs"
         :on-glyph-change="setGlyphs"
         :prefill-data="prefillData"
@@ -247,7 +275,7 @@ import GlyphInfo from './GlyphInfo.vue'
 import GlyphManager from './GlyphManager.vue'
 import HexCodeInput from './HexCodeInput.vue'
 import MobileCommandBar from './MobileCommandBar.vue'
-import SettingsModal from './SettingsModal.vue'
+import SettingsSidebar from './SettingsSidebar.vue'
 import ToolButtons from './ToolButtons.vue'
 
 interface DialogConfigExtended {
@@ -273,17 +301,41 @@ const { isSidebarActive, sidebarWidth, toggleSidebar, startResize } =
   useSidebar()
 
 let previousBodyOverflow = ''
+let bodyScrollLocked = false
+const narrowSidebarQuery = window.matchMedia('(max-width: 719px)')
+const isNarrowSidebar = ref(narrowSidebarQuery.matches)
+const isGlyphLibraryExpanded = ref(false)
+const glyphManagerRef = ref<{ handleEscape: () => boolean } | null>(null)
+
+watch(
+  [isSidebarActive, isGlyphLibraryExpanded, isNarrowSidebar],
+  ([active, expanded, narrow]) => {
+    const shouldLock = expanded || (active && narrow)
+    if (shouldLock && !bodyScrollLocked) {
+      previousBodyOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      bodyScrollLocked = true
+    } else if (!shouldLock && bodyScrollLocked) {
+      document.body.style.overflow = previousBodyOverflow
+      bodyScrollLocked = false
+    }
+  },
+)
+
 watch(isSidebarActive, (active) => {
-  if (
-    active &&
-    window.matchMedia('(max-width: 720px), (pointer: coarse)').matches
-  ) {
-    previousBodyOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = previousBodyOverflow
-  }
+  if (!active) isGlyphLibraryExpanded.value = false
 })
+
+const handleSidebarMediaChange = (event: MediaQueryListEvent): void => {
+  isNarrowSidebar.value = event.matches
+}
+
+const releaseBodyScrollLock = (): void => {
+  if (bodyScrollLocked) {
+    document.body.style.overflow = previousBodyOverflow
+    bodyScrollLocked = false
+  }
+}
 
 watch(
   () => settings.value.glyphWidth,
@@ -421,6 +473,7 @@ const unifontVersion = ref<string>(
 
 onMounted(() => {
   document.addEventListener('keydown', handleKeydown)
+  narrowSidebarQuery.addEventListener('change', handleSidebarMediaChange)
   window.addEventListener('beforeunload', handleBeforeUnload)
   document.addEventListener('visibilitychange', handleDraftVisibilityChange)
   unregisterDraftFlusher = registerDraftFlusher(flushDraft)
@@ -429,10 +482,11 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', handleKeydown)
+  narrowSidebarQuery.removeEventListener('change', handleSidebarMediaChange)
   window.removeEventListener('beforeunload', handleBeforeUnload)
   document.removeEventListener('visibilitychange', handleDraftVisibilityChange)
   unregisterDraftFlusher?.()
-  document.body.style.overflow = previousBodyOverflow
+  releaseBodyScrollLock()
   if (saveStatus.value !== 'saved') void flushDraft().catch(() => undefined)
 })
 
@@ -562,6 +616,11 @@ const handleGlyphSaved = (glyph: Glyph): void => {
 
 const handleKeydown = (e: KeyboardEvent): void => {
   const target = e.target as HTMLElement | null
+  if (e.key === 'Escape' && isSidebarActive.value) {
+    e.preventDefault()
+    if (!glyphManagerRef.value?.handleEscape()) handleCloseSidebar()
+    return
+  }
   if (target?.matches('input, textarea, select, [contenteditable="true"]'))
     return
   if (e.ctrlKey || e.metaKey) {
@@ -712,11 +771,15 @@ const handleGlyphEdit = (hexValue: string, glyph?: Glyph): void => {
         confirmText: $t('dialog.unsaved_changes.confirm'),
         onConfirm: () => {
           if (glyph) loadGlyph(hexValue, glyph)
+          if (glyph) isGlyphLibraryExpanded.value = false
           showDialog.value = false
         },
       })
     } else {
-      if (glyph) loadGlyph(hexValue, glyph)
+      if (glyph) {
+        loadGlyph(hexValue, glyph)
+        isGlyphLibraryExpanded.value = false
+      }
     }
   } catch (error) {
     console.error('Error loading glyph:', error)
@@ -791,7 +854,13 @@ const applyHexCode = (value: string): void => {
 }
 
 const handleCloseSidebar = (): void => {
+  isGlyphLibraryExpanded.value = false
   isSidebarActive.value = false
+}
+
+const handleToggleSidebar = (): void => {
+  if (isSidebarActive.value) handleCloseSidebar()
+  else toggleSidebar()
 }
 
 const updateSettings = (newSettings: typeof settings.value): void => {
@@ -846,61 +915,62 @@ const handlePasteStart = (): void => {
 </script>
 
 <style scoped>
-.document-status {
+.restored-draft-notice {
+  box-sizing: border-box;
+  width: min(100%, var(--workspace-max));
+  min-height: 3.25rem;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0.5rem 0.55rem 0.5rem 0.75rem;
+  border: 1px solid
+    color-mix(in srgb, var(--primary-color) 24%, var(--border-color));
+  border-left: 3px solid var(--primary-color);
+  border-radius: var(--radius-md);
+  background: color-mix(
+    in srgb,
+    var(--primary-color) 6%,
+    var(--background-light)
+  );
+  color: var(--text-color);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--shadow-color) 65%, transparent);
+}
+
+.restored-draft-icon {
+  width: 2rem;
+  height: 2rem;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  min-height: 1.5rem;
-  color: var(--text-secondary);
-  font-size: 0.78rem;
-}
-
-.status-dot {
-  width: 0.5rem;
-  height: 0.5rem;
+  justify-content: center;
   border-radius: 50%;
-  background: var(--grey-color);
+  background: color-mix(in srgb, var(--primary-color) 14%, transparent);
+  color: var(--primary-color);
+  font-size: 1.15rem;
 }
 
-.document-status.saved .status-dot {
-  background: var(--primary-color);
+.restored-draft-message {
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
-.document-status.saving .status-dot,
-.document-status.unsaved .status-dot {
-  background: var(--warning-color);
-}
-
-.document-status.error .status-dot {
-  background: var(--danger-color);
-}
-
-.restored-draft-notice {
-  width: min(36rem, calc(100% - 1rem));
+.restored-draft-actions {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  margin-bottom: 0.4rem;
-  padding: 0.55rem;
-  border: 1px solid var(--warning-border);
-  border-radius: 4px;
-  background: var(--warning-background);
-  color: var(--warning-text);
+  gap: var(--space-1);
 }
 
-.restored-draft-notice span {
-  flex: 1 1 14rem;
+.restored-draft-actions button {
+  min-height: var(--control-height-compact);
+  padding: 0.45rem 0.7rem;
+  font-size: 0.8125rem;
 }
 
-.restored-draft-notice button {
-  min-height: 44px;
-  padding: 0.4rem 0.7rem;
-  border: 1px solid currentColor;
-  border-radius: 4px;
-  background: transparent;
-  color: inherit;
+.restored-draft-actions .ui-button--quiet {
+  border-color: transparent;
+  color: var(--text-secondary);
 }
 
 .sidebar {
@@ -910,7 +980,9 @@ const handlePasteStart = (): void => {
   width: v-bind(sidebarWidth + 'px');
   height: 100dvh;
   background-color: var(--background-light);
-  box-shadow: 2px 0 5px var(--modal-overlay);
+  max-width: calc(100vw - 2rem);
+  border-right: 1px solid var(--border-color);
+  box-shadow: 4px 0 18px var(--modal-overlay);
   transition: transform 0.3s ease;
   transform: translateX(-100%);
   z-index: 1000;
@@ -920,6 +992,18 @@ const handlePasteStart = (): void => {
 
 .sidebar.active {
   transform: translateX(0);
+}
+
+.sidebar.glyph-library-expanded {
+  width: 100vw;
+  max-width: none;
+  border-right: 0;
+  box-shadow: none;
+}
+
+.sidebar.glyph-library-expanded .sidebar-resizer,
+.sidebar.glyph-library-expanded .btn-close-sidebar {
+  display: none;
 }
 
 .sidebar-resizer {
@@ -937,38 +1021,43 @@ const handlePasteStart = (): void => {
   background-color: var(--info-color);
 }
 
+.editor-control-stack {
+  box-sizing: border-box;
+  width: min(100%, var(--editor-flow-max));
+  display: grid;
+  gap: var(--space-2);
+}
+
+.editor-layout {
+  width: min(100%, var(--workspace-max));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-3);
+}
+
 .editor-actions {
-  margin: 1.5rem 1rem 1rem;
+  width: 100%;
+  margin: 0;
   display: flex;
-  gap: 16px;
-  justify-content: center;
+  gap: var(--space-3);
+  justify-content: space-between;
   align-items: center;
 }
 
 .action-group {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
 .action-button {
-  font-family: var(--normal-font);
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 1em;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: background-color 0.2s;
+  flex: none;
 }
 
 .action-button.icon-only {
-  padding: 8px;
-  background: transparent;
-  border: none;
-  box-shadow: none;
+  padding: 0;
+  background: var(--background-light);
   color: var(--text-secondary);
 }
 
@@ -977,82 +1066,27 @@ const handlePasteStart = (): void => {
 }
 
 .action-button.icon-only:hover,
-.action-button.icon-only:focus {
-  background: transparent;
+.action-button.icon-only:focus-visible {
+  background: var(--background-hover);
   color: var(--text-color);
-}
-
-.action-button.primary {
-  background: var(--primary-color);
-  color: white;
 }
 
 .action-button.restore-action {
-  border: 1px solid var(--border-color);
-  background: var(--background-light);
-  color: var(--text-color);
-}
-
-.action-button.restore-action:hover:not(:disabled) {
-  background: var(--background-hover);
-}
-
-.action-button.restore-action:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.action-button.primary:hover {
-  background: var(--primary-dark);
-}
-
-.action-button.secondary {
-  background: var(--danger-color);
-  color: white;
-}
-
-.action-button.secondary:hover {
-  background: var(--danger-hover);
+  color: var(--text-secondary);
 }
 
 .action-button .icon {
   font-size: 20px;
 }
 
-.action-button.paste-mode {
-  background-color: var(--info-color);
-  color: white;
-}
-
 .history-controls {
   display: flex;
-  gap: 4px;
+  flex: none;
+  gap: var(--space-1);
 }
 
 .icon-button {
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background: var(--background-light);
-  cursor: pointer;
   color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-.icon-button:hover:not(:disabled) {
-  background: var(--background-hover);
-  border-color: var(--border-hover);
-  color: var(--text-color);
-}
-
-.icon-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .icon-button .icon {
@@ -1082,11 +1116,11 @@ const handlePasteStart = (): void => {
 }
 
 .copyright-text {
-  font-family: 'Noto Sans', sans-serif;
+  font-family: var(--normal-font);
   text-align: center;
   padding: 0.5rem;
   color: var(--text-secondary);
-  font-size: 1em;
+  font-size: 0.8rem;
   margin-top: auto;
 }
 
@@ -1142,9 +1176,20 @@ const handlePasteStart = (): void => {
   font-size: 0.95em;
 }
 
-@media (max-width: 720px), (pointer: coarse) {
-  .container {
-    padding-bottom: calc(4.75rem + env(safe-area-inset-bottom));
+@media (max-width: 719px) {
+  .restored-draft-notice {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-2);
+    padding: 0.65rem;
+  }
+
+  .restored-draft-actions {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .restored-draft-actions button {
+    flex: 1;
   }
 
   .btn-close-sidebar {
@@ -1157,6 +1202,7 @@ const handlePasteStart = (): void => {
 
   .sidebar {
     width: 100%;
+    max-width: 100%;
     padding-top: env(safe-area-inset-top);
     padding-right: env(safe-area-inset-right);
     padding-bottom: env(safe-area-inset-bottom);
@@ -1174,8 +1220,8 @@ const handlePasteStart = (): void => {
   }
 
   .editor-actions {
-    margin: 1rem 0.2rem 0.8rem;
-    gap: 12px;
+    align-items: flex-start;
+    gap: var(--space-2);
   }
 
   .restore-action {
@@ -1183,17 +1229,13 @@ const handlePasteStart = (): void => {
   }
 
   .action-button {
-    font-size: clamp(0.8em, 2vw, 1.2em);
-    padding: 10px;
-  }
-
-  .icon-button {
-    width: 42px;
-    height: 42px;
+    min-height: 2.75rem;
+    padding-inline: 0.65rem;
+    font-size: 0.8rem;
   }
 
   .history-controls {
-    gap: 8px;
+    gap: var(--space-1);
   }
 
   .copyright-text {
@@ -1201,80 +1243,43 @@ const handlePasteStart = (): void => {
   }
 }
 
-@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
-  .btn-close-sidebar {
-    padding: 12px;
-  }
-
-  .btn-close-sidebar .icon {
-    font-size: 36px !important;
-  }
-
-  .btn-close-sidebar {
-    top: 12px;
-    right: 12px;
-    padding: 12px;
-  }
-
-  .editor-actions {
-    margin: 1.5rem 1.5rem 1rem;
-  }
-
-  .action-button {
-    font-size: clamp(1.5em, 2vw, 1.8em);
-    padding: 12px 24px;
-  }
-
-  .icon-button {
-    width: 60px;
-    height: 60px;
-  }
-
-  .icon-button .icon {
-    font-size: 28px !important;
-  }
-
-  .copyright-text {
-    padding: 1rem;
-    font-size: 1.2em;
+@media (prefers-reduced-motion: reduce) {
+  .sidebar {
+    transition: none;
   }
 }
 
-@media (orientation: portrait) and (min-width: 1024px) {
-  .editor-actions {
-    margin: 1.8rem 1.5rem 1rem;
+@media (min-width: 1024px) {
+  .editor-layout {
+    grid-template-columns: minmax(32rem, 1fr) minmax(22rem, 28rem);
+    gap: clamp(1rem, 2.5vw, 2rem);
   }
 
-  .action-button {
-    font-size: clamp(2em, 2vw, 2.5em);
-    padding: 16px 28px;
+  .editor-control-stack {
+    position: sticky;
+    top: var(--space-4);
+    padding-top: 0.15rem;
   }
 
-  .action-button .icon {
-    font-size: 44px !important;
-    transform: translateY(3px);
+  .editor-control-stack .action-button {
+    padding-inline: 0.55rem;
+    font-size: 0.78rem;
+    white-space: nowrap;
+  }
+
+  .editor-control-stack .restore-action {
+    width: var(--control-height);
+    padding: 0;
+    font-size: 0;
+  }
+
+  .editor-actions,
+  .action-group {
+    gap: var(--space-1);
   }
 
   .action-group {
-    gap: 16px;
-  }
-
-  .history-controls {
-    gap: 12px;
-  }
-
-  .icon-button {
-    width: 80px;
-    height: 80px;
-  }
-
-  .icon-button .icon {
-    font-size: 48px !important;
-  }
-
-  .copyright-text {
-    padding: 1rem;
-    font-size: 1.8em;
+    flex-wrap: nowrap;
   }
 }
 </style>
