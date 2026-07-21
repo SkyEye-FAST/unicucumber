@@ -455,41 +455,4 @@ watch(
   border-radius: 4px;
   border: 1px solid var(--border-color);
 }
-
-@media (orientation: portrait) and (min-width: 768px) {
-  .add-glyph {
-    padding: 24px;
-  }
-
-  .input {
-    font-size: 1.5rem;
-    padding: 12px;
-  }
-
-  .character-input {
-    font-size: 2rem;
-    flex: 0 0 80px;
-  }
-
-  .char-codepoint-row {
-    gap: 12px;
-  }
-
-  .button-group {
-    gap: 12px;
-    margin-top: 16px;
-  }
-
-  .btn-add,
-  .btn-import,
-  .btn-clear {
-    font-size: 1.5rem;
-    padding: 12px 24px;
-  }
-
-  .hex-preview {
-    padding: 12px 16px;
-    font-size: 1.8rem;
-  }
-}
 </style>

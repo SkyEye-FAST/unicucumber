@@ -91,7 +91,7 @@ onBeforeUnmount(() => {
   box-shadow: 0 2px 8px var(--modal-overlay);
 }
 
-@media (max-width: 720px), (pointer: coarse) {
+@media (max-width: 719px) {
   .offline-indicator {
     bottom: calc(4.7rem + env(safe-area-inset-bottom));
   }

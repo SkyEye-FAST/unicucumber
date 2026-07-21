@@ -1,26 +1,29 @@
 <template>
   <header class="editor-header">
-    <div class="header">
+    <div class="brand">
       <img src="@/assets/icon.png" alt="UniCucumber" class="logo" />
-      <h1 class="title"><span style="color: #000">Uni</span>Cucumber</h1>
+      <h1 class="title"><span class="title-prefix">Uni</span>Cucumber</h1>
     </div>
     <div class="modal-buttons">
       <button
-        class="modal-button"
+        class="modal-button ui-icon-button"
+        type="button"
         :aria-label="$t('header.open_settings')"
         @click="$emit('openSettings')"
       >
         <i-material-symbols-settings class="icon" />
       </button>
       <button
-        class="modal-button"
+        class="modal-button ui-icon-button"
+        type="button"
         :aria-label="$t('header.open_glyph_manager')"
         @click="$emit('toggleSidebar')"
       >
         <i-material-symbols-glyphs class="icon" />
       </button>
       <button
-        class="modal-button"
+        class="modal-button ui-icon-button"
+        type="button"
         :aria-label="$t('header.toggle_theme')"
         @click="toggleTheme"
       >
@@ -28,7 +31,7 @@
         <i-material-symbols-dark-mode v-else class="icon" />
       </button>
       <a
-        class="modal-button"
+        class="modal-button ui-icon-button"
         href="https://github.com/SkyEye-FAST/unicucumber"
         :aria-label="$t('header.github')"
       >
@@ -55,54 +58,55 @@ onMounted(() => {
 
 <style scoped>
 .editor-header {
+  box-sizing: border-box;
+  width: min(100%, var(--workspace-max));
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 3.5rem;
+  padding: 0.25rem 0 0.75rem;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.header {
+.brand {
   display: flex;
   align-items: center;
+  min-width: 0;
 }
 
 .logo {
-  width: 2.5em;
-  height: 2.5em;
-  margin-right: 10px;
-  margin-top: 20px;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: none;
+  margin-right: 0.55rem;
 }
 
 .title {
-  font-family: 'Noto Sans', sans-serif;
-  font-size: 2em;
+  margin: 0;
+  font-family: var(--normal-font);
+  font-size: clamp(1.45rem, 2.5vw, 1.9rem);
+  font-weight: 750;
+  line-height: 1;
   color: var(--primary-color);
-  margin-bottom: 5px;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
+}
+
+.title-prefix {
+  color: var(--text-color);
 }
 
 .modal-buttons {
-  background-color: var(--background-light);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  box-shadow: 0 2px 4px var(--modal-shadow);
   display: flex;
   align-items: center;
-  margin: 5px;
-  flex-direction: row;
+  gap: var(--space-2);
 }
 
 .modal-button {
   color: var(--text-secondary);
-  background-color: inherit;
-  box-sizing: border-box;
-  display: inline-grid;
-  place-items: center;
-  line-height: 1;
-  font-size: 1.5em;
-  padding: 5px;
-  margin: 0 10px;
-  cursor: pointer;
-  border: none;
-  border-radius: 4px;
+  text-decoration: none;
 }
 
 .modal-button .icon {
@@ -115,82 +119,35 @@ onMounted(() => {
   color: var(--primary-color);
 }
 
-@media (max-width: 720px), (pointer: coarse) {
+@media (max-width: 719px) {
   .editor-header {
-    width: 100%;
-  }
-
-  .header {
-    height: 2.6rem;
+    min-height: 3rem;
+    gap: 0.35rem;
+    padding: 0.15rem 0 0.45rem;
   }
 
   .logo {
-    width: 2rem;
-    height: 2rem;
-    margin-top: 0;
-    margin-right: 0.45rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-right: 0.3rem;
   }
 
   .title {
-    margin: 0;
-    font-size: 1.65rem;
-    line-height: 1;
+    font-size: clamp(1.05rem, 5.2vw, 1.35rem);
   }
 
   .modal-buttons {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    width: min(calc(100% - 1rem), 26rem);
-    max-width: 26rem;
-    gap: 0.25rem;
-    padding: 0.25rem;
-    margin: 0.1rem 0 0.25rem;
+    gap: 0.2rem;
   }
 
   .modal-button {
-    width: 100%;
-    min-width: 44px;
-    min-height: 44px;
-    margin: 0;
-    padding: 0;
+    width: 2.25rem;
+    min-width: 2.25rem;
+    min-height: 2.25rem;
   }
 
   .modal-button .icon {
-    font-size: 1.5rem;
-  }
-}
-
-@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
-  .modal-button {
-    padding: 5px 10px;
-    font-size: 2em;
-  }
-
-  .title {
-    font-size: 3em;
-  }
-
-  .logo {
-    width: 3.5em;
-    height: 3.5em;
-    margin-top: 30px;
-  }
-}
-
-@media (orientation: portrait) and (min-width: 1024px) {
-  .modal-button {
-    font-size: 3em;
-    padding: 10px 15px;
-  }
-
-  .title {
-    font-size: 4em;
-  }
-
-  .logo {
-    width: 5em;
-    height: 5em;
-    margin-top: 40px;
+    font-size: 1.2rem;
   }
 }
 </style>

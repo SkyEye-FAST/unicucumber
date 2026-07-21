@@ -692,7 +692,7 @@ const handleDialogKeydown = (event: KeyboardEvent): void => {
   margin-left: 8px;
 }
 
-@media (orientation: portrait) and (max-width: 767px) {
+@media (max-width: 719px) {
   .glyph-preview-section {
     margin: 12px 0;
     padding: 12px;

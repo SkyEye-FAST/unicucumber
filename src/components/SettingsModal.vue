@@ -553,7 +553,7 @@ input[type='number']:focus {
   background-color: var(--danger-hover);
 }
 
-@media (max-width: 720px), (pointer: coarse) {
+@media (max-width: 719px) {
   .settings-modal {
     width: calc(
       100vw - max(1rem, env(safe-area-inset-left)) -
@@ -578,10 +578,9 @@ input[type='number']:focus {
   }
 
   .setting-option input[type='checkbox'] {
-    transform: scale(1.5);
-    transform-origin: 0 0;
-    margin-right: 0.5em;
-    margin-bottom: 10px;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-right: 0.5rem;
   }
 
   .font-edit-content {
@@ -596,129 +595,6 @@ input[type='number']:focus {
   .font-button {
     font-size: 1em;
     padding: 5px;
-  }
-}
-
-@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
-  .settings-modal {
-    width: 40em;
-  }
-
-  .modal-title {
-    font-size: 2.5em;
-  }
-
-  .setting-option label,
-  #browserFont {
-    font-size: 1.8em;
-    margin-left: 30px;
-  }
-
-  .setting-option select {
-    font-size: 1.8em;
-    padding: 15px;
-    margin-right: 20px;
-  }
-
-  .setting-option input[type='checkbox'] {
-    transform: scale(2.5);
-    transform-origin: 0 0;
-    margin-right: 3em;
-    margin-bottom: 1.5em;
-  }
-
-  .close-button,
-  .reset-button {
-    font-size: 1.8em;
-    padding: 15px 0;
-    margin-bottom: 30px;
-  }
-
-  .font-input {
-    font-size: 1.8em;
-  }
-
-  .font-edit-content {
-    min-width: 650px;
-    padding: 30px;
-  }
-
-  .font-edit-content h3 {
-    font-size: 2em;
-    margin-bottom: 30px;
-  }
-
-  .save-button,
-  .cancel-button {
-    font-size: 1.5em;
-    padding: 12px 25px;
-  }
-
-  .font-button {
-    font-size: 1.8em;
-    padding: 15px;
-    margin-right: 20px;
-  }
-}
-
-@media (orientation: portrait) and (min-width: 1024px) {
-  .settings-modal {
-    width: 45em;
-  }
-
-  .modal-title {
-    font-size: 3em;
-  }
-
-  .setting-option label,
-  #browserFont {
-    font-size: 2.2em;
-    margin-left: 30px;
-  }
-
-  .setting-option select {
-    font-size: 2.2em;
-    padding: 20px;
-    margin-right: 20px;
-  }
-
-  .setting-option input[type='checkbox'] {
-    transform: scale(3);
-    transform-origin: 0 0;
-    margin-right: 40px;
-  }
-
-  .close-button,
-  .reset-button {
-    font-size: 2em;
-    padding: 15px 0;
-    margin-bottom: 40px;
-  }
-
-  .font-input {
-    font-size: 2.2em;
-  }
-
-  .font-edit-content {
-    min-width: 750px;
-    padding: 35px;
-  }
-
-  .font-edit-content h3 {
-    font-size: 2.4em;
-    margin-bottom: 35px;
-  }
-
-  .save-button,
-  .cancel-button {
-    font-size: 1.8em;
-    padding: 15px 30px;
-  }
-
-  .font-button {
-    font-size: 2.2em;
-    padding: 20px;
-    margin-right: 20px;
   }
 }
 </style>

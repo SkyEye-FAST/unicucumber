@@ -150,7 +150,8 @@
     },
     "navigation": "字形导航",
     "next": "下一个",
-    "position": "第{current}个，共{total}个",
+    "position": "{current} / {total}",
+    "position_accessible": "第{current}个，共{total}个",
     "previous": "上一个",
     "search": "搜索码位、字符、数据或Unicode名称…",
     "select_all": "全选",
@@ -159,7 +160,6 @@
     "sheet_scale": "像素缩放",
     "title": "字形管理器",
     "upload": {
-      "camera": "相机",
       "clipboard_failed": "无法读取剪贴板图像。",
       "drop_hint": "也可将.hex或图像文件拖放到此处。",
       "hex_file": "上传Hex文件",

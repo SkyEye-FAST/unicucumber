@@ -199,20 +199,4 @@ const sheetScale = ref(2)
 .btn-export:hover:not(:disabled) {
   background: var(--primary-dark);
 }
-
-@media (orientation: portrait) and (min-width: 768px) {
-  .search-box {
-    width: 65%;
-  }
-
-  .search-input {
-    font-size: 1.4rem;
-    padding: 16px;
-  }
-
-  .btn-export {
-    font-size: 1.5rem;
-    padding: 12px 24px;
-  }
-}
 </style>

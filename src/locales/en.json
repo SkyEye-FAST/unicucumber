@@ -150,7 +150,8 @@
     },
     "navigation": "Glyph navigation",
     "next": "Next",
-    "position": "{current} of {total}",
+    "position": "{current} / {total}",
+    "position_accessible": "Item {current} of {total}",
     "previous": "Previous",
     "search": "Search code point, character, data, or Unicode name…",
     "select_all": "Select All",
@@ -159,7 +160,6 @@
     "sheet_scale": "Pixel scale",
     "title": "Glyph Manager",
     "upload": {
-      "camera": "Camera",
       "clipboard_failed": "The clipboard image could not be read.",
       "drop_hint": "You can also drop .hex or image files here.",
       "hex_file": "Upload Hex File",

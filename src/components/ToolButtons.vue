@@ -176,26 +176,32 @@ const updateTool = (tool: EditorTool): void => {
 
 <style scoped>
 .tool-buttons {
-  width: min(25rem, calc(100% - 1rem));
+  width: 100%;
   display: flex;
-  margin: 10px 0 15px;
+  margin: 0;
   position: relative;
 }
 
 .tool-button,
 .tool-overflow > summary {
-  min-width: 44px;
-  min-height: 44px;
+  min-width: var(--control-height);
+  min-height: var(--control-height);
   display: flex;
   align-items: center;
   justify-content: center;
   flex: 1;
-  padding: 7px 0;
-  border: 2px solid transparent;
-  background: var(--border-color);
+  padding: 0.45rem 0;
+  border: 1px solid var(--border-color);
+  border-inline-end-width: 0;
+  background: var(--background-active);
   color: var(--text-color);
   cursor: pointer;
   list-style: none;
+}
+
+.tool-buttons > .tool-button:first-child {
+  border-start-start-radius: var(--radius-sm);
+  border-end-start-radius: var(--radius-sm);
 }
 
 .tool-overflow {
@@ -206,6 +212,9 @@ const updateTool = (tool: EditorTool): void => {
 .tool-overflow > summary {
   width: 100%;
   box-sizing: border-box;
+  border-inline-end-width: 1px;
+  border-start-end-radius: var(--radius-sm);
+  border-end-end-radius: var(--radius-sm);
 }
 
 .tool-overflow > summary::-webkit-details-marker {
@@ -214,6 +223,7 @@ const updateTool = (tool: EditorTool): void => {
 
 .tool-button.active,
 .tool-overflow > summary.active {
+  border-color: var(--primary-color);
   background: var(--primary-color);
   color: white;
 }
@@ -229,16 +239,20 @@ const updateTool = (tool: EditorTool): void => {
   position: absolute;
   z-index: 45;
   top: calc(100% + 0.35rem);
-  left: 50%;
-  translate: -50% 0;
+  right: 0;
+  left: auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.6rem;
   padding: 0.6rem;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   background: var(--background-light);
   box-shadow: 0 4px 14px var(--modal-overlay);
+}
+
+.tool-overflow:not([open]) .tool-sheet {
+  display: none;
 }
 
 .tool-sheet-group {
@@ -254,7 +268,7 @@ const updateTool = (tool: EditorTool): void => {
   gap: 0.5rem;
   padding: 0.45rem 0.65rem;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: var(--background-base);
   color: var(--text-color);
   font-family: var(--normal-font);
@@ -271,7 +285,7 @@ const updateTool = (tool: EditorTool): void => {
   rotate: 90deg;
 }
 
-@media (max-width: 720px), (pointer: coarse) {
+@media (max-width: 719px) {
   .tool-buttons {
     display: none;
   }

@@ -35,12 +35,27 @@
         <i-material-symbols-chevron-left />
         {{ $t('glyph_manager.previous') }}
       </button>
-      <span>{{
-        $t('glyph_manager.position', {
-          current: currentGlyphPosition,
-          total: filteredGlyphs.length,
-        })
-      }}</span>
+      <span
+        class="glyph-position"
+        :aria-label="
+          $t('glyph_manager.position_accessible', {
+            current: currentGlyphPosition,
+            total: filteredGlyphs.length,
+          })
+        "
+        :title="
+          $t('glyph_manager.position_accessible', {
+            current: currentGlyphPosition,
+            total: filteredGlyphs.length,
+          })
+        "
+        >{{
+          $t('glyph_manager.position', {
+            current: currentGlyphPosition,
+            total: filteredGlyphs.length,
+          })
+        }}</span
+      >
       <button
         type="button"
         :disabled="!filteredGlyphs.length"
@@ -1167,7 +1182,7 @@ onMounted(() => {
   color: var(--text-color);
 }
 
-@media (max-width: 720px), (pointer: coarse) {
+@media (max-width: 719px) {
   .glyph-manager {
     box-sizing: border-box;
     min-height: 0;
@@ -1185,17 +1200,6 @@ onMounted(() => {
     z-index: 2;
     padding-right: 3rem;
     background: var(--background-light);
-  }
-}
-
-@media (orientation: portrait) and (min-width: 768px) {
-  .glyph-manager {
-    padding: 24px;
-    gap: 24px;
-  }
-
-  .title {
-    font-size: 2.5rem;
   }
 }
 </style>

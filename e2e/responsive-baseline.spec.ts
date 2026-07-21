@@ -18,8 +18,10 @@ const getLayoutMetrics = (page: Page) =>
     const root = document.documentElement
     const body = document.body
     const grid = document.querySelector<HTMLElement>('.grid-container')
+    const gridViewport = document.querySelector<HTMLElement>('.grid-viewport')
     const cell = document.querySelector<HTMLElement>('.cell')
     const gridBounds = grid?.getBoundingClientRect()
+    const gridViewportBounds = gridViewport?.getBoundingClientRect()
     const cellBounds = cell?.getBoundingClientRect()
 
     return {
@@ -31,7 +33,16 @@ const getLayoutMetrics = (page: Page) =>
         ? {
             left: gridBounds.left,
             right: gridBounds.right,
+            top: gridBounds.top,
+            bottom: gridBounds.bottom,
             width: gridBounds.width,
+            height: gridBounds.height,
+          }
+        : null,
+      gridViewport: gridViewportBounds
+        ? {
+            top: gridViewportBounds.top,
+            bottom: gridViewportBounds.bottom,
           }
         : null,
       cellSize: cellBounds
@@ -118,6 +129,36 @@ test.describe('responsive visual baseline', () => {
         expect(metrics.grid?.right ?? Infinity).toBeLessThanOrEqual(
           viewport.width,
         )
+        expect(metrics.gridViewport).not.toBeNull()
+        expect(metrics.grid?.top ?? -1).toBeGreaterThanOrEqual(
+          metrics.gridViewport?.top ?? 0,
+        )
+        expect(metrics.grid?.bottom ?? Infinity).toBeLessThanOrEqual(
+          metrics.gridViewport?.bottom ?? 0,
+        )
+
+        if (viewport.width < 720) {
+          await expect(page.locator('.mobile-command-bar')).toBeVisible()
+          await expect(page.locator('.tool-buttons')).toBeHidden()
+        } else {
+          await expect(page.locator('.mobile-command-bar')).toBeHidden()
+          await expect(page.locator('.tool-buttons')).toBeVisible()
+        }
+
+        const hexInput = page.locator('#hexInput')
+        await expect(hexInput).toHaveValue(/[0-9A-F]{64}/)
+        await expect(hexInput).toHaveAttribute('title', /[0-9A-F]{64}/)
+
+        if (viewport.width >= 720 && viewport.width < 1024) {
+          await page.locator('.modal-buttons .modal-button').nth(1).click()
+          const drawer = page.locator('.sidebar.active')
+          await expect(drawer).toBeVisible()
+          const drawerBounds = await drawer.boundingBox()
+          expect(drawerBounds?.width ?? Infinity).toBeLessThan(viewport.width)
+          await page
+            .getByRole('button', { name: 'Close glyph manager' })
+            .click()
+        }
       })
     }
   }

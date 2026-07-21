@@ -6,13 +6,14 @@
         :href="ziToolsUrl"
         target="_blank"
         rel="noopener noreferrer"
-        class="zi-tools-link"
+        class="zi-tools-link ui-icon-button"
         :title="$t('editor.actions.open_in_zitools')"
       >
         <img src="@/assets/zi-tools.svg" alt="zi.tools" class="zi-tools-icon" />
       </a>
       <button
-        class="encoding-info-btn"
+        class="encoding-info-btn ui-icon-button"
+        type="button"
         :title="$t('editor.actions.show_encoding_info')"
         :class="{ active: showingEncodingInfo }"
         @click="toggleEncodingInfo()"
@@ -47,7 +48,36 @@
         <span class="unicode-char" :style="previewStyle">
           {{ previewCharacter }}
         </span>
+        <span class="glyph-width">{{ $t('hex_input.width', { width }) }}</span>
       </div>
+      <span
+        class="document-status"
+        :class="saveStatus"
+        :title="saveStatusLabel"
+        aria-live="polite"
+      >
+        <i-material-symbols-check
+          v-if="saveStatus === 'saved'"
+          class="status-icon"
+          aria-hidden="true"
+        />
+        <i-material-symbols-sync
+          v-else-if="saveStatus === 'saving'"
+          class="status-icon status-icon-spinning"
+          aria-hidden="true"
+        />
+        <i-material-symbols-edit
+          v-else-if="saveStatus === 'unsaved'"
+          class="status-icon"
+          aria-hidden="true"
+        />
+        <i-material-symbols-error-outline
+          v-else
+          class="status-icon"
+          aria-hidden="true"
+        />
+        <span>{{ saveStatusLabel }}</span>
+      </span>
     </div>
     <span
       v-if="codePointError"
@@ -95,24 +125,16 @@ import PixelPreview from './GlyphManager/PixelPreview.vue'
 
 const { t: $t } = useI18n()
 
-const props = defineProps({
-  modelValue: {
-    type: String,
-    required: true,
-  },
-  hexValue: {
-    type: String,
-    required: true,
-  },
-  width: {
-    type: Number,
-    required: true,
-  },
-  browserPreviewFont: {
-    type: String,
-    required: true,
-  },
-})
+type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error'
+
+const props = defineProps<{
+  modelValue: string
+  hexValue: string
+  width: number
+  browserPreviewFont: string
+  saveStatus: SaveStatus
+  saveStatusLabel: string
+}>()
 
 const emit = defineEmits(['update:model-value'])
 
@@ -301,46 +323,48 @@ const encodingInfo = computed(() => {
 
 <style scoped>
 .current-glyph-info {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--control-height-compact);
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.8rem;
-  margin: 0.2rem 0 0.5rem;
-  padding: 0.35rem 0.8rem;
-  background: var(--background-light);
-  border-radius: 4px;
-  max-width: fit-content;
-  height: 3rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  gap: var(--space-2);
 }
 
 .glyph-preview {
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.1rem 0.5rem;
-  background: var(--background-light);
-  border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  gap: 0.35rem;
+  padding-inline-start: var(--space-2);
+  border-inline-start: 1px solid var(--border-color);
 }
 
 .unicode-char {
-  font-size: 2em;
-  border-radius: 4px;
+  min-width: 1.5rem;
+  font-size: 1.6rem;
   text-align: center;
   transition: none !important;
+}
+
+.glyph-width {
+  color: var(--text-secondary);
+  font-family: var(--monospace-font);
+  font-size: 0.7rem;
+  white-space: nowrap;
 }
 
 .code-point-input {
   display: flex;
   align-items: center;
   font-family: var(--monospace-font);
-  color: var(--text-secondary);
-  font-size: 1.3rem;
+  color: var(--text-color);
+  font-size: 1.05rem;
   font-weight: 600;
   background: var(--background-hover);
-  border-radius: 4px;
-  padding: 0.2rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 0.15rem 0.3rem;
 }
 
 .code-point-input span {
@@ -348,7 +372,7 @@ const encodingInfo = computed(() => {
 }
 
 .code-point-input input {
-  width: 3.8em;
+  width: 4.2em;
   background: transparent;
   border: none;
   color: inherit;
@@ -359,9 +383,9 @@ const encodingInfo = computed(() => {
   padding: 0.2rem 0.1rem;
 }
 
-.code-point-input input:focus {
-  background: var(--background-active);
-  border-radius: 2px;
+.code-point-input:focus-within {
+  border-color: var(--primary-color);
+  background: var(--input-background);
 }
 
 .code-point-input input[aria-invalid='true'] {
@@ -369,20 +393,22 @@ const encodingInfo = computed(() => {
 }
 
 .code-point-error {
-  display: block;
-  max-width: 24rem;
-  margin: -0.25rem auto 0.35rem;
+  position: absolute;
+  z-index: 51;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  max-width: min(24rem, calc(100vw - 2rem));
+  padding: 0.4rem 0.55rem;
+  border: 1px solid
+    color-mix(in srgb, var(--danger-color) 40%, var(--border-color));
+  border-radius: var(--radius-sm);
+  background: var(--dialog-background);
   color: var(--danger-color);
   font-size: 0.75rem;
-  text-align: center;
 }
 
 .zi-tools-link {
-  display: flex;
-  align-items: center;
-  padding: 4px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  flex: none;
 }
 
 .zi-tools-link:hover {
@@ -390,8 +416,8 @@ const encodingInfo = computed(() => {
 }
 
 .zi-tools-icon {
-  width: 28px;
-  height: 28px;
+  width: 1.35rem;
+  height: 1.35rem;
 }
 
 [data-theme='dark'] .zi-tools-icon {
@@ -399,15 +425,8 @@ const encodingInfo = computed(() => {
 }
 
 .encoding-info-btn {
-  display: flex;
-  align-items: center;
-  padding: 4px;
-  border: none;
-  background: transparent;
-  border-radius: 4px;
-  cursor: pointer;
+  flex: none;
   color: var(--text-secondary);
-  transition: background-color 0.2s;
 }
 
 .encoding-info-btn:hover {
@@ -415,9 +434,11 @@ const encodingInfo = computed(() => {
 }
 
 .glyph-info-wrapper {
+  position: relative;
+  width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 
 .encoding-info-btn.active {
@@ -425,15 +446,19 @@ const encodingInfo = computed(() => {
 }
 
 .encoding-info-panel {
-  width: 100%;
-  max-width: 500px;
-  padding: 0.5rem;
-  background: var(--background-light);
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 0.45rem);
+  left: 0;
+  width: min(32rem, calc(100vw - 2rem));
+  padding: var(--space-2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--dialog-background);
+  box-shadow: 0 8px 24px var(--modal-shadow);
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 0.3rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-1);
 }
 
 .encoding-row {
@@ -442,7 +467,7 @@ const encodingInfo = computed(() => {
   align-items: center;
   padding: 0.3rem 0.5rem;
   border: 1px solid var(--border-color);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   background: var(--background-hover);
 }
 
@@ -468,13 +493,58 @@ code.encoding-value {
 }
 
 .unicode-name {
-  font-family: 'Noto Sans', sans-serif;
-  font-weight: bold;
+  font-family: var(--normal-font);
+  font-weight: 700;
   padding: 0.3rem 0.5rem;
   margin-bottom: 0.3rem;
   border-bottom: 1px solid var(--border-color);
   text-align: center;
   grid-column: 1 / -1;
+}
+
+.document-status {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-inline-start: auto;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.document-status.saved {
+  opacity: 0.72;
+}
+
+.document-status.saving,
+.document-status.unsaved {
+  color: var(--warning-text);
+}
+
+[data-theme='dark'] .document-status.saving,
+[data-theme='dark'] .document-status.unsaved {
+  color: #f3bf46;
+}
+
+.document-status.error {
+  color: var(--danger-color);
+  font-weight: 600;
+}
+
+.status-icon {
+  flex: none;
+  font-size: 1rem;
+}
+
+.status-icon-spinning {
+  animation: status-spin 1.2s linear infinite;
+}
+
+@keyframes status-spin {
+  to {
+    rotate: 1turn;
+  }
 }
 
 .slide-enter-active,
@@ -488,168 +558,50 @@ code.encoding-value {
   opacity: 0;
 }
 
-@media (orientation: portrait) {
-  .encoding-info-panel {
-    font-size: 0.9rem;
-  }
-}
-
-@media (orientation: portrait) and (max-width: 768px) {
+@media (max-width: 719px) {
   .current-glyph-info {
-    gap: 0.5rem;
-    height: 2rem;
-    padding: 0.6rem 0.8rem;
-  }
-
-  .code-point-input {
-    font-size: 1.2rem;
-  }
-
-  .code-point-input input {
-    width: 4em;
-  }
-
-  .zi-tools-icon {
-    width: 24px;
-    height: auto;
-  }
-
-  .unicode-char {
-    font-size: 2em;
-  }
-
-  .encoding-info-btn {
-    font-size: 2em;
+    gap: 0.3rem;
   }
 
   .encoding-info-panel {
-    max-width: 95vw;
+    width: calc(100vw - 2rem);
     grid-template-columns: 1fr;
-    gap: 0.25rem;
-    padding: 0.3rem;
   }
 
-  .encoding-row {
-    padding: 0.25rem 0.4rem;
-  }
-
-  .encoding-label {
-    font-size: 0.85rem;
-  }
-
-  .encoding-value {
-    font-size: 0.85rem;
-    padding: 0.1rem 0.2rem;
-  }
-
-  .unicode-name {
-    font-size: 0.9rem;
-    padding: 0.25rem;
-    margin-bottom: 0.25rem;
-  }
-}
-
-@media (orientation: portrait) and (min-width: 768px) and (max-width: 1024px) {
-  .current-glyph-info {
-    gap: 1.2rem;
-    height: 3rem;
-    padding: 0.8rem 1.2rem;
-  }
-
-  .code-point-input {
-    font-size: 2rem;
-  }
-
-  .zi-tools-icon {
-    width: 36px;
-    height: 36px;
+  .glyph-preview {
+    padding-inline-start: 0.3rem;
   }
 
   .unicode-char {
-    font-size: 2.5em;
+    font-size: 1.35rem;
   }
 
-  .encoding-info-btn {
-    font-size: 2em;
+  .glyph-width {
+    display: none;
   }
 
-  .encoding-info-panel {
-    max-width: 90vw;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.4rem;
-    padding: 0.8rem;
-  }
-
-  .encoding-row {
-    padding: 0.4rem 0.6rem;
-  }
-
-  .encoding-label {
-    font-size: 1.2rem;
-  }
-
-  .encoding-value {
-    font-size: 1.2rem;
-    padding: 0.15rem 0.4rem;
-  }
-
-  .unicode-name {
-    font-size: 1.4rem;
-    padding: 0.4rem;
-    margin-bottom: 0.4rem;
+  .document-status {
+    font-size: 0.7rem;
   }
 }
 
-@media (orientation: portrait) and (min-width: 1024px) {
-  .current-glyph-info {
-    gap: 1.2rem;
-    height: 5rem;
-    padding: 0.6rem 2rem;
-    margin: 0.5rem 0 1rem;
+@media (max-width: 374px) {
+  .glyph-preview :deep(.pixel-preview) {
+    display: none;
   }
 
-  .code-point-input {
-    font-size: 2.6rem;
+  .document-status span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
   }
+}
 
-  .zi-tools-icon {
-    width: 48px;
-    height: 48px;
-  }
-
-  .unicode-char {
-    font-size: 3em;
-  }
-
-  .encoding-info-btn {
-    font-size: 42px;
-  }
-
-  .encoding-info-panel {
-    max-width: 85vw;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.6rem;
-    padding: 1rem;
-    margin-top: 1rem;
-  }
-
-  .encoding-row {
-    padding: 0.5rem 0.8rem;
-  }
-
-  .encoding-label {
-    font-size: 1.6rem;
-  }
-
-  .encoding-value {
-    font-size: 1.6rem;
-    padding: 0.2rem 0.5rem;
-  }
-
-  .unicode-name {
-    font-size: 1.8rem;
-    padding: 0.6rem;
-    margin-bottom: 0.6rem;
+@media (prefers-reduced-motion: reduce) {
+  .status-icon-spinning {
+    animation: none;
   }
 }
 </style>

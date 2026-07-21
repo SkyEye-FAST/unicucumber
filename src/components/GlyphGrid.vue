@@ -1,46 +1,51 @@
 <template>
   <section class="workspace" :aria-label="$t('workspace.label')">
-    <div
-      class="view-controls"
-      role="toolbar"
-      :aria-label="$t('workspace.view_controls')"
-    >
-      <button
-        type="button"
-        :aria-label="$t('workspace.zoom_out')"
-        :title="$t('workspace.zoom_out')"
-        @click="zoomBy(-ZOOM_STEP)"
+    <div class="workspace-toolbar">
+      <div class="workspace-metadata">
+        <slot name="toolbar"></slot>
+      </div>
+      <div
+        class="view-controls"
+        role="toolbar"
+        :aria-label="$t('workspace.view_controls')"
       >
-        <i-material-symbols-zoom-out class="icon" />
-      </button>
-      <output class="zoom-value" :aria-label="$t('workspace.zoom_level')">
-        {{ zoomPercent }}%
-      </output>
-      <button
-        type="button"
-        :aria-label="$t('workspace.zoom_in')"
-        :title="$t('workspace.zoom_in')"
-        @click="zoomBy(ZOOM_STEP)"
-      >
-        <i-material-symbols-zoom-in class="icon" />
-      </button>
-      <button
-        type="button"
-        :class="{ active: fitMode }"
-        :aria-label="$t('workspace.fit')"
-        :title="$t('workspace.fit')"
-        @click="fitToScreen"
-      >
-        <i-material-symbols-fit-screen class="icon" />
-      </button>
-      <button
-        type="button"
-        :aria-label="$t('workspace.reset_view')"
-        :title="$t('workspace.reset_view')"
-        @click="resetView"
-      >
-        <i-material-symbols-center-focus-strong-outline class="icon" />
-      </button>
+        <button
+          type="button"
+          :aria-label="$t('workspace.zoom_out')"
+          :title="$t('workspace.zoom_out')"
+          @click="zoomBy(-ZOOM_STEP)"
+        >
+          <i-material-symbols-zoom-out class="icon" />
+        </button>
+        <output class="zoom-value" :aria-label="$t('workspace.zoom_level')">
+          {{ zoomPercent }}%
+        </output>
+        <button
+          type="button"
+          :aria-label="$t('workspace.zoom_in')"
+          :title="$t('workspace.zoom_in')"
+          @click="zoomBy(ZOOM_STEP)"
+        >
+          <i-material-symbols-zoom-in class="icon" />
+        </button>
+        <button
+          type="button"
+          :class="{ active: fitMode }"
+          :aria-label="$t('workspace.fit')"
+          :title="$t('workspace.fit')"
+          @click="fitToScreen"
+        >
+          <i-material-symbols-fit-screen class="icon" />
+        </button>
+        <button
+          type="button"
+          :aria-label="$t('workspace.reset_view')"
+          :title="$t('workspace.reset_view')"
+          @click="resetView"
+        >
+          <i-material-symbols-center-focus-strong-outline class="icon" />
+        </button>
+      </div>
     </div>
 
     <div
@@ -311,7 +316,7 @@ const viewportRef = ref<HTMLElement | null>(null)
 const gridRef = ref<HTMLElement | null>(null)
 const gridWidth = computed(() => props.gridData[0]?.length ?? 16)
 
-const DEFAULT_CELL_SIZE = 25
+const DEFAULT_CELL_SIZE = 30
 const MIN_CELL_SIZE = 10
 const MAX_CELL_SIZE = 64
 const ZOOM_STEP = 2
@@ -326,15 +331,21 @@ const documentWidth = computed(() => (gridWidth.value + 1) * cellSize.value)
 const documentHeight = computed(
   () => (props.gridData.length + 1) * cellSize.value,
 )
-const viewportStyle = computed<CSSProperties>(() => ({
-  height: `${Math.min(
-    documentHeight.value + 2,
-    Math.max(
-      260,
-      Math.round((window.visualViewport?.height ?? window.innerHeight) * 0.62),
-    ),
-  )}px`,
-}))
+const viewportStyle = computed<CSSProperties>(() => {
+  const fittedHeight = documentHeight.value + 2
+  if (fitMode.value) return { height: `${fittedHeight}px` }
+  return {
+    height: `${Math.min(
+      fittedHeight,
+      Math.max(
+        260,
+        Math.round(
+          (window.visualViewport?.height ?? window.innerHeight) * 0.62,
+        ),
+      ),
+    )}px`,
+  }
+})
 const gridStyle = computed<CSSProperties>(() => ({
   '--cell-size': `${cellSize.value}px`,
   gridTemplateColumns: `repeat(${gridWidth.value + 1}, var(--cell-size))`,
@@ -1214,33 +1225,49 @@ defineExpose({
 
 <style scoped>
 .workspace {
-  width: min(100%, 52rem);
+  width: min(100%, var(--workspace-max));
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.45rem;
+  gap: var(--space-2);
+}
+
+.workspace-toolbar {
+  box-sizing: border-box;
+  width: min(100%, var(--editor-flow-max));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0.4rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--background-light);
+}
+
+.workspace-metadata {
+  min-width: 0;
 }
 
 .view-controls {
   display: flex;
   align-items: center;
   gap: 0.2rem;
-  padding: 0.2rem;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background: var(--background-light);
+  padding-inline-start: var(--space-2);
+  border-inline-start: 1px solid var(--border-color);
 }
 
 .view-controls button,
 .context-toolbar button {
-  min-width: 44px;
-  min-height: 44px;
+  min-width: var(--control-height-compact);
+  min-height: var(--control-height-compact);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.3rem;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--text-color);
   cursor: pointer;
@@ -1264,7 +1291,7 @@ defineExpose({
 }
 
 .grid-viewport {
-  width: min(100%, 48rem);
+  width: min(100%, var(--editor-flow-max));
   min-height: 260px;
   position: relative;
   overflow: hidden;
@@ -1417,17 +1444,53 @@ defineExpose({
   font-size: 1.1rem;
 }
 
-@media (max-width: 720px), (pointer: coarse) {
+@media (max-width: 899px) {
+  .workspace-toolbar {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.3rem;
+  }
+
+  .view-controls {
+    justify-content: center;
+    padding: 0.25rem 0 0;
+    border-inline-start: 0;
+    border-top: 1px solid var(--border-color);
+  }
+}
+
+@container (max-width: 38rem) {
+  .workspace-toolbar {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.3rem;
+  }
+
+  .view-controls {
+    justify-content: center;
+    padding: 0.25rem 0 0;
+    border-inline-start: 0;
+    border-top: 1px solid var(--border-color);
+  }
+}
+
+@media (max-width: 719px) {
   .workspace {
     width: 100%;
     gap: 0;
   }
 
+  .workspace-toolbar {
+    width: 100%;
+    padding: 0.3rem;
+    border-radius: var(--radius-sm);
+  }
+
   .view-controls {
-    align-self: stretch;
     justify-content: center;
-    margin-inline: 0.5rem;
-    margin-bottom: 0;
+  }
+
+  .view-controls button {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
   }
 
   .grid-viewport {

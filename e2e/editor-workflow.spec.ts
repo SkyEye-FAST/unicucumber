@@ -271,6 +271,15 @@ test('glyph manager loads only the requested Unifont range', async ({
     if (request.url().includes('/unifont/')) requested.push(request.url())
   })
   await page.locator('.modal-buttons .modal-button').nth(1).click()
+  await expect(page.locator('.glyph-position')).toHaveText('0 / 0')
+  await expect(page.locator('.glyph-position')).toHaveAttribute(
+    'aria-label',
+    'Item 0 of 0',
+  )
+  await expect(page.locator('input[capture]')).toHaveCount(0)
+  await expect(
+    page.getByRole('button', { name: 'Photo Library' }),
+  ).toBeVisible()
   await page.getByPlaceholder('Enter Unicode code point').fill('0041')
   await page.getByRole('button', { name: 'Import from Unifont' }).click()
   await expect(
@@ -279,4 +288,50 @@ test('glyph manager loads only the requested Unifont range', async ({
   expect(requested).toHaveLength(1)
   expect(requested[0]).toContain('/unifont/000.json')
   expect(requested[0]).not.toContain('unifont-map.json')
+})
+
+test('keyboard navigation exposes a visible focus indicator', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'one keyboard focus audit')
+  await page.keyboard.press('Tab')
+  const focus = await page.evaluate(() => {
+    const active = document.activeElement as HTMLElement | null
+    if (!active) return null
+    const style = getComputedStyle(active)
+    return {
+      tag: active.tagName,
+      outlineStyle: style.outlineStyle,
+      outlineWidth: style.outlineWidth,
+    }
+  })
+  expect(focus).not.toBeNull()
+  expect(focus?.tag).toMatch(/^(A|BUTTON|INPUT)$/)
+  expect(focus?.outlineStyle).not.toBe('none')
+  expect(Number.parseFloat(focus?.outlineWidth ?? '0')).toBeGreaterThan(0)
+})
+
+test('image file import still opens the preparation dialog without capture inputs', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'one image import smoke test')
+  await page.locator('.modal-buttons .modal-button').nth(1).click()
+  await expect(page.locator('input[capture]')).toHaveCount(0)
+
+  const fileChooserPromise = page.waitForEvent('filechooser')
+  await page.getByRole('button', { name: 'Photo Library' }).click()
+  const fileChooser = await fileChooserPromise
+  await fileChooser.setFiles({
+    name: 'glyph.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+      'base64',
+    ),
+  })
+
+  await expect(
+    page.getByRole('dialog', { name: 'Prepare image as glyph' }),
+  ).toBeVisible()
+  await expect(page.getByLabel('Converted pixel glyph preview')).toBeVisible()
 })

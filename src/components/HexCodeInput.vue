@@ -1,8 +1,13 @@
 <template>
   <div class="hex-code-container">
-    <label class="visually-hidden" for="hexInput">
-      {{ $t('hex_input.label') }}
-    </label>
+    <div class="hex-field-header">
+      <label class="hex-field-label" for="hexInput">
+        {{ $t('hex_input.label') }}
+      </label>
+      <span v-if="glyphWidth" class="width-indicator">
+        {{ $t('hex_input.width', { width: glyphWidth }) }}
+      </span>
+    </div>
     <div class="hex-input-row">
       <div class="hex-input-wrapper">
         <input
@@ -15,6 +20,8 @@
           autocomplete="off"
           autocorrect="off"
           spellcheck="false"
+          dir="ltr"
+          :title="draft"
           :aria-describedby="feedbackId"
           :aria-invalid="hasValidationError"
           :placeholder="$t('hex_input.placeholder')"
@@ -23,12 +30,9 @@
           @keydown.escape.prevent="revertDraft"
           @paste="handlePaste"
         />
-        <span v-if="glyphWidth" class="width-indicator">
-          {{ $t('hex_input.width', { width: glyphWidth }) }}
-        </span>
       </div>
       <button
-        class="copy-button"
+        class="copy-button ui-icon-button ui-button--primary"
         type="button"
         :title="$t('hex_input.copy')"
         :aria-label="$t('hex_input.copy')"
@@ -42,7 +46,7 @@
         <i-material-symbols-content-copy-outline v-else class="icon" />
       </button>
       <button
-        class="apply-button"
+        class="apply-button ui-button ui-button--primary"
         type="button"
         :disabled="!normalizedDraft || !isChanged"
         @click="applyDraft"
@@ -150,14 +154,29 @@ const copyHex = async (): Promise<void> => {
 
 <style scoped>
 .hex-code-container {
-  width: min(25em, calc(100% - 1rem));
-  margin-top: 15px;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+
+.hex-field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: 0.35rem;
+}
+
+.hex-field-label {
+  color: var(--text-color);
+  font-size: 0.8rem;
+  font-weight: 650;
 }
 
 .hex-input-row {
   display: flex;
-  align-items: stretch;
-  gap: 5px;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .hex-input-wrapper {
@@ -168,14 +187,19 @@ const copyHex = async (): Promise<void> => {
 }
 
 .hex-input {
+  box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  padding: 8px 4.5rem 8px 8px;
+  min-height: var(--control-height);
+  padding: 0.55rem 0.7rem;
   font-family: var(--monospace-font);
-  font-size: 1em;
-  background-color: var(--background-light);
+  font-size: 0.88rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  background-color: var(--input-background);
   color: var(--text-color);
   border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
 }
 
 .hex-input:focus {
@@ -189,48 +213,19 @@ const copyHex = async (): Promise<void> => {
 }
 
 .width-indicator {
-  position: absolute;
-  inset-inline-end: 0.4rem;
-  top: 50%;
-  translate: 0 -50%;
-  padding: 0.15rem 0.3rem;
-  border-radius: 3px;
-  background: var(--background-hover);
   color: var(--text-secondary);
   font-family: var(--monospace-font);
-  font-size: 0.7rem;
-  pointer-events: none;
+  font-size: 0.72rem;
+  white-space: nowrap;
 }
 
 .copy-button,
 .apply-button {
-  min-width: 44px;
-  min-height: 44px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 3px;
-  font-family: var(--normal-font);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.copy-button,
-.apply-button {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-.copy-button:hover,
-.apply-button:hover:not(:disabled) {
-  background-color: var(--primary-dark);
+  flex: none;
 }
 
 .apply-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
+  background: var(--primary-color);
 }
 
 .hex-feedback {
@@ -244,25 +239,22 @@ const copyHex = async (): Promise<void> => {
   color: var(--danger-color);
 }
 
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
+@media (max-width: 519px) {
+  .hex-input-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+  }
 
-@media (max-width: 420px) {
-  .hex-code-container {
-    margin-top: 10px;
+  .hex-input-wrapper {
+    grid-column: 1 / -1;
+  }
+
+  .copy-button {
+    grid-column: 2;
   }
 
   .apply-button {
-    padding-inline: 10px;
+    grid-column: 3;
   }
 }
 </style>
