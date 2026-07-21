@@ -32,7 +32,7 @@
         href="https://github.com/SkyEye-FAST/unicucumber"
         :aria-label="$t('header.github')"
       >
-        <i-fa6-brands-github class="icon" style="transform: translateY(-3px)" />
+        <i-fa6-brands-github class="icon" />
       </a>
     </div>
   </header>
@@ -85,14 +85,18 @@ onMounted(() => {
   border-radius: 4px;
   box-shadow: 0 2px 4px var(--modal-shadow);
   display: flex;
-  margin: 5px;
   align-items: center;
+  margin: 5px;
   flex-direction: row;
 }
 
 .modal-button {
   color: var(--text-secondary);
   background-color: inherit;
+  box-sizing: border-box;
+  display: inline-grid;
+  place-items: center;
+  line-height: 1;
   font-size: 1.5em;
   padding: 5px;
   margin: 0 10px;
@@ -101,11 +105,21 @@ onMounted(() => {
   border-radius: 4px;
 }
 
+.modal-button .icon {
+  display: block;
+  flex: none;
+  line-height: 1;
+}
+
 .modal-button:hover {
   color: var(--primary-color);
 }
 
 @media (max-width: 720px), (pointer: coarse) {
+  .editor-header {
+    width: 100%;
+  }
+
   .header {
     height: 2.6rem;
   }
@@ -124,15 +138,25 @@ onMounted(() => {
   }
 
   .modal-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: min(calc(100% - 1rem), 26rem);
+    max-width: 26rem;
+    gap: 0.25rem;
+    padding: 0.25rem;
     margin: 0.1rem 0 0.25rem;
   }
 
   .modal-button {
+    width: 100%;
     min-width: 44px;
     min-height: 44px;
-    margin: 0 0.15rem;
-    padding: 0.3rem;
-    font-size: 1.3rem;
+    margin: 0;
+    padding: 0;
+  }
+
+  .modal-button .icon {
+    font-size: 1.5rem;
   }
 }
 
