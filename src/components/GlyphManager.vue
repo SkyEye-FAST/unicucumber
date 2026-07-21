@@ -1428,7 +1428,7 @@ defineExpose({ handleEscape })
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-3);
   overflow: hidden;
   background: var(--background-light);
 }
@@ -1474,7 +1474,7 @@ defineExpose({ handleEscape })
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 
 .is-expanded .glyph-manager-inspector {
@@ -1534,6 +1534,7 @@ defineExpose({ handleEscape })
 }
 
 .glyph-navigation {
+  min-height: var(--control-height);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1542,16 +1543,34 @@ defineExpose({ handleEscape })
 }
 
 .glyph-navigation button {
+  box-sizing: border-box;
   min-width: 44px;
-  min-height: 44px;
+  min-height: var(--control-height);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.15rem;
+  gap: var(--space-1);
+  padding: 0.45rem 0.65rem;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: var(--background-light);
   color: var(--text-color);
+}
+
+.glyph-navigation button:hover:not(:disabled) {
+  border-color: var(--primary-color);
+  background: color-mix(
+    in srgb,
+    var(--primary-color) 8%,
+    var(--background-light)
+  );
+}
+
+.glyph-position {
+  color: var(--text-secondary);
+  font-family: var(--monospace-font);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
 }
 
 @keyframes inspector-in {

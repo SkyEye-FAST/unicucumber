@@ -252,10 +252,15 @@ watch(
 
 <style scoped>
 .add-glyph {
-  border: 2px solid var(--primary-color);
-  padding: 16px;
-  border-radius: 8px;
-  background: var(--background-light);
+  padding: var(--space-4);
+  border: 1px solid
+    color-mix(in srgb, var(--primary-color) 70%, var(--border-color));
+  border-radius: var(--radius-md);
+  background: color-mix(
+    in srgb,
+    var(--background-light) 96%,
+    var(--primary-color)
+  );
 }
 
 .add-glyph h3 {
@@ -265,18 +270,29 @@ watch(
 }
 
 .input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--control-height);
   font-family: var(--monospace-font);
-  padding: 8px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  background: var(--input-background);
+  color: var(--text-color);
   font-size: 0.9rem;
+}
+
+.input:focus {
+  border-color: var(--primary-color);
+  outline: 0;
+  box-shadow: 0 0 0 2px var(--focus-ring);
 }
 
 .character-input {
   font-family: var(--normal-font);
   background: var(--background-color);
-  flex: 0 0 60px;
-  min-width: 120px;
+  flex: 0 0 34%;
+  min-width: 0;
 }
 
 .codepoint-input {
@@ -286,7 +302,7 @@ watch(
 
 .char-codepoint-row {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
   min-width: 0;
   width: 100%;
@@ -295,7 +311,7 @@ watch(
 .input-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-2);
 }
 
 .input-group label {
@@ -321,17 +337,19 @@ watch(
 
 .button-group {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 12px;
 }
 
 .btn-add {
+  min-height: var(--control-height);
   font-family: var(--normal-font);
-  padding: 8px 12px;
+  padding: 0.55rem 0.85rem;
   background: var(--primary-color);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-weight: 600;
   font-size: 0.9em;
@@ -343,15 +361,16 @@ watch(
 }
 
 .btn-import {
+  min-height: var(--control-height);
   font-family: var(--normal-font);
   display: flex;
   align-items: center;
-  gap: 3px;
-  padding: 6px 12px;
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: 4px;
+  gap: var(--space-2);
+  padding: 0.55rem 0.85rem;
+  background: transparent;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-weight: 600;
 }
@@ -362,16 +381,22 @@ watch(
 }
 
 .btn-import:hover:not(:disabled) {
-  background: var(--primary-dark);
+  border-color: var(--primary-color);
+  background: color-mix(
+    in srgb,
+    var(--primary-color) 10%,
+    var(--background-light)
+  );
 }
 
 .btn-clear {
+  min-height: var(--control-height);
   font-family: var(--normal-font);
-  padding: 8px 20px;
+  padding: 0.55rem 0.85rem;
   background: var(--danger-color);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-weight: 600;
   font-size: 0.9em;
@@ -454,5 +479,12 @@ watch(
   background: white;
   border-radius: 4px;
   border: 1px solid var(--border-color);
+}
+
+@media (max-width: 420px) {
+  .button-group > button {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
 }
 </style>

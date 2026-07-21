@@ -89,37 +89,52 @@ const sheetScale = ref(2)
 
 <style scoped>
 .toolbar {
-  display: flex;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-3);
   align-items: center;
 }
 
 .search-box {
-  position: relative;
-  flex: 1;
+  min-width: 0;
 }
 
 .search-input {
+  box-sizing: border-box;
   font-family: var(--monospace-font);
-  width: 90%;
-  padding: 8px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
+  width: 100%;
+  min-height: var(--control-height);
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-md);
+  background: var(--input-background);
+  color: var(--text-color);
   font-size: 0.9rem;
 }
 
+.search-input:focus {
+  border-color: var(--primary-color);
+  outline: 0;
+  box-shadow: 0 0 0 2px var(--focus-ring);
+}
+
 .btn-export {
+  box-sizing: border-box;
   font-family: var(--normal-font);
   display: flex;
   align-items: center;
-  gap: 3px;
-  padding: 6px 12px;
+  justify-content: center;
+  gap: var(--space-2);
+  height: var(--control-height);
+  min-height: var(--control-height);
+  padding: 0.55rem 0.85rem;
   background: var(--primary-color);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   cursor: pointer;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .export-menu {
@@ -178,16 +193,18 @@ const sheetScale = ref(2)
 
 @media (max-width: 480px) {
   .toolbar {
-    gap: 0.5rem;
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
   }
 
-  .search-input {
-    box-sizing: border-box;
+  .export-menu,
+  .btn-export {
     width: 100%;
   }
 
-  .btn-export {
-    padding-inline: 0.65rem;
+  .export-options {
+    inset-inline-start: 0;
+    inset-inline-end: auto;
   }
 }
 
