@@ -539,6 +539,10 @@ const confirmReset = (): void => {
   border-bottom: 1px solid var(--border-color);
 }
 
+.appearance-section {
+  margin-top: var(--space-6);
+}
+
 .settings-section-title {
   display: block;
   margin: 0 0 var(--space-4);
