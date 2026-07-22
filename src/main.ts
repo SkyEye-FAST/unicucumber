@@ -15,7 +15,11 @@ import en from './locales/en.json'
 import zh_cn from './locales/zh-cn.json'
 import zh_tw from './locales/zh-tw.json'
 import { flushPendingDrafts } from './platform/draftFlush'
-import { normalizeLocale, type SupportedLocale } from './utils/locale'
+import {
+  LOCALE_PREFERENCE_KEY,
+  normalizeLocale,
+  type SupportedLocale,
+} from './utils/locale'
 
 const languages = usePreferredLanguages()
 
