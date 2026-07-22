@@ -762,33 +762,6 @@ watch(searchQuery, async (query) => {
   }
 })
 
-const activeListIndex = computed(() => {
-  const active = normalizeCodePoint(
-    props.activeCodePoint || newGlyph.value.codePoint,
-  )
-  return filteredGlyphs.value.findIndex(
-    (glyph) => normalizeCodePoint(glyph.codePoint) === active,
-  )
-})
-
-const currentGlyphPosition = computed(() =>
-  activeListIndex.value < 0 ? 0 : activeListIndex.value + 1,
-)
-
-const navigateGlyph = (direction: -1 | 1): void => {
-  const glyphs = filteredGlyphs.value
-  if (!glyphs.length) return
-  const current = activeListIndex.value
-  const index =
-    current < 0
-      ? direction > 0
-        ? 0
-        : glyphs.length - 1
-      : (current + direction + glyphs.length) % glyphs.length
-  const glyph = glyphs[index]
-  if (glyph) handleEditInGrid(glyph)
-}
-
 const removeGlyph = (codePoint: string): void => {
   const updatedGlyphs = props.glyphs.filter(
     (glyph) => glyph.codePoint !== codePoint,
@@ -1688,46 +1661,6 @@ defineExpose({ handleEscape })
 
 .inspector-scrim {
   display: none;
-}
-
-.glyph-navigation {
-  min-height: var(--control-height);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  color: var(--text-secondary);
-}
-
-.glyph-navigation button {
-  box-sizing: border-box;
-  min-width: 44px;
-  min-height: var(--control-height);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-1);
-  padding: 0.45rem 0.65rem;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  background: var(--background-light);
-  color: var(--text-color);
-}
-
-.glyph-navigation button:hover:not(:disabled) {
-  border-color: var(--primary-color);
-  background: color-mix(
-    in srgb,
-    var(--primary-color) 8%,
-    var(--background-light)
-  );
-}
-
-.glyph-position {
-  color: var(--text-secondary);
-  font-family: var(--monospace-font);
-  font-size: 0.9rem;
-  font-variant-numeric: tabular-nums;
 }
 
 @keyframes inspector-in {

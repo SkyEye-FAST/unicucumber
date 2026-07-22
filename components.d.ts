@@ -34,8 +34,6 @@ declare module 'vue' {
     IMaterialSymbolsBrightnessAuto: typeof import('~icons/material-symbols/brightness-auto')['default']
     IMaterialSymbolsCenterFocusStrongOutline: typeof import('~icons/material-symbols/center-focus-strong-outline')['default']
     IMaterialSymbolsCheck: typeof import('~icons/material-symbols/check')['default']
-    IMaterialSymbolsChevronLeft: typeof import('~icons/material-symbols/chevron-left')['default']
-    IMaterialSymbolsChevronRight: typeof import('~icons/material-symbols/chevron-right')['default']
     IMaterialSymbolsClose: typeof import('~icons/material-symbols/close')['default']
     IMaterialSymbolsCloudOffOutline: typeof import('~icons/material-symbols/cloud-off-outline')['default']
     IMaterialSymbolsContentCopy: typeof import('~icons/material-symbols/content-copy')['default']

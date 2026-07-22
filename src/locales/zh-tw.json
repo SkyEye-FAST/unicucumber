@@ -208,11 +208,6 @@
       "skip_one": "跳過",
       "title": "需要手動輸入碼位"
     },
-    "navigation": "字形導覽",
-    "next": "下一個",
-    "position": "{current} / {total}",
-    "position_accessible": "第{current}個，共{total}個",
-    "previous": "上一個",
     "search": "搜尋碼位、字元、資料或Unicode名稱…",
     "select_all": "全選",
     "sheet_columns": "欄數",
