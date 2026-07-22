@@ -175,6 +175,30 @@ test.describe('full-screen glyph library', () => {
     }
   })
 
+  test('filters Unicode blocks through the searchable custom range selectors', async ({
+    page,
+  }) => {
+    await seedGlyphs(page)
+    await openLibrary(page)
+    await expandLibrary(page)
+    await expect(page.locator('select')).toHaveCount(0)
+
+    await page.getByRole('combobox', { name: 'Unicode plane' }).click()
+    await page
+      .getByRole('option', { name: /Plane 0.*Basic Multilingual Plane/ })
+      .click()
+
+    const blockSelect = page.getByRole('combobox', { name: 'Unicode block' })
+    await expect(blockSelect).toBeEnabled()
+    await blockSelect.click()
+    await page
+      .getByRole('searchbox', { name: 'Unicode block' })
+      .fill('Basic Latin')
+    await page.getByRole('option', { name: /Basic Latin/ }).click()
+
+    await expect(page.locator('.glyph-library-cell')).toHaveCount(95)
+  })
+
   test('Escape exits selection, then full screen, then the manager', async ({
     page,
   }) => {

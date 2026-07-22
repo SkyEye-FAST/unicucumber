@@ -31,49 +31,37 @@
       <div class="library-filters">
         <label>
           <span>{{ $t('glyph_manager.library.source_filter_label') }}</span>
-          <select :value="sourceFilter" @change="handleSourceFilterChange">
-            <option value="all">
-              {{ $t('glyph_manager.library.source.all') }}
-            </option>
-            <option value="modified">
-              {{
-                $t('glyph_manager.library.source.modified', {
-                  count: modifiedCount,
-                })
-              }}
-            </option>
-          </select>
+          <CustomSelect
+            :model-value="sourceFilter"
+            :ariaLabel="$t('glyph_manager.library.source_filter_label')"
+            :options="sourceFilterOptions"
+            @update:model-value="updateSourceFilter"
+          />
         </label>
-        <label>
-          <span>{{ $t('glyph_manager.library.unicode_plane_label') }}</span>
-          <select :value="unicodePlane" @change="handleUnicodePlaneChange">
-            <option value="all">
-              {{ $t('glyph_manager.library.unicode_plane.all') }}
-            </option>
-            <option v-for="plane in unicodePlanes" :key="plane" :value="plane">
-              {{ $t(`glyph_manager.library.unicode_plane.${plane}`) }}
-            </option>
-          </select>
-        </label>
-        <label>
-          <span>{{ $t('glyph_manager.library.unicode_block_label') }}</span>
-          <select
-            :value="unicodeBlock"
-            :disabled="unicodePlane === 'all'"
-            @change="handleUnicodeBlockChange"
-          >
-            <option value="all">
-              {{ $t('glyph_manager.library.unicode_block_all') }}
-            </option>
-            <option
-              v-for="block in availableBlocks"
-              :key="block.id"
-              :value="block.id"
-            >
-              {{ blockLabel(block) }}
-            </option>
-          </select>
-        </label>
+        <div class="unicode-range-filters">
+          <label>
+            <span>{{ $t('glyph_manager.library.unicode_plane_label') }}</span>
+            <CustomSelect
+              :model-value="unicodePlane"
+              :ariaLabel="$t('glyph_manager.library.unicode_plane_label')"
+              :options="unicodePlaneOptions"
+              searchable
+              @update:model-value="updateUnicodePlane"
+            />
+          </label>
+          <label>
+            <span>{{ $t('glyph_manager.library.unicode_block_label') }}</span>
+            <CustomSelect
+              :model-value="unicodeBlock"
+              :ariaLabel="$t('glyph_manager.library.unicode_block_label')"
+              :disabled="unicodePlane === 'all'"
+              :empty-label="$t('glyph_manager.library.no_matches')"
+              :options="unicodeBlockOptions"
+              searchable
+              @update:model-value="updateUnicodeBlock"
+            />
+          </label>
+        </div>
       </div>
 
       <div class="library-toolbar__buttons">
@@ -150,19 +138,19 @@
           </button>
           <label>
             {{ $t('glyph_manager.sheet_columns') }}
-            <select v-model.number="sheetColumns">
-              <option :value="8">8</option>
-              <option :value="16">16</option>
-              <option :value="32">32</option>
-            </select>
+            <CustomSelect
+              v-model="sheetColumns"
+              :ariaLabel="$t('glyph_manager.sheet_columns')"
+              :options="sheetColumnOptions"
+            />
           </label>
           <label>
             {{ $t('glyph_manager.sheet_scale') }}
-            <select v-model.number="sheetScale">
-              <option :value="1">1×</option>
-              <option :value="2">2×</option>
-              <option :value="4">4×</option>
-            </select>
+            <CustomSelect
+              v-model="sheetScale"
+              :ariaLabel="$t('glyph_manager.sheet_scale')"
+              :options="sheetScaleOptions"
+            />
           </label>
         </div>
       </details>
@@ -230,6 +218,9 @@
 import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import CustomSelect, {
+  type CustomSelectOption,
+} from '@/components/CustomSelect.vue'
 import type {
   GlyphLibraryDensity,
   GlyphSourceFilter,
@@ -286,6 +277,16 @@ const inspectorButton = ref<HTMLButtonElement | null>(null)
 const toolsOpen = ref(false)
 const sheetColumns = ref(16)
 const sheetScale = ref(2)
+const sheetColumnOptions: CustomSelectOption[] = [
+  { value: 8, label: '8' },
+  { value: 16, label: '16' },
+  { value: 32, label: '32' },
+]
+const sheetScaleOptions: CustomSelectOption[] = [
+  { value: 1, label: '1×' },
+  { value: 2, label: '2×' },
+  { value: 4, label: '4×' },
+]
 
 const countLabel = computed(() =>
   props.filteredCount === props.totalCount
@@ -302,13 +303,23 @@ const selectedLabel = computed(() =>
 const handleSearchInput = (event: Event): void => {
   emit('update:searchQuery', (event.target as HTMLInputElement).value)
 }
-const handleSourceFilterChange = (event: Event): void => {
-  emit(
-    'update:sourceFilter',
-    (event.target as HTMLSelectElement).value as GlyphSourceFilter,
-  )
-}
 const unicodePlanes = UNICODE_PLANES
+const sourceFilterOptions = computed<CustomSelectOption[]>(() => [
+  { value: 'all', label: $t('glyph_manager.library.source.all') },
+  {
+    value: 'modified',
+    label: $t('glyph_manager.library.source.modified', {
+      count: props.modifiedCount,
+    }),
+  },
+])
+const unicodePlaneOptions = computed<CustomSelectOption[]>(() => [
+  { value: 'all', label: $t('glyph_manager.library.unicode_plane.all') },
+  ...unicodePlanes.map((plane) => ({
+    value: plane,
+    label: $t(`glyph_manager.library.unicode_plane.${plane}`),
+  })),
+])
 const availableBlocks = computed(() =>
   props.unicodePlane === 'all'
     ? []
@@ -323,18 +334,23 @@ const blockLabel = (block: UnicodeBlock): string => {
   const name = localized ? `${localized} · ${block.name}` : block.name
   return `${name}  U+${formatCodePoint(block.start)}–U+${formatCodePoint(block.end)}`
 }
-const handleUnicodePlaneChange = (event: Event): void => {
-  emit(
-    'update:unicodePlane',
-    (event.target as HTMLSelectElement).value as GlyphUnicodePlaneFilter,
-  )
+const unicodeBlockOptions = computed<CustomSelectOption[]>(() => [
+  { value: 'all', label: $t('glyph_manager.library.unicode_block_all') },
+  ...availableBlocks.value.map((block) => ({
+    value: block.id,
+    label: blockLabel(block),
+    searchText: `${block.name} ${formatCodePoint(block.start)} ${formatCodePoint(block.end)}`,
+  })),
+])
+const updateSourceFilter = (value: string | number): void => {
+  emit('update:sourceFilter', value as GlyphSourceFilter)
+}
+const updateUnicodePlane = (value: string | number): void => {
+  emit('update:unicodePlane', value as GlyphUnicodePlaneFilter)
   emit('update:unicodeBlock', 'all')
 }
-const handleUnicodeBlockChange = (event: Event): void => {
-  emit(
-    'update:unicodeBlock',
-    (event.target as HTMLSelectElement).value as GlyphUnicodeBlockFilter,
-  )
+const updateUnicodeBlock = (value: string | number): void => {
+  emit('update:unicodeBlock', value as GlyphUnicodeBlockFilter)
 }
 
 const closeExportMenu = (): void => {
@@ -464,11 +480,30 @@ defineExpose({
   white-space: nowrap;
 }
 
-.library-filters select {
+.library-filters :deep(.custom-select) {
+  min-width: 8rem;
+  max-width: 13rem;
+}
+
+.library-filters :deep(.custom-select__trigger) {
   min-height: var(--control-height-compact);
-  max-width: 9.5rem;
-  border-radius: var(--radius-sm);
   font-size: 0.75rem;
+}
+
+.unicode-range-filters {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.9fr) minmax(12rem, 1.4fr);
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.unicode-range-filters label {
+  min-width: 0;
+}
+
+.unicode-range-filters :deep(.custom-select) {
+  width: 100%;
+  max-width: none;
 }
 
 .library-toolbar__buttons,
@@ -571,7 +606,11 @@ defineExpose({
   background: var(--background-hover);
 }
 
-.library-export-options select {
+.library-export-options :deep(.custom-select) {
+  width: 5rem;
+}
+
+.library-export-options :deep(.custom-select__trigger) {
   min-height: 2rem;
 }
 
@@ -698,9 +737,13 @@ defineExpose({
     gap: 0.2rem;
   }
 
-  .library-filters select {
+  .library-filters :deep(.custom-select) {
     width: 100%;
     max-width: none;
+  }
+
+  .unicode-range-filters {
+    grid-column: 1 / -1;
   }
 
   .library-toolbar__buttons {

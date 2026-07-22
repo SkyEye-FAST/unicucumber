@@ -75,7 +75,6 @@ body {
 
 button,
 input,
-select,
 textarea,
 summary {
   font: inherit;
@@ -90,7 +89,6 @@ button:focus-visible,
 a:focus-visible,
 summary:focus-visible,
 input:focus-visible,
-select:focus-visible,
 textarea:focus-visible,
 [tabindex]:focus-visible {
   outline: 2px solid var(--focus-ring);

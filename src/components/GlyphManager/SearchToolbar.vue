@@ -40,19 +40,19 @@
         </button>
         <label>
           {{ $t('glyph_manager.sheet_columns') }}
-          <select v-model.number="sheetColumns">
-            <option :value="8">8</option>
-            <option :value="16">16</option>
-            <option :value="32">32</option>
-          </select>
+          <CustomSelect
+            v-model="sheetColumns"
+            :ariaLabel="$t('glyph_manager.sheet_columns')"
+            :options="sheetColumnOptions"
+          />
         </label>
         <label>
           {{ $t('glyph_manager.sheet_scale') }}
-          <select v-model.number="sheetScale">
-            <option :value="1">1×</option>
-            <option :value="2">2×</option>
-            <option :value="4">4×</option>
-          </select>
+          <CustomSelect
+            v-model="sheetScale"
+            :ariaLabel="$t('glyph_manager.sheet_scale')"
+            :options="sheetScaleOptions"
+          />
         </label>
       </div>
     </details>
@@ -63,6 +63,9 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import CustomSelect, {
+  type CustomSelectOption,
+} from '@/components/CustomSelect.vue'
 const { t: $t } = useI18n()
 
 defineProps({
@@ -85,6 +88,16 @@ defineEmits<{
 
 const sheetColumns = ref(16)
 const sheetScale = ref(2)
+const sheetColumnOptions: CustomSelectOption[] = [
+  { value: 8, label: '8' },
+  { value: 16, label: '16' },
+  { value: 32, label: '32' },
+]
+const sheetScaleOptions: CustomSelectOption[] = [
+  { value: 1, label: '1×' },
+  { value: 2, label: '2×' },
+  { value: 4, label: '4×' },
+]
 </script>
 
 <style scoped>
@@ -182,7 +195,11 @@ const sheetScale = ref(2)
   color: var(--text-color);
 }
 
-.export-options select {
+.export-options :deep(.custom-select) {
+  width: 4.5rem;
+}
+
+.export-options :deep(.custom-select__trigger) {
   min-height: 36px;
 }
 

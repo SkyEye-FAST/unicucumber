@@ -127,50 +127,6 @@
       />
     </aside>
 
-    <nav
-      v-if="!isExpanded"
-      class="glyph-navigation"
-      :aria-label="$t('glyph_manager.navigation')"
-    >
-      <button
-        type="button"
-        :disabled="!filteredGlyphs.length"
-        @click="navigateGlyph(-1)"
-      >
-        <i-material-symbols-chevron-left />
-        {{ $t('glyph_manager.previous') }}
-      </button>
-      <span
-        class="glyph-position"
-        :aria-label="
-          $t('glyph_manager.position_accessible', {
-            current: currentGlyphPosition,
-            total: filteredGlyphs.length,
-          })
-        "
-        :title="
-          $t('glyph_manager.position_accessible', {
-            current: currentGlyphPosition,
-            total: filteredGlyphs.length,
-          })
-        "
-        >{{
-          $t('glyph_manager.position', {
-            current: currentGlyphPosition,
-            total: filteredGlyphs.length,
-          })
-        }}</span
-      >
-      <button
-        type="button"
-        :disabled="!filteredGlyphs.length"
-        @click="navigateGlyph(1)"
-      >
-        {{ $t('glyph_manager.next') }}
-        <i-material-symbols-chevron-right />
-      </button>
-    </nav>
-
     <div
       v-if="displayLibraryPending"
       class="glyph-library-status"
@@ -502,7 +458,7 @@ const handleInspectorKeydown = (event: KeyboardEvent): void => {
   }
   const focusable = Array.from(
     inspector.value.querySelectorAll<HTMLElement>(
-      'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [href], [tabindex]:not([tabindex="-1"])',
+      'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), [href], [tabindex]:not([tabindex="-1"])',
     ),
   ).filter((element) => element.offsetParent !== null)
   const first = focusable[0]

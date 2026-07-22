@@ -46,10 +46,6 @@
   --modal-border: #ddd;
   --modal-shadow: rgba(0, 0, 0, 0.1);
 
-  --select-background: #fff;
-  --select-border: #ddd;
-  --select-color: #333;
-
   --checkbox-background: #fff;
   --checkbox-border: #ddd;
   --checkbox-checked: #4ea72e;
@@ -111,10 +107,6 @@
   --modal-border: #404040;
   --modal-shadow: rgba(0, 0, 0, 0.4);
 
-  --select-background: #333333;
-  --select-border: #404040;
-  --select-color: #e0e0e0;
-
   --checkbox-background: #333333;
   --checkbox-border: #505050;
   --checkbox-checked: #5ebd3e;
@@ -150,7 +142,6 @@
 
 /* Form Elements */
 [data-theme='dark'] input,
-[data-theme='dark'] select,
 [data-theme='dark'] textarea {
   background-color: var(--input-background);
   border-color: var(--input-border);
@@ -158,7 +149,6 @@
 }
 
 [data-theme='dark'] input:focus,
-[data-theme='dark'] select:focus,
 [data-theme='dark'] textarea:focus {
   border-color: var(--input-focus-border);
 }

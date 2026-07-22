@@ -7,6 +7,7 @@ import en from '@/locales/en.json'
 import type { Glyph } from '@/types/glyph'
 
 import GlyphManager from './GlyphManager.vue'
+import GlyphLibraryToolbar from './GlyphManager/GlyphLibraryToolbar.vue'
 
 const repository = vi.hoisted(() => ({
   listGlyphs: vi.fn(),
@@ -145,17 +146,18 @@ describe('GlyphManager full-screen state', () => {
     expect(
       wrapper.get('.glyph-library-grid').attributes('data-total-count'),
     ).toBe('5')
-    const filters = wrapper.findAll<HTMLSelectElement>(
-      '.library-filters select',
+    const toolbar = wrapper.findComponent(GlyphLibraryToolbar)
+    await toolbar.vm.$emit('update:unicodePlane', '0')
+    await toolbar.vm.$emit(
+      'update:unicodeBlock',
+      'cjk-unified-ideographs-extension-a',
     )
-    await filters[1]?.setValue('0')
-    await filters[2]?.setValue('cjk-unified-ideographs-extension-a')
     expect(wrapper.findAll('.glyph-library-cell')).toHaveLength(1)
     expect(
       wrapper.get('.glyph-library-cell').attributes('data-code-point'),
     ).toBe('3400')
 
-    await filters[0]?.setValue('modified')
+    await toolbar.vm.$emit('update:sourceFilter', 'modified')
     expect(wrapper.find('.glyph-library-cell').exists()).toBe(false)
     wrapper.unmount()
   })

@@ -11,6 +11,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    CustomSelect: typeof import('./src/components/CustomSelect.vue')['default']
     DialogBox: typeof import('./src/components/DialogBox.vue')['default']
     DownloadButtons: typeof import('./src/components/DownloadButtons.vue')['default']
     EditorHeader: typeof import('./src/components/EditorHeader.vue')['default']
