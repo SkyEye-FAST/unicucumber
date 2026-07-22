@@ -151,8 +151,8 @@
       "close_inspector": "關閉新增和匯入面板",
       "delete_selected": "刪除選取項目",
       "density": {
-        "compact": "緊湊",
         "comfortable": "舒適",
+        "compact": "緊湊",
         "large": "寬鬆"
       },
       "density_label": "字形矩陣密度",
@@ -176,29 +176,29 @@
       "select_filtered": "選取篩選出的字形",
       "selected_count": "已選取{count}項",
       "selection_mode": "選取",
-      "state_active": "正在編輯",
-      "state_modified": "已修改",
-      "state_selected": "已選取",
-      "tools": "功能",
-      "source_filter_label": "範圍",
       "source": {
         "all": "全部字形",
         "modified": "已修改（{count}）"
       },
-      "unicode_plane_label": "Unicode 平面",
+      "source_filter_label": "範圍",
+      "state_active": "正在編輯",
+      "state_modified": "已修改",
+      "state_selected": "已選取",
+      "title": "字形庫",
+      "tools": "功能",
+      "unicode_block_all": "整個平面",
+      "unicode_block_label": "Unicode 區塊",
       "unicode_plane": {
-        "all": "選擇平面",
         "0": "平面 0 · 基本多文種平面（BMP）",
         "1": "平面 1 · 多文種補充平面（SMP）",
         "2": "平面 2 · 表意文字補充平面（SIP）",
         "3": "平面 3 · 第三表意文字平面（TIP）",
         "14": "平面 14 · 特別用途補充平面（SSP）",
         "15": "平面 15 · 私用區 A",
-        "16": "平面 16 · 私用區 B"
+        "16": "平面 16 · 私用區 B",
+        "all": "選擇平面"
       },
-      "unicode_block_label": "Unicode 區塊",
-      "unicode_block_all": "整個平面",
-      "title": "字形庫",
+      "unicode_plane_label": "Unicode 平面",
       "workspace_label": "全螢幕字形庫"
     },
     "manual_input": {
