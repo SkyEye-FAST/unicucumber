@@ -694,7 +694,7 @@ const exportSheet = (): void => {
   font-size: 0.78rem;
 }
 
-@media (max-width: 1199px) {
+@media (max-width: 1399px) {
   .library-toolbar__main {
     grid-template-columns: max-content minmax(10rem, 1fr) auto;
   }
