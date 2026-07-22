@@ -200,6 +200,39 @@ test('autosaved drafts restore after reload and can be discarded', async ({
   )
 })
 
+test('empty autosaved drafts restore without showing the restore notice', async ({
+  page,
+}) => {
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve, reject) => {
+        const request = indexedDB.open('unicucumber')
+        request.onerror = () => reject(request.error)
+        request.onsuccess = () => {
+          const transaction = request.result.transaction('drafts', 'readwrite')
+          transaction.onerror = () => reject(transaction.error)
+          transaction.oncomplete = () => resolve()
+          transaction.objectStore('drafts').put({
+            id: 'current',
+            schemaVersion: 1,
+            updatedAt: Date.now(),
+            snapshot: {
+              codePoint: '0000',
+              width: 16,
+              grid: Array.from({ length: 16 }, () => Array(16).fill(0)),
+              activeGlyphId: null,
+            },
+          })
+        }
+      }),
+  )
+
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await expect(page.locator('.grid-container')).toBeVisible()
+  await expect(page.locator('.document-status')).toHaveText(/Unsaved/i)
+  await expect(page.locator('.restored-draft-notice')).toBeHidden()
+})
+
 test('mobile selection exposes copy and visible paste preview actions', async ({
   page,
 }, testInfo) => {

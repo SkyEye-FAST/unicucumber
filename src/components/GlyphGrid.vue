@@ -96,7 +96,10 @@
             v-for="(cell, colIndex) in row"
             :key="`cell-${rowIndex}-${colIndex}`"
             class="cell"
-            :class="{ filled: cell === 1, bordered: showBorder }"
+            :class="{
+              filled: displayedCellValue(cell, rowIndex, colIndex) === 1,
+              bordered: showBorder,
+            }"
             :data-row="rowIndex"
             :data-col="colIndex"
           ></div>
@@ -437,6 +440,45 @@ const normalizedSelection = computed(() => {
     ? normalizeSelectionRectangle(selectionRect.value)
     : null
 })
+
+const movingSelectionPreview = computed(() => {
+  const state = interaction.value
+  if (state.kind !== 'movingSelection') return null
+  const original = normalizeSelectionRectangle(state.original)
+  return {
+    original,
+    target: normalizedSelection.value ?? original,
+    data: extractSelection(props.gridData, original),
+  }
+})
+
+const displayedCellValue = (
+  value: GridCell,
+  row: number,
+  col: number,
+): GridCell => {
+  const preview = movingSelectionPreview.value
+  if (!preview) return value
+
+  const { original, target, data } = preview
+  if (
+    row >= target.startRow &&
+    row <= target.endRow &&
+    col >= target.startCol &&
+    col <= target.endCol
+  ) {
+    return data[row - target.startRow]?.[col - target.startCol] ?? 0
+  }
+  if (
+    row >= original.startRow &&
+    row <= original.endRow &&
+    col >= original.startCol &&
+    col <= original.endCol
+  ) {
+    return 0
+  }
+  return value
+}
 
 const pasteRectangle = computed<SelectionRectangle | null>(() => {
   const data = clipboard.clipboardData.value

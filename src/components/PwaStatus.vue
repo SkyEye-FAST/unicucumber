@@ -82,15 +82,26 @@ onBeforeUnmount(() => {
   z-index: 55;
   right: max(0.6rem, env(safe-area-inset-right));
   bottom: calc(0.6rem + env(safe-area-inset-bottom));
-  min-height: 36px;
+  min-height: 2.25rem;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.6rem;
-  border-radius: 4px;
-  background: var(--warning-background);
-  color: var(--warning-text);
-  box-shadow: 0 2px 8px var(--modal-overlay);
+  gap: var(--space-2);
+  box-sizing: border-box;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid
+    color-mix(in srgb, var(--warning-color) 45%, var(--dialog-border));
+  border-left: 3px solid var(--warning-color);
+  border-radius: var(--radius-md);
+  background: var(--dialog-background);
+  color: var(--text-color);
+  box-shadow: 0 8px 20px var(--modal-shadow);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.offline-indicator .icon {
+  color: var(--warning-color);
+  font-size: 1.15rem;
 }
 
 @media (max-width: 719px) {

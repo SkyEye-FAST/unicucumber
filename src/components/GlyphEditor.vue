@@ -532,7 +532,9 @@ const initializeDraftStorage = async (): Promise<void> => {
     if (draft) {
       editorDocument.load(draft.snapshot, 'restored-draft', false)
       settings.value.glyphWidth = draft.snapshot.width
-      pendingRestoredDraft.value = draft
+      if (draft.snapshot.grid.some((row) => row.some((cell) => cell === 1))) {
+        pendingRestoredDraft.value = draft
+      }
       saveStatus.value = 'unsaved'
     }
     if (!glyphRepository.persistent) {
