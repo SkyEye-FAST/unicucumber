@@ -6,14 +6,14 @@
     @scroll="handleScroll"
   >
     <div
-      v-if="preparedGlyphs.length"
+      v-if="baseGlyphs.length"
       ref="gridElement"
       class="glyph-library-grid"
       role="grid"
       :aria-label="$t('glyph_manager.library.grid_label')"
       :aria-colcount="columnCount"
       :aria-rowcount="rowCount"
-      :data-total-count="preparedGlyphs.length"
+      :data-total-count="baseGlyphs.length"
       @click="handleClick"
       @dblclick="handleDoubleClick"
       @focusin="handleFocusIn"
@@ -123,7 +123,6 @@ import type {
 } from '@/types/glyph'
 import {
   prepareGlyphPreview,
-  sortGlyphsByCodePoint,
   type GlyphLibraryPreview,
 } from '@/utils/glyphLibrary'
 
@@ -167,28 +166,22 @@ const VIRTUALIZATION_THRESHOLD = 400
 const INITIAL_MEASUREMENT_COUNT = 240
 const OVERSCAN_ROWS = 4
 
-const sortedGlyphs = computed(() => sortGlyphsByCodePoint(props.glyphs))
-const preparedGlyphs = computed(() =>
-  sortedGlyphs.value.map(prepareGlyphPreview),
-)
+const baseGlyphs = computed(() => props.glyphs)
 const selectedSet = computed(() => new Set(props.selectedCodePoints))
 const rowCount = computed(() =>
-  Math.ceil(preparedGlyphs.value.length / columnCount.value),
+  Math.ceil(baseGlyphs.value.length / columnCount.value),
 )
 const usesVirtualization = computed(
-  () => preparedGlyphs.value.length > VIRTUALIZATION_THRESHOLD,
+  () => baseGlyphs.value.length > VIRTUALIZATION_THRESHOLD,
 )
 const virtualWindow = computed(() => {
   if (!usesVirtualization.value) {
-    return { startIndex: 0, endIndex: preparedGlyphs.value.length }
+    return { startIndex: 0, endIndex: baseGlyphs.value.length }
   }
   if (!columnsMeasured.value) {
     return {
       startIndex: 0,
-      endIndex: Math.min(
-        preparedGlyphs.value.length,
-        INITIAL_MEASUREMENT_COUNT,
-      ),
+      endIndex: Math.min(baseGlyphs.value.length, INITIAL_MEASUREMENT_COUNT),
     }
   }
 
@@ -205,14 +198,14 @@ const virtualWindow = computed(() => {
   )
   return {
     startIndex: startRow * columnCount.value,
-    endIndex: Math.min(preparedGlyphs.value.length, endRow * columnCount.value),
+    endIndex: Math.min(baseGlyphs.value.length, endRow * columnCount.value),
   }
 })
 const visibleGlyphs = computed(() =>
-  preparedGlyphs.value
+  baseGlyphs.value
     .slice(virtualWindow.value.startIndex, virtualWindow.value.endIndex)
     .map((glyph, offset) => ({
-      glyph,
+      glyph: prepareGlyphPreview(glyph),
       index: virtualWindow.value.startIndex + offset,
     })),
 )
@@ -261,10 +254,7 @@ const getIndex = (cell: HTMLButtonElement): number =>
   Number.parseInt(cell.dataset.index ?? '0', 10)
 
 const focusCell = (index: number): void => {
-  const boundedIndex = Math.max(
-    0,
-    Math.min(index, preparedGlyphs.value.length - 1),
-  )
+  const boundedIndex = Math.max(0, Math.min(index, baseGlyphs.value.length - 1))
   rovingIndex.value = boundedIndex
   if (
     usesVirtualization.value &&
@@ -284,7 +274,7 @@ const focusCell = (index: number): void => {
 }
 
 const findOriginalGlyph = (codePoint: string): Glyph | undefined =>
-  sortedGlyphs.value.find(
+  baseGlyphs.value.find(
     (glyph) => normalizeCodePoint(glyph.codePoint) === codePoint,
   )
 
@@ -344,7 +334,7 @@ const handleKeydown = (event: KeyboardEvent): void => {
             : event.key === 'Home'
               ? 0
               : event.key === 'End'
-                ? preparedGlyphs.value.length - 1
+                ? baseGlyphs.value.length - 1
                 : null
   if (nextIndex === null) return
   event.preventDefault()
@@ -393,7 +383,7 @@ const handleScroll = (): void => {
   })
 }
 
-watch(sortedGlyphs, (glyphs, previousGlyphs) => {
+watch(baseGlyphs, (glyphs, previousGlyphs) => {
   const previousCodePoint = previousGlyphs?.[rovingIndex.value]?.codePoint
   const retainedIndex = previousCodePoint
     ? glyphs.findIndex(

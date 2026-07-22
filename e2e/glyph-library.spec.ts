@@ -78,6 +78,8 @@ const seedIndexedDbGlyphs = async (page: Page, count: number) => {
       }),
     { items: makeGlyphs(count) },
   )
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await expect(page.locator('.grid-container')).toBeVisible()
 }
 
 const openLibrary = async (page: Page) => {
@@ -121,6 +123,10 @@ test.describe('full-screen glyph library', () => {
     await expect(
       page.getByRole('button', { name: 'Expand glyph manager' }),
     ).toBeVisible()
+    await expect(page.locator('.glyph-manager')).toHaveAttribute(
+      'data-glyph-count',
+      '96',
+    )
     const sidebarSearch = page.locator(
       '.glyph-manager > .toolbar .search-input',
     )
@@ -376,6 +382,80 @@ test('large synthetic library remains responsive while searching and scrolling',
   await page.locator('.library-search input').fill('0041')
   await expect(page.locator('.glyph-library-cell')).toHaveCount(1)
   expect(Date.now() - searchStarted).toBeLessThan(3_000)
+})
+
+test('compact manager preloads once, windows rows, and preserves state on reopen', async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== 'chromium',
+    'shared preload integration runs once',
+  )
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'connection', {
+      configurable: true,
+      value: { saveData: true, effectiveType: '4g' },
+    })
+    const originalGetAll = IDBObjectStore.prototype.getAll
+    Object.defineProperty(window, '__glyphIdbReads', {
+      configurable: true,
+      writable: true,
+      value: 0,
+    })
+    IDBObjectStore.prototype.getAll = function (...args) {
+      ;(
+        window as typeof window & { __glyphIdbReads: number }
+      ).__glyphIdbReads += 1
+      return originalGetAll.apply(this, args)
+    }
+  })
+  const unifontChunks: string[] = []
+  page.on('request', (request) => {
+    if (/\/unifont\/[0-9A-F]{3}\.json/.test(request.url())) {
+      unifontChunks.push(request.url())
+    }
+  })
+
+  await seedIndexedDbGlyphs(page, 1_000)
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await expect(page.locator('.grid-container')).toBeVisible()
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (window as typeof window & { __glyphIdbReads: number })
+            .__glyphIdbReads,
+      ),
+    )
+    .toBe(1)
+
+  await page.getByRole('button', { name: 'Open glyph manager' }).click()
+  await expect(page.locator('.glyph-manager-heading')).toBeVisible()
+  await expect(page.locator('.glyph-manager')).toHaveAttribute(
+    'data-glyph-count',
+    '1000',
+  )
+  expect(await page.locator('.glyph-card').count()).toBeLessThan(40)
+  await page.locator('.glyph-manager > .toolbar .search-input').fill('0041')
+  await expect(page.locator('.glyph-card')).toHaveCount(1)
+
+  const readsBeforeReopen = await page.evaluate(
+    () =>
+      (window as typeof window & { __glyphIdbReads: number }).__glyphIdbReads,
+  )
+  await page.locator('.btn-close-sidebar').click()
+  await page.waitForTimeout(350)
+  await page.getByRole('button', { name: 'Open glyph manager' }).click()
+  await expect(
+    page.locator('.glyph-manager > .toolbar .search-input'),
+  ).toHaveValue('0041')
+  expect(
+    await page.evaluate(
+      () =>
+        (window as typeof window & { __glyphIdbReads: number }).__glyphIdbReads,
+    ),
+  ).toBe(readsBeforeReopen)
+  expect(unifontChunks).toEqual([])
 })
 
 const visualViewports = [

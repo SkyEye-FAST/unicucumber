@@ -25,6 +25,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "profile:glyph-manager": "node scripts/profile-glyph-manager.mjs",
     "check": "run-p type-check lint format:check test",
     "chunk-unifont": "node scripts/chunk-unifont.js",
     "update-unifont": "node scripts/update-unifont.js"

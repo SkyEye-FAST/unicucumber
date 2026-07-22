@@ -190,18 +190,24 @@
       >
         <i-material-symbols-close class="icon" />
       </button>
-      <GlyphManager
-        v-if="isSidebarActive"
-        ref="glyphManagerRef"
-        v-model:expanded="isGlyphLibraryExpanded"
-        :glyphs="glyphs"
-        :on-glyph-change="setGlyphs"
-        :prefill-data="prefillData"
-        :active-code-point="currentCodePoint"
-        @edit-in-grid="handleGlyphEdit"
-        @clear-prefill="clearPrefillData"
-        @saved="handleGlyphSaved"
-      />
+      <KeepAlive>
+        <GlyphManager
+          v-if="isSidebarActive"
+          ref="glyphManagerRef"
+          v-model:expanded="isGlyphLibraryExpanded"
+          :glyphs="glyphs"
+          :library-loading="glyphLibraryLoading"
+          :library-loaded="glyphLibraryLoaded"
+          :library-error="glyphLibraryError"
+          :on-glyph-change="setGlyphs"
+          :on-retry-load="retryGlyphLibrary"
+          :prefill-data="prefillData"
+          :active-code-point="currentCodePoint"
+          @edit-in-grid="handleGlyphEdit"
+          @clear-prefill="clearPrefillData"
+          @saved="handleGlyphSaved"
+        />
+      </KeepAlive>
     </div>
 
     <DialogBox
@@ -258,14 +264,18 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useEditorDocument } from '@/composables/useEditorDocument'
+import { useGlyphLibrary } from '@/composables/useGlyphLibrary'
 import { useNotifications } from '@/composables/useNotifications'
 import { useSettings } from '@/composables/useSettings'
 import { useSidebar } from '@/composables/useSidebar'
 import { registerDraftFlusher } from '@/platform/draftFlush'
+import { shouldPrefetchUnifont, unifontLoader } from '@/services/unifontLoader'
+import { cleanupStaleUnifontCaches } from '@/services/unifontManifest'
 import type { EditorCommand, MobileAction } from '@/types/editor'
 import type { EditorTool, Glyph, GridCell, PrefillData } from '@/types/glyph'
 import { getGlyphRepository, type StoredDraft } from '@/storage/glyphRepository'
 import { getGlyphWidthFromHex, gridToHex, hexToGrid } from '@/utils/hexUtils'
+import { scheduleIdleTask } from '@/utils/idleTask'
 
 import DialogBox from './DialogBox.vue'
 import DownloadButtons from './DownloadButtons.vue'
@@ -293,6 +303,15 @@ const { notify } = useNotifications()
 const { settings, showSettings } = useSettings()
 const editorDocument = useEditorDocument({ width: settings.value.glyphWidth })
 const glyphRepository = getGlyphRepository()
+const {
+  glyphs,
+  loading: glyphLibraryLoading,
+  loaded: glyphLibraryLoaded,
+  loadError: glyphLibraryError,
+  load: loadGlyphLibrary,
+  replaceGlyphs: replaceGlyphLibrary,
+  schedulePreload: scheduleGlyphPreload,
+} = useGlyphLibrary()
 const gridData = editorDocument.grid
 const width = editorDocument.width
 const activeGlyphId = editorDocument.activeGlyphId
@@ -302,6 +321,8 @@ const { isSidebarActive, sidebarWidth, toggleSidebar, startResize } =
 
 let previousBodyOverflow = ''
 let bodyScrollLocked = false
+let cancelGlyphPreload: (() => void) | null = null
+let cancelUnifontPreload: (() => void) | null = null
 const narrowSidebarQuery = window.matchMedia('(max-width: 719px)')
 const isNarrowSidebar = ref(narrowSidebarQuery.matches)
 const isGlyphLibraryExpanded = ref(false)
@@ -419,7 +440,6 @@ defineExpose({
   updateDrawValue,
 })
 
-const glyphs = ref<Glyph[]>([])
 const prefillData = ref<PrefillData | null>(null)
 const hasUnsavedChanges = editorDocument.dirty
 type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error'
@@ -478,6 +498,20 @@ onMounted(() => {
   document.addEventListener('visibilitychange', handleDraftVisibilityChange)
   unregisterDraftFlusher = registerDraftFlusher(flushDraft)
   void initializeDraftStorage()
+  cancelGlyphPreload = scheduleGlyphPreload()
+  cancelUnifontPreload = scheduleIdleTask(() => {
+    void unifontLoader.loadManifest().catch(() => undefined)
+    void cleanupStaleUnifontCaches(unifontVersion.value).catch(() => undefined)
+    const codePoint = Number.parseInt(currentCodePoint.value, 16)
+    if (
+      shouldPrefetchUnifont() &&
+      Number.isInteger(codePoint) &&
+      codePoint >= 0 &&
+      codePoint <= 0x10ffff
+    ) {
+      void unifontLoader.prefetchCodePoint(codePoint)
+    }
+  })
 })
 
 onBeforeUnmount(() => {
@@ -486,6 +520,8 @@ onBeforeUnmount(() => {
   window.removeEventListener('beforeunload', handleBeforeUnload)
   document.removeEventListener('visibilitychange', handleDraftVisibilityChange)
   unregisterDraftFlusher?.()
+  cancelGlyphPreload?.()
+  cancelUnifontPreload?.()
   releaseBodyScrollLock()
   if (saveStatus.value !== 'saved') void flushDraft().catch(() => undefined)
 })
@@ -722,8 +758,13 @@ const clearSelection = (): void => {
   gridRef.value?.clearSelection()
 }
 
-const setGlyphs = (newGlyphs: Glyph[]): void => {
-  glyphs.value = newGlyphs
+const setGlyphs = (newGlyphs: Glyph[]): Promise<void> =>
+  replaceGlyphLibrary(newGlyphs)
+
+const retryGlyphLibrary = (): Promise<Glyph[]> => loadGlyphLibrary(true)
+
+const beginGlyphLibraryLoad = (): void => {
+  void loadGlyphLibrary().catch(() => undefined)
 }
 
 const addToGlyphset = (): void => {
@@ -731,6 +772,7 @@ const addToGlyphset = (): void => {
     hexValue: hexCode.value,
     codePoint: currentCodePoint.value,
   }
+  beginGlyphLibraryLoad()
   isSidebarActive.value = true
 }
 
@@ -860,7 +902,10 @@ const handleCloseSidebar = (): void => {
 
 const handleToggleSidebar = (): void => {
   if (isSidebarActive.value) handleCloseSidebar()
-  else toggleSidebar()
+  else {
+    beginGlyphLibraryLoad()
+    toggleSidebar()
+  }
 }
 
 const updateSettings = (newSettings: typeof settings.value): void => {

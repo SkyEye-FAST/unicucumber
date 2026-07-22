@@ -15,9 +15,10 @@ test('production shell reloads offline after service-worker installation', async
     failures.push(`console:${message.type()}:${message.text()}`),
   )
   page.on('pageerror', (error) => failures.push(`pageerror:${error.message}`))
-  page.on('requestfailed', (request) =>
-    failures.push(`request:${request.url()}:${request.failure()?.errorText}`),
-  )
+  page.on('requestfailed', (request) => {
+    if (request.url().includes('/unifont/')) return
+    failures.push(`request:${request.url()}:${request.failure()?.errorText}`)
+  })
   test.skip(
     browserName !== 'chromium',
     'service-worker smoke test uses Chromium',
@@ -40,6 +41,23 @@ test('production shell reloads offline after service-worker installation', async
   await expect
     .poll(() => page.evaluate(async () => (await caches.keys()).length))
     .toBeGreaterThan(0)
+  await expect
+    .poll(() =>
+      page.evaluate(async () => {
+        const response = await fetch('/unifont/000.json')
+        return response.ok
+      }),
+    )
+    .toBe(true)
+  await expect
+    .poll(() =>
+      page.evaluate(async () =>
+        (await caches.keys()).some((name) =>
+          name.startsWith('unicucumber-unifont-chunks-17.0.03'),
+        ),
+      ),
+    )
+    .toBe(true)
 
   await context.setOffline(true)
   try {
@@ -49,6 +67,9 @@ test('production shell reloads offline after service-worker installation', async
     ).toBeVisible()
     await expect(page.locator('.grid-container')).toBeVisible()
     await expect(page.locator('.offline-indicator')).toBeVisible()
+    expect(
+      await page.evaluate(async () => (await fetch('/unifont/000.json')).ok),
+    ).toBe(true)
     expect(failures).toEqual([])
   } finally {
     await context.setOffline(false)
