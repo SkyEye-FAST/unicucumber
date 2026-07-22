@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { Glyph } from '@/types/glyph'
+import { blocksForPlane, UNICODE_BLOCKS } from '@/data/unicodeBlocks'
 
 import {
   createGlyphBitmapPath,
@@ -11,6 +12,23 @@ import {
 } from './glyphLibrary'
 
 describe('glyph-library preview preparation', () => {
+  it('uses Unicode 17 plane and block ranges for catalog filtering', () => {
+    expect(UNICODE_BLOCKS.length).toBeGreaterThan(300)
+    expect(
+      blocksForPlane(0).find((block) => block.id === 'basic-latin'),
+    ).toMatchObject({ start: 0x0000, end: 0x007f })
+    expect(
+      blocksForPlane(0).find(
+        (block) => block.id === 'cjk-unified-ideographs-extension-a',
+      ),
+    ).toMatchObject({ start: 0x3400, end: 0x4dbf })
+    expect(
+      blocksForPlane(2).find(
+        (block) => block.id === 'cjk-unified-ideographs-extension-b',
+      ),
+    ).toMatchObject({ start: 0x20000, end: 0x2a6df })
+  })
+
   it('sorts glyphs by numeric code point', () => {
     const glyphs: Glyph[] = [
       { codePoint: '10000', hexValue: '00'.repeat(32) },

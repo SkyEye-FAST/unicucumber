@@ -12,9 +12,21 @@ const repository = vi.hoisted(() => ({
   listGlyphs: vi.fn(),
   replaceGlyphs: vi.fn().mockResolvedValue(undefined),
 }))
+const unifont = vi.hoisted(() => ({
+  loadAllGlyphs: vi.fn().mockResolvedValue([
+    { codePoint: '0041', hexValue: 'AA'.repeat(16) },
+    { codePoint: '0042', hexValue: '55'.repeat(32) },
+  ]),
+  getGlyph: vi.fn(),
+  prefetchCodePoint: vi.fn().mockResolvedValue(undefined),
+}))
 
 vi.mock('@/storage/glyphRepository', () => ({
   getGlyphRepository: () => repository,
+}))
+
+vi.mock('@/services/unifontLoader', () => ({
+  unifontLoader: unifont,
 }))
 
 const glyphs: Glyph[] = [
@@ -48,6 +60,18 @@ const mountManager = (overrides: Record<string, unknown> = {}) => {
 }
 
 describe('GlyphManager full-screen state', () => {
+  it('keeps the compact add/import tools collapsed until requested', async () => {
+    const wrapper = mountManager()
+    await flushPromises()
+    expect(wrapper.get('#compact-glyph-tools').isVisible()).toBe(false)
+    const toggle = wrapper.get<HTMLButtonElement>('.compact-tools-toggle')
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+    await toggle.trigger('click')
+    expect(toggle.attributes('aria-expanded')).toBe('true')
+    expect(wrapper.get('#compact-glyph-tools').isVisible()).toBe(true)
+    wrapper.unmount()
+  })
+
   it('shows the shell while loading and offers a non-blocking retry on error', async () => {
     const retry = vi.fn()
     const wrapper = mountManager({
@@ -104,6 +128,35 @@ describe('GlyphManager full-screen state', () => {
     expect(document.activeElement).toBe(
       wrapper.get<HTMLButtonElement>('.glyph-manager-expand').element,
     )
+    wrapper.unmount()
+  })
+
+  it('merges the Unifont catalog and filters it by Unicode plane and block', async () => {
+    unifont.loadAllGlyphs.mockResolvedValueOnce([
+      { codePoint: '0041', hexValue: '00'.repeat(16) },
+      { codePoint: '3400', hexValue: '11'.repeat(32) },
+      { codePoint: '4E00', hexValue: '22'.repeat(32) },
+      { codePoint: '20000', hexValue: '33'.repeat(32) },
+    ])
+    const wrapper = mountManager()
+    await wrapper.get('.glyph-manager-expand').trigger('click')
+    await flushPromises()
+
+    expect(
+      wrapper.get('.glyph-library-grid').attributes('data-total-count'),
+    ).toBe('5')
+    const filters = wrapper.findAll<HTMLSelectElement>(
+      '.library-filters select',
+    )
+    await filters[1]?.setValue('0')
+    await filters[2]?.setValue('cjk-unified-ideographs-extension-a')
+    expect(wrapper.findAll('.glyph-library-cell')).toHaveLength(1)
+    expect(
+      wrapper.get('.glyph-library-cell').attributes('data-code-point'),
+    ).toBe('3400')
+
+    await filters[0]?.setValue('modified')
+    expect(wrapper.find('.glyph-library-cell').exists()).toBe(false)
     wrapper.unmount()
   })
 

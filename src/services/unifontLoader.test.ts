@@ -44,6 +44,31 @@ describe('UnifontLoader', () => {
     expect(fetcher).toHaveBeenCalledTimes(1)
   })
 
+  it('loads the complete catalog as normalized glyph records only once', async () => {
+    const fetcher = vi.fn().mockResolvedValue(
+      jsonResponse({
+        meta: { version: '17.0.03', source: 'unifont_all' },
+        glyphs: {
+          '65': 'aa'.repeat(16),
+          '19968': 'BB'.repeat(32),
+          invalid: '00',
+        },
+      }),
+    )
+    const loader = new UnifontLoader(fetcher)
+    const [first, second] = await Promise.all([
+      loader.loadAllGlyphs(),
+      loader.loadAllGlyphs(),
+    ])
+    expect(first).toEqual([
+      { codePoint: '0041', hexValue: 'AA'.repeat(16) },
+      { codePoint: '4E00', hexValue: 'BB'.repeat(32) },
+    ])
+    expect(second).toBe(first)
+    expect(fetcher).toHaveBeenCalledWith('/unifont-map.json')
+    expect(fetcher).toHaveBeenCalledTimes(1)
+  })
+
   it('deduplicates speculative and explicit requests for the same chunk', async () => {
     const pending = deferred<Response>()
     const fetcher = vi.fn().mockReturnValue(pending.promise)

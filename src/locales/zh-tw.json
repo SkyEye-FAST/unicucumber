@@ -166,6 +166,8 @@
       "inspector_title": "新增 / 匯入",
       "load_failed": "無法載入已儲存的字形。",
       "loading": "正在載入已儲存的字形…",
+      "loading_unifont": "正在載入完整的 Unifont 字形庫…",
+      "modified_badge": "已修改",
       "no_matches": "沒有符合的字形",
       "no_matches_hint": "請清除搜尋，或嘗試其他字元或碼位。",
       "open_in_editor": "在編輯器中開啟字形",
@@ -175,7 +177,27 @@
       "selected_count": "已選取{count}項",
       "selection_mode": "選取",
       "state_active": "正在編輯",
+      "state_modified": "已修改",
       "state_selected": "已選取",
+      "tools": "功能",
+      "source_filter_label": "範圍",
+      "source": {
+        "all": "全部字形",
+        "modified": "已修改（{count}）"
+      },
+      "unicode_plane_label": "Unicode 平面",
+      "unicode_plane": {
+        "all": "選擇平面",
+        "0": "平面 0 · 基本多文種平面（BMP）",
+        "1": "平面 1 · 多文種補充平面（SMP）",
+        "2": "平面 2 · 表意文字補充平面（SIP）",
+        "3": "平面 3 · 第三表意文字平面（TIP）",
+        "14": "平面 14 · 特別用途補充平面（SSP）",
+        "15": "平面 15 · 私用區 A",
+        "16": "平面 16 · 私用區 B"
+      },
+      "unicode_block_label": "Unicode 區塊",
+      "unicode_block_all": "整個平面",
       "title": "字形庫",
       "workspace_label": "全螢幕字形庫"
     },

@@ -9,17 +9,37 @@
     "
   >
     <header v-if="!isExpanded" class="glyph-manager-heading">
-      <h2 class="title">{{ $t('glyph_manager.title') }}</h2>
-      <button
-        ref="expandButton"
-        class="ui-icon-button glyph-manager-expand"
-        type="button"
-        :aria-label="$t('glyph_manager.library.expand')"
-        :title="$t('glyph_manager.library.expand')"
-        @click="expandLibrary"
-      >
-        <i-material-symbols-fullscreen aria-hidden="true" />
-      </button>
+      <div class="glyph-manager-heading__identity">
+        <h2 class="title">{{ $t('glyph_manager.title') }}</h2>
+        <span class="compact-count">{{ props.glyphs.length }}</span>
+      </div>
+      <div class="glyph-manager-heading__actions">
+        <button
+          class="ui-button compact-tools-toggle"
+          type="button"
+          :aria-expanded="compactToolsOpen"
+          :aria-controls="'compact-glyph-tools'"
+          @click="compactToolsOpen = !compactToolsOpen"
+        >
+          <i-material-symbols-tune aria-hidden="true" />
+          <span>{{ $t('glyph_manager.library.tools') }}</span>
+          <i-material-symbols-keyboard-arrow-up
+            v-if="compactToolsOpen"
+            aria-hidden="true"
+          />
+          <i-material-symbols-keyboard-arrow-down v-else aria-hidden="true" />
+        </button>
+        <button
+          ref="expandButton"
+          class="ui-icon-button glyph-manager-expand"
+          type="button"
+          :aria-label="$t('glyph_manager.library.expand')"
+          :title="$t('glyph_manager.library.expand')"
+          @click="expandLibrary"
+        >
+          <i-material-symbols-fullscreen aria-hidden="true" />
+        </button>
+      </div>
     </header>
 
     <SearchToolbar
@@ -39,9 +59,13 @@
       :density="settings.glyphLibraryDensity"
       :filtered-count="filteredGlyphs.length"
       :inspector-open="inspectorOpen"
+      v-model:source-filter="sourceFilter"
+      v-model:unicode-block="unicodeBlock"
+      v-model:unicode-plane="unicodePlane"
+      :modified-count="props.glyphs.length"
       :selected-count="selectedCodePoints.length"
       :selection-mode="selectionMode"
-      :total-count="props.glyphs.length"
+      :total-count="catalogGlyphs.length"
       @backup="exportBackup"
       @collapse="collapseLibrary"
       @clear-selection="clearSelection"
@@ -63,7 +87,8 @@
     />
 
     <aside
-      v-show="!isExpanded || inspectorOpen"
+      v-show="isExpanded ? inspectorOpen : compactToolsOpen"
+      :id="!isExpanded ? 'compact-glyph-tools' : undefined"
       ref="inspector"
       class="glyph-manager-inspector"
       :role="isExpanded && isNarrowInspector ? 'dialog' : 'complementary'"
@@ -147,17 +172,17 @@
     </nav>
 
     <div
-      v-if="libraryPending"
+      v-if="displayLibraryPending"
       class="glyph-library-status"
       role="status"
       aria-live="polite"
     >
       <span class="glyph-library-spinner" aria-hidden="true" />
-      <span>{{ $t('glyph_manager.library.loading') }}</span>
+      <span>{{ loadingLabel }}</span>
     </div>
 
     <div
-      v-else-if="props.libraryError"
+      v-else-if="displayLibraryError"
       class="glyph-library-status is-error"
       role="alert"
     >
@@ -189,6 +214,7 @@
       :glyphs="filteredGlyphs"
       :initial-scroll-top="matrixScrollTop"
       :preview-mode="settings.glyphPreviewMode"
+      :modified-code-points="modifiedCodePoints"
       :selected-code-points="selectedCodePoints"
       :selection-mode="selectionMode"
       @open="handleLibraryOpen"
@@ -231,17 +257,29 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  shallowRef,
+  watch,
+} from 'vue'
 
 import { useI18n } from 'vue-i18n'
 
 import { useSettings } from '@/composables/useSettings'
 import { useNotifications } from '@/composables/useNotifications'
+import { UNICODE_BLOCKS } from '@/data/unicodeBlocks'
 import { unifontLoader } from '@/services/unifontLoader'
 import type {
   DialogConfig,
   Glyph,
   GlyphData,
+  GlyphSourceFilter,
+  GlyphUnicodeBlockFilter,
+  GlyphUnicodePlaneFilter,
   GridData,
   GlyphManagerEmits,
   GlyphManagerProps,
@@ -251,6 +289,10 @@ import { parseHexFile } from '@/utils/hexImport'
 import { gridToHex } from '@/utils/hexUtils'
 import { canvasToBlob } from '@/utils/exportUtils'
 import { createBitmapSheet, createGlyphBackup } from '@/utils/libraryExport'
+import {
+  formatGlyphCodePoint,
+  sortGlyphsByCodePoint,
+} from '@/utils/glyphLibrary'
 
 import DialogBox from './DialogBox.vue'
 import ImageImportDialog from './ImageImportDialog.vue'
@@ -276,6 +318,9 @@ const emit = defineEmits<GlyphManagerEmits>()
 
 const newGlyph = ref<GlyphData>({ codePoint: '', hexValue: '' })
 const searchQuery = ref<string>('')
+const sourceFilter = ref<GlyphSourceFilter>('all')
+const unicodePlane = ref<GlyphUnicodePlaneFilter>('all')
+const unicodeBlock = ref<GlyphUnicodeBlockFilter>('all')
 const editMode = ref<boolean>(false)
 const duplicateGlyph = ref<Glyph | null>(null)
 const pendingImageFile = ref<File | null>(null)
@@ -283,7 +328,11 @@ const unicodeNames = ref<Record<string, string>>({})
 const selectedCodePoints = ref<string[]>([])
 const selectionMode = ref(false)
 const inspectorOpen = ref(false)
+const compactToolsOpen = ref(false)
 const matrixScrollTop = ref(0)
+const unifontGlyphs = shallowRef<Glyph[]>([])
+const catalogLoading = ref(false)
+const catalogError = shallowRef<Error | null>(null)
 const libraryAnnouncement = ref('')
 const expandButton = ref<HTMLButtonElement | null>(null)
 const inspector = ref<HTMLElement | null>(null)
@@ -297,12 +346,64 @@ let unifontPrefetchTimer = 0
 
 const { settings } = useSettings()
 
-const libraryPending = computed(
+const savedLibraryPending = computed(
   () => props.libraryLoading || (!props.libraryLoaded && !props.libraryError),
 )
 
+const displayLibraryPending = computed(
+  () => savedLibraryPending.value || (isExpanded.value && catalogLoading.value),
+)
+const displayLibraryError = computed(
+  () => props.libraryError ?? (isExpanded.value ? catalogError.value : null),
+)
+const loadingLabel = computed(() =>
+  isExpanded.value && catalogLoading.value
+    ? $t('glyph_manager.library.loading_unifont')
+    : $t('glyph_manager.library.loading'),
+)
+
+const modifiedCodePoints = computed(() =>
+  props.glyphs.map((glyph) => formatGlyphCodePoint(glyph.codePoint)),
+)
+const modifiedSet = computed(() => new Set(modifiedCodePoints.value))
+const selectedUnicodeBlock = computed(() =>
+  unicodeBlock.value === 'all'
+    ? null
+    : (UNICODE_BLOCKS.find((block) => block.id === unicodeBlock.value) ?? null),
+)
+
+const catalogGlyphs = computed<Glyph[]>(() => {
+  if (!unifontGlyphs.value.length) return props.glyphs
+  const overrides = new Map(
+    props.glyphs.map((glyph) => [formatGlyphCodePoint(glyph.codePoint), glyph]),
+  )
+  const merged = unifontGlyphs.value.map((glyph) => {
+    const codePoint = formatGlyphCodePoint(glyph.codePoint)
+    const override = overrides.get(codePoint)
+    if (!override) return glyph
+    overrides.delete(codePoint)
+    return { ...override, codePoint }
+  })
+  return sortGlyphsByCodePoint([...merged, ...overrides.values()])
+})
+
+const loadUnifontCatalog = async (): Promise<void> => {
+  if (unifontGlyphs.value.length || catalogLoading.value) return
+  catalogLoading.value = true
+  catalogError.value = null
+  try {
+    unifontGlyphs.value = await unifontLoader.loadAllGlyphs()
+  } catch (error) {
+    catalogError.value =
+      error instanceof Error ? error : new Error('Unable to load Unifont.')
+  } finally {
+    catalogLoading.value = false
+  }
+}
+
 const retryLibraryLoad = (): void => {
-  void props.onRetryLoad?.()
+  if (props.libraryError) void props.onRetryLoad?.()
+  if (isExpanded.value && catalogError.value) void loadUnifontCatalog()
 }
 
 const normalizedSelectionCodePoint = (value: string): string =>
@@ -314,6 +415,7 @@ const clearSelection = (): void => {
 
 const toggleGlyphSelection = (codePoint: string): void => {
   const normalized = normalizedSelectionCodePoint(codePoint)
+  if (!modifiedSet.value.has(normalized)) return
   selectedCodePoints.value = selectedCodePoints.value.includes(normalized)
     ? selectedCodePoints.value.filter((value) => value !== normalized)
     : [...selectedCodePoints.value, normalized]
@@ -323,9 +425,11 @@ const selectFilteredGlyphs = (): void => {
   selectedCodePoints.value = Array.from(
     new Set([
       ...selectedCodePoints.value,
-      ...filteredGlyphs.value.map((glyph) =>
-        normalizedSelectionCodePoint(glyph.codePoint),
-      ),
+      ...filteredGlyphs.value
+        .filter((glyph) =>
+          modifiedSet.value.has(normalizedSelectionCodePoint(glyph.codePoint)),
+        )
+        .map((glyph) => normalizedSelectionCodePoint(glyph.codePoint)),
     ]),
   )
 }
@@ -354,6 +458,7 @@ const toggleSelectionMode = (): void => {
 const expandLibrary = (): void => {
   if (selectedCodePoints.value.length > 0) selectionMode.value = true
   isExpanded.value = true
+  void loadUnifontCatalog()
 }
 
 const collapseLibrary = (): void => {
@@ -421,6 +526,10 @@ const handleEscape = (): boolean => {
   }
   if (inspectorOpen.value) {
     closeInspector()
+    return true
+  }
+  if (!isExpanded.value && compactToolsOpen.value) {
+    compactToolsOpen.value = false
     return true
   }
   if (isExpanded.value) {
@@ -615,6 +724,7 @@ watch(
   (newData) => {
     if (newData) {
       if (isExpanded.value) inspectorOpen.value = true
+      else compactToolsOpen.value = true
       nextTick(() => {
         const codePointInput =
           inspector.value?.querySelector<HTMLInputElement>('.add-glyph input')
@@ -629,8 +739,34 @@ watch(
 
 const filteredGlyphs = computed<Glyph[]>(() => {
   const query = searchQuery.value.trim().toLowerCase()
-  if (!query) return props.glyphs
-  return props.glyphs.filter((glyph) => {
+  const source = isExpanded.value ? catalogGlyphs.value : props.glyphs
+  return source.filter((glyph) => {
+    const codePoint = formatGlyphCodePoint(glyph.codePoint)
+    if (
+      isExpanded.value &&
+      sourceFilter.value === 'modified' &&
+      !modifiedSet.value.has(codePoint)
+    ) {
+      return false
+    }
+    if (
+      isExpanded.value &&
+      unicodePlane.value !== 'all' &&
+      Math.floor(Number.parseInt(codePoint, 16) / 0x10000) !==
+        Number.parseInt(unicodePlane.value, 10)
+    ) {
+      return false
+    }
+    const selectedBlock = selectedUnicodeBlock.value
+    const value = Number.parseInt(codePoint, 16)
+    if (
+      isExpanded.value &&
+      selectedBlock &&
+      (value < selectedBlock.start || value > selectedBlock.end)
+    ) {
+      return false
+    }
+    if (!query) return true
     const character = String.fromCodePoint(
       parseInt(glyph.codePoint, 16),
     ).toLowerCase()
@@ -707,6 +843,7 @@ const removeGlyph = (codePoint: string): void => {
 const editGlyph = (glyph: Glyph): void => {
   newGlyph.value = { ...glyph }
   editMode.value = true
+  compactToolsOpen.value = true
 }
 
 const handleEditInGrid = (glyph: Glyph): void => {
@@ -1490,6 +1627,31 @@ defineExpose({ handleEscape })
   padding-inline-end: 2.85rem;
 }
 
+.glyph-manager-heading__identity,
+.glyph-manager-heading__actions {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.compact-count {
+  min-width: 1.5rem;
+  padding: 0.12rem 0.38rem;
+  border-radius: 999px;
+  background: var(--background-color);
+  color: var(--text-secondary);
+  font-family: var(--monospace-font);
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+.compact-tools-toggle {
+  min-height: var(--control-height-compact);
+  padding-inline: 0.55rem;
+  font-size: 0.75rem;
+}
+
 .title {
   margin: 0;
   color: var(--text-color);
@@ -1640,6 +1802,10 @@ defineExpose({ handleEscape })
 
   .glyph-manager-heading {
     padding-inline-end: 3.25rem;
+  }
+
+  .compact-tools-toggle span {
+    display: none;
   }
 
   .is-expanded .glyph-manager-inspector {

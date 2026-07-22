@@ -47,6 +47,20 @@ const seedGlyphs = async (
     /^https:\/\/(fonts\.googleapis|fontsapi\.zeoseven)\.com\//,
     (route) => route.fulfill({ contentType: 'text/css', body: '' }),
   )
+  await page.route('**/unifont-map.json', (route) =>
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        meta: { version: 'test', source: 'e2e' },
+        glyphs: Object.fromEntries(
+          glyphs.map((glyph) => [
+            Number.parseInt(glyph.codePoint, 16),
+            glyph.hexValue,
+          ]),
+        ),
+      }),
+    }),
+  )
 }
 
 const seedIndexedDbGlyphs = async (page: Page, count: number) => {
