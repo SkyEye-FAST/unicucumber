@@ -193,18 +193,18 @@ const sheetScale = ref(2)
 
 @media (max-width: 480px) {
   .toolbar {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: var(--space-2);
   }
 
-  .export-menu,
   .btn-export {
-    width: 100%;
+    padding-inline: 0.65rem;
+    font-size: 0.82rem;
   }
 
   .export-options {
-    inset-inline-start: 0;
-    inset-inline-end: auto;
+    inset-inline-start: auto;
+    inset-inline-end: 0;
   }
 }
 

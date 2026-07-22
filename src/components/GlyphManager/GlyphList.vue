@@ -146,8 +146,8 @@ const browserPreviewStyle = computed(() => {
 
 <style scoped>
 .glyph-list {
-  flex: 1;
-  overflow-y: auto;
+  flex: none;
+  overflow: visible;
   display: flex;
   flex-direction: column;
   gap: 6px;
