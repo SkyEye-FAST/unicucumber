@@ -53,63 +53,39 @@
 
     <GlyphLibraryToolbar
       v-else
-      ref="libraryToolbar"
-      :inert="inspectorOpen && isNarrowInspector"
       v-model:search-query="searchQuery"
       :density="settings.glyphLibraryDensity"
       :filtered-count="filteredGlyphs.length"
-      :inspector-open="inspectorOpen"
       v-model:source-filter="sourceFilter"
       v-model:unicode-block="unicodeBlock"
       v-model:unicode-plane="unicodePlane"
-      :modified-count="props.glyphs.length"
+      :managed-count="props.glyphs.length"
+      :modified-count="modifiedCodePoints.length"
+      :selected-addable-count="selectedAddableCodePoints.length"
       :selected-count="selectedCodePoints.length"
+      :selected-managed-count="selectedManagedCodePoints.length"
       :selection-mode="selectionMode"
       :total-count="catalogGlyphs.length"
       @backup="exportBackup"
+      @add-selected="addSelectedGlyphsToManager"
       @collapse="collapseLibrary"
       @clear-selection="clearSelection"
-      @delete-selected="handleBatchDelete(selectedCodePoints)"
+      @delete-selected="handleBatchDelete(selectedManagedCodePoints)"
       @export="exportToHex"
       @select-filtered="selectFilteredGlyphs"
       @sheet="exportBitmapSheet"
-      @toggle-inspector="toggleInspector"
       @toggle-selection-mode="toggleSelectionMode"
       @update:density="settings.glyphLibraryDensity = $event"
     />
 
-    <button
-      v-if="isExpanded && inspectorOpen"
-      class="inspector-scrim"
-      type="button"
-      :aria-label="$t('glyph_manager.library.close_inspector')"
-      @click="closeInspector"
-    />
-
     <aside
-      v-show="isExpanded ? inspectorOpen : compactToolsOpen"
+      v-show="!isExpanded && compactToolsOpen"
       :id="!isExpanded ? 'compact-glyph-tools' : undefined"
       ref="inspector"
       class="glyph-manager-inspector"
-      :role="isExpanded && isNarrowInspector ? 'dialog' : 'complementary'"
-      :aria-modal="
-        isExpanded && isNarrowInspector && inspectorOpen ? 'true' : undefined
-      "
+      role="complementary"
       :aria-label="$t('glyph_manager.library.inspector_title')"
-      @keydown="handleInspectorKeydown"
     >
-      <header v-if="isExpanded" class="inspector-heading">
-        <h3>{{ $t('glyph_manager.library.inspector_title') }}</h3>
-        <button
-          class="ui-icon-button"
-          type="button"
-          :aria-label="$t('glyph_manager.library.close_inspector')"
-          @click="closeInspector"
-        >
-          <i-material-symbols-close aria-hidden="true" />
-        </button>
-      </header>
-
       <GlyphAdder
         v-model="newGlyph"
         :prefill-data="props.prefillData"
@@ -163,7 +139,6 @@
 
     <GlyphLibraryGrid
       v-else
-      :inert="inspectorOpen && isNarrowInspector"
       :active-code-point="props.activeCodePoint"
       :browser-preview-font="settings.browserPreviewFont"
       :density="settings.glyphLibraryDensity"
@@ -217,7 +192,6 @@ import {
   computed,
   nextTick,
   onBeforeUnmount,
-  onMounted,
   ref,
   shallowRef,
   watch,
@@ -283,7 +257,6 @@ const pendingImageFile = ref<File | null>(null)
 const unicodeNames = ref<Record<string, string>>({})
 const selectedCodePoints = ref<string[]>([])
 const selectionMode = ref(false)
-const inspectorOpen = ref(false)
 const compactToolsOpen = ref(false)
 const matrixScrollTop = ref(0)
 const unifontGlyphs = shallowRef<Glyph[]>([])
@@ -292,11 +265,6 @@ const catalogError = shallowRef<Error | null>(null)
 const libraryAnnouncement = ref('')
 const expandButton = ref<HTMLButtonElement | null>(null)
 const inspector = ref<HTMLElement | null>(null)
-const libraryToolbar = ref<{
-  focusInspectorButton: () => void
-} | null>(null)
-const narrowInspectorQuery = window.matchMedia('(max-width: 719px)')
-const isNarrowInspector = ref(narrowInspectorQuery.matches)
 let nameLookupRequest = 0
 let unifontPrefetchTimer = 0
 
@@ -318,10 +286,6 @@ const loadingLabel = computed(() =>
     : $t('glyph_manager.library.loading'),
 )
 
-const modifiedCodePoints = computed(() =>
-  props.glyphs.map((glyph) => formatGlyphCodePoint(glyph.codePoint)),
-)
-const modifiedSet = computed(() => new Set(modifiedCodePoints.value))
 const selectedUnicodeBlock = computed(() =>
   unicodeBlock.value === 'all'
     ? null
@@ -342,6 +306,40 @@ const catalogGlyphs = computed<Glyph[]>(() => {
   })
   return sortGlyphsByCodePoint([...merged, ...overrides.values()])
 })
+const managedCodePointSet = computed(
+  () =>
+    new Set(props.glyphs.map((glyph) => formatGlyphCodePoint(glyph.codePoint))),
+)
+const unifontGlyphByCodePoint = computed(
+  () =>
+    new Map(
+      unifontGlyphs.value.map((glyph) => [
+        formatGlyphCodePoint(glyph.codePoint),
+        glyph.hexValue.toUpperCase(),
+      ]),
+    ),
+)
+const modifiedCodePoints = computed(() => {
+  if (!unifontGlyphs.value.length) return []
+  return props.glyphs
+    .filter((glyph) => {
+      const codePoint = formatGlyphCodePoint(glyph.codePoint)
+      const original = unifontGlyphByCodePoint.value.get(codePoint)
+      return !original || original !== glyph.hexValue.toUpperCase()
+    })
+    .map((glyph) => formatGlyphCodePoint(glyph.codePoint))
+})
+const modifiedSet = computed(() => new Set(modifiedCodePoints.value))
+const selectedManagedCodePoints = computed(() =>
+  selectedCodePoints.value.filter((codePoint) =>
+    managedCodePointSet.value.has(codePoint),
+  ),
+)
+const selectedAddableCodePoints = computed(() =>
+  selectedCodePoints.value.filter(
+    (codePoint) => !managedCodePointSet.value.has(codePoint),
+  ),
+)
 
 const loadUnifontCatalog = async (): Promise<void> => {
   if (unifontGlyphs.value.length || catalogLoading.value) return
@@ -371,7 +369,6 @@ const clearSelection = (): void => {
 
 const toggleGlyphSelection = (codePoint: string): void => {
   const normalized = normalizedSelectionCodePoint(codePoint)
-  if (!modifiedSet.value.has(normalized)) return
   selectedCodePoints.value = selectedCodePoints.value.includes(normalized)
     ? selectedCodePoints.value.filter((value) => value !== normalized)
     : [...selectedCodePoints.value, normalized]
@@ -381,11 +378,9 @@ const selectFilteredGlyphs = (): void => {
   selectedCodePoints.value = Array.from(
     new Set([
       ...selectedCodePoints.value,
-      ...filteredGlyphs.value
-        .filter((glyph) =>
-          modifiedSet.value.has(normalizedSelectionCodePoint(glyph.codePoint)),
-        )
-        .map((glyph) => normalizedSelectionCodePoint(glyph.codePoint)),
+      ...filteredGlyphs.value.map((glyph) =>
+        normalizedSelectionCodePoint(glyph.codePoint),
+      ),
     ]),
   )
 }
@@ -418,59 +413,7 @@ const expandLibrary = (): void => {
 }
 
 const collapseLibrary = (): void => {
-  inspectorOpen.value = false
   isExpanded.value = false
-}
-
-const toggleInspector = (): void => {
-  if (inspectorOpen.value) closeInspector()
-  else openInspector()
-}
-
-const openInspector = (): void => {
-  inspectorOpen.value = true
-  nextTick(() => {
-    inspector.value
-      ?.querySelector<HTMLElement>(
-        'input:not(:disabled), button:not(:disabled)',
-      )
-      ?.focus()
-  })
-}
-
-const closeInspector = (): void => {
-  inspectorOpen.value = false
-  nextTick(() => libraryToolbar.value?.focusInspectorButton())
-}
-
-const handleInspectorMediaChange = (event: MediaQueryListEvent): void => {
-  isNarrowInspector.value = event.matches
-}
-
-const handleInspectorKeydown = (event: KeyboardEvent): void => {
-  if (
-    event.key !== 'Tab' ||
-    !isExpanded.value ||
-    !isNarrowInspector.value ||
-    !inspector.value
-  ) {
-    return
-  }
-  const focusable = Array.from(
-    inspector.value.querySelectorAll<HTMLElement>(
-      'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), [href], [tabindex]:not([tabindex="-1"])',
-    ),
-  ).filter((element) => element.offsetParent !== null)
-  const first = focusable[0]
-  const last = focusable[focusable.length - 1]
-  if (!first || !last) return
-  if (event.shiftKey && document.activeElement === first) {
-    event.preventDefault()
-    last.focus()
-  } else if (!event.shiftKey && document.activeElement === last) {
-    event.preventDefault()
-    first.focus()
-  }
 }
 
 const handleEscape = (): boolean => {
@@ -478,10 +421,6 @@ const handleEscape = (): boolean => {
   if (selectionMode.value) {
     selectionMode.value = false
     clearSelection()
-    return true
-  }
-  if (inspectorOpen.value) {
-    closeInspector()
     return true
   }
   if (!isExpanded.value && compactToolsOpen.value) {
@@ -504,17 +443,14 @@ watch(isExpanded, (expanded, wasExpanded) => {
   }
 })
 
-watch(
-  () => props.glyphs,
-  (glyphs) => {
-    const validCodePoints = new Set(
-      glyphs.map((glyph) => normalizedSelectionCodePoint(glyph.codePoint)),
-    )
-    selectedCodePoints.value = selectedCodePoints.value.filter((codePoint) =>
-      validCodePoints.has(codePoint),
-    )
-  },
-)
+watch(catalogGlyphs, (glyphs) => {
+  const validCodePoints = new Set(
+    glyphs.map((glyph) => normalizedSelectionCodePoint(glyph.codePoint)),
+  )
+  selectedCodePoints.value = selectedCodePoints.value.filter((codePoint) =>
+    validCodePoints.has(codePoint),
+  )
+})
 
 const normalizeCodePoint = (input: string): string => {
   let normalized = input.trim().toUpperCase()
@@ -562,6 +498,41 @@ const saveGlyphsToStorage = async (glyphs: Glyph[]): Promise<boolean> => {
     })
     return false
   }
+}
+
+const addGlyphsToManager = async (
+  sourceGlyphs: readonly Glyph[],
+): Promise<Glyph[]> => {
+  const additions = sourceGlyphs.filter(
+    (glyph) =>
+      !managedCodePointSet.value.has(formatGlyphCodePoint(glyph.codePoint)),
+  )
+  if (!additions.length) return []
+
+  const saved = await saveGlyphsToStorage([
+    ...props.glyphs,
+    ...additions.map((glyph) => ({
+      codePoint: formatGlyphCodePoint(glyph.codePoint),
+      hexValue: glyph.hexValue.toUpperCase(),
+    })),
+  ])
+  if (!saved) return []
+
+  notify({
+    tone: 'success',
+    message: $t('glyph_manager.library.added_to_manager', {
+      count: additions.length,
+    }),
+  })
+  return additions
+}
+
+const addSelectedGlyphsToManager = async (): Promise<void> => {
+  const selected = new Set(selectedAddableCodePoints.value)
+  const additions = catalogGlyphs.value.filter((glyph) =>
+    selected.has(formatGlyphCodePoint(glyph.codePoint)),
+  )
+  if ((await addGlyphsToManager(additions)).length > 0) clearSelection()
 }
 
 const isValidInput = computed(() => {
@@ -679,8 +650,8 @@ watch(
   () => props.prefillData,
   (newData) => {
     if (newData) {
-      if (isExpanded.value) inspectorOpen.value = true
-      else compactToolsOpen.value = true
+      if (isExpanded.value) isExpanded.value = false
+      compactToolsOpen.value = true
       nextTick(() => {
         const codePointInput =
           inspector.value?.querySelector<HTMLInputElement>('.add-glyph input')
@@ -779,7 +750,14 @@ const handleEditInGrid = (glyph: Glyph): void => {
   emit('edit-in-grid', glyph.hexValue, glyph)
 }
 
-const handleLibraryOpen = (glyph: Glyph): void => {
+const handleLibraryOpen = async (glyph: Glyph): Promise<void> => {
+  const additions = await addGlyphsToManager([glyph])
+  if (
+    !managedCodePointSet.value.has(formatGlyphCodePoint(glyph.codePoint)) &&
+    additions.length === 0
+  ) {
+    return
+  }
   handleEditInGrid(glyph)
 }
 
@@ -1475,12 +1453,7 @@ const handleBatchDelete = (codePoints: string[]): void => {
   }
 }
 
-onMounted(() => {
-  narrowInspectorQuery.addEventListener('change', handleInspectorMediaChange)
-})
-
 onBeforeUnmount(() => {
-  narrowInspectorQuery.removeEventListener('change', handleInspectorMediaChange)
   window.clearTimeout(unifontPrefetchTimer)
 })
 

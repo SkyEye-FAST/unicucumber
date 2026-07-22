@@ -81,6 +81,7 @@ declare module 'vue' {
     IMaterialSymbolsShareOutline: typeof import('~icons/material-symbols/share-outline')['default']
     IMaterialSymbolsSync: typeof import('~icons/material-symbols/sync')['default']
     IMaterialSymbolsSyncOutline: typeof import('~icons/material-symbols/sync-outline')['default']
+    IMaterialSymbolsSystemUpdateAlt: typeof import('~icons/material-symbols/system-update-alt')['default']
     IMaterialSymbolsTune: typeof import('~icons/material-symbols/tune')['default']
     IMaterialSymbolsUndo: typeof import('~icons/material-symbols/undo')['default']
     IMaterialSymbolsUploadFileOutline: typeof import('~icons/material-symbols/upload-file-outline')['default']

@@ -10,23 +10,37 @@
       ]"
       role="status"
     >
-      <span class="notification-message">{{ notification.message }}</span>
-      <button
-        v-if="notification.action && notification.actionLabel"
-        class="ui-button ui-button--primary notification-action"
-        type="button"
-        @click="runAction(notification)"
-      >
-        {{ notification.actionLabel }}
-      </button>
-      <button
-        class="ui-icon-button ui-button--quiet dismiss"
-        type="button"
-        :aria-label="$t('notifications.dismiss')"
-        @click="dismiss(notification.id)"
-      >
-        <i-material-symbols-close />
-      </button>
+      <div class="notification-copy">
+        <i-material-symbols-system-update-alt
+          v-if="notification.kind === 'update'"
+          class="notification-symbol"
+          aria-hidden="true"
+        />
+        <div>
+          <strong v-if="notification.title" class="notification-title">
+            {{ notification.title }}
+          </strong>
+          <p class="notification-message">{{ notification.message }}</p>
+        </div>
+      </div>
+      <div class="notification-actions">
+        <button
+          v-if="notification.action && notification.actionLabel"
+          class="ui-button ui-button--primary notification-action"
+          type="button"
+          @click="runAction(notification)"
+        >
+          {{ notification.actionLabel }}
+        </button>
+        <button
+          class="ui-icon-button ui-button--quiet dismiss"
+          type="button"
+          :aria-label="$t('notifications.dismiss')"
+          @click="dismiss(notification.id)"
+        >
+          <i-material-symbols-close />
+        </button>
+      </div>
     </article>
   </div>
 </template>
@@ -58,10 +72,10 @@ const runAction = (notification: AppNotification): void => {
 }
 
 .notification {
-  min-height: 3.5rem;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  align-items: center;
+  min-height: 3.75rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: var(--space-2);
   box-sizing: border-box;
   padding: var(--space-2);
@@ -87,36 +101,96 @@ const runAction = (notification: AppNotification): void => {
 }
 
 .notification--update {
+  border-width: 1px;
   border-color: color-mix(
     in srgb,
     var(--primary-color) 45%,
     var(--dialog-border)
   );
   border-left-color: var(--primary-color);
-  background: var(--dialog-background);
+  background: color-mix(
+    in srgb,
+    var(--dialog-background) 94%,
+    var(--primary-color)
+  );
+}
+
+.notification-copy {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+
+.notification-symbol {
+  flex: none;
+  margin-top: 0.08rem;
+  color: var(--primary-color);
+  font-size: 1.15rem;
+}
+
+.notification-title {
+  display: block;
+  color: var(--text-color);
+  font-size: 0.875rem;
+  font-weight: 750;
+  line-height: 1.3;
 }
 
 .notification-message {
-  flex: 1;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
   line-height: 1.45;
 }
 
+.notification-actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .notification-action {
-  flex: 0 0 auto;
+  min-height: 2.25rem;
+  padding-inline: 0.7rem;
+  white-space: nowrap;
 }
 
 .notification .dismiss {
-  flex: 0 0 auto;
+  width: 2.25rem;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
 }
 
 @media (max-width: 480px) {
   .notification {
-    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 0.65rem;
   }
 
-  .notification-action {
-    grid-column: 1 / -1;
+  .notification-copy {
+    gap: 0.45rem;
+  }
+
+  .notification--update {
+    flex-direction: column;
+  }
+
+  .notification--update .notification-copy {
     width: 100%;
+  }
+
+  .notification--update .notification-actions {
+    width: 100%;
+  }
+
+  .notification--update .notification-action {
+    flex: 1;
+  }
+
+  .notification--update .dismiss {
+    margin-left: auto;
   }
 }
 </style>

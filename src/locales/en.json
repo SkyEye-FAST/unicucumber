@@ -142,14 +142,13 @@
     "hex_invalid_title": "Some .hex lines were not imported",
     "import": "Import from Unifont",
     "library": {
-      "add_import": "Add / Import",
+      "add_selected_to_manager": "Add to glyph manager ({count})",
       "bitmap_preview": "Bitmap preview",
       "browser_preview": "Browser preview",
       "cell_accessible": "{character}, U+{codePoint}, {width}-pixel glyph{states}",
       "clear_search": "Clear glyph search",
       "clear_selection": "Clear selection",
-      "close_inspector": "Close add and import panel",
-      "delete_selected": "Delete selected",
+      "inspector_title": "Add / Import",
       "density": {
         "compact": "Compact",
         "comfortable": "Comfortable",
@@ -162,8 +161,7 @@
       "expand": "Expand glyph manager",
       "filtered_count": "{filtered} / {total}",
       "glyph_count": "{count} glyph | {count} glyphs",
-      "grid_label": "Saved glyphs",
-      "inspector_title": "Add / Import",
+      "grid_label": "Unifont glyph library",
       "load_failed": "Unable to load your saved glyphs.",
       "loading": "Loading saved glyphs…",
       "loading_unifont": "Loading the complete Unifont library…",
@@ -171,6 +169,8 @@
       "no_matches": "No matching glyphs",
       "no_matches_hint": "Clear the search or try another character or code point.",
       "open_in_editor": "Open glyph in editor",
+      "added_to_manager": "Added {count} glyphs to the glyph manager.",
+      "remove_from_manager": "Remove from manager ({count})",
       "retry": "Retry",
       "search_label": "Search glyph library",
       "select_filtered": "Select filtered glyphs",
@@ -280,7 +280,8 @@
     "online_again": "Back online.",
     "registration_failed": "Offline support could not be enabled.",
     "update_failed": "The update was not applied because the draft could not be preserved.",
-    "update_ready": "A new version is ready. Your draft will be saved before updating."
+    "update_ready": "Your current draft will be saved safely before updating.",
+    "update_title": "Update available"
   },
   "selection": {
     "actions": "Selection actions",

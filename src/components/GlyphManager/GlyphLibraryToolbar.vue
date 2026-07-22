@@ -95,22 +95,10 @@
     </div>
 
     <div v-show="toolsOpen" id="glyph-library-tools" class="library-tools">
-      <button
-        ref="inspectorButton"
-        class="ui-button library-action"
-        type="button"
-        :aria-label="$t('glyph_manager.library.add_import')"
-        :aria-expanded="inspectorOpen"
-        @click="$emit('toggle-inspector')"
-      >
-        <i-material-symbols-add-box-outline aria-hidden="true" />
-        <span>{{ $t('glyph_manager.library.add_import') }}</span>
-      </button>
-
       <details ref="exportMenu" class="library-export-menu">
         <summary
           class="ui-button library-action"
-          :aria-disabled="modifiedCount === 0"
+          :aria-disabled="managedCount === 0"
           :aria-label="$t('glyph_manager.export')"
         >
           <i-material-symbols-download aria-hidden="true" />
@@ -119,21 +107,21 @@
         <div class="library-export-options">
           <button
             type="button"
-            :disabled="modifiedCount === 0"
+            :disabled="managedCount === 0"
             @click="exportHex"
           >
             {{ $t('glyph_manager.export_hex') }}
           </button>
           <button
             type="button"
-            :disabled="modifiedCount === 0"
+            :disabled="managedCount === 0"
             @click="exportBackup"
           >
             {{ $t('glyph_manager.export_backup') }}
           </button>
           <button
             type="button"
-            :disabled="modifiedCount === 0"
+            :disabled="managedCount === 0"
             @click="exportSheet"
           >
             {{ $t('glyph_manager.export_sheet') }}
@@ -189,6 +177,19 @@
       <strong>{{ selectedLabel }}</strong>
       <span class="library-selection-spacer" />
       <button
+        class="ui-button ui-button--primary"
+        type="button"
+        :disabled="selectedAddableCount === 0"
+        @click="$emit('add-selected')"
+      >
+        <i-material-symbols-add-box-outline aria-hidden="true" />
+        {{
+          $t('glyph_manager.library.add_selected_to_manager', {
+            count: selectedAddableCount,
+          })
+        }}
+      </button>
+      <button
         class="ui-button ui-button--quiet"
         type="button"
         @click="$emit('select-filtered')"
@@ -204,20 +205,24 @@
         {{ $t('glyph_manager.library.clear_selection') }}
       </button>
       <button
-        v-if="selectedCount > 0"
+        v-if="selectedManagedCount > 0"
         class="ui-button ui-button--danger"
         type="button"
         @click="$emit('delete-selected')"
       >
         <i-material-symbols-delete-outline aria-hidden="true" />
-        {{ $t('glyph_manager.library.delete_selected') }}
+        {{
+          $t('glyph_manager.library.remove_from_manager', {
+            count: selectedManagedCount,
+          })
+        }}
       </button>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import CustomSelect, {
@@ -241,11 +246,13 @@ const { t: $t, locale } = useI18n()
 const props = defineProps<{
   density: GlyphLibraryDensity
   filteredCount: number
-  inspectorOpen: boolean
+  managedCount: number
   modifiedCount: number
   searchQuery: string
+  selectedAddableCount: number
   sourceFilter: GlyphSourceFilter
   selectedCount: number
+  selectedManagedCount: number
   selectionMode: boolean
   totalCount: number
   unicodeBlock: GlyphUnicodeBlockFilter
@@ -253,6 +260,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
+  'add-selected': []
   backup: []
   collapse: []
   'clear-selection': []
@@ -260,7 +268,6 @@ const emit = defineEmits<{
   export: []
   'select-filtered': []
   sheet: [options: { columns: number; scale: number }]
-  'toggle-inspector': []
   'toggle-selection-mode': []
   'update:density': [value: GlyphLibraryDensity]
   'update:searchQuery': [value: string]
@@ -275,7 +282,6 @@ const densityOptions: GlyphLibraryDensity[] = [
   'large',
 ]
 const exportMenu = ref<HTMLDetailsElement | null>(null)
-const inspectorButton = ref<HTMLButtonElement | null>(null)
 const toolsOpen = ref(false)
 const sheetColumns = ref(16)
 const sheetScale = ref(2)
@@ -370,13 +376,6 @@ const exportSheet = (): void => {
   emit('sheet', { columns: sheetColumns.value, scale: sheetScale.value })
   closeExportMenu()
 }
-
-defineExpose({
-  focusInspectorButton: () => {
-    toolsOpen.value = true
-    nextTick(() => inspectorButton.value?.focus())
-  },
-})
 </script>
 
 <style scoped>
