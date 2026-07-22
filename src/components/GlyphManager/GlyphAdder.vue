@@ -482,6 +482,19 @@ watch(
 }
 
 @media (max-width: 420px) {
+  .add-glyph {
+    padding: 0.75rem;
+  }
+
+  .input-group {
+    gap: 0.4rem;
+  }
+
+  .button-group {
+    gap: var(--space-2);
+    margin-top: 0.65rem;
+  }
+
   .button-group > button {
     flex: 1 1 auto;
     justify-content: center;

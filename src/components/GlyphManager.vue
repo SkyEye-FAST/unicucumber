@@ -1429,7 +1429,9 @@ defineExpose({ handleEscape })
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--background-light);
 }
 
@@ -1439,6 +1441,7 @@ defineExpose({ handleEscape })
   padding: 0;
   gap: 0;
   isolation: isolate;
+  overflow: hidden;
   background: var(--background-color);
 }
 

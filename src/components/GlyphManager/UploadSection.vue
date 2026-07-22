@@ -185,7 +185,13 @@ const pasteImage = async (): Promise<void> => {
 
 @media (max-width: 420px) {
   .upload-buttons {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+
+  .btn-upload {
+    padding-inline: 0.4rem;
+    font-size: 0.82rem;
   }
 }
 </style>

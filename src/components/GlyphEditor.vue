@@ -1095,11 +1095,14 @@ const handlePasteStart = (): void => {
 
 .btn-close-sidebar {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: var(--space-4);
+  right: var(--space-3);
+  box-sizing: border-box;
+  width: var(--control-height-compact);
+  height: var(--control-height-compact);
   background: none;
   border: none;
-  padding: 8px;
+  padding: 0;
   cursor: pointer;
   border-radius: 50%;
   display: flex;
@@ -1192,10 +1195,6 @@ const handlePasteStart = (): void => {
     flex: 1;
   }
 
-  .btn-close-sidebar {
-    padding: 12px;
-  }
-
   .btn-close-sidebar .icon {
     font-size: 24px !important;
   }
@@ -1214,9 +1213,8 @@ const handlePasteStart = (): void => {
   }
 
   .btn-close-sidebar {
-    top: 12px;
-    right: 12px;
-    padding: 12px;
+    top: max(0.75rem, env(safe-area-inset-top));
+    right: max(0.75rem, env(safe-area-inset-right));
   }
 
   .editor-actions {
