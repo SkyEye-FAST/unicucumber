@@ -33,6 +33,7 @@
         :class="{
           'is-active': isActive(item.glyph.codePoint),
           'is-selected': selectedSet.has(item.glyph.codePoint),
+          'is-modified': modifiedSet.has(item.glyph.codePoint),
           'is-selection-mode': selectionMode,
           'preview-pixel-only': previewMode === 'pixelOnly',
           'preview-browser-only': previewMode === 'browserOnly',
@@ -50,15 +51,19 @@
         :aria-label="cellAccessibleName(item.glyph)"
         :title="cellAccessibleName(item.glyph)"
       >
-        <span v-if="selectionMode" class="selection-marker" aria-hidden="true">
+        <span
+          v-if="selectionMode && modifiedSet.has(item.glyph.codePoint)"
+          class="selection-marker"
+          aria-hidden="true"
+        >
           <i-material-symbols-check
             v-if="selectedSet.has(item.glyph.codePoint)"
           />
         </span>
 
         <span
-          v-if="previewMode === 'both'"
-          class="browser-reference"
+          class="glyph-character-label"
+          :class="{ 'browser-reference': previewMode === 'both' }"
           :style="{ fontFamily: browserPreviewFont }"
           aria-hidden="true"
         >
@@ -93,6 +98,12 @@
         <span class="glyph-cell-meta" aria-hidden="true">
           U+{{ item.glyph.codePoint }}
           <span class="glyph-width">{{ item.glyph.width }}px</span>
+          <span
+            v-if="modifiedSet.has(item.glyph.codePoint)"
+            class="modified-badge"
+          >
+            {{ $t('glyph_manager.library.modified_badge') }}
+          </span>
         </span>
       </button>
 
@@ -135,6 +146,7 @@ const props = withDefaults(
     density: GlyphLibraryDensity
     glyphs: Glyph[]
     initialScrollTop?: number
+    modifiedCodePoints?: string[]
     previewMode: GlyphPreviewMode
     selectedCodePoints: string[]
     selectionMode: boolean
@@ -142,6 +154,7 @@ const props = withDefaults(
   {
     activeCodePoint: '',
     initialScrollTop: 0,
+    modifiedCodePoints: () => [],
   },
 )
 
@@ -168,6 +181,7 @@ const OVERSCAN_ROWS = 4
 
 const baseGlyphs = computed(() => props.glyphs)
 const selectedSet = computed(() => new Set(props.selectedCodePoints))
+const modifiedSet = computed(() => new Set(props.modifiedCodePoints))
 const rowCount = computed(() =>
   Math.ceil(baseGlyphs.value.length / columnCount.value),
 )
@@ -236,6 +250,9 @@ const cellAccessibleName = (glyph: GlyphLibraryPreview): string => {
   }
   if (isActive(glyph.codePoint)) {
     states.push($t('glyph_manager.library.state_active'))
+  }
+  if (modifiedSet.value.has(glyph.codePoint)) {
+    states.push($t('glyph_manager.library.state_modified'))
   }
   return $t('glyph_manager.library.cell_accessible', {
     character: glyph.character,
@@ -485,7 +502,7 @@ defineExpose({
   min-width: 0;
   height: var(--library-cell-height);
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: 1.25rem minmax(0, 1fr) auto;
   place-items: center;
   gap: 0.2rem;
   padding: 0.45rem 0.35rem 0.35rem;
@@ -543,6 +560,11 @@ defineExpose({
   box-shadow: inset 0 0 0 2px var(--primary-color);
 }
 
+.glyph-library-cell.is-modified:not(.is-selected) {
+  box-shadow: inset 0 -2px
+    color-mix(in srgb, var(--primary-color) 70%, transparent);
+}
+
 .selection-marker {
   position: absolute;
   z-index: 3;
@@ -565,17 +587,15 @@ defineExpose({
   background: var(--primary-color);
 }
 
-.browser-reference {
-  position: absolute;
-  inset-block-start: 0.35rem;
-  inset-inline-start: 50%;
+.glyph-character-label {
+  align-self: center;
   max-width: calc(100% - 2.5rem);
   overflow: hidden;
-  color: var(--text-secondary);
-  font-size: clamp(0.9rem, 1.4vw, 1.15rem);
+  color: var(--text-color);
+  font-size: clamp(0.95rem, 1.4vw, 1.2rem);
+  font-weight: 650;
   line-height: 1.1;
   text-overflow: ellipsis;
-  transform: translateX(-50%);
 }
 
 .bitmap-preview {
@@ -588,10 +608,6 @@ defineExpose({
   padding: 0.25rem 0.45rem;
   background: white;
   color: #111;
-}
-
-.preview-both .bitmap-preview {
-  margin-block-start: 0.8rem;
 }
 
 .bitmap-svg {
@@ -631,6 +647,29 @@ defineExpose({
 .glyph-width {
   color: color-mix(in srgb, var(--text-secondary) 72%, transparent);
   font-size: 0.6rem;
+}
+
+.modified-badge {
+  padding: 0.08rem 0.25rem;
+  border-radius: 2px;
+  background: color-mix(
+    in srgb,
+    var(--primary-color) 13%,
+    var(--background-light)
+  );
+  color: var(--primary-darker);
+  font-family: var(--normal-font);
+  font-size: 0.56rem;
+  font-weight: 700;
+}
+
+.density-compact .modified-badge {
+  width: 0.3rem;
+  height: 0.3rem;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 50%;
+  color: transparent;
 }
 
 .density-compact .glyph-width {

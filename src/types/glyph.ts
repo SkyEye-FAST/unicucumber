@@ -18,6 +18,9 @@ export type EditorTool =
 export type DrawMode = 'singleButtonDraw' | 'doubleButtonDraw'
 export type GlyphPreviewMode = 'pixelOnly' | 'browserOnly' | 'both'
 export type GlyphLibraryDensity = 'compact' | 'comfortable' | 'large'
+export type GlyphSourceFilter = 'all' | 'modified'
+export type GlyphUnicodePlaneFilter = 'all' | `${number}`
+export type GlyphUnicodeBlockFilter = 'all' | string
 
 export interface GridPosition {
   row: number

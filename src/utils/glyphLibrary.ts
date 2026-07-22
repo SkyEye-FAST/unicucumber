@@ -27,6 +27,15 @@ export const glyphCharacter = (codePoint: string): string => {
   }
 }
 
+export const glyphDisplayCharacter = (codePoint: string): string => {
+  const value = Number.parseInt(codePoint, 16)
+  if (!Number.isFinite(value)) return '\uFFFD'
+  if (value === 0x20) return '\u2420'
+  if (value >= 0 && value <= 0x1f) return String.fromCodePoint(0x2400 + value)
+  if (value === 0x7f) return '\u2421'
+  return glyphCharacter(codePoint)
+}
+
 export const createGlyphBitmapPath = (
   hexValue: string,
   width: GlyphWidth,
@@ -72,7 +81,7 @@ export const prepareGlyphPreview = (glyph: Glyph): GlyphLibraryPreview => {
 
   const width = glyphWidthFromData(glyph.hexValue)
   const preview: GlyphLibraryPreview = {
-    character: glyphCharacter(codePoint),
+    character: glyphDisplayCharacter(codePoint),
     codePoint,
     hexValue: glyph.hexValue,
     path: createGlyphBitmapPath(glyph.hexValue, width),

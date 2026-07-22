@@ -57,35 +57,40 @@
               @change="$emit('toggle-selection', item.glyph.codePoint)"
             />
           </label>
-          <div
-            class="glyph-preview"
-            :class="{
-              'dual-preview': showPixelPreview && showBrowserPreview,
-            }"
-            :title="
-              $t('glyph_manager.glyph.edit_in_grid', {
-                codePoint: item.glyph.codePoint,
-              })
-            "
-            @click="$emit('edit-in-grid', item.source)"
-          >
-            <svg
-              v-if="showPixelPreview"
-              class="pixel-preview bitmap-svg"
-              :viewBox="`0 0 ${item.glyph.width} 16`"
-              shape-rendering="crispEdges"
-              preserveAspectRatio="xMidYMid meet"
-              aria-hidden="true"
-            >
-              <path :d="item.glyph.path" />
-            </svg>
-            <div
-              v-if="showBrowserPreview"
-              class="browser-preview"
-              :style="browserPreviewStyle"
-              aria-hidden="true"
-            >
+          <div class="glyph-preview-stack">
+            <span class="glyph-character-label" :style="browserPreviewStyle">
               {{ item.glyph.character }}
+            </span>
+            <div
+              class="glyph-preview"
+              :class="{
+                'dual-preview': showPixelPreview && showBrowserPreview,
+              }"
+              :title="
+                $t('glyph_manager.glyph.edit_in_grid', {
+                  codePoint: item.glyph.codePoint,
+                })
+              "
+              @click="$emit('edit-in-grid', item.source)"
+            >
+              <svg
+                v-if="showPixelPreview"
+                class="pixel-preview bitmap-svg"
+                :viewBox="`0 0 ${item.glyph.width} 16`"
+                shape-rendering="crispEdges"
+                preserveAspectRatio="xMidYMid meet"
+                aria-hidden="true"
+              >
+                <path :d="item.glyph.path" />
+              </svg>
+              <div
+                v-if="showBrowserPreview"
+                class="browser-preview"
+                :style="browserPreviewStyle"
+                aria-hidden="true"
+              >
+                {{ item.glyph.character }}
+              </div>
             </div>
           </div>
           <div class="glyph-info">
@@ -143,7 +148,7 @@ import { useI18n } from 'vue-i18n'
 import type { EditorSettings, Glyph } from '@/types/glyph'
 import { prepareGlyphPreview } from '@/utils/glyphLibrary'
 
-const ROW_HEIGHT = 74
+const ROW_HEIGHT = 88
 const OVERSCAN_ROWS = 5
 
 const { t: $t } = useI18n()
@@ -278,7 +283,7 @@ onBeforeUnmount(() => {
   inset-block-start: 0;
   inset-inline: 0;
   box-sizing: border-box;
-  height: 68px;
+  height: 82px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -291,9 +296,28 @@ onBeforeUnmount(() => {
   contain: layout paint style;
 }
 
+.glyph-preview-stack {
+  width: max-content;
+  flex: none;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+}
+
+.glyph-character-label {
+  max-width: 76px;
+  overflow: hidden;
+  color: var(--text-color);
+  font-size: 0.9rem;
+  font-weight: 650;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .glyph-preview {
   width: 40px;
-  height: 40px;
+  height: 42px;
   flex: 0 0 40px;
   display: flex;
   align-items: center;

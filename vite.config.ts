@@ -103,6 +103,19 @@ export default defineConfig(({ command }) => ({
             },
           },
           {
+            urlPattern: /\/unifont-map\.json$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: `${unifontCaches.chunks}-catalog`,
+              cacheableResponse: { statuses: [200] },
+              expiration: {
+                maxEntries: 1,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+                purgeOnQuotaError: true,
+              },
+            },
+          },
+          {
             urlPattern: /\/unifont\/[0-9A-Fa-f]{3}\.json$/,
             handler: 'CacheFirst',
             options: {

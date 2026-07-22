@@ -2,6 +2,7 @@ import {
   parseUnifontManifest,
   type UnifontManifest,
 } from '@/services/unifontManifest'
+import type { Glyph } from '@/types/glyph'
 
 export type UnifontChunk = Record<string, string>
 
@@ -30,6 +31,7 @@ export class UnifontLoader {
   private readonly resolvedChunks = new Map<string, UnifontChunk>()
   private readonly activeChunks = new Map<string, Promise<UnifontChunk>>()
   private manifestPromise: Promise<UnifontManifest> | null = null
+  private allGlyphsPromise: Promise<Glyph[]> | null = null
 
   constructor(
     private readonly fetcher: typeof fetch = (input, init) =>
@@ -54,6 +56,46 @@ export class UnifontLoader {
         throw error
       })
     this.manifestPromise = request
+    return request
+  }
+
+  loadAllGlyphs(): Promise<Glyph[]> {
+    if (this.allGlyphsPromise) return this.allGlyphsPromise
+    const request = this.fetcher('/unifont-map.json')
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`Unifont glyph catalog: ${response.status}`)
+        }
+        const value = (await response.json()) as {
+          glyphs?: Record<string, unknown>
+        }
+        if (!value?.glyphs || typeof value.glyphs !== 'object') {
+          throw new TypeError('Invalid Unifont glyph catalog.')
+        }
+        return Object.entries(value.glyphs).flatMap(([decimal, hexValue]) => {
+          const codePoint = Number.parseInt(decimal, 10)
+          if (
+            !Number.isInteger(codePoint) ||
+            codePoint < 0 ||
+            codePoint > 0x10ffff ||
+            typeof hexValue !== 'string' ||
+            !/^(?:[0-9a-f]{32}|[0-9a-f]{64})$/i.test(hexValue)
+          ) {
+            return []
+          }
+          return [
+            {
+              codePoint: codePoint.toString(16).toUpperCase().padStart(4, '0'),
+              hexValue: hexValue.toUpperCase(),
+            },
+          ]
+        })
+      })
+      .catch((error) => {
+        if (this.allGlyphsPromise === request) this.allGlyphsPromise = null
+        throw error
+      })
+    this.allGlyphsPromise = request
     return request
   }
 

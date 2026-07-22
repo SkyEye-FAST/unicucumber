@@ -28,96 +28,70 @@
         </button>
       </div>
 
-      <div class="library-actions">
-        <button
-          ref="inspectorButton"
-          class="ui-button library-action"
-          type="button"
-          :aria-label="$t('glyph_manager.library.add_import')"
-          :aria-expanded="inspectorOpen"
-          @click="$emit('toggle-inspector')"
-        >
-          <i-material-symbols-add-box-outline aria-hidden="true" />
-          <span>{{ $t('glyph_manager.library.add_import') }}</span>
-        </button>
-
-        <details ref="exportMenu" class="library-export-menu">
-          <summary
-            class="ui-button library-action"
-            :aria-disabled="totalCount === 0"
-            :aria-label="$t('glyph_manager.export')"
+      <div class="library-filters">
+        <label>
+          <span>{{ $t('glyph_manager.library.source_filter_label') }}</span>
+          <select :value="sourceFilter" @change="handleSourceFilterChange">
+            <option value="all">
+              {{ $t('glyph_manager.library.source.all') }}
+            </option>
+            <option value="modified">
+              {{
+                $t('glyph_manager.library.source.modified', {
+                  count: modifiedCount,
+                })
+              }}
+            </option>
+          </select>
+        </label>
+        <label>
+          <span>{{ $t('glyph_manager.library.unicode_plane_label') }}</span>
+          <select :value="unicodePlane" @change="handleUnicodePlaneChange">
+            <option value="all">
+              {{ $t('glyph_manager.library.unicode_plane.all') }}
+            </option>
+            <option v-for="plane in unicodePlanes" :key="plane" :value="plane">
+              {{ $t(`glyph_manager.library.unicode_plane.${plane}`) }}
+            </option>
+          </select>
+        </label>
+        <label>
+          <span>{{ $t('glyph_manager.library.unicode_block_label') }}</span>
+          <select
+            :value="unicodeBlock"
+            :disabled="unicodePlane === 'all'"
+            @change="handleUnicodeBlockChange"
           >
-            <i-material-symbols-download aria-hidden="true" />
-            <span>{{ $t('glyph_manager.export') }}</span>
-          </summary>
-          <div class="library-export-options">
-            <button
-              type="button"
-              :disabled="totalCount === 0"
-              @click="exportHex"
+            <option value="all">
+              {{ $t('glyph_manager.library.unicode_block_all') }}
+            </option>
+            <option
+              v-for="block in availableBlocks"
+              :key="block.id"
+              :value="block.id"
             >
-              {{ $t('glyph_manager.export_hex') }}
-            </button>
-            <button
-              type="button"
-              :disabled="totalCount === 0"
-              @click="exportBackup"
-            >
-              {{ $t('glyph_manager.export_backup') }}
-            </button>
-            <button
-              type="button"
-              :disabled="totalCount === 0"
-              @click="exportSheet"
-            >
-              {{ $t('glyph_manager.export_sheet') }}
-            </button>
-            <label>
-              {{ $t('glyph_manager.sheet_columns') }}
-              <select v-model.number="sheetColumns">
-                <option :value="8">8</option>
-                <option :value="16">16</option>
-                <option :value="32">32</option>
-              </select>
-            </label>
-            <label>
-              {{ $t('glyph_manager.sheet_scale') }}
-              <select v-model.number="sheetScale">
-                <option :value="1">1×</option>
-                <option :value="2">2×</option>
-                <option :value="4">4×</option>
-              </select>
-            </label>
-          </div>
-        </details>
+              {{ blockLabel(block) }}
+            </option>
+          </select>
+        </label>
+      </div>
 
+      <div class="library-toolbar__buttons">
         <button
-          class="ui-button library-action"
+          class="ui-button library-tools-toggle"
           type="button"
-          :class="{ 'is-active': selectionMode }"
-          :aria-pressed="selectionMode"
-          @click="$emit('toggle-selection-mode')"
+          :aria-expanded="toolsOpen"
+          aria-controls="glyph-library-tools"
+          @click="toolsOpen = !toolsOpen"
         >
-          <i-material-symbols-select-check-box aria-hidden="true" />
-          <span>{{ $t('glyph_manager.library.selection_mode') }}</span>
+          <i-material-symbols-tune aria-hidden="true" />
+          <span>{{ $t('glyph_manager.library.tools') }}</span>
+          <i-material-symbols-keyboard-arrow-up
+            v-if="toolsOpen"
+            aria-hidden="true"
+          />
+          <i-material-symbols-keyboard-arrow-down v-else aria-hidden="true" />
         </button>
-
-        <fieldset class="density-control">
-          <legend class="visually-hidden">
-            {{ $t('glyph_manager.library.density_label') }}
-          </legend>
-          <label v-for="option in densityOptions" :key="option">
-            <input
-              :checked="density === option"
-              type="radio"
-              name="glyph-library-density"
-              :value="option"
-              @change="$emit('update:density', option)"
-            />
-            <span>{{ $t(`glyph_manager.library.density.${option}`) }}</span>
-          </label>
-        </fieldset>
-
         <button
           class="ui-icon-button library-collapse"
           type="button"
@@ -128,6 +102,97 @@
           <i-material-symbols-fullscreen-exit aria-hidden="true" />
         </button>
       </div>
+    </div>
+
+    <div v-show="toolsOpen" id="glyph-library-tools" class="library-tools">
+      <button
+        ref="inspectorButton"
+        class="ui-button library-action"
+        type="button"
+        :aria-label="$t('glyph_manager.library.add_import')"
+        :aria-expanded="inspectorOpen"
+        @click="$emit('toggle-inspector')"
+      >
+        <i-material-symbols-add-box-outline aria-hidden="true" />
+        <span>{{ $t('glyph_manager.library.add_import') }}</span>
+      </button>
+
+      <details ref="exportMenu" class="library-export-menu">
+        <summary
+          class="ui-button library-action"
+          :aria-disabled="modifiedCount === 0"
+          :aria-label="$t('glyph_manager.export')"
+        >
+          <i-material-symbols-download aria-hidden="true" />
+          <span>{{ $t('glyph_manager.export') }}</span>
+        </summary>
+        <div class="library-export-options">
+          <button
+            type="button"
+            :disabled="modifiedCount === 0"
+            @click="exportHex"
+          >
+            {{ $t('glyph_manager.export_hex') }}
+          </button>
+          <button
+            type="button"
+            :disabled="modifiedCount === 0"
+            @click="exportBackup"
+          >
+            {{ $t('glyph_manager.export_backup') }}
+          </button>
+          <button
+            type="button"
+            :disabled="modifiedCount === 0"
+            @click="exportSheet"
+          >
+            {{ $t('glyph_manager.export_sheet') }}
+          </button>
+          <label>
+            {{ $t('glyph_manager.sheet_columns') }}
+            <select v-model.number="sheetColumns">
+              <option :value="8">8</option>
+              <option :value="16">16</option>
+              <option :value="32">32</option>
+            </select>
+          </label>
+          <label>
+            {{ $t('glyph_manager.sheet_scale') }}
+            <select v-model.number="sheetScale">
+              <option :value="1">1×</option>
+              <option :value="2">2×</option>
+              <option :value="4">4×</option>
+            </select>
+          </label>
+        </div>
+      </details>
+
+      <button
+        class="ui-button library-action"
+        type="button"
+        :class="{ 'is-active': selectionMode }"
+        :aria-pressed="selectionMode"
+        @click="$emit('toggle-selection-mode')"
+      >
+        <i-material-symbols-select-check-box aria-hidden="true" />
+        <span>{{ $t('glyph_manager.library.selection_mode') }}</span>
+      </button>
+
+      <fieldset class="density-control">
+        <legend class="visually-hidden">
+          {{ $t('glyph_manager.library.density_label') }}
+        </legend>
+        <label v-for="option in densityOptions" :key="option">
+          <input
+            :checked="density === option"
+            type="radio"
+            name="glyph-library-density"
+            :value="option"
+            @change="$emit('update:density', option)"
+          />
+          <span>{{ $t(`glyph_manager.library.density.${option}`) }}</span>
+        </label>
+      </fieldset>
     </div>
 
     <div v-if="selectionMode" class="library-selection-bar">
@@ -162,21 +227,36 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { GlyphLibraryDensity } from '@/types/glyph'
+import type {
+  GlyphLibraryDensity,
+  GlyphSourceFilter,
+  GlyphUnicodeBlockFilter,
+  GlyphUnicodePlaneFilter,
+} from '@/types/glyph'
+import {
+  blocksForPlane,
+  UNICODE_BLOCK_NAMES_ZH,
+  UNICODE_PLANES,
+  type UnicodeBlock,
+} from '@/data/unicodeBlocks'
 
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 
 const props = defineProps<{
   density: GlyphLibraryDensity
   filteredCount: number
   inspectorOpen: boolean
+  modifiedCount: number
   searchQuery: string
+  sourceFilter: GlyphSourceFilter
   selectedCount: number
   selectionMode: boolean
   totalCount: number
+  unicodeBlock: GlyphUnicodeBlockFilter
+  unicodePlane: GlyphUnicodePlaneFilter
 }>()
 
 const emit = defineEmits<{
@@ -191,6 +271,9 @@ const emit = defineEmits<{
   'toggle-selection-mode': []
   'update:density': [value: GlyphLibraryDensity]
   'update:searchQuery': [value: string]
+  'update:sourceFilter': [value: GlyphSourceFilter]
+  'update:unicodeBlock': [value: GlyphUnicodeBlockFilter]
+  'update:unicodePlane': [value: GlyphUnicodePlaneFilter]
 }>()
 
 const densityOptions: GlyphLibraryDensity[] = [
@@ -200,6 +283,7 @@ const densityOptions: GlyphLibraryDensity[] = [
 ]
 const exportMenu = ref<HTMLDetailsElement | null>(null)
 const inspectorButton = ref<HTMLButtonElement | null>(null)
+const toolsOpen = ref(false)
 const sheetColumns = ref(16)
 const sheetScale = ref(2)
 
@@ -217,6 +301,40 @@ const selectedLabel = computed(() =>
 
 const handleSearchInput = (event: Event): void => {
   emit('update:searchQuery', (event.target as HTMLInputElement).value)
+}
+const handleSourceFilterChange = (event: Event): void => {
+  emit(
+    'update:sourceFilter',
+    (event.target as HTMLSelectElement).value as GlyphSourceFilter,
+  )
+}
+const unicodePlanes = UNICODE_PLANES
+const availableBlocks = computed(() =>
+  props.unicodePlane === 'all'
+    ? []
+    : blocksForPlane(Number.parseInt(props.unicodePlane, 10)),
+)
+const formatCodePoint = (value: number): string =>
+  value.toString(16).toUpperCase().padStart(4, '0')
+const blockLabel = (block: UnicodeBlock): string => {
+  const localized = locale.value.startsWith('zh')
+    ? UNICODE_BLOCK_NAMES_ZH[block.id]
+    : undefined
+  const name = localized ? `${localized} · ${block.name}` : block.name
+  return `${name}  U+${formatCodePoint(block.start)}–U+${formatCodePoint(block.end)}`
+}
+const handleUnicodePlaneChange = (event: Event): void => {
+  emit(
+    'update:unicodePlane',
+    (event.target as HTMLSelectElement).value as GlyphUnicodePlaneFilter,
+  )
+  emit('update:unicodeBlock', 'all')
+}
+const handleUnicodeBlockChange = (event: Event): void => {
+  emit(
+    'update:unicodeBlock',
+    (event.target as HTMLSelectElement).value as GlyphUnicodeBlockFilter,
+  )
 }
 
 const closeExportMenu = (): void => {
@@ -236,7 +354,10 @@ const exportSheet = (): void => {
 }
 
 defineExpose({
-  focusInspectorButton: () => inspectorButton.value?.focus(),
+  focusInspectorButton: () => {
+    toolsOpen.value = true
+    nextTick(() => inspectorButton.value?.focus())
+  },
 })
 </script>
 
@@ -254,7 +375,7 @@ defineExpose({
 .library-toolbar__main {
   min-height: 3.75rem;
   display: grid;
-  grid-template-columns: max-content minmax(12rem, 1fr) auto;
+  grid-template-columns: max-content minmax(10rem, 1fr) auto auto;
   align-items: center;
   gap: var(--space-3);
   padding: 0.55rem max(0.75rem, env(safe-area-inset-right)) 0.55rem
@@ -327,12 +448,54 @@ defineExpose({
   color: var(--text-secondary);
 }
 
-.library-actions {
+.library-filters {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.library-filters label {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.library-filters select {
+  min-height: var(--control-height-compact);
+  max-width: 9.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+}
+
+.library-toolbar__buttons,
+.library-tools {
   min-width: 0;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: var(--space-2);
+}
+
+.library-tools {
+  min-height: 3rem;
+  padding: 0.35rem max(0.75rem, env(safe-area-inset-right)) 0.35rem
+    max(0.75rem, env(safe-area-inset-left));
+  border-top: 1px solid var(--border-color);
+  background: color-mix(
+    in srgb,
+    var(--background-color) 45%,
+    var(--background-light)
+  );
+}
+
+.library-tools-toggle {
+  min-height: var(--control-height-compact);
+  padding-inline: 0.55rem;
+  font-size: 0.75rem;
 }
 
 .library-action,
@@ -493,16 +656,16 @@ defineExpose({
 
 @media (max-width: 1199px) {
   .library-toolbar__main {
-    grid-template-columns: max-content minmax(12rem, 1fr);
+    grid-template-columns: max-content minmax(10rem, 1fr) auto;
   }
 
-  .library-actions {
+  .library-filters {
+    grid-column: 2;
+  }
+
+  .library-search {
     grid-column: 1 / -1;
-    justify-content: flex-start;
-  }
-
-  .library-collapse {
-    margin-inline-start: auto;
+    grid-row: 2;
   }
 }
 
@@ -523,25 +686,35 @@ defineExpose({
     grid-row: 2;
   }
 
-  .library-actions {
+  .library-filters {
     grid-column: 1 / -1;
     grid-row: 3;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .library-filters label {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
+
+  .library-filters select {
+    width: 100%;
+    max-width: none;
+  }
+
+  .library-toolbar__buttons {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .library-tools {
+    justify-content: flex-start;
     flex-wrap: wrap;
-    overflow: visible;
   }
 
   .library-action span {
     white-space: nowrap;
-  }
-
-  .library-action:first-child span {
-    display: none;
-  }
-
-  .library-collapse {
-    position: absolute;
-    inset-block-start: max(0.5rem, env(safe-area-inset-top));
-    inset-inline-end: max(0.75rem, env(safe-area-inset-right));
   }
 
   .library-selection-bar {
