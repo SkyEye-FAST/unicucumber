@@ -215,7 +215,7 @@ const registerDialog = (): void => {
   acquireOverlayLock()
   void nextTick(() => {
     const firstControl = dialogRef.value?.querySelector<HTMLElement>(
-      'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+      'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
     )
     ;(firstControl ?? dialogRef.value)?.focus()
   })
@@ -289,7 +289,7 @@ const handleDialogKeydown = (event: KeyboardEvent): void => {
   if (event.key !== 'Tab' || !dialogRef.value) return
   const focusable = Array.from(
     dialogRef.value.querySelectorAll<HTMLElement>(
-      'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [href], [tabindex]:not([tabindex="-1"])',
+      'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), [href], [tabindex]:not([tabindex="-1"])',
     ),
   ).filter((element) => element.offsetParent !== null)
   if (focusable.length === 0) {

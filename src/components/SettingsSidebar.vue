@@ -95,21 +95,15 @@
             </h3>
 
             <div class="settings-field">
-              <label for="drawMode" class="settings-label">
+              <span id="drawMode-label" class="settings-label">
                 {{ $t('settings.draw_mode.label') }}
-              </label>
-              <select
-                id="drawMode"
-                :value="settings.drawMode"
-                @change="updateDrawMode"
-              >
-                <option value="doubleButtonDraw">
-                  {{ $t('settings.draw_mode.double_button') }}
-                </option>
-                <option value="singleButtonDraw">
-                  {{ $t('settings.draw_mode.single_button') }}
-                </option>
-              </select>
+              </span>
+              <CustomSelect
+                :model-value="settings.drawMode"
+                :ariaLabel="$t('settings.draw_mode.label')"
+                :options="drawModeOptions"
+                @update:model-value="updateDrawMode"
+              />
             </div>
 
             <label class="settings-check-row" for="alwaysShowMouseCursor">
@@ -134,40 +128,27 @@
             </h3>
 
             <div class="settings-field">
-              <label for="glyphWidth" class="settings-label">
+              <span id="glyphWidth-label" class="settings-label">
                 {{ $t('settings.glyph_width.label') }}
-              </label>
-              <select
-                id="glyphWidth"
-                :value="settings.glyphWidth"
-                @change="updateGlyphWidth"
-              >
-                <option :value="8">{{ $t('settings.glyph_width.8px') }}</option>
-                <option :value="16">
-                  {{ $t('settings.glyph_width.16px') }}
-                </option>
-              </select>
+              </span>
+              <CustomSelect
+                :model-value="settings.glyphWidth"
+                :ariaLabel="$t('settings.glyph_width.label')"
+                :options="glyphWidthOptions"
+                @update:model-value="updateGlyphWidth"
+              />
             </div>
 
             <div class="settings-field">
-              <label for="glyphPreviewMode" class="settings-label">
+              <span id="glyphPreviewMode-label" class="settings-label">
                 {{ $t('settings.glyph_preview.label') }}
-              </label>
-              <select
-                id="glyphPreviewMode"
-                :value="settings.glyphPreviewMode"
-                @change="updatePreviewMode"
-              >
-                <option value="pixelOnly">
-                  {{ $t('settings.glyph_preview.pixel_only') }}
-                </option>
-                <option value="browserOnly">
-                  {{ $t('settings.glyph_preview.browser_only') }}
-                </option>
-                <option value="both">
-                  {{ $t('settings.glyph_preview.both') }}
-                </option>
-              </select>
+              </span>
+              <CustomSelect
+                :model-value="settings.glyphPreviewMode"
+                :ariaLabel="$t('settings.glyph_preview.label')"
+                :options="glyphPreviewModeOptions"
+                @update:model-value="updatePreviewMode"
+              />
             </div>
 
             <div class="settings-field">
@@ -278,10 +259,14 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import { useSettings } from '@/composables/useSettings'
 import { useTheme } from '@/composables/useTheme'
+import CustomSelect, {
+  type CustomSelectOption,
+} from '@/components/CustomSelect.vue'
 import type { EditorSettings } from '@/types/glyph'
 import { acquireOverlayLock, releaseOverlayLock } from '@/utils/overlayStack'
 
@@ -299,6 +284,7 @@ const emit = defineEmits<{
 
 const { defaultSettings } = useSettings()
 const { preference, setPreference } = useTheme()
+const { t: $t } = useI18n()
 
 const sidebarRef = ref<HTMLElement | null>(null)
 const closeButtonRef = ref<HTMLButtonElement | null>(null)
@@ -307,6 +293,25 @@ const isModalMode = ref(false)
 const showFontEdit = ref(false)
 const tempFont = ref('')
 const showResetDialog = ref(false)
+const drawModeOptions = computed<CustomSelectOption[]>(() => [
+  {
+    value: 'doubleButtonDraw',
+    label: $t('settings.draw_mode.double_button'),
+  },
+  {
+    value: 'singleButtonDraw',
+    label: $t('settings.draw_mode.single_button'),
+  },
+])
+const glyphWidthOptions = computed<CustomSelectOption[]>(() => [
+  { value: 8, label: $t('settings.glyph_width.8px') },
+  { value: 16, label: $t('settings.glyph_width.16px') },
+])
+const glyphPreviewModeOptions = computed<CustomSelectOption[]>(() => [
+  { value: 'pixelOnly', label: $t('settings.glyph_preview.pixel_only') },
+  { value: 'browserOnly', label: $t('settings.glyph_preview.browser_only') },
+  { value: 'both', label: $t('settings.glyph_preview.both') },
+])
 
 let modalQuery: MediaQueryList | null = null
 let overlayLocked = false
@@ -319,26 +324,21 @@ const updateSettings = (patch: Partial<EditorSettings>): void => {
   emit('update:settings', { ...props.settings, ...patch })
 }
 
-const updateDrawMode = (event: Event): void => {
+const updateDrawMode = (value: string | number): void => {
   updateSettings({
-    drawMode: (event.target as HTMLSelectElement)
-      .value as EditorSettings['drawMode'],
+    drawMode: value as EditorSettings['drawMode'],
   })
 }
 
-const updateGlyphWidth = (event: Event): void => {
+const updateGlyphWidth = (value: string | number): void => {
   updateSettings({
-    glyphWidth: Number.parseInt(
-      (event.target as HTMLSelectElement).value,
-      10,
-    ) as EditorSettings['glyphWidth'],
+    glyphWidth: Number(value) as EditorSettings['glyphWidth'],
   })
 }
 
-const updatePreviewMode = (event: Event): void => {
+const updatePreviewMode = (value: string | number): void => {
   updateSettings({
-    glyphPreviewMode: (event.target as HTMLSelectElement)
-      .value as EditorSettings['glyphPreviewMode'],
+    glyphPreviewMode: value as EditorSettings['glyphPreviewMode'],
   })
 }
 
@@ -375,7 +375,7 @@ const getFocusableElements = (): HTMLElement[] => {
   if (!sidebarRef.value) return []
   return Array.from(
     sidebarRef.value.querySelectorAll<HTMLElement>(
-      'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+      'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
     ),
   ).filter((element) => element.offsetParent !== null)
 }
@@ -578,7 +578,7 @@ const confirmReset = (): void => {
   line-height: 1.4;
 }
 
-.settings-field select,
+.settings-field :deep(.custom-select),
 .font-input {
   box-sizing: border-box;
   width: 100%;
@@ -588,10 +588,8 @@ const confirmReset = (): void => {
   color: var(--text-color);
 }
 
-.settings-field select {
+.settings-field :deep(.custom-select__trigger) {
   min-height: var(--control-height);
-  padding: 0 var(--space-3);
-  cursor: pointer;
 }
 
 .settings-check-row {

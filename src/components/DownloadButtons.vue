@@ -7,11 +7,11 @@
       <div class="export-options">
         <label>
           {{ $t('export.scale') }}
-          <select v-model.number="scale">
-            <option v-for="value in scales" :key="value" :value="value">
-              {{ value }}×
-            </option>
-          </select>
+          <CustomSelect
+            v-model="scale"
+            :ariaLabel="$t('export.scale')"
+            :options="scaleOptions"
+          />
         </label>
         <label class="checkbox-option">
           <input v-model="transparent" type="checkbox" />
@@ -67,6 +67,9 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import CustomSelect, {
+  type CustomSelectOption,
+} from '@/components/CustomSelect.vue'
 import { useNotifications } from '@/composables/useNotifications'
 import type { GridData } from '@/types/glyph'
 import {
@@ -87,6 +90,10 @@ const { notify } = useNotifications()
 const downloadFormats = ['PNG', 'BMP', 'SVG', 'HEX'] as const
 type DownloadFormat = (typeof downloadFormats)[number]
 const scales = [1, 2, 4, 8, 16] as const
+const scaleOptions: CustomSelectOption[] = scales.map((value) => ({
+  value,
+  label: `${value}×`,
+}))
 const scale = ref(8)
 const transparent = ref(false)
 const baseFilename = computed(() => props.codepoint || 'glyph')
@@ -248,10 +255,12 @@ const shareImage = async (): Promise<void> => {
   gap: 0.4rem;
 }
 
-.export-options select {
+.export-options :deep(.custom-select) {
+  width: 4.5rem;
+}
+
+.export-options :deep(.custom-select__trigger) {
   min-height: var(--control-height-compact);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
 }
 
 .checkbox-option input {

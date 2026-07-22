@@ -39,7 +39,7 @@
     },
     "unsaved_changes": {
       "confirm": "继续",
-      "message": "当前字形有未保存的更改，是否继续？",
+      "message": "当前字形尚未保存，是否继续？",
       "title": "未保存的更改"
     }
   },
@@ -146,14 +146,14 @@
       "bitmap_preview": "位图预览",
       "browser_preview": "浏览器预览",
       "cell_accessible": "{character}，U+{codePoint}，{width}像素字形{states}",
-      "clear_search": "清除字形搜索",
+      "clear_search": "清除搜索",
       "clear_selection": "清除选择",
       "close_inspector": "关闭添加和导入面板",
       "delete_selected": "删除选中项",
       "density": {
-        "compact": "紧凑",
         "comfortable": "舒适",
-        "large": "大"
+        "compact": "紧凑",
+        "large": "宽松"
       },
       "density_label": "字形矩阵密度",
       "entered_fullscreen": "已打开全屏字形库。",
@@ -176,29 +176,29 @@
       "select_filtered": "选择筛选出的字形",
       "selected_count": "已选择{count}项",
       "selection_mode": "选择",
-      "state_active": "正在编辑",
-      "state_modified": "已修改",
-      "state_selected": "已选择",
-      "tools": "功能",
-      "source_filter_label": "范围",
       "source": {
         "all": "全部字形",
         "modified": "已修改（{count}）"
       },
-      "unicode_plane_label": "Unicode 平面",
+      "source_filter_label": "范围",
+      "state_active": "正在编辑",
+      "state_modified": "已修改",
+      "state_selected": "已选择",
+      "title": "字形库",
+      "tools": "功能",
+      "unicode_block_all": "整个平面",
+      "unicode_block_label": "Unicode 区块",
       "unicode_plane": {
-        "all": "选择平面",
         "0": "平面 0 · 基本多文种平面（BMP）",
         "1": "平面 1 · 多文种补充平面（SMP）",
         "2": "平面 2 · 表意文字补充平面（SIP）",
         "3": "平面 3 · 第三表意文字平面（TIP）",
         "14": "平面 14 · 特别用途补充平面（SSP）",
         "15": "平面 15 · 私用区 A",
-        "16": "平面 16 · 私用区 B"
+        "16": "平面 16 · 私用区 B",
+        "all": "选择平面"
       },
-      "unicode_block_label": "Unicode 区块",
-      "unicode_block_all": "整个平面",
-      "title": "字形库",
+      "unicode_plane_label": "Unicode 平面",
       "workspace_label": "全屏字形库"
     },
     "manual_input": {
@@ -208,11 +208,6 @@
       "skip_one": "跳过",
       "title": "需要手动输入码位"
     },
-    "navigation": "字形导航",
-    "next": "下一个",
-    "position": "{current} / {total}",
-    "position_accessible": "第{current}个，共{total}个",
-    "previous": "上一个",
     "search": "搜索码位、字符、数据或Unicode名称…",
     "select_all": "全选",
     "sheet_columns": "列数",
@@ -236,7 +231,7 @@
   },
   "header": {
     "close_glyph_manager": "关闭字形管理器",
-    "github": "在GitHub打开UniCucumber仓库",
+    "github": "在 GitHub 上打开 UniCucumber 仓库",
     "open_glyph_manager": "打开字形管理器",
     "open_settings": "打开设置"
   },
@@ -281,10 +276,10 @@
   "pwa": {
     "apply_update": "立即更新",
     "offline": "离线",
-    "offline_ready": "UniCucumber已可离线使用。",
+    "offline_ready": "UniCucumber 现已支持离线使用。",
     "online_again": "已恢复联网。",
-    "registration_failed": "无法启用离线支持。",
-    "update_failed": "由于无法保留草稿，未应用更新。",
+    "registration_failed": "离线模式启用失败。",
+    "update_failed": "因当前草稿无法保留，未应用更新。",
     "update_ready": "新版本已就绪，更新前会先保存当前草稿。"
   },
   "selection": {
@@ -313,7 +308,7 @@
     },
     "browser_preview_font": "字形预览字体",
     "close_sidebar": "关闭设置",
-    "confirm_clear": "清空前确认",
+    "confirm_clear": "清空时确认",
     "draw_mode": {
       "double_button": "左键绘制，右键擦除",
       "label": "绘制模式",
@@ -335,7 +330,7 @@
       "8px": "8像素",
       "label": "字形宽度"
     },
-    "reset": "重置为默认",
+    "reset": "重置为默认值",
     "sections": {
       "behaviour": "行为",
       "drawing": "绘制",
@@ -348,7 +343,7 @@
     "discard_draft": "丢弃",
     "draft_restore_failed": "无法恢复上次的草稿。",
     "draft_save_failed": "无法保存当前草稿，请在离开前导出备份。",
-    "fallback_warning": "IndexedDB不可用，存储容量可能受限。",
+    "fallback_warning": "IndexedDB 不可用，存储容量可能受限。",
     "glyph_save_failed": "无法保存字形库。",
     "glyph_saved": "字形已保存。",
     "keep_draft": "保留",

@@ -127,50 +127,6 @@
       />
     </aside>
 
-    <nav
-      v-if="!isExpanded"
-      class="glyph-navigation"
-      :aria-label="$t('glyph_manager.navigation')"
-    >
-      <button
-        type="button"
-        :disabled="!filteredGlyphs.length"
-        @click="navigateGlyph(-1)"
-      >
-        <i-material-symbols-chevron-left />
-        {{ $t('glyph_manager.previous') }}
-      </button>
-      <span
-        class="glyph-position"
-        :aria-label="
-          $t('glyph_manager.position_accessible', {
-            current: currentGlyphPosition,
-            total: filteredGlyphs.length,
-          })
-        "
-        :title="
-          $t('glyph_manager.position_accessible', {
-            current: currentGlyphPosition,
-            total: filteredGlyphs.length,
-          })
-        "
-        >{{
-          $t('glyph_manager.position', {
-            current: currentGlyphPosition,
-            total: filteredGlyphs.length,
-          })
-        }}</span
-      >
-      <button
-        type="button"
-        :disabled="!filteredGlyphs.length"
-        @click="navigateGlyph(1)"
-      >
-        {{ $t('glyph_manager.next') }}
-        <i-material-symbols-chevron-right />
-      </button>
-    </nav>
-
     <div
       v-if="displayLibraryPending"
       class="glyph-library-status"
@@ -502,7 +458,7 @@ const handleInspectorKeydown = (event: KeyboardEvent): void => {
   }
   const focusable = Array.from(
     inspector.value.querySelectorAll<HTMLElement>(
-      'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [href], [tabindex]:not([tabindex="-1"])',
+      'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), [href], [tabindex]:not([tabindex="-1"])',
     ),
   ).filter((element) => element.offsetParent !== null)
   const first = focusable[0]
@@ -805,33 +761,6 @@ watch(searchQuery, async (query) => {
     })
   }
 })
-
-const activeListIndex = computed(() => {
-  const active = normalizeCodePoint(
-    props.activeCodePoint || newGlyph.value.codePoint,
-  )
-  return filteredGlyphs.value.findIndex(
-    (glyph) => normalizeCodePoint(glyph.codePoint) === active,
-  )
-})
-
-const currentGlyphPosition = computed(() =>
-  activeListIndex.value < 0 ? 0 : activeListIndex.value + 1,
-)
-
-const navigateGlyph = (direction: -1 | 1): void => {
-  const glyphs = filteredGlyphs.value
-  if (!glyphs.length) return
-  const current = activeListIndex.value
-  const index =
-    current < 0
-      ? direction > 0
-        ? 0
-        : glyphs.length - 1
-      : (current + direction + glyphs.length) % glyphs.length
-  const glyph = glyphs[index]
-  if (glyph) handleEditInGrid(glyph)
-}
 
 const removeGlyph = (codePoint: string): void => {
   const updatedGlyphs = props.glyphs.filter(
@@ -1732,46 +1661,6 @@ defineExpose({ handleEscape })
 
 .inspector-scrim {
   display: none;
-}
-
-.glyph-navigation {
-  min-height: var(--control-height);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  color: var(--text-secondary);
-}
-
-.glyph-navigation button {
-  box-sizing: border-box;
-  min-width: 44px;
-  min-height: var(--control-height);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-1);
-  padding: 0.45rem 0.65rem;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  background: var(--background-light);
-  color: var(--text-color);
-}
-
-.glyph-navigation button:hover:not(:disabled) {
-  border-color: var(--primary-color);
-  background: color-mix(
-    in srgb,
-    var(--primary-color) 8%,
-    var(--background-light)
-  );
-}
-
-.glyph-position {
-  color: var(--text-secondary);
-  font-family: var(--monospace-font);
-  font-size: 0.9rem;
-  font-variant-numeric: tabular-nums;
 }
 
 @keyframes inspector-in {

@@ -271,11 +271,6 @@ test('glyph manager loads only the requested Unifont range', async ({
     if (request.url().includes('/unifont/')) requested.push(request.url())
   })
   await page.locator('.modal-buttons .modal-button').nth(1).click()
-  await expect(page.locator('.glyph-position')).toHaveText('0 / 0')
-  await expect(page.locator('.glyph-position')).toHaveAttribute(
-    'aria-label',
-    'Item 0 of 0',
-  )
   await expect(page.locator('input[capture]')).toHaveCount(0)
   await expect(
     page.getByRole('button', { name: 'Photo Library' }),

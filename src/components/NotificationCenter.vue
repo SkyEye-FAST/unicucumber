@@ -4,19 +4,23 @@
       v-for="notification in notifications"
       :key="notification.id"
       class="notification"
-      :class="notification.tone"
+      :class="[
+        notification.tone,
+        `notification--${notification.kind ?? 'default'}`,
+      ]"
       role="status"
     >
-      <span>{{ notification.message }}</span>
+      <span class="notification-message">{{ notification.message }}</span>
       <button
         v-if="notification.action && notification.actionLabel"
+        class="ui-button ui-button--primary notification-action"
         type="button"
         @click="runAction(notification)"
       >
         {{ notification.actionLabel }}
       </button>
       <button
-        class="dismiss"
+        class="ui-icon-button ui-button--quiet dismiss"
         type="button"
         :aria-label="$t('notifications.dismiss')"
         @click="dismiss(notification.id)"
@@ -54,17 +58,19 @@ const runAction = (notification: AppNotification): void => {
 }
 
 .notification {
-  min-height: 44px;
-  display: flex;
+  min-height: 3.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 0.55rem;
-  padding: 0.65rem;
+  gap: var(--space-2);
+  box-sizing: border-box;
+  padding: var(--space-2);
   border: 1px solid var(--border-color);
-  border-left: 4px solid var(--info-color);
-  border-radius: 4px;
-  background: var(--background-light);
+  border-left: 3px solid var(--info-color);
+  border-radius: var(--radius-md);
+  background: var(--dialog-background);
   color: var(--text-color);
-  box-shadow: 0 3px 12px var(--modal-overlay);
+  box-shadow: 0 8px 20px var(--modal-shadow);
   pointer-events: auto;
 }
 
@@ -80,19 +86,37 @@ const runAction = (notification: AppNotification): void => {
   border-left-color: var(--danger-color);
 }
 
-.notification span {
-  flex: 1;
+.notification--update {
+  border-color: color-mix(
+    in srgb,
+    var(--primary-color) 45%,
+    var(--dialog-border)
+  );
+  border-left-color: var(--primary-color);
+  background: var(--dialog-background);
 }
 
-.notification button {
-  min-height: 36px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background: var(--background-base);
-  color: var(--text-color);
+.notification-message {
+  flex: 1;
+  line-height: 1.45;
+}
+
+.notification-action {
+  flex: 0 0 auto;
 }
 
 .notification .dismiss {
-  min-width: 36px;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 480px) {
+  .notification {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .notification-action {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
 }
 </style>

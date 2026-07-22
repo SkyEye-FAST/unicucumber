@@ -208,11 +208,6 @@
       "skip_one": "Skip",
       "title": "Manual Code Point Input Required"
     },
-    "navigation": "Glyph navigation",
-    "next": "Next",
-    "position": "{current} / {total}",
-    "position_accessible": "Item {current} of {total}",
-    "previous": "Previous",
     "search": "Search code point, character, data, or Unicode name…",
     "select_all": "Select All",
     "sheet_columns": "Columns",

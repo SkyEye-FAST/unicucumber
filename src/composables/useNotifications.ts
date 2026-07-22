@@ -1,11 +1,13 @@
 import { readonly, ref } from 'vue'
 
 export type NotificationTone = 'info' | 'success' | 'warning' | 'error'
+export type NotificationKind = 'default' | 'update'
 
 export interface AppNotification {
   id: number
   message: string
   tone: NotificationTone
+  kind?: NotificationKind
   actionLabel?: string
   action?: () => void
 }

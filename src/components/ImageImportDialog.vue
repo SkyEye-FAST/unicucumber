@@ -24,17 +24,19 @@
           <div class="import-controls">
             <label>
               {{ $t('image_import.target_width') }}
-              <select v-model.number="options.targetWidth">
-                <option :value="8">8×16</option>
-                <option :value="16">16×16</option>
-              </select>
+              <CustomSelect
+                v-model="options.targetWidth"
+                :ariaLabel="$t('image_import.target_width')"
+                :options="targetWidthOptions"
+              />
             </label>
             <label>
               {{ $t('image_import.mode') }}
-              <select v-model="options.mode">
-                <option value="fit">{{ $t('image_import.fit') }}</option>
-                <option value="crop">{{ $t('image_import.crop') }}</option>
-              </select>
+              <CustomSelect
+                v-model="options.mode"
+                :ariaLabel="$t('image_import.mode')"
+                :options="modeOptions"
+              />
             </label>
             <label class="threshold-control">
               {{ $t('image_import.threshold') }}: {{ options.threshold }}
@@ -99,6 +101,9 @@
 import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import CustomSelect, {
+  type CustomSelectOption,
+} from '@/components/CustomSelect.vue'
 import type { GridData, GlyphWidth } from '@/types/glyph'
 import { prepareImageGrid } from '@/utils/imageImport'
 import { acquireOverlayLock, releaseOverlayLock } from '@/utils/overlayStack'
@@ -120,6 +125,14 @@ const options = reactive({
   invert: false,
   transparentAsWhite: true,
 })
+const targetWidthOptions: CustomSelectOption[] = [
+  { value: 8, label: '8×16' },
+  { value: 16, label: '16×16' },
+]
+const modeOptions = computed<CustomSelectOption[]>(() => [
+  { value: 'fit', label: $t('image_import.fit') },
+  { value: 'crop', label: $t('image_import.crop') },
+])
 let registered = false
 let previouslyFocused: HTMLElement | null = null
 
@@ -162,9 +175,8 @@ watch(
       })
       void nextTick(() => {
         ;(
-          dialogRef.value?.querySelector<HTMLElement>(
-            'select, input, button',
-          ) ?? dialogRef.value
+          dialogRef.value?.querySelector<HTMLElement>('input, button') ??
+          dialogRef.value
         )?.focus()
       })
     } else if (registered) {
@@ -196,7 +208,7 @@ const handleKeydown = (event: KeyboardEvent): void => {
   if (event.key !== 'Tab' || !dialogRef.value) return
   const focusable = Array.from(
     dialogRef.value.querySelectorAll<HTMLElement>(
-      'button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])',
+      'button:not(:disabled), input:not(:disabled), [tabindex]:not([tabindex="-1"])',
     ),
   ).filter((element) => element.offsetParent !== null)
   const first = focusable[0]
@@ -253,7 +265,6 @@ const handleKeydown = (event: KeyboardEvent): void => {
 }
 
 .image-import-dialog button,
-.image-import-dialog select,
 .image-import-dialog input {
   min-height: 44px;
 }

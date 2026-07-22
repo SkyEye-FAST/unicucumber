@@ -657,8 +657,7 @@ const handleKeydown = (e: KeyboardEvent): void => {
     if (!glyphManagerRef.value?.handleEscape()) handleCloseSidebar()
     return
   }
-  if (target?.matches('input, textarea, select, [contenteditable="true"]'))
-    return
+  if (target?.matches('input, textarea, [contenteditable="true"]')) return
   if (e.ctrlKey || e.metaKey) {
     const key = e.key.toLowerCase()
     if (key === 'z' && e.shiftKey) {

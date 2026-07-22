@@ -50,6 +50,7 @@ onMounted(() => {
         notify(
           {
             tone: 'info',
+            kind: 'update',
             message: $t('pwa.update_ready'),
             actionLabel: $t('pwa.apply_update'),
             action: () => void applyUpdate(),
