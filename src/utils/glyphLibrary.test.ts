@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
 import type { Glyph } from '@/types/glyph'
-import { blocksForPlane, UNICODE_BLOCKS } from '@/data/unicodeBlocks'
+import {
+  blocksForPlane,
+  UNICODE_BLOCK_NAMES_ZH_HANT,
+  UNICODE_BLOCK_NAMES_ZH_HANS,
+  UNICODE_BLOCKS,
+} from '@/data/unicodeBlocks'
 
 import {
   createGlyphBitmapPath,
@@ -27,6 +32,23 @@ describe('glyph-library preview preparation', () => {
         (block) => block.id === 'cjk-unified-ideographs-extension-b',
       ),
     ).toMatchObject({ start: 0x20000, end: 0x2a6df })
+  })
+
+  it('provides a Chinese name for every Unicode block', () => {
+    expect(
+      UNICODE_BLOCKS.filter((block) => !UNICODE_BLOCK_NAMES_ZH_HANS[block.id]),
+    ).toEqual([])
+    expect(
+      UNICODE_BLOCKS.filter((block) => !UNICODE_BLOCK_NAMES_ZH_HANT[block.id]),
+    ).toEqual([])
+    expect(UNICODE_BLOCK_NAMES_ZH_HANS['basic-latin']).toBe('基本拉丁字母')
+    expect(UNICODE_BLOCK_NAMES_ZH_HANT.cyrillic).toBe('西里爾字母')
+    expect(
+      UNICODE_BLOCKS.filter((block) => !UNICODE_BLOCK_NAMES_ZH_HANS[block.id]),
+    ).toEqual([])
+    expect(
+      UNICODE_BLOCKS.filter((block) => !UNICODE_BLOCK_NAMES_ZH_HANT[block.id]),
+    ).toEqual([])
   })
 
   it('sorts glyphs by numeric code point', () => {
