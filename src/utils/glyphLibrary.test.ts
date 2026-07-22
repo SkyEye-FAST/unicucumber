@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
 import type { Glyph } from '@/types/glyph'
-import { blocksForPlane, UNICODE_BLOCKS } from '@/data/unicodeBlocks'
+import {
+  blocksForPlane,
+  UNICODE_BLOCK_NAMES_ZH_HANT,
+  UNICODE_BLOCK_NAMES_ZH,
+  UNICODE_BLOCKS,
+} from '@/data/unicodeBlocks'
 
 import {
   createGlyphBitmapPath,
@@ -27,6 +32,16 @@ describe('glyph-library preview preparation', () => {
         (block) => block.id === 'cjk-unified-ideographs-extension-b',
       ),
     ).toMatchObject({ start: 0x20000, end: 0x2a6df })
+  })
+
+  it('provides a Chinese name for every Unicode block', () => {
+    expect(
+      UNICODE_BLOCKS.filter((block) => !UNICODE_BLOCK_NAMES_ZH[block.id]),
+    ).toEqual([])
+    expect(
+      UNICODE_BLOCKS.filter((block) => !UNICODE_BLOCK_NAMES_ZH_HANT[block.id]),
+    ).toEqual([])
+    expect(UNICODE_BLOCK_NAMES_ZH_HANT['latin-extended-a']).toBe('拉丁擴展 A')
   })
 
   it('sorts glyphs by numeric code point', () => {
