@@ -39,7 +39,7 @@
     },
     "unsaved_changes": {
       "confirm": "繼續",
-      "message": "目前字形有未儲存的變更，是否繼續？",
+      "message": "目前字形尚未儲存，是否繼續？",
       "title": "未儲存的變更"
     }
   },
@@ -146,14 +146,14 @@
       "bitmap_preview": "點陣圖預覽",
       "browser_preview": "瀏覽器預覽",
       "cell_accessible": "{character}，U+{codePoint}，{width}像素字形{states}",
-      "clear_search": "清除字形搜尋",
+      "clear_search": "清除搜尋",
       "clear_selection": "清除選取",
       "close_inspector": "關閉新增和匯入面板",
       "delete_selected": "刪除選取項目",
       "density": {
         "compact": "緊湊",
         "comfortable": "舒適",
-        "large": "大"
+        "large": "寬鬆"
       },
       "density_label": "字形矩陣密度",
       "entered_fullscreen": "已開啟全螢幕字形庫。",
@@ -236,7 +236,7 @@
   },
   "header": {
     "close_glyph_manager": "關閉字形管理器",
-    "github": "在GitHub開啟UniCucumber儲存庫",
+    "github": "在 GitHub 上開啟 UniCucumber 儲存庫",
     "open_glyph_manager": "開啟字形管理器",
     "open_settings": "開啟設定"
   },
@@ -281,10 +281,10 @@
   "pwa": {
     "apply_update": "立即更新",
     "offline": "離線",
-    "offline_ready": "UniCucumber已可離線使用。",
+    "offline_ready": "UniCucumber 現已支援離線使用。",
     "online_again": "已恢復連線。",
-    "registration_failed": "無法啟用離線支援。",
-    "update_failed": "由於無法保留草稿，未套用更新。",
+    "registration_failed": "離線模式啟用失敗。",
+    "update_failed": "因目前草稿無法保留，未套用更新。",
     "update_ready": "新版本已就緒，更新前會先儲存目前草稿。"
   },
   "selection": {
@@ -313,7 +313,7 @@
     },
     "browser_preview_font": "字形預覽字體",
     "close_sidebar": "關閉設定",
-    "confirm_clear": "清空前確認",
+    "confirm_clear": "清空時確認",
     "draw_mode": {
       "double_button": "左鍵繪製，右鍵擦除",
       "label": "繪製模式",
@@ -348,7 +348,7 @@
     "discard_draft": "捨棄",
     "draft_restore_failed": "無法還原上次的草稿。",
     "draft_save_failed": "無法儲存目前草稿，請在離開前匯出備份。",
-    "fallback_warning": "IndexedDB無法使用，儲存容量可能受限。",
+    "fallback_warning": "IndexedDB 無法使用，儲存容量可能受限。",
     "glyph_save_failed": "無法儲存字形庫。",
     "glyph_saved": "字形已儲存。",
     "keep_draft": "保留",
