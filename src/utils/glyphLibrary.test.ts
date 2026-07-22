@@ -4,7 +4,7 @@ import type { Glyph } from '@/types/glyph'
 import {
   blocksForPlane,
   UNICODE_BLOCK_NAMES_ZH_HANT,
-  UNICODE_BLOCK_NAMES_ZH,
+  UNICODE_BLOCK_NAMES_ZH_HANS,
   UNICODE_BLOCKS,
 } from '@/data/unicodeBlocks'
 
@@ -36,12 +36,19 @@ describe('glyph-library preview preparation', () => {
 
   it('provides a Chinese name for every Unicode block', () => {
     expect(
-      UNICODE_BLOCKS.filter((block) => !UNICODE_BLOCK_NAMES_ZH[block.id]),
+      UNICODE_BLOCKS.filter((block) => !UNICODE_BLOCK_NAMES_ZH_HANS[block.id]),
     ).toEqual([])
     expect(
       UNICODE_BLOCKS.filter((block) => !UNICODE_BLOCK_NAMES_ZH_HANT[block.id]),
     ).toEqual([])
-    expect(UNICODE_BLOCK_NAMES_ZH_HANT['latin-extended-a']).toBe('拉丁擴展 A')
+    expect(UNICODE_BLOCK_NAMES_ZH_HANS['basic-latin']).toBe('基本拉丁字母')
+    expect(UNICODE_BLOCK_NAMES_ZH_HANT.cyrillic).toBe('西里爾字母')
+    expect(
+      UNICODE_BLOCKS.filter((block) => !UNICODE_BLOCK_NAMES_ZH_HANS[block.id]),
+    ).toEqual([])
+    expect(
+      UNICODE_BLOCKS.filter((block) => !UNICODE_BLOCK_NAMES_ZH_HANT[block.id]),
+    ).toEqual([])
   })
 
   it('sorts glyphs by numeric code point', () => {
