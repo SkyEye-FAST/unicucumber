@@ -982,7 +982,6 @@ const handlePasteStart = (): void => {
   background-color: var(--background-light);
   max-width: calc(100vw - 2rem);
   border-right: 1px solid var(--border-color);
-  box-shadow: 4px 0 18px var(--modal-overlay);
   transition: transform 0.3s ease;
   transform: translateX(-100%);
   z-index: 1000;
@@ -992,6 +991,7 @@ const handlePasteStart = (): void => {
 
 .sidebar.active {
   transform: translateX(0);
+  box-shadow: 4px 0 18px var(--modal-overlay);
 }
 
 .sidebar.glyph-library-expanded {
