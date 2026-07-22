@@ -227,6 +227,20 @@ test.describe('full-screen glyph library', () => {
     await expect(page.locator('.glyph-library-cell')).toHaveCount(95)
   })
 
+  test('keeps the desktop filter toolbar within the viewport', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await seedGlyphs(page)
+    await openLibrary(page)
+    await expandLibrary(page)
+
+    const fitsViewport = await page
+      .locator('.library-toolbar__main')
+      .evaluate((toolbar) => toolbar.scrollWidth <= toolbar.clientWidth)
+    expect(fitsViewport).toBe(true)
+  })
+
   test('Escape exits selection, then full screen, then the manager', async ({
     page,
   }) => {
