@@ -49,7 +49,59 @@ const mountGrid = (): VueWrapper => {
   return wrapper
 }
 
+const pointerEvent = (pointerId: number, clientX: number, clientY: number) => ({
+  button: 0,
+  pointerId,
+  pointerType: 'mouse',
+  clientX,
+  clientY,
+})
+
 describe('GlyphGrid', () => {
+  it('previews selected pixels at the target while moving a selection', async () => {
+    const grid = createGrid(8)
+    grid[0]![0] = 1
+    const wrapper = mount(GlyphGrid, {
+      props: {
+        gridData: grid,
+        drawMode: 'singleButtonDraw',
+        drawValue: 1,
+        showBorder: true,
+        currentTool: 'select',
+      },
+      global: {
+        plugins: [createI18n({ legacy: false, locale: 'en', messages })],
+      },
+    })
+    const gridElement = wrapper.get('.grid-container').element as HTMLElement
+    gridElement.getBoundingClientRect = () =>
+      ({
+        x: 0,
+        y: 0,
+        top: 0,
+        left: 0,
+        right: 270,
+        bottom: 270,
+        width: 270,
+        height: 270,
+        toJSON: () => ({}),
+      }) as DOMRect
+    const viewport = wrapper.get('.grid-viewport')
+
+    await viewport.trigger('pointerdown', pointerEvent(1, 15, 15))
+    await viewport.trigger('pointerup', pointerEvent(1, 15, 15))
+    await viewport.trigger('pointerdown', pointerEvent(2, 15, 15))
+    await viewport.trigger('pointermove', pointerEvent(2, 25, 15))
+
+    expect(wrapper.get('[data-row="0"][data-col="0"]').classes()).not.toContain(
+      'filled',
+    )
+    expect(wrapper.get('[data-row="0"][data-col="1"]').classes()).toContain(
+      'filled',
+    )
+    expect(wrapper.emitted('command')).toBeUndefined()
+  })
+
   it('emits one atomic, gap-free command for a fast pointer stroke', async () => {
     const wrapper = mountGrid()
     const viewport = wrapper.get('.grid-viewport')
