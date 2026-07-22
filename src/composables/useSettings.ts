@@ -13,7 +13,6 @@ const SETTINGS_VERSION = 3
 
 export const FONT_LIST = [
   'Noto Sans',
-  // Google Fonts family names must precede their locally installed CJK variants.
   'Noto Sans SC',
   'Noto Sans CJK SC',
   'Noto Sans TC',

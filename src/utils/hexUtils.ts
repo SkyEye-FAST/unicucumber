@@ -1,4 +1,4 @@
-import type { GridCell, GridData, GlyphWidth } from '@/types/glyph'
+import type { GlyphWidth, GridCell, GridData } from '@/types/glyph'
 
 export const GRID_HEIGHT = 16
 const HEX_LENGTHS: Readonly<Record<GlyphWidth, number>> = { 8: 32, 16: 64 }

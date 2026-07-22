@@ -121,6 +121,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 
 import type {
@@ -129,8 +130,8 @@ import type {
   GlyphPreviewMode,
 } from '@/types/glyph'
 import {
-  prepareGlyphPreview,
   type GlyphLibraryPreview,
+  prepareGlyphPreview,
 } from '@/utils/glyphLibrary'
 
 const { t: $t } = useI18n()

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { createGrid } from './hexUtils'
 import { createSVGFromGrid, encodeBmp } from './exportUtils'
+import { createGrid } from './hexUtils'
 
 describe('verified glyph encoders', () => {
   it('writes a genuine 24-bit BMP header, dimensions and padded file size', async () => {

@@ -1,16 +1,15 @@
+import type { EditorCommand, ShiftDirection } from '@/types/editor'
 import type {
   GridCell,
   GridData,
   GridPosition,
   SelectionRectangle,
 } from '@/types/glyph'
-import type { EditorCommand, ShiftDirection } from '@/types/editor'
+import { createGrid, deepCloneGrid } from '@/utils/hexUtils'
 import {
   clampSelectionPosition,
   normalizeSelectionRectangle,
 } from '@/utils/selection'
-
-import { createGrid, deepCloneGrid } from '@/utils/hexUtils'
 
 export const gridsEqual = (left: GridData, right: GridData): boolean =>
   left.length === right.length &&

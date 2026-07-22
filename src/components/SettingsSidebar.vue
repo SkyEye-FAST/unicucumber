@@ -277,13 +277,14 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 
-import { useSettings } from '@/composables/useSettings'
-import { useTheme } from '@/composables/useTheme'
 import CustomSelect, {
   type CustomSelectOption,
 } from '@/components/CustomSelect.vue'
+import { useSettings } from '@/composables/useSettings'
+import { useTheme } from '@/composables/useTheme'
 import type { EditorSettings } from '@/types/glyph'
 import { acquireOverlayLock, releaseOverlayLock } from '@/utils/overlayStack'
 import { LOCALE_PREFERENCE_KEY, type SupportedLocale } from '@/utils/locale'

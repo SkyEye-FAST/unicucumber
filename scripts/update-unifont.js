@@ -1,11 +1,11 @@
-import { gunzip } from 'node:zlib'
 import { rename, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
+import { gunzip } from 'node:zlib'
 
-import { parseUnifontVersions, unifontHexToMap } from './unifont-utils.js'
 import { writeUnifontChunks } from './chunk-unifont.js'
+import { parseUnifontVersions, unifontHexToMap } from './unifont-utils.js'
 
 const unzip = promisify(gunzip)
 const scriptDirectory = dirname(fileURLToPath(import.meta.url))

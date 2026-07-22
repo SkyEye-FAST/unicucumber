@@ -1,8 +1,8 @@
 import type {
+  GlyphWidth,
   GridCell,
   GridData,
   GridPosition,
-  GlyphWidth,
   SelectionRectangle,
 } from './glyph'
 

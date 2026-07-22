@@ -278,13 +278,13 @@
 <script setup lang="ts">
 import {
   computed,
+  type CSSProperties,
   nextTick,
   onBeforeUnmount,
   onMounted,
   reactive,
   ref,
   watch,
-  type CSSProperties,
 } from 'vue'
 
 import { useI18n } from 'vue-i18n'

@@ -67,8 +67,8 @@
 
 <script setup lang="ts">
 import {
-  useNotifications,
   type AppNotification,
+  useNotifications,
 } from '@/composables/useNotifications'
 
 const { notifications, dismiss } = useNotifications()

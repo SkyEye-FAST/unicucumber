@@ -1,4 +1,5 @@
 import type { Glyph } from '@/types/glyph'
+
 import { normalizeCodePointHex } from './charUtils'
 import { normalizeHex } from './hexUtils'
 

@@ -2,8 +2,8 @@ import { readonly, ref, shallowRef } from 'vue'
 
 import {
   getGlyphRepository,
-  validateGlyphCollection,
   type GlyphRepository,
+  validateGlyphCollection,
 } from '@/storage/glyphRepository'
 import type { Glyph } from '@/types/glyph'
 import { scheduleIdleTask } from '@/utils/idleTask'

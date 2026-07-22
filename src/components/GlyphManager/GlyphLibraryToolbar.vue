@@ -223,17 +223,12 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 
 import CustomSelect, {
   type CustomSelectOption,
 } from '@/components/CustomSelect.vue'
-import type {
-  GlyphLibraryDensity,
-  GlyphSourceFilter,
-  GlyphUnicodeBlockFilter,
-  GlyphUnicodePlaneFilter,
-} from '@/types/glyph'
 import {
   blocksForPlane,
   UNICODE_BLOCK_NAMES_ZH_HANS,
@@ -241,6 +236,12 @@ import {
   UNICODE_PLANES,
   type UnicodeBlock,
 } from '@/data/unicodeBlocks'
+import type {
+  GlyphLibraryDensity,
+  GlyphSourceFilter,
+  GlyphUnicodeBlockFilter,
+  GlyphUnicodePlaneFilter,
+} from '@/types/glyph'
 
 const { t: $t, locale } = useI18n()
 

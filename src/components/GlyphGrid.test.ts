@@ -1,8 +1,8 @@
-import { mount, type VueWrapper } from '@vue/test-utils'
-import { createI18n } from 'vue-i18n'
 import { describe, expect, it } from 'vitest'
+import { createI18n } from 'vue-i18n'
 
 import { createGrid } from '@/utils/hexUtils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 
 import GlyphGrid from './GlyphGrid.vue'
 

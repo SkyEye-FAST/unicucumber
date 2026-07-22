@@ -1,4 +1,4 @@
-import type { GridData, GlyphWidth } from '@/types/glyph'
+import type { GlyphWidth, GridData } from '@/types/glyph'
 
 export interface ImagePreparationOptions {
   targetWidth: GlyphWidth

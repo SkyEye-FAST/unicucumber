@@ -199,39 +199,39 @@ import {
 
 import { useI18n } from 'vue-i18n'
 
-import { useSettings } from '@/composables/useSettings'
 import { useNotifications } from '@/composables/useNotifications'
+import { useSettings } from '@/composables/useSettings'
 import { UNICODE_BLOCKS } from '@/data/unicodeBlocks'
 import { unifontLoader } from '@/services/unifontLoader'
 import type {
   DialogConfig,
   Glyph,
   GlyphData,
+  GlyphManagerEmits,
+  GlyphManagerProps,
   GlyphSourceFilter,
   GlyphUnicodeBlockFilter,
   GlyphUnicodePlaneFilter,
   GridData,
-  GlyphManagerEmits,
-  GlyphManagerProps,
   ImageWithDimensions,
 } from '@/types/glyph'
-import { parseHexFile } from '@/utils/hexImport'
-import { gridToHex } from '@/utils/hexUtils'
 import { canvasToBlob } from '@/utils/exportUtils'
-import { createBitmapSheet, createGlyphBackup } from '@/utils/libraryExport'
 import {
   formatGlyphCodePoint,
   sortGlyphsByCodePoint,
 } from '@/utils/glyphLibrary'
+import { parseHexFile } from '@/utils/hexImport'
+import { gridToHex } from '@/utils/hexUtils'
+import { createBitmapSheet, createGlyphBackup } from '@/utils/libraryExport'
 
 import DialogBox from './DialogBox.vue'
-import ImageImportDialog from './ImageImportDialog.vue'
 import GlyphAdder from './GlyphManager/GlyphAdder.vue'
 import GlyphLibraryGrid from './GlyphManager/GlyphLibraryGrid.vue'
 import GlyphLibraryToolbar from './GlyphManager/GlyphLibraryToolbar.vue'
 import GlyphList from './GlyphManager/GlyphList.vue'
 import SearchToolbar from './GlyphManager/SearchToolbar.vue'
 import UploadSection from './GlyphManager/UploadSection.vue'
+import ImageImportDialog from './ImageImportDialog.vue'
 
 const { t: $t } = useI18n()
 const { notify } = useNotifications()
