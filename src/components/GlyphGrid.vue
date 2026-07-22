@@ -198,6 +198,7 @@
     >
       <button
         type="button"
+        :aria-label="$t('selection.cut')"
         :title="$t('glyph_editor.cut_title')"
         @click="handleCut"
       >
@@ -206,17 +207,28 @@
       </button>
       <button
         type="button"
+        :aria-label="$t('selection.copy')"
         :title="$t('glyph_editor.copy_title')"
         @click="handleCopy"
       >
         <i-material-symbols-content-copy class="icon" />
         <span>{{ $t('selection.copy') }}</span>
       </button>
-      <button type="button" @click="handleDuplicate">
+      <button
+        type="button"
+        :aria-label="$t('selection.duplicate')"
+        :title="$t('selection.duplicate')"
+        @click="handleDuplicate"
+      >
         <i-material-symbols-control-point-duplicate class="icon" />
         <span>{{ $t('selection.duplicate') }}</span>
       </button>
-      <button type="button" @click="handleDelete">
+      <button
+        type="button"
+        :aria-label="$t('selection.delete')"
+        :title="$t('selection.delete')"
+        @click="handleDelete"
+      >
         <i-material-symbols-delete-outline class="icon" />
         <span>{{ $t('selection.delete') }}</span>
       </button>
@@ -250,7 +262,12 @@
           <i-material-symbols-arrow-downward />
         </button>
       </div>
-      <button type="button" @click="clearSelection">
+      <button
+        type="button"
+        :aria-label="$t('selection.deselect')"
+        :title="$t('selection.deselect')"
+        @click="clearSelection"
+      >
         <i-material-symbols-deselect class="icon" />
         <span>{{ $t('selection.deselect') }}</span>
       </button>
@@ -1453,11 +1470,11 @@ defineExpose({
 }
 
 .context-toolbar {
-  max-width: calc(100vw - 1rem);
+  max-width: calc(100% - 1rem);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.25rem;
   padding: 0.35rem;
   border: 1px solid var(--border-color);
@@ -1467,8 +1484,10 @@ defineExpose({
 }
 
 .context-toolbar button {
+  flex: 0 0 auto;
   padding: 0.45rem 0.65rem;
   font-family: var(--normal-font);
+  white-space: nowrap;
 }
 
 .context-toolbar .confirm {
@@ -1548,7 +1567,9 @@ defineExpose({
     bottom: calc(4.25rem + env(safe-area-inset-bottom));
     z-index: 40;
   }
+}
 
+@container (max-width: 48rem) {
   .selection-toolbar button span {
     display: none;
   }
