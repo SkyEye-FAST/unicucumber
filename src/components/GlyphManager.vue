@@ -2,6 +2,7 @@
   <div
     class="glyph-manager"
     :class="{ 'is-expanded': isExpanded }"
+    :data-glyph-count="props.glyphs.length"
     :role="isExpanded ? 'region' : undefined"
     :aria-label="
       isExpanded ? $t('glyph_manager.library.workspace_label') : undefined
@@ -145,8 +146,29 @@
       </button>
     </nav>
 
+    <div
+      v-if="libraryPending"
+      class="glyph-library-status"
+      role="status"
+      aria-live="polite"
+    >
+      <span class="glyph-library-spinner" aria-hidden="true" />
+      <span>{{ $t('glyph_manager.library.loading') }}</span>
+    </div>
+
+    <div
+      v-else-if="props.libraryError"
+      class="glyph-library-status is-error"
+      role="alert"
+    >
+      <span>{{ $t('glyph_manager.library.load_failed') }}</span>
+      <button type="button" class="ui-button" @click="retryLibraryLoad">
+        {{ $t('glyph_manager.library.retry') }}
+      </button>
+    </div>
+
     <GlyphList
-      v-if="!isExpanded"
+      v-else-if="!isExpanded"
       :glyphs="filteredGlyphs"
       :selected-code-points="selectedCodePoints"
       :settings="settings"
@@ -215,7 +237,7 @@ import { useI18n } from 'vue-i18n'
 
 import { useSettings } from '@/composables/useSettings'
 import { useNotifications } from '@/composables/useNotifications'
-import { getGlyphRepository } from '@/storage/glyphRepository'
+import { unifontLoader } from '@/services/unifontLoader'
 import type {
   DialogConfig,
   Glyph,
@@ -242,7 +264,12 @@ import UploadSection from './GlyphManager/UploadSection.vue'
 const { t: $t } = useI18n()
 const { notify } = useNotifications()
 
-const props = defineProps<GlyphManagerProps>()
+const props = withDefaults(defineProps<GlyphManagerProps>(), {
+  libraryLoading: false,
+  libraryLoaded: true,
+  libraryError: null,
+  onRetryLoad: undefined,
+})
 const isExpanded = defineModel<boolean>('expanded', { default: false })
 
 const emit = defineEmits<GlyphManagerEmits>()
@@ -266,10 +293,17 @@ const libraryToolbar = ref<{
 const narrowInspectorQuery = window.matchMedia('(max-width: 719px)')
 const isNarrowInspector = ref(narrowInspectorQuery.matches)
 let nameLookupRequest = 0
+let unifontPrefetchTimer = 0
 
 const { settings } = useSettings()
 
-const glyphRepository = getGlyphRepository()
+const libraryPending = computed(
+  () => props.libraryLoading || (!props.libraryLoaded && !props.libraryError),
+)
+
+const retryLibraryLoad = (): void => {
+  void props.onRetryLoad?.()
+}
 
 const normalizedSelectionCodePoint = (value: string): string =>
   value.trim().toUpperCase().padStart(4, '0')
@@ -451,17 +485,9 @@ const normalizeCodePointForExport = (codePoint: string): string => {
   return codePoint
 }
 
-const loadStoredGlyphs = async (): Promise<void> => {
-  try {
-    props.onGlyphChange(await glyphRepository.listGlyphs())
-  } catch (error) {
-    console.error($t('glyph_manager.error.loading_storage'), error)
-  }
-}
-
 const saveGlyphsToStorage = async (glyphs: Glyph[]): Promise<boolean> => {
   try {
-    await glyphRepository.replaceGlyphs(glyphs)
+    await props.onGlyphChange(glyphs)
     return true
   } catch (error) {
     console.error($t('glyph_manager.error.saving_storage'), error)
@@ -497,7 +523,6 @@ const addGlyph = (): void => {
     },
   ]
 
-  props.onGlyphChange(updatedGlyphs)
   const savedGlyph = { codePoint, hexValue }
   void saveGlyphsToStorage(updatedGlyphs).then((saved) => {
     if (saved) emit('saved', savedGlyph)
@@ -548,7 +573,6 @@ const updateExistingGlyph = (): void => {
       : g,
   )
 
-  props.onGlyphChange(updatedGlyphs)
   const savedGlyph = { codePoint, hexValue }
   void saveGlyphsToStorage(updatedGlyphs).then((saved) => {
     if (saved) emit('saved', savedGlyph)
@@ -604,26 +628,19 @@ watch(
 )
 
 const filteredGlyphs = computed<Glyph[]>(() => {
-  const query = searchQuery.value.toLowerCase()
-  return props.glyphs
-    .filter((glyph) => {
-      const character = String.fromCodePoint(
-        parseInt(glyph.codePoint, 16),
-      ).toLowerCase()
-      return (
-        glyph.codePoint.toLowerCase().includes(query) ||
-        glyph.hexValue.toLowerCase().includes(query) ||
-        character.includes(query) ||
-        (unicodeNames.value[glyph.codePoint] || '')
-          .toLowerCase()
-          .includes(query)
-      )
-    })
-    .sort((a, b) => {
-      const codePointA = parseInt(a.codePoint, 16)
-      const codePointB = parseInt(b.codePoint, 16)
-      return codePointA - codePointB
-    })
+  const query = searchQuery.value.trim().toLowerCase()
+  if (!query) return props.glyphs
+  return props.glyphs.filter((glyph) => {
+    const character = String.fromCodePoint(
+      parseInt(glyph.codePoint, 16),
+    ).toLowerCase()
+    return (
+      glyph.codePoint.toLowerCase().includes(query) ||
+      glyph.hexValue.toLowerCase().includes(query) ||
+      character.includes(query) ||
+      (unicodeNames.value[glyph.codePoint] || '').toLowerCase().includes(query)
+    )
+  })
 })
 
 watch(searchQuery, async (query) => {
@@ -684,7 +701,6 @@ const removeGlyph = (codePoint: string): void => {
   const updatedGlyphs = props.glyphs.filter(
     (glyph) => glyph.codePoint !== codePoint,
   )
-  props.onGlyphChange(updatedGlyphs)
   saveGlyphsToStorage(updatedGlyphs)
 }
 
@@ -778,33 +794,14 @@ const exportBitmapSheet = async (
   }
 }
 
-const unifontChunkCache = new Map<string, Record<string, string>>()
-
 const importFromUnifont = async (): Promise<void> => {
   if (!newGlyph.value.codePoint) return
 
   const normalizedCodePoint = normalizeCodePoint(newGlyph.value.codePoint)
   const codePoint = parseInt(normalizedCodePoint, 16)
-  const chunkId = Math.floor(codePoint / 0x1000)
-    .toString(16)
-    .toUpperCase()
-    .padStart(3, '0')
 
   try {
-    let chunk = unifontChunkCache.get(chunkId)
-    if (!chunk) {
-      const response = await fetch(`/unifont/${chunkId}.json`)
-      if (!response.ok) {
-        throw new Error(`Unifont chunk ${chunkId}: ${response.status}`)
-      }
-      chunk = (await response.json()) as Record<string, string>
-      if (unifontChunkCache.size >= 8) {
-        const oldest = unifontChunkCache.keys().next().value
-        if (oldest) unifontChunkCache.delete(oldest)
-      }
-      unifontChunkCache.set(chunkId, chunk)
-    }
-    const hexValue = chunk[String(codePoint)]
+    const hexValue = await unifontLoader.getGlyph(codePoint)
     if (hexValue) {
       if (props.prefillData) emit('edit-in-grid', hexValue)
       else newGlyph.value.hexValue = hexValue
@@ -822,6 +819,21 @@ const importFromUnifont = async (): Promise<void> => {
     })
   }
 }
+
+watch(
+  () => newGlyph.value.codePoint,
+  (value) => {
+    window.clearTimeout(unifontPrefetchTimer)
+    const normalized = normalizeCodePoint(value)
+    if (!/^[0-9A-F]{1,6}$/.test(normalized)) return
+    const codePoint = Number.parseInt(normalized, 16)
+    if (codePoint > 0x10ffff) return
+    unifontPrefetchTimer = window.setTimeout(() => {
+      void unifontLoader.prefetchCodePoint(codePoint)
+    }, 250)
+  },
+  { flush: 'post' },
+)
 
 const handleHexFileUpload = async (event: Event): Promise<void> => {
   const target = event.target as HTMLInputElement
@@ -881,20 +893,17 @@ const handleHexFileUpload = async (event: Event): Promise<void> => {
         })
 
         const finalGlyphs = [...updatedGlyphs, ...newGlyphs]
-        props.onGlyphChange(finalGlyphs)
         saveGlyphsToStorage(finalGlyphs)
         dialog.value.show = false
       },
       onCancel: () => {
         const finalGlyphs = [...props.glyphs, ...newGlyphs]
-        props.onGlyphChange(finalGlyphs)
         saveGlyphsToStorage(finalGlyphs)
         dialog.value.show = false
       },
     }
   } else if (newGlyphs.length > 0) {
     const updatedGlyphs = [...props.glyphs, ...newGlyphs]
-    props.onGlyphChange(updatedGlyphs)
     saveGlyphsToStorage(updatedGlyphs)
     if (parsed.errors.length > 0) {
       dialog.value = {
@@ -1157,7 +1166,6 @@ const handleImageFileUpload = async (event: Event): Promise<void> => {
         })
 
         const finalGlyphs = [...updatedGlyphs, ...validGlyphs]
-        props.onGlyphChange(finalGlyphs)
         saveGlyphsToStorage(finalGlyphs)
         dialog.value.show = false
 
@@ -1165,7 +1173,6 @@ const handleImageFileUpload = async (event: Event): Promise<void> => {
       },
       onCancel: () => {
         const finalGlyphs = [...props.glyphs, ...validGlyphs]
-        props.onGlyphChange(finalGlyphs)
         saveGlyphsToStorage(finalGlyphs)
         dialog.value.show = false
 
@@ -1174,7 +1181,6 @@ const handleImageFileUpload = async (event: Event): Promise<void> => {
     }
   } else if (validGlyphs.length > 0) {
     const updatedGlyphs = [...props.glyphs, ...validGlyphs]
-    props.onGlyphChange(updatedGlyphs)
     saveGlyphsToStorage(updatedGlyphs)
 
     handleManualInputGlyphs(manualInputGlyphs)
@@ -1213,7 +1219,6 @@ const handlePreparedImage = (grid: GridData): void => {
   }
 
   const updatedGlyphs = [...props.glyphs, glyph]
-  props.onGlyphChange(updatedGlyphs)
   void saveGlyphsToStorage(updatedGlyphs).then((saved) => {
     if (saved) {
       emit('saved', glyph)
@@ -1393,7 +1398,6 @@ const handleBatchDelete = (codePoints: string[]): void => {
       const updatedGlyphs = props.glyphs.filter(
         (glyph) => !codePoints.includes(glyph.codePoint),
       )
-      props.onGlyphChange(updatedGlyphs)
       saveGlyphsToStorage(updatedGlyphs)
       clearSelection()
       selectionMode.value = false
@@ -1407,11 +1411,11 @@ const handleBatchDelete = (codePoints: string[]): void => {
 
 onMounted(() => {
   narrowInspectorQuery.addEventListener('change', handleInspectorMediaChange)
-  void loadStoredGlyphs()
 })
 
 onBeforeUnmount(() => {
   narrowInspectorQuery.removeEventListener('change', handleInspectorMediaChange)
+  window.clearTimeout(unifontPrefetchTimer)
 })
 
 defineExpose({ handleEscape })
@@ -1443,6 +1447,38 @@ defineExpose({ handleEscape })
   isolation: isolate;
   overflow: hidden;
   background: var(--background-color);
+}
+
+.glyph-library-status {
+  min-height: 12rem;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.glyph-library-status.is-error {
+  flex-direction: column;
+  color: var(--danger-color);
+}
+
+.glyph-library-spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--border-color);
+  border-block-start-color: var(--primary-color);
+  border-radius: 50%;
+  animation: glyph-library-spin 0.8s linear infinite;
+}
+
+@keyframes glyph-library-spin {
+  to {
+    transform: rotate(1turn);
+  }
 }
 
 .glyph-manager-heading {

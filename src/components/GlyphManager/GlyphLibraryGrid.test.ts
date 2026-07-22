@@ -9,8 +9,8 @@ import type { Glyph, GlyphPreviewMode } from '@/types/glyph'
 import GlyphLibraryGrid from './GlyphLibraryGrid.vue'
 
 const glyphs: Glyph[] = [
-  { codePoint: '0042', hexValue: `4000${'00'.repeat(30)}` },
   { codePoint: '0041', hexValue: `80${'00'.repeat(15)}` },
+  { codePoint: '0042', hexValue: `4000${'00'.repeat(30)}` },
 ]
 
 const mountGrid = (
@@ -41,7 +41,7 @@ const mountGrid = (
   })
 
 describe('GlyphLibraryGrid', () => {
-  it('renders numerically sorted dual previews with configured font and widths', () => {
+  it('renders ordered dual previews with configured font and widths', () => {
     const wrapper = mountGrid('both')
     const cells = wrapper.findAll('.glyph-library-cell')
     expect(cells.map((cell) => cell.attributes('data-code-point'))).toEqual([

@@ -280,14 +280,17 @@ test('glyph manager loads only the requested Unifont range', async ({
   await expect(
     page.getByRole('button', { name: 'Photo Library' }),
   ).toBeVisible()
-  await page.getByPlaceholder('Enter Unicode code point').fill('0041')
+  await page.getByPlaceholder('Enter Unicode code point').fill('1000')
   await page.getByRole('button', { name: 'Import from Unifont' }).click()
   await expect(
     page.locator('.glyph-manager').getByPlaceholder(/Enter glyph data/),
   ).not.toHaveValue('')
-  expect(requested).toHaveLength(1)
-  expect(requested[0]).toContain('/unifont/000.json')
-  expect(requested[0]).not.toContain('unifont-map.json')
+  const chunkRequests = requested.filter((url) =>
+    /\/unifont\/[0-9A-F]{3}\.json/.test(url),
+  )
+  expect(chunkRequests).toHaveLength(1)
+  expect(chunkRequests[0]).toContain('/unifont/001.json')
+  expect(requested.every((url) => !url.includes('unifont-map.json'))).toBe(true)
 })
 
 test('keyboard navigation exposes a visible focus indicator', async ({

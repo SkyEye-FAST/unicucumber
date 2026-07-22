@@ -36,18 +36,19 @@ export const createGlyphBitmapPath = (
     return ''
   }
 
-  const bytes = hexValue
-    .match(/.{2}/g)
-    ?.map((byte) => Number.parseInt(byte, 16))
-  if (!bytes) return ''
-
   const commands: string[] = []
   for (let y = 0; y < 16; y += 1) {
     let runStart = -1
     for (let x = 0; x <= width; x += 1) {
-      const linearIndex = y * width + x
-      const byte = bytes[Math.floor(linearIndex / 8)] ?? 0
-      const filled = x < width && ((byte >> (7 - (linearIndex % 8))) & 1) === 1
+      let filled = false
+      if (x < width) {
+        const linearIndex = y * width + x
+        const nibble = Number.parseInt(
+          hexValue.charAt(Math.floor(linearIndex / 4)),
+          16,
+        )
+        filled = ((nibble >> (3 - (linearIndex % 4))) & 1) === 1
+      }
       if (filled && runStart < 0) runStart = x
       if (!filled && runStart >= 0) {
         const runLength = x - runStart
@@ -63,7 +64,11 @@ export const prepareGlyphPreview = (glyph: Glyph): GlyphLibraryPreview => {
   const codePoint = formatGlyphCodePoint(glyph.codePoint)
   const cacheKey = `${codePoint}:${glyph.hexValue}`
   const cached = previewCache.get(cacheKey)
-  if (cached) return cached
+  if (cached) {
+    previewCache.delete(cacheKey)
+    previewCache.set(cacheKey, cached)
+    return cached
+  }
 
   const width = glyphWidthFromData(glyph.hexValue)
   const preview: GlyphLibraryPreview = {

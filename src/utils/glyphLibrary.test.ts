@@ -43,6 +43,19 @@ describe('glyph-library preview preparation', () => {
     expect(glyphCharacter('110000')).toBe('\uFFFD')
   })
 
+  it('uses changed hexadecimal data as a distinct preview cache key', () => {
+    const first = prepareGlyphPreview({
+      codePoint: '0041',
+      hexValue: `80${'00'.repeat(15)}`,
+    })
+    const updated = prepareGlyphPreview({
+      codePoint: '0041',
+      hexValue: `40${'00'.repeat(15)}`,
+    })
+    expect(updated).not.toBe(first)
+    expect(updated.path).not.toBe(first.path)
+  })
+
   it.each([100, 1_000, 5_000])(
     'prepares %i stable previews without per-cell reactive state',
     (count) => {

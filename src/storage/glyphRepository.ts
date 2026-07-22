@@ -190,6 +190,8 @@ const transactionDone = (transaction: IDBTransaction): Promise<void> =>
 export class IndexedDbGlyphRepository implements GlyphRepository {
   readonly persistent = true
   private databasePromise: Promise<IDBDatabase> | null = null
+  private migrationPromise: Promise<MigrationResult> | null = null
+  private migrationComplete = false
 
   constructor(
     private readonly indexedDb: IDBFactory,
@@ -230,7 +232,7 @@ export class IndexedDbGlyphRepository implements GlyphRepository {
     return this.databasePromise
   }
 
-  async migrateLegacyGlyphs(): Promise<MigrationResult> {
+  private async runLegacyMigration(): Promise<MigrationResult> {
     try {
       const database = await this.open()
       const checkTransaction = database.transaction(META_STORE, 'readonly')
@@ -266,6 +268,28 @@ export class IndexedDbGlyphRepository implements GlyphRepository {
     } catch (error) {
       throw toStorageError(error, 'migrating saved glyphs')
     }
+  }
+
+  migrateLegacyGlyphs(): Promise<MigrationResult> {
+    if (this.migrationComplete) {
+      return Promise.resolve({
+        migrated: 0,
+        rejected: 0,
+        alreadyComplete: true,
+      })
+    }
+    if (this.migrationPromise) return this.migrationPromise
+    const request = this.runLegacyMigration()
+      .then((result) => {
+        this.migrationComplete = true
+        return result
+      })
+      .catch((error) => {
+        if (this.migrationPromise === request) this.migrationPromise = null
+        throw error
+      })
+    this.migrationPromise = request
+    return request
   }
 
   async listGlyphs(): Promise<Glyph[]> {

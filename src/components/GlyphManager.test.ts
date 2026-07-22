@@ -22,13 +22,14 @@ const glyphs: Glyph[] = [
   { codePoint: '0041', hexValue: 'AA'.repeat(16) },
 ]
 
-const mountManager = () => {
+const mountManager = (overrides: Record<string, unknown> = {}) => {
   repository.listGlyphs.mockResolvedValue(glyphs)
   return mount(GlyphManager, {
     props: {
       glyphs,
       onGlyphChange: vi.fn(),
       activeCodePoint: '0042',
+      ...overrides,
     },
     global: {
       plugins: [
@@ -47,6 +48,28 @@ const mountManager = () => {
 }
 
 describe('GlyphManager full-screen state', () => {
+  it('shows the shell while loading and offers a non-blocking retry on error', async () => {
+    const retry = vi.fn()
+    const wrapper = mountManager({
+      glyphs: [],
+      libraryLoaded: false,
+      libraryLoading: true,
+      onRetryLoad: retry,
+    })
+    expect(wrapper.get('.glyph-manager-heading').isVisible()).toBe(true)
+    expect(wrapper.get('[role="status"]').text()).toContain(
+      'Loading saved glyphs',
+    )
+
+    await wrapper.setProps({
+      libraryLoading: false,
+      libraryError: new Error('offline'),
+    })
+    await wrapper.get('.glyph-library-status button').trigger('click')
+    expect(retry).toHaveBeenCalledTimes(1)
+    wrapper.unmount()
+  })
+
   it('preserves search and selection and restores focus after collapse', async () => {
     const wrapper = mountManager()
     await flushPromises()

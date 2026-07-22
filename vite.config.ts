@@ -14,22 +14,28 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 import vue from '@vitejs/plugin-vue'
 
+import {
+  getUnifontRuntimeCacheNames,
+  parseUnifontManifest,
+} from './src/services/unifontManifest'
+
 const getUnifontVersion = (): string => {
   try {
     const content = readFileSync(
       new URL('./public/unifont/index.json', import.meta.url),
       'utf-8',
     )
-    const parsed = JSON.parse(content)
-    const v = parsed?.meta?.version
-    if (typeof v === 'string') return v
+    return parseUnifontManifest(JSON.parse(content))?.version ?? ''
   } catch {}
   return ''
 }
 
+const unifontVersion = getUnifontVersion()
+const unifontCaches = getUnifontRuntimeCacheNames(unifontVersion)
+
 export default defineConfig(({ command }) => ({
   define: {
-    'import.meta.env.VITE_UNIFONT_VERSION': JSON.stringify(getUnifontVersion()),
+    'import.meta.env.VITE_UNIFONT_VERSION': JSON.stringify(unifontVersion),
   },
   plugins: [
     vue({
@@ -83,6 +89,33 @@ export default defineConfig(({ command }) => ({
           'unifont-map.json',
         ],
         maximumFileSizeToCacheInBytes: 3_000_000,
+        runtimeCaching: [
+          {
+            urlPattern: /\/unifont\/index\.json$/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: unifontCaches.manifest,
+              cacheableResponse: { statuses: [200] },
+              expiration: {
+                maxEntries: 1,
+                maxAgeSeconds: 7 * 24 * 60 * 60,
+              },
+            },
+          },
+          {
+            urlPattern: /\/unifont\/[0-9A-Fa-f]{3}\.json$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: unifontCaches.chunks,
+              cacheableResponse: { statuses: [200] },
+              expiration: {
+                maxEntries: 64,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+                purgeOnQuotaError: true,
+              },
+            },
+          },
+        ],
       },
       includeAssets: ['apple-touch-icon.png', 'favicon.ico'],
       manifest: {

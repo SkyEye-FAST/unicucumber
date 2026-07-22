@@ -74,7 +74,11 @@ export interface DialogConfig {
 
 export interface GlyphManagerProps {
   glyphs: Glyph[]
-  onGlyphChange: (glyphs: Glyph[]) => void
+  libraryLoading?: boolean
+  libraryLoaded?: boolean
+  libraryError?: Error | null
+  onGlyphChange: (glyphs: Glyph[]) => void | Promise<void>
+  onRetryLoad?: () => void | Promise<unknown>
   prefillData?: PrefillData | null
   activeCodePoint?: string
 }
