@@ -12,9 +12,9 @@ import App from './App.vue'
 import { useNotifications } from './composables/useNotifications'
 import { disposeTheme, initializeTheme } from './composables/useTheme'
 import en from './locales/en.json'
-import { flushPendingDrafts } from './platform/draftFlush'
 import zh_cn from './locales/zh-cn.json'
 import zh_tw from './locales/zh-tw.json'
+import { flushPendingDrafts } from './platform/draftFlush'
 import { normalizeLocale, type SupportedLocale } from './utils/locale'
 
 const languages = usePreferredLanguages()

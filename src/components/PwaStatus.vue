@@ -7,9 +7,9 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 import { registerSW } from 'virtual:pwa-register'
+import { useI18n } from 'vue-i18n'
 
 import { useNotifications } from '@/composables/useNotifications'
 import { flushPendingDrafts } from '@/platform/draftFlush'

@@ -1,10 +1,11 @@
-import { mount } from '@vue/test-utils'
-import { createI18n } from 'vue-i18n'
-import { describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
+
+import { describe, expect, it } from 'vitest'
+import { createI18n } from 'vue-i18n'
 
 import en from '@/locales/en.json'
 import type { Glyph } from '@/types/glyph'
+import { mount } from '@vue/test-utils'
 
 import GlyphList from './GlyphList.vue'
 

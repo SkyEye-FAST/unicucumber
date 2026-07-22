@@ -72,9 +72,8 @@ import { computed, nextTick, ref, watch } from 'vue'
 
 import { useI18n } from 'vue-i18n'
 
-import { useClipboard, useTimeoutFn } from '@vueuse/core'
-
 import { getGlyphWidthFromHex, normalizeHex } from '@/utils/hexUtils'
+import { useClipboard, useTimeoutFn } from '@vueuse/core'
 
 const props = defineProps<{ hexCode: string }>()
 const emit = defineEmits<{

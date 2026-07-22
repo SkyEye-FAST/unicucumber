@@ -99,12 +99,13 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 
 import CustomSelect, {
   type CustomSelectOption,
 } from '@/components/CustomSelect.vue'
-import type { GridData, GlyphWidth } from '@/types/glyph'
+import type { GlyphWidth, GridData } from '@/types/glyph'
 import { prepareImageGrid } from '@/utils/imageImport'
 import { acquireOverlayLock, releaseOverlayLock } from '@/utils/overlayStack'
 

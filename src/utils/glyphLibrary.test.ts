@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import type { Glyph } from '@/types/glyph'
 import {
   blocksForPlane,
-  UNICODE_BLOCK_NAMES_ZH_HANT,
   UNICODE_BLOCK_NAMES_ZH_HANS,
+  UNICODE_BLOCK_NAMES_ZH_HANT,
   UNICODE_BLOCKS,
 } from '@/data/unicodeBlocks'
+import type { Glyph } from '@/types/glyph'
 
 import {
   createGlyphBitmapPath,

@@ -1,4 +1,4 @@
-import { computed, ref, type ComputedRef, type Ref } from 'vue'
+import { computed, type ComputedRef, ref, type Ref } from 'vue'
 
 import { applyEditorCommand, gridsEqual } from '@/domain/grid'
 import type {
@@ -6,7 +6,7 @@ import type {
   EditorDocumentSnapshot,
   EditorHistoryEntry,
 } from '@/types/editor'
-import type { GridData, GlyphWidth } from '@/types/glyph'
+import type { GlyphWidth, GridData } from '@/types/glyph'
 import { normalizeCodePointHex } from '@/utils/charUtils'
 import { createGrid, deepCloneGrid, gridToHex } from '@/utils/hexUtils'
 
