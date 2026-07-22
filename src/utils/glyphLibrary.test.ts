@@ -43,6 +43,12 @@ describe('glyph-library preview preparation', () => {
     ).toEqual([])
     expect(UNICODE_BLOCK_NAMES_ZH_HANS['basic-latin']).toBe('基本拉丁字母')
     expect(UNICODE_BLOCK_NAMES_ZH_HANT.cyrillic).toBe('西里爾字母')
+    expect(Object.values(UNICODE_BLOCK_NAMES_ZH_HANS)).not.toContainEqual(
+      expect.stringMatching(/英[语語]\s*：/),
+    )
+    expect(Object.values(UNICODE_BLOCK_NAMES_ZH_HANT)).not.toContainEqual(
+      expect.stringMatching(/英[语語]\s*：/),
+    )
     expect(
       UNICODE_BLOCKS.filter((block) => !UNICODE_BLOCK_NAMES_ZH_HANS[block.id]),
     ).toEqual([])
