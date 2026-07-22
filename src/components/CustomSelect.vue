@@ -22,50 +22,78 @@
       />
     </button>
 
-    <div v-if="open" :id="menuId" class="custom-select__menu">
-      <div v-if="searchable" class="custom-select__search">
-        <i-material-symbols-search aria-hidden="true" />
-        <input
-          ref="searchInput"
-          v-model="query"
-          type="search"
-          :aria-label="searchLabel ?? ariaLabel"
-          @keydown="handleMenuKeydown"
-        />
-      </div>
+    <Teleport to="body" :disabled="!useMobileModal">
       <div
-        class="custom-select__options"
-        role="listbox"
-        :aria-label="ariaLabel"
-        @keydown="handleMenuKeydown"
+        v-if="open"
+        class="custom-select__overlay"
+        :class="{ 'is-modal': useMobileModal }"
+        :role="useMobileModal ? 'dialog' : undefined"
+        :aria-label="useMobileModal ? ariaLabel : undefined"
+        :aria-modal="useMobileModal ? 'true' : undefined"
+        @click.self="hide(true)"
       >
-        <button
-          v-for="option in filteredOptions"
-          :key="String(option.value)"
-          class="custom-select__option"
-          :class="{
-            'is-highlighted': option.value === highlightedValue,
-            'is-selected': option.value === modelValue,
-          }"
-          type="button"
-          role="option"
-          :aria-selected="option.value === modelValue"
-          :disabled="option.disabled"
-          tabindex="-1"
-          @click="select(option.value)"
+        <div
+          ref="menu"
+          :id="menuId"
+          class="custom-select__menu"
+          :class="{ 'custom-select__menu--modal': useMobileModal }"
         >
-          {{ option.label }}
-        </button>
-        <p v-if="filteredOptions.length === 0" class="custom-select__empty">
-          {{ emptyLabel }}
-        </p>
+          <header v-if="useMobileModal" class="custom-select__modal-header">
+            <strong>{{ ariaLabel }}</strong>
+            <button
+              class="custom-select__close"
+              type="button"
+              :aria-label="`Close ${ariaLabel}`"
+              @click="hide(true)"
+            >
+              <i-material-symbols-close aria-hidden="true" />
+            </button>
+          </header>
+          <div v-if="searchable" class="custom-select__search">
+            <i-material-symbols-search aria-hidden="true" />
+            <input
+              ref="searchInput"
+              v-model="query"
+              type="search"
+              :aria-label="searchLabel ?? ariaLabel"
+              @keydown="handleMenuKeydown"
+            />
+          </div>
+          <div
+            class="custom-select__options"
+            role="listbox"
+            :aria-label="ariaLabel"
+            @keydown="handleMenuKeydown"
+          >
+            <button
+              v-for="option in filteredOptions"
+              :key="String(option.value)"
+              class="custom-select__option"
+              :class="{
+                'is-highlighted': option.value === highlightedValue,
+                'is-selected': option.value === modelValue,
+              }"
+              type="button"
+              role="option"
+              :aria-selected="option.value === modelValue"
+              :disabled="option.disabled"
+              tabindex="-1"
+              @click="select(option.value)"
+            >
+              {{ option.label }}
+            </button>
+            <p v-if="filteredOptions.length === 0" class="custom-select__empty">
+              {{ emptyLabel }}
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 export interface CustomSelectOption {
   value: string | number
@@ -82,6 +110,7 @@ const props = withDefaults(
     disabled?: boolean
     emptyLabel?: string
     modelValue: string | number
+    mobileModal?: boolean
     options: readonly CustomSelectOption[]
     placeholder?: string
     searchable?: boolean
@@ -90,6 +119,7 @@ const props = withDefaults(
   {
     disabled: false,
     emptyLabel: 'No matching options',
+    mobileModal: false,
     placeholder: '',
     searchable: false,
   },
@@ -101,14 +131,19 @@ const emit = defineEmits<{
 
 const root = ref<HTMLElement | null>(null)
 const trigger = ref<HTMLButtonElement | null>(null)
+const menu = ref<HTMLElement | null>(null)
 const searchInput = ref<HTMLInputElement | null>(null)
 const open = ref(false)
+const isNarrowViewport = ref(false)
 const query = ref('')
 const highlightedValue = ref<string | number | null>(null)
 const menuId = `custom-select-${++selectId}`
 
 const selectedOption = computed(() =>
   props.options.find((option) => option.value === props.modelValue),
+)
+const useMobileModal = computed(
+  () => props.mobileModal && isNarrowViewport.value,
 )
 const filteredOptions = computed(() => {
   const normalizedQuery = query.value.trim().toLocaleLowerCase()
@@ -201,7 +236,14 @@ const handleMenuKeydown = (event: KeyboardEvent): void => {
   }
 }
 const handleDocumentPointerDown = (event: PointerEvent): void => {
-  if (open.value && !root.value?.contains(event.target as Node)) hide()
+  const target = event.target as Node
+  if (
+    open.value &&
+    !root.value?.contains(target) &&
+    !menu.value?.contains(target)
+  ) {
+    hide()
+  }
 }
 
 watch(query, setInitialHighlight)
@@ -213,9 +255,20 @@ watch(
 )
 
 document.addEventListener('pointerdown', handleDocumentPointerDown)
-onBeforeUnmount(() =>
-  document.removeEventListener('pointerdown', handleDocumentPointerDown),
-)
+let narrowViewportQuery: MediaQueryList | null = null
+const handleNarrowViewportChange = (event: MediaQueryListEvent): void => {
+  isNarrowViewport.value = event.matches
+}
+
+onMounted(() => {
+  narrowViewportQuery = window.matchMedia('(max-width: 719px)')
+  isNarrowViewport.value = narrowViewportQuery.matches
+  narrowViewportQuery.addEventListener('change', handleNarrowViewportChange)
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', handleDocumentPointerDown)
+  narrowViewportQuery?.removeEventListener('change', handleNarrowViewportChange)
+})
 </script>
 
 <style scoped>
@@ -278,6 +331,50 @@ onBeforeUnmount(() =>
   border-radius: var(--radius-md);
   background: var(--dialog-background);
   box-shadow: 0 8px 24px var(--shadow-color);
+}
+
+.custom-select__overlay.is-modal {
+  position: fixed;
+  z-index: 1400;
+  inset: 0;
+  display: grid;
+  align-items: end;
+  background: color-mix(in srgb, var(--modal-overlay) 65%, transparent);
+}
+
+.custom-select__menu--modal {
+  position: static;
+  min-width: 0;
+  max-height: min(78dvh, 38rem);
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  border-width: 1px 0 0;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  box-shadow: 0 -8px 24px var(--shadow-color);
+}
+
+.custom-select__modal-header {
+  min-height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0 var(--space-4);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.custom-select__close {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
 }
 
 .custom-select__search {

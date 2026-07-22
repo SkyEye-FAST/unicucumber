@@ -45,6 +45,7 @@
               :model-value="unicodePlane"
               :ariaLabel="$t('glyph_manager.library.unicode_plane_label')"
               :options="unicodePlaneOptions"
+              mobile-modal
               searchable
               @update:model-value="updateUnicodePlane"
             />
@@ -57,6 +58,7 @@
               :disabled="unicodePlane === 'all'"
               :empty-label="$t('glyph_manager.library.no_matches')"
               :options="unicodeBlockOptions"
+              mobile-modal
               searchable
               @update:model-value="updateUnicodeBlock"
             />
