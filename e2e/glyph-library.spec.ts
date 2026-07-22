@@ -199,6 +199,34 @@ test.describe('full-screen glyph library', () => {
     await expect(page.locator('.glyph-library-cell')).toHaveCount(95)
   })
 
+  test('opens Unicode block search in a narrow-screen modal', async ({
+    page,
+  }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== 'chromium-phone',
+      'narrow-screen selector behavior runs on the phone viewport',
+    )
+    await seedGlyphs(page)
+    await openLibrary(page)
+    await expandLibrary(page)
+
+    await page.getByRole('combobox', { name: 'Unicode plane' }).click()
+    await page
+      .getByRole('option', { name: /Plane 0.*Basic Multilingual Plane/ })
+      .click()
+    await page.getByRole('combobox', { name: 'Unicode block' }).click()
+
+    const modal = page.getByRole('dialog', { name: 'Unicode block' })
+    await expect(modal).toBeVisible()
+    await expect(modal).toHaveCSS('position', 'fixed')
+    await modal
+      .getByRole('searchbox', { name: 'Unicode block' })
+      .fill('Basic Latin')
+    await modal.getByRole('option', { name: /Basic Latin/ }).click()
+    await expect(modal).toBeHidden()
+    await expect(page.locator('.glyph-library-cell')).toHaveCount(95)
+  })
+
   test('Escape exits selection, then full screen, then the manager', async ({
     page,
   }) => {
