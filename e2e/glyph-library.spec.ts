@@ -232,6 +232,7 @@ test.describe('full-screen glyph library', () => {
   }) => {
     await openLibrary(page)
     await expandLibrary(page)
+    await page.getByRole('button', { name: 'Tools' }).click()
     const selectionButton = page
       .locator('.library-toolbar')
       .getByRole('button', { name: 'Select', exact: true })
@@ -276,13 +277,14 @@ test.describe('full-screen glyph library', () => {
     )
   })
 
-  test('selection actions apply to filtered glyphs and use confirmation for deletion', async ({
+  test('selection actions remove saved copies without removing Unifont glyphs', async ({
     page,
   }, testInfo) => {
     await openLibrary(page)
     await expandLibrary(page)
     await page.locator('.library-search input').fill('0041')
     await expect(page.locator('.glyph-library-cell')).toHaveCount(1)
+    await page.getByRole('button', { name: 'Tools' }).click()
     await page
       .locator('.library-toolbar')
       .getByRole('button', { name: 'Select', exact: true })
@@ -302,46 +304,49 @@ test.describe('full-screen glyph library', () => {
         fullPage: false,
       })
     }
-    await page.getByRole('button', { name: 'Delete selected' }).click()
+    await page.getByRole('button', { name: /Remove from manager/ }).click()
     const confirmation = page.getByRole('dialog', { name: 'Confirm Delete' })
     await expect(confirmation).toBeVisible()
     await confirmation.getByRole('button', { name: /Delete/i }).click()
-    await expect(page.locator('.glyph-library-cell')).toHaveCount(0)
-    await expect(page.getByText('No matching glyphs')).toBeVisible()
+    await expect(page.locator('.glyph-library-cell')).toHaveCount(1)
+    await expect(page.locator('.glyph-library-cell')).toHaveAttribute(
+      'data-code-point',
+      '0041',
+    )
   })
 
-  test('add/import inspector and export menu are progressive and restore focus', async ({
+  test('library tools keep export and manager actions separate', async ({
     page,
   }, testInfo) => {
     await openLibrary(page)
     await expandLibrary(page)
-    const addImport = page.getByRole('button', { name: 'Add / Import' })
-    await addImport.click()
-    await expect(page.locator('.glyph-manager-inspector')).toBeVisible()
+    await page.getByRole('button', { name: 'Tools' }).click()
+    await expect(page.locator('.glyph-manager-inspector')).toBeHidden()
+    await page.locator('.library-export-menu summary').click()
     await expect(
-      page.getByRole('button', { name: 'Upload Hex File' }),
+      page.getByRole('button', { name: /Unifont glyphs/ }),
     ).toBeVisible()
+    await page.locator('.library-export-menu summary').click()
+
+    await page
+      .locator('.library-toolbar')
+      .getByRole('button', { name: 'Select', exact: true })
+      .click()
+    await page.getByRole('button', { name: 'Select filtered glyphs' }).click()
+    await expect(
+      page.getByRole('button', { name: /Add to glyph manager/ }),
+    ).toBeDisabled()
     if (testInfo.project.name === 'chromium') {
       await page.waitForTimeout(200)
       await page.screenshot({
         path: join(
           process.env.TEMP ?? testInfo.outputDir,
           'unicucumber-glyph-library',
-          '1280x720-inspector-light.png',
+          '1280x720-library-tools-light.png',
         ),
         fullPage: false,
       })
     }
-    await page
-      .getByRole('button', { name: 'Close add and import panel' })
-      .last()
-      .click()
-    await expect(addImport).toBeFocused()
-
-    await page.locator('.library-export-menu summary').click()
-    await expect(
-      page.getByRole('button', { name: /Unifont glyphs/ }),
-    ).toBeVisible()
   })
 
   test('density persists and search exposes the compact empty state', async ({
@@ -349,6 +354,7 @@ test.describe('full-screen glyph library', () => {
   }) => {
     await openLibrary(page)
     await expandLibrary(page)
+    await page.getByRole('button', { name: 'Tools' }).click()
     await page
       .locator('.density-control')
       .getByText('Compact', { exact: true })
@@ -367,7 +373,7 @@ test.describe('full-screen glyph library', () => {
     expect(persistedDensity.glyphLibraryDensity).toBe('compact')
   })
 
-  test('mobile add/import panel is full width, modal, and focus-safe', async ({
+  test('mobile library selection controls remain within the viewport', async ({
     page,
   }, testInfo) => {
     test.skip(
@@ -377,31 +383,24 @@ test.describe('full-screen glyph library', () => {
     await page.setViewportSize({ width: 390, height: 844 })
     await openLibrary(page)
     await expandLibrary(page)
-    const addImport = page.getByRole('button', { name: 'Add / Import' })
-    await addImport.click()
-
-    const inspector = page.getByRole('dialog', { name: 'Add / Import' })
-    await expect(inspector).toBeVisible()
-    const bounds = await inspector.boundingBox()
-    expect(bounds?.width).toBeCloseTo(390, 1)
-    await expect(page.locator('.library-toolbar')).toHaveAttribute('inert', '')
-    await expect(page.locator('.glyph-library-scroll')).toHaveAttribute(
-      'inert',
-      '',
-    )
+    await page.getByRole('button', { name: 'Tools' }).click()
+    await page
+      .locator('.library-toolbar')
+      .getByRole('button', { name: 'Select', exact: true })
+      .click()
+    await page.getByRole('button', { name: 'Select filtered glyphs' }).click()
+    await expect(
+      page.getByRole('button', { name: /Add to glyph manager/ }),
+    ).toBeDisabled()
     await page.waitForTimeout(200)
     await page.screenshot({
       path: join(
         process.env.TEMP ?? testInfo.outputDir,
         'unicucumber-glyph-library',
-        '390x844-inspector-light.png',
+        '390x844-selection-light.png',
       ),
       fullPage: false,
     })
-
-    await page.keyboard.press('Escape')
-    await expect(inspector).toBeHidden()
-    await expect(addImport).toBeFocused()
   })
 })
 

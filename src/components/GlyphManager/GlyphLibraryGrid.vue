@@ -51,11 +51,7 @@
         :aria-label="cellAccessibleName(item.glyph)"
         :title="cellAccessibleName(item.glyph)"
       >
-        <span
-          v-if="selectionMode && modifiedSet.has(item.glyph.codePoint)"
-          class="selection-marker"
-          aria-hidden="true"
-        >
+        <span v-if="selectionMode" class="selection-marker" aria-hidden="true">
           <i-material-symbols-check
             v-if="selectedSet.has(item.glyph.codePoint)"
           />

@@ -142,14 +142,13 @@
     "hex_invalid_title": "部分.hex行未匯入",
     "import": "從Unifont讀取",
     "library": {
-      "add_import": "新增 / 匯入",
+      "add_selected_to_manager": "新增至字形管理器（{count}）",
       "bitmap_preview": "點陣圖預覽",
       "browser_preview": "瀏覽器預覽",
       "cell_accessible": "{character}，U+{codePoint}，{width}像素字形{states}",
       "clear_search": "清除搜尋",
       "clear_selection": "清除選取",
-      "close_inspector": "關閉新增和匯入面板",
-      "delete_selected": "刪除選取項目",
+      "inspector_title": "新增 / 匯入",
       "density": {
         "comfortable": "舒適",
         "compact": "緊湊",
@@ -162,8 +161,7 @@
       "expand": "展開字形管理器",
       "filtered_count": "{filtered} / {total}",
       "glyph_count": "{count}個字形",
-      "grid_label": "已儲存的字形",
-      "inspector_title": "新增 / 匯入",
+      "grid_label": "Unifont 字形庫",
       "load_failed": "無法載入已儲存的字形。",
       "loading": "正在載入已儲存的字形…",
       "loading_unifont": "正在載入完整的 Unifont 字形庫…",
@@ -171,6 +169,8 @@
       "no_matches": "沒有符合的字形",
       "no_matches_hint": "請清除搜尋，或嘗試其他字元或碼位。",
       "open_in_editor": "在編輯器中開啟字形",
+      "added_to_manager": "已新增 {count} 個字形至字形管理器。",
+      "remove_from_manager": "從字形管理器移除（{count}）",
       "retry": "重試",
       "search_label": "搜尋字形庫",
       "select_filtered": "選取篩選出的字形",
@@ -280,7 +280,8 @@
     "online_again": "已恢復連線。",
     "registration_failed": "離線模式啟用失敗。",
     "update_failed": "因目前草稿無法保留，未套用更新。",
-    "update_ready": "新版本已就緒，更新前會先儲存目前草稿。"
+    "update_ready": "更新前會先安全儲存目前草稿。",
+    "update_title": "有可用更新"
   },
   "selection": {
     "actions": "選取範圍操作",

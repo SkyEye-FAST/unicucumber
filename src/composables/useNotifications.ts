@@ -5,6 +5,7 @@ export type NotificationKind = 'default' | 'update'
 
 export interface AppNotification {
   id: number
+  title?: string
   message: string
   tone: NotificationTone
   kind?: NotificationKind

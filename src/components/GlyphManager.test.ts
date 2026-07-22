@@ -162,6 +162,42 @@ describe('GlyphManager full-screen state', () => {
     wrapper.unmount()
   })
 
+  it('marks only changed Unifont data and adds selected library glyphs to the manager', async () => {
+    const onGlyphChange = vi.fn().mockResolvedValue(undefined)
+    unifont.loadAllGlyphs.mockResolvedValueOnce([
+      { codePoint: '0041', hexValue: 'AA'.repeat(16) },
+      { codePoint: '0042', hexValue: '55'.repeat(32) },
+      { codePoint: '0043', hexValue: 'CC'.repeat(16) },
+    ])
+    const wrapper = mountManager({
+      glyphs: [{ codePoint: '0041', hexValue: 'FF'.repeat(16) }, glyphs[1]!],
+      onGlyphChange,
+    })
+    await wrapper.get('.glyph-manager-expand').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.findAll('.modified-badge')).toHaveLength(1)
+    expect(wrapper.get('[data-code-point="0041"]').classes()).toContain(
+      'is-modified',
+    )
+    expect(wrapper.get('[data-code-point="0042"]').classes()).not.toContain(
+      'is-modified',
+    )
+
+    const toolbar = wrapper.findComponent(GlyphLibraryToolbar)
+    await toolbar.vm.$emit('toggle-selection-mode')
+    await wrapper.get('[data-code-point="0043"]').trigger('click')
+    await toolbar.vm.$emit('add-selected')
+    await flushPromises()
+
+    expect(onGlyphChange).toHaveBeenCalledWith([
+      { codePoint: '0041', hexValue: 'FF'.repeat(16) },
+      glyphs[1]!,
+      { codePoint: '0043', hexValue: 'CC'.repeat(16) },
+    ])
+    wrapper.unmount()
+  })
+
   it('handles Escape in selection, full-screen, then sidebar order', async () => {
     const wrapper = mountManager()
     await flushPromises()
