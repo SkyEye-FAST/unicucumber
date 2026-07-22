@@ -13,7 +13,27 @@
       <div class="notification-copy">
         <i-material-symbols-system-update-alt
           v-if="notification.kind === 'update'"
-          class="notification-symbol"
+          class="notification-symbol update"
+          aria-hidden="true"
+        />
+        <i-material-symbols-check-circle-outline
+          v-else-if="notification.tone === 'success'"
+          class="notification-symbol success"
+          aria-hidden="true"
+        />
+        <i-material-symbols-warning-outline
+          v-else-if="notification.tone === 'warning'"
+          class="notification-symbol warning"
+          aria-hidden="true"
+        />
+        <i-material-symbols-error-outline
+          v-else-if="notification.tone === 'error'"
+          class="notification-symbol error"
+          aria-hidden="true"
+        />
+        <i-material-symbols-info-outline
+          v-else
+          class="notification-symbol info"
           aria-hidden="true"
         />
         <div>
@@ -125,8 +145,24 @@ const runAction = (notification: AppNotification): void => {
 .notification-symbol {
   flex: none;
   margin-top: 0.08rem;
-  color: var(--primary-color);
   font-size: 1.15rem;
+}
+
+.notification-symbol.update,
+.notification-symbol.success {
+  color: var(--primary-color);
+}
+
+.notification-symbol.warning {
+  color: var(--warning-color);
+}
+
+.notification-symbol.error {
+  color: var(--danger-color);
+}
+
+.notification-symbol.info {
+  color: var(--info-color);
 }
 
 .notification-title {
