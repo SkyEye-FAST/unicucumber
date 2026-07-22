@@ -230,7 +230,7 @@ test.describe('full-screen glyph library', () => {
   test('keeps the desktop filter toolbar within the viewport', async ({
     page,
   }) => {
-    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.setViewportSize({ width: 1920, height: 900 })
     await seedGlyphs(page)
     await openLibrary(page)
     await expandLibrary(page)
@@ -239,6 +239,107 @@ test.describe('full-screen glyph library', () => {
       .locator('.library-toolbar__main')
       .evaluate((toolbar) => toolbar.scrollWidth <= toolbar.clientWidth)
     expect(fitsViewport).toBe(true)
+
+    const unicodeFiltersDoNotOverlap = await page
+      .locator('.unicode-range-filters')
+      .evaluate((container) => {
+        const filters = Array.from(container.querySelectorAll('label'))
+        const [plane, block] = filters.map((filter) =>
+          filter.getBoundingClientRect(),
+        )
+        return Boolean(plane && block && plane.right <= block.left)
+      })
+    expect(unicodeFiltersDoNotOverlap).toBe(true)
+
+    const filterLabelsAreAligned = await page
+      .locator('.library-filters')
+      .evaluate((container) => {
+        const labels = [
+          container.querySelector(':scope > label'),
+          ...container.querySelectorAll('.unicode-range-filters label'),
+        ].filter((label): label is HTMLLabelElement => label !== null)
+        const positions = labels.map(
+          (label) => label.getBoundingClientRect().top,
+        )
+        return Math.max(...positions) - Math.min(...positions) <= 1
+      })
+    expect(filterLabelsAreAligned).toBe(true)
+
+    const toolbarControlsAreBottomAligned = await page
+      .locator('.library-toolbar__main')
+      .evaluate((toolbar) => {
+        const controls = [
+          toolbar.querySelector('.library-search'),
+          ...toolbar.querySelectorAll(
+            '.library-filters .custom-select__trigger',
+          ),
+          toolbar.querySelector('.library-tools-toggle'),
+          toolbar.querySelector('.library-collapse'),
+        ].filter((control): control is HTMLElement => control !== null)
+        const bottoms = controls.map(
+          (control) => control.getBoundingClientRect().bottom,
+        )
+        return Math.max(...bottoms) - Math.min(...bottoms) <= 1
+      })
+    expect(toolbarControlsAreBottomAligned).toBe(true)
+
+    const wideFilterWidths = await page
+      .locator('.library-filters')
+      .evaluate((filters) => {
+        const scope = filters.querySelector(':scope > label')
+        const triggers = Array.from(
+          filters.querySelectorAll('.custom-select__trigger'),
+        )
+        return {
+          scope: scope?.getBoundingClientRect().width ?? 0,
+          plane: triggers[1]?.getBoundingClientRect().width ?? 0,
+          block: triggers[2]?.getBoundingClientRect().width ?? 0,
+        }
+      })
+    expect(wideFilterWidths).toEqual({ scope: 192, plane: 304, block: 480 })
+
+    await page.setViewportSize({ width: 1440, height: 900 })
+    const searchMovesBelowDesktopControls = await page
+      .locator('.library-toolbar__main')
+      .evaluate((toolbar) => {
+        const search = toolbar.querySelector('.library-search')
+        const filters = toolbar.querySelector('.library-filters')
+        return Boolean(
+          search &&
+          filters &&
+          search.getBoundingClientRect().top >=
+            filters.getBoundingClientRect().bottom,
+        )
+      })
+    expect(searchMovesBelowDesktopControls).toBe(true)
+    const fitsAtDesktopWidth = await page
+      .locator('.library-toolbar__main')
+      .evaluate((toolbar) => toolbar.scrollWidth <= toolbar.clientWidth)
+    expect(fitsAtDesktopWidth).toBe(true)
+
+    await page.setViewportSize({ width: 390, height: 844 })
+    const mobileSectionsStack = await page
+      .locator('.library-toolbar__main')
+      .evaluate((toolbar) => {
+        const identity = toolbar.querySelector('.library-identity')
+        const actions = toolbar.querySelector('.library-toolbar__buttons')
+        const search = toolbar.querySelector('.library-search')
+        const filters = toolbar.querySelector('.library-filters')
+        return Boolean(
+          identity &&
+          actions &&
+          search &&
+          filters &&
+          search.getBoundingClientRect().top >=
+            Math.max(
+              identity.getBoundingClientRect().bottom,
+              actions.getBoundingClientRect().bottom,
+            ) &&
+          filters.getBoundingClientRect().top >=
+            search.getBoundingClientRect().bottom,
+        )
+      })
+    expect(mobileSectionsStack).toBe(true)
   })
 
   test('Escape exits selection, then full screen, then the manager', async ({

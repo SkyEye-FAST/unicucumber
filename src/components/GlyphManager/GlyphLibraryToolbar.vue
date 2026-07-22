@@ -390,16 +390,17 @@ const exportSheet = (): void => {
 }
 
 .library-toolbar__main {
-  min-height: 3.75rem;
   display: grid;
-  grid-template-columns: max-content minmax(10rem, 1fr) auto auto;
-  align-items: center;
+  grid-template-areas: 'identity search filters actions';
+  grid-template-columns: max-content minmax(14rem, 1fr) auto auto;
+  align-items: end;
   gap: var(--space-3);
   padding: 0.55rem max(0.75rem, env(safe-area-inset-right)) 0.55rem
     max(0.75rem, env(safe-area-inset-left));
 }
 
 .library-identity {
+  grid-area: identity;
   display: inline-flex;
   align-items: baseline;
   gap: var(--space-3);
@@ -420,6 +421,7 @@ const exportSheet = (): void => {
 }
 
 .library-search {
+  grid-area: search;
   min-width: 0;
   height: var(--control-height);
   display: grid;
@@ -466,6 +468,8 @@ const exportSheet = (): void => {
 }
 
 .library-filters {
+  grid-area: filters;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -507,6 +511,56 @@ const exportSheet = (): void => {
   max-width: none;
 }
 
+@media (min-width: 720px) {
+  .library-toolbar__main {
+    align-items: end;
+  }
+
+  .library-identity {
+    align-self: center;
+  }
+
+  .library-filters {
+    align-items: end;
+  }
+
+  .library-filters > label,
+  .unicode-range-filters label {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.2rem;
+  }
+}
+
+@media (min-width: 1600px) {
+  .library-filters > label {
+    width: 12rem;
+  }
+
+  .unicode-range-filters {
+    grid-template-columns: 19rem 30rem;
+  }
+}
+
+@media (min-width: 1200px) and (max-width: 1599px) {
+  .library-filters > label {
+    width: 11rem;
+  }
+
+  .unicode-range-filters {
+    grid-template-columns: 12rem 18rem;
+  }
+}
+
+@media (min-width: 960px) and (max-width: 1199px) {
+  .library-filters > label {
+    width: 9rem;
+  }
+
+  .unicode-range-filters {
+    grid-template-columns: 11rem 15rem;
+  }
+}
+
 .library-toolbar__buttons,
 .library-tools {
   min-width: 0;
@@ -514,6 +568,10 @@ const exportSheet = (): void => {
   align-items: center;
   justify-content: flex-end;
   gap: var(--space-2);
+}
+
+.library-toolbar__buttons {
+  grid-area: actions;
 }
 
 .library-tools {
@@ -694,26 +752,27 @@ const exportSheet = (): void => {
   font-size: 0.78rem;
 }
 
-@media (max-width: 1399px) {
+@media (max-width: 1599px) and (min-width: 720px) {
   .library-toolbar__main {
-    grid-template-columns: max-content minmax(10rem, 1fr) auto;
-  }
-
-  .library-filters {
-    grid-column: 2;
-  }
-
-  .library-search {
-    grid-column: 1 / -1;
-    grid-row: 2;
+    grid-template-areas:
+      'identity filters actions'
+      'search search search';
+    grid-template-columns: max-content minmax(0, 1fr) auto;
+    row-gap: var(--space-2);
   }
 }
 
 @media (max-width: 719px) {
   .library-toolbar__main {
+    grid-template-areas:
+      'identity actions'
+      'search search'
+      'filters filters';
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: var(--space-2);
-    padding-top: max(0.5rem, env(safe-area-inset-top));
+    gap: var(--space-4);
+    padding: max(1.25rem, env(safe-area-inset-top))
+      max(1.5rem, env(safe-area-inset-right)) 1.25rem
+      max(1.5rem, env(safe-area-inset-left));
   }
 
   .library-identity {
@@ -721,16 +780,10 @@ const exportSheet = (): void => {
     gap: var(--space-2);
   }
 
-  .library-search {
-    grid-column: 1 / -1;
-    grid-row: 2;
-  }
-
   .library-filters {
-    grid-column: 1 / -1;
-    grid-row: 3;
     display: grid;
     grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
   }
 
   .library-filters label {
@@ -745,11 +798,6 @@ const exportSheet = (): void => {
 
   .unicode-range-filters {
     grid-column: 1 / -1;
-  }
-
-  .library-toolbar__buttons {
-    grid-column: 2;
-    grid-row: 1;
   }
 
   .library-tools {
