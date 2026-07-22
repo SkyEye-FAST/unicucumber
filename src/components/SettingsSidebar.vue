@@ -33,6 +33,23 @@
         </header>
 
         <div class="settings-content">
+          <section
+            class="settings-section"
+            aria-labelledby="settings-language-title"
+          >
+            <h3 id="settings-language-title" class="settings-section-title">
+              {{ $t('settings.language.label') }}
+            </h3>
+            <div class="settings-field">
+              <CustomSelect
+                :model-value="locale"
+                :ariaLabel="$t('settings.language.label')"
+                :options="languageOptions"
+                @update:model-value="updateLanguage"
+              />
+            </div>
+          </section>
+
           <fieldset
             class="settings-section appearance-section"
             aria-describedby="appearance-description"
@@ -269,6 +286,7 @@ import CustomSelect, {
 } from '@/components/CustomSelect.vue'
 import type { EditorSettings } from '@/types/glyph'
 import { acquireOverlayLock, releaseOverlayLock } from '@/utils/overlayStack'
+import { LOCALE_PREFERENCE_KEY, type SupportedLocale } from '@/utils/locale'
 
 import DialogBox from './DialogBox.vue'
 
@@ -284,7 +302,7 @@ const emit = defineEmits<{
 
 const { defaultSettings } = useSettings()
 const { preference, setPreference } = useTheme()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 
 const sidebarRef = ref<HTMLElement | null>(null)
 const closeButtonRef = ref<HTMLButtonElement | null>(null)
@@ -312,6 +330,11 @@ const glyphPreviewModeOptions = computed<CustomSelectOption[]>(() => [
   { value: 'browserOnly', label: $t('settings.glyph_preview.browser_only') },
   { value: 'both', label: $t('settings.glyph_preview.both') },
 ])
+const languageOptions: CustomSelectOption[] = [
+  { value: 'en', label: 'English' },
+  { value: 'zh-CN', label: '简体中文' },
+  { value: 'zh-TW', label: '繁體中文' },
+]
 
 let modalQuery: MediaQueryList | null = null
 let overlayLocked = false
@@ -340,6 +363,16 @@ const updatePreviewMode = (value: string | number): void => {
   updateSettings({
     glyphPreviewMode: value as EditorSettings['glyphPreviewMode'],
   })
+}
+
+const updateLanguage = (value: string | number): void => {
+  const nextLocale = value as SupportedLocale
+  locale.value = nextLocale
+  try {
+    window.localStorage.setItem(LOCALE_PREFERENCE_KEY, nextLocale)
+  } catch {
+    // The selection remains active for this session when storage is unavailable.
+  }
 }
 
 const updateBoolean = (

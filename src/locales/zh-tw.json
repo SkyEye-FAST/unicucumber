@@ -331,6 +331,9 @@
       "8px": "8像素",
       "label": "字形寬度"
     },
+    "language": {
+      "label": "語言"
+    },
     "reset": "重設為預設值",
     "sections": {
       "behaviour": "行為",

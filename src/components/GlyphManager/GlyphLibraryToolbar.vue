@@ -236,6 +236,7 @@ import type {
 } from '@/types/glyph'
 import {
   blocksForPlane,
+  UNICODE_BLOCK_NAMES_ZH_HANT,
   UNICODE_BLOCK_NAMES_ZH,
   UNICODE_PLANES,
   type UnicodeBlock,
@@ -336,9 +337,12 @@ const availableBlocks = computed(() =>
 const formatCodePoint = (value: number): string =>
   value.toString(16).toUpperCase().padStart(4, '0')
 const blockLabel = (block: UnicodeBlock): string => {
-  const localized = locale.value.startsWith('zh')
-    ? UNICODE_BLOCK_NAMES_ZH[block.id]
-    : undefined
+  const localized =
+    locale.value === 'zh-TW'
+      ? UNICODE_BLOCK_NAMES_ZH_HANT[block.id]
+      : locale.value.startsWith('zh')
+        ? UNICODE_BLOCK_NAMES_ZH[block.id]
+        : undefined
   const name = localized ? `${localized} · ${block.name}` : block.name
   return `${name}  U+${formatCodePoint(block.start)}–U+${formatCodePoint(block.end)}`
 }

@@ -331,6 +331,9 @@
       "8px": "8 pixels",
       "label": "Glyph width"
     },
+    "language": {
+      "label": "Language"
+    },
     "reset": "Reset to defaults",
     "sections": {
       "behaviour": "Behaviour",
