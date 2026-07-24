@@ -18,6 +18,10 @@
       @dblclick="handleDoubleClick"
       @focusin="handleFocusIn"
       @keydown="handleKeydown"
+      @pointerdown="handleSelectionPointerDown"
+      @pointermove="handleSelectionPointerMove"
+      @pointerup="finishSelectionDrag"
+      @pointercancel="finishSelectionDrag"
     >
       <div
         v-if="topSpacerHeight > 0"
@@ -158,6 +162,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   open: [glyph: Glyph]
   'scroll-position': [position: number]
+  'set-selection': [codePoint: string, selected: boolean]
   'toggle-selection': [codePoint: string]
 }>()
 
@@ -171,6 +176,10 @@ const viewportHeight = ref(800)
 const measuredRowHeight = ref(128)
 let resizeObserver: ResizeObserver | null = null
 let scrollFrame = 0
+let selectionPointerId: number | null = null
+let selectionDragValue = false
+let suppressNextSelectionClick = false
+const draggedCodePoints = new Set<string>()
 
 const VIRTUALIZATION_THRESHOLD = 400
 const INITIAL_MEASUREMENT_COUNT = 240
@@ -304,7 +313,74 @@ const handleClick = (event: MouseEvent): void => {
   if (!cell) return
   rovingIndex.value = getIndex(cell)
   if (props.selectionMode && cell.dataset.codePoint) {
+    if (suppressNextSelectionClick) {
+      suppressNextSelectionClick = false
+      return
+    }
     emit('toggle-selection', cell.dataset.codePoint)
+  }
+}
+
+const selectCell = (cell: HTMLButtonElement | null): void => {
+  const codePoint = cell?.dataset.codePoint
+  if (!cell || !codePoint || draggedCodePoints.has(codePoint)) return
+  draggedCodePoints.add(codePoint)
+  rovingIndex.value = getIndex(cell)
+  emit('set-selection', codePoint, selectionDragValue)
+}
+
+const selectCellFromPointer = (clientX: number, clientY: number): void => {
+  const target = document.elementFromPoint(
+    clientX,
+    clientY,
+  ) as HTMLElement | null
+  selectCell(target?.closest<HTMLButtonElement>('.glyph-library-cell') ?? null)
+}
+
+const handleSelectionPointerDown = (event: PointerEvent): void => {
+  if (!props.selectionMode || event.button !== 0) return
+  const cell = getCellFromEvent(event)
+  const codePoint = cell?.dataset.codePoint
+  if (!cell || !codePoint) return
+
+  event.preventDefault()
+  rovingIndex.value = getIndex(cell)
+  cell.focus({ preventScroll: true })
+  selectionPointerId = event.pointerId
+  selectionDragValue = !selectedSet.value.has(codePoint)
+  suppressNextSelectionClick = true
+  draggedCodePoints.clear()
+  if (typeof gridElement.value?.setPointerCapture === 'function') {
+    gridElement.value.setPointerCapture(event.pointerId)
+  }
+  selectCell(cell)
+}
+
+const handleSelectionPointerMove = (event: PointerEvent): void => {
+  if (selectionPointerId !== event.pointerId) return
+  event.preventDefault()
+  selectCellFromPointer(event.clientX, event.clientY)
+}
+
+const finishSelectionDrag = (event: PointerEvent): void => {
+  if (selectionPointerId !== event.pointerId) return
+  const grid = gridElement.value
+  if (
+    grid &&
+    typeof grid.hasPointerCapture === 'function' &&
+    grid.hasPointerCapture(event.pointerId) &&
+    typeof grid.releasePointerCapture === 'function'
+  ) {
+    grid.releasePointerCapture(event.pointerId)
+  }
+  selectionPointerId = null
+  draggedCodePoints.clear()
+  if (event.type === 'pointercancel') {
+    suppressNextSelectionClick = false
+  } else {
+    window.setTimeout(() => {
+      suppressNextSelectionClick = false
+    }, 0)
   }
 }
 
@@ -442,6 +518,17 @@ onMounted(() => {
 onBeforeUnmount(() => {
   resizeObserver?.disconnect()
   if (scrollFrame) window.cancelAnimationFrame(scrollFrame)
+  if (selectionPointerId !== null) {
+    const grid = gridElement.value
+    if (
+      grid &&
+      typeof grid.hasPointerCapture === 'function' &&
+      grid.hasPointerCapture(selectionPointerId) &&
+      typeof grid.releasePointerCapture === 'function'
+    ) {
+      grid.releasePointerCapture(selectionPointerId)
+    }
+  }
 })
 
 defineExpose({
@@ -555,6 +642,12 @@ defineExpose({
     var(--background-light)
   );
   box-shadow: inset 0 0 0 2px var(--primary-color);
+}
+
+.glyph-library-cell.is-selection-mode {
+  cursor: crosshair;
+  touch-action: none;
+  user-select: none;
 }
 
 .glyph-library-cell.is-modified:not(.is-selected) {

@@ -152,6 +152,7 @@
       :selection-mode="selectionMode"
       @open="handleLibraryOpen"
       @scroll-position="matrixScrollTop = $event"
+      @set-selection="setGlyphSelection"
       @toggle-selection="toggleGlyphSelection"
     />
 
@@ -384,6 +385,15 @@ const toggleGlyphSelection = (codePoint: string): void => {
   selectedCodePoints.value = selectedCodePoints.value.includes(normalized)
     ? selectedCodePoints.value.filter((value) => value !== normalized)
     : [...selectedCodePoints.value, normalized]
+}
+
+const setGlyphSelection = (codePoint: string, selected: boolean): void => {
+  const normalized = normalizedSelectionCodePoint(codePoint)
+  const isSelected = selectedCodePoints.value.includes(normalized)
+  if (isSelected === selected) return
+  selectedCodePoints.value = selected
+    ? [...selectedCodePoints.value, normalized]
+    : selectedCodePoints.value.filter((value) => value !== normalized)
 }
 
 const selectFilteredGlyphs = (): void => {

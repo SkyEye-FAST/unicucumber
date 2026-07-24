@@ -93,6 +93,34 @@ describe('GlyphLibraryGrid', () => {
     wrapper.unmount()
   })
 
+  it('selects a continuous run of cells while dragging in selection mode', async () => {
+    const wrapper = mountGrid('both', { selectionMode: true })
+    const cells = wrapper.findAll<HTMLButtonElement>('.glyph-library-cell')
+    const grid = wrapper.get('.glyph-library-grid')
+    const elementFromPoint = document.elementFromPoint
+    document.elementFromPoint = () => cells[1]?.element ?? null
+
+    await cells[0]?.trigger('pointerdown', {
+      button: 0,
+      clientX: 1,
+      clientY: 1,
+      pointerId: 1,
+    })
+    await grid.trigger('pointermove', {
+      clientX: 2,
+      clientY: 2,
+      pointerId: 1,
+    })
+    await grid.trigger('pointerup', { pointerId: 1 })
+
+    expect(wrapper.emitted('set-selection')).toEqual([
+      ['0041', true],
+      ['0042', true],
+    ])
+    document.elementFromPoint = elementFromPoint
+    wrapper.unmount()
+  })
+
   it('shows a compact empty state and changes density without glyph mutation', async () => {
     const source = glyphs.map((glyph) => ({ ...glyph }))
     const wrapper = mountGrid('pixelOnly', { glyphs: source })

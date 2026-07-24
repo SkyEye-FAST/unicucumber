@@ -468,12 +468,13 @@ const exportSheet = (): void => {
 .library-toolbar__main {
   display: grid;
   grid-template-areas:
-    'identity search actions'
-    'filters filters filters';
-  grid-template-columns: max-content minmax(12rem, 1fr) auto;
-  align-items: end;
+    'identity actions'
+    'search search'
+    'filters filters';
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   gap: var(--space-2) var(--space-3);
-  padding: 0.55rem max(0.75rem, env(safe-area-inset-right)) 0.55rem
+  padding: 0.75rem max(0.75rem, env(safe-area-inset-right)) 0.55rem
     max(0.75rem, env(safe-area-inset-left));
 }
 
@@ -488,14 +489,20 @@ const exportSheet = (): void => {
 .library-identity h2 {
   margin: 0;
   color: var(--text-color);
-  font-size: 1rem;
-  font-weight: 750;
+  font-size: 1.5rem;
+  font-weight: 700;
 }
 
 .library-count {
+  min-width: 1.5rem;
+  padding: 0.12rem 0.38rem;
+  border-radius: 999px;
+  background: var(--background-color);
   color: var(--text-secondary);
+  font-family: var(--monospace-font);
   font-size: 0.78rem;
   font-variant-numeric: tabular-nums;
+  text-align: center;
 }
 
 .library-search {
@@ -661,18 +668,7 @@ const exportSheet = (): void => {
 }
 
 .library-selection-toggle {
-  border-color: color-mix(
-    in srgb,
-    var(--primary-color) 45%,
-    var(--border-color)
-  );
-  background: color-mix(
-    in srgb,
-    var(--primary-color) 8%,
-    var(--background-light)
-  );
-  color: var(--primary-darker);
-  font-weight: 700;
+  color: var(--text-secondary);
 }
 
 .library-tools {
