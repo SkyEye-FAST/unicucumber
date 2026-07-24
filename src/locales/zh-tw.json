@@ -270,11 +270,8 @@
     "transparent_white": "將透明區域視為白色"
   },
   "mobile_toolbar": {
-    "close": "關閉更多操作",
-    "label": "行動裝置編輯命令",
-    "more_actions": "更多工具與操作",
-    "redo": "重做",
-    "undo": "復原"
+    "close_short": "關閉",
+    "label": "行動裝置編輯命令"
   },
   "notifications": {
     "dismiss": "關閉通知"

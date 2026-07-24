@@ -270,11 +270,8 @@
     "transparent_white": "将透明区域视为白色"
   },
   "mobile_toolbar": {
-    "close": "关闭更多操作",
-    "label": "移动端编辑命令",
-    "more_actions": "更多工具和操作",
-    "redo": "重做",
-    "undo": "撤销"
+    "close_short": "关闭",
+    "label": "移动端编辑命令"
   },
   "notifications": {
     "dismiss": "关闭通知"

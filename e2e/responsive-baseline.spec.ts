@@ -157,12 +157,38 @@ test.describe('responsive visual baseline', () => {
           await expect(mobileCommandBar.locator('.save-button')).toHaveCount(0)
           await expect(mobileCommandBar.locator('.danger')).toHaveCount(0)
 
-          await mobileCommandBar
-            .getByRole('button', { name: 'More', exact: true })
-            .click()
-          const directionPad = mobileCommandBar.locator('.direction-pad')
-          await expect(directionPad).toBeVisible()
-          await expect(directionPad.getByRole('button')).toHaveCount(4)
+          const moreToggle = mobileCommandBar.getByRole('button', {
+            name: 'More',
+            exact: true,
+          })
+          const moreToggleBounds = await moreToggle.boundingBox()
+          await moreToggle.click()
+          await expect(mobileCommandBar).toHaveClass(/mobile-command-bar--more/)
+          const closeToggle = mobileCommandBar.getByRole('button', {
+            name: 'Close',
+            exact: true,
+          })
+          await expect(closeToggle).toBeVisible()
+          await expect(closeToggle).toHaveClass(/more-toggle--close/)
+          await expect(closeToggle).toHaveText('Close')
+          const closeToggleBounds = await closeToggle.boundingBox()
+          expect(
+            Math.abs(
+              (closeToggleBounds?.x ?? Infinity) -
+                (moreToggleBounds?.x ?? -Infinity),
+            ),
+          ).toBeLessThanOrEqual(1)
+          await expect(
+            mobileCommandBar.locator('.mobile-tool-sheet'),
+          ).toHaveCount(0)
+          const moreRail = mobileCommandBar.locator('.more-rail')
+          await expect(moreRail.locator('.more-action').first()).toContainText(
+            'Flood fill',
+          )
+          const toolbarBounds = await mobileCommandBar.boundingBox()
+          expect(metrics.grid?.bottom ?? Infinity).toBeLessThanOrEqual(
+            toolbarBounds?.y ?? -1,
+          )
           await page.screenshot({
             path: join(
               screenshotDir,

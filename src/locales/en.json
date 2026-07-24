@@ -270,11 +270,8 @@
     "transparent_white": "Treat transparency as white"
   },
   "mobile_toolbar": {
-    "close": "Close more actions",
-    "label": "Mobile editor commands",
-    "more_actions": "More tools and actions",
-    "redo": "Redo",
-    "undo": "Undo"
+    "close_short": "Close",
+    "label": "Mobile editor commands"
   },
   "notifications": {
     "dismiss": "Dismiss notification"

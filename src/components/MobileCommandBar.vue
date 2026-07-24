@@ -1,103 +1,65 @@
 <template>
-  <nav class="mobile-command-bar" :aria-label="$t('mobile_toolbar.label')">
-    <button
-      v-for="tool in primaryTools"
-      :key="tool.id"
-      type="button"
-      :class="[
-        'toolbar-tool',
-        `toolbar-tool--${tool.id}`,
-        { active: currentTool === tool.id },
-      ]"
-      :aria-label="$t(tool.label)"
-      @click="emit('tool', tool.id)"
-    >
-      <i-material-symbols-draw-outline v-if="tool.id === 'draw'" class="icon" />
-      <i-material-symbols-ink-eraser-outline
-        v-else-if="tool.id === 'erase'"
-        class="icon"
-      />
-      <i-material-symbols-select
-        v-else-if="tool.id === 'select'"
-        class="icon"
-      />
-      <i-material-symbols-format-color-fill
-        v-else-if="tool.id === 'fill'"
-        class="icon"
-      />
-      <i-material-symbols-diagonal-line
-        v-else-if="tool.id === 'line'"
-        class="icon"
-      />
-      <i-material-symbols-rectangle-outline v-else class="icon" />
-      <span>{{ $t(tool.label) }}</span>
-    </button>
-    <button
-      type="button"
-      :class="{ active: showMore }"
-      :aria-expanded="showMore"
-      :aria-label="$t('tools.more')"
-      @click="showMore = !showMore"
-    >
-      <i-material-symbols-more-horiz class="icon" />
-      <span>{{ $t('tools.more') }}</span>
-    </button>
+  <nav
+    class="mobile-command-bar"
+    :class="{ 'mobile-command-bar--more': showMore }"
+    :aria-label="$t('mobile_toolbar.label')"
+  >
+    <template v-if="!showMore">
+      <button
+        v-for="tool in primaryTools"
+        :key="tool.id"
+        type="button"
+        :class="[
+          'toolbar-tool',
+          `toolbar-tool--${tool.id}`,
+          { active: currentTool === tool.id },
+        ]"
+        :aria-label="$t(tool.label)"
+        @click="emit('tool', tool.id)"
+      >
+        <i-material-symbols-draw-outline
+          v-if="tool.id === 'draw'"
+          class="icon"
+        />
+        <i-material-symbols-ink-eraser-outline
+          v-else-if="tool.id === 'erase'"
+          class="icon"
+        />
+        <i-material-symbols-select
+          v-else-if="tool.id === 'select'"
+          class="icon"
+        />
+        <i-material-symbols-format-color-fill
+          v-else-if="tool.id === 'fill'"
+          class="icon"
+        />
+        <i-material-symbols-diagonal-line
+          v-else-if="tool.id === 'line'"
+          class="icon"
+        />
+        <i-material-symbols-rectangle-outline v-else class="icon" />
+        <span>{{ $t(tool.label) }}</span>
+      </button>
+      <button
+        class="more-toggle"
+        type="button"
+        :aria-expanded="showMore"
+        :aria-label="$t('tools.more')"
+        @click="showMore = true"
+      >
+        <i-material-symbols-more-horiz class="icon" />
+        <span>{{ $t('tools.more') }}</span>
+      </button>
+    </template>
 
-    <div v-if="showMore" class="mobile-tool-sheet">
-      <div class="sheet-header">
-        <strong>{{ $t('mobile_toolbar.more_actions') }}</strong>
-        <button
-          type="button"
-          :aria-label="$t('mobile_toolbar.close')"
-          @click="showMore = false"
-        >
-          <i-material-symbols-close class="icon" />
-        </button>
-      </div>
-      <div class="sheet-grid">
-        <div class="direction-pad">
-          <button
-            class="direction-up"
-            type="button"
-            :aria-label="$t('tools.shift_up')"
-            @click="chooseAction('shift-up')"
-          >
-            <i-material-symbols-arrow-upward class="icon" />
-          </button>
-          <button
-            class="direction-left"
-            type="button"
-            :aria-label="$t('tools.shift_left')"
-            @click="chooseAction('shift-left')"
-          >
-            <i-material-symbols-arrow-back class="icon" />
-          </button>
-          <button
-            class="direction-right"
-            type="button"
-            :aria-label="$t('tools.shift_right')"
-            @click="chooseAction('shift-right')"
-          >
-            <i-material-symbols-arrow-forward class="icon" />
-          </button>
-          <button
-            class="direction-down"
-            type="button"
-            :aria-label="$t('tools.shift_down')"
-            @click="chooseAction('shift-down')"
-          >
-            <i-material-symbols-arrow-downward class="icon" />
-          </button>
-        </div>
+    <template v-else>
+      <div class="more-rail">
         <button
           v-for="tool in secondaryTools"
           :key="tool.id"
+          class="more-action"
           type="button"
-          :class="[
-            'secondary-tool',
-            `secondary-tool--${tool.id}`,
-            { active: currentTool === tool.id },
-          ]"
+          :aria-label="$t(tool.label)"
           @click="chooseTool(tool.id)"
         >
           <i-material-symbols-format-color-fill
@@ -117,39 +79,65 @@
             class="icon"
           />
           <i-material-symbols-pan-tool-outline v-else class="icon" />
-          {{ $t(tool.label) }}
+          <span>{{ $t(tool.label) }}</span>
         </button>
         <button
+          class="more-action"
           type="button"
           :disabled="!hasClipboardData"
+          :aria-label="$t('selection.confirm_paste')"
           @click="chooseAction('paste')"
         >
-          <i-material-symbols-content-paste class="icon" />{{
-            $t('selection.confirm_paste')
-          }}
+          <i-material-symbols-content-paste class="icon" />
+          <span>{{ $t('selection.confirm_paste') }}</span>
         </button>
-        <button type="button" @click="chooseAction('invert')">
-          <i-material-symbols-invert-colors class="icon" />{{
-            $t('tools.invert')
-          }}
+        <button
+          class="more-action"
+          type="button"
+          :aria-label="$t('tools.invert')"
+          @click="chooseAction('invert')"
+        >
+          <i-material-symbols-invert-colors class="icon" />
+          <span>{{ $t('tools.invert') }}</span>
         </button>
-        <button type="button" @click="chooseAction('flipHorizontal')">
-          <i-material-symbols-flip class="icon" />{{
-            $t('tools.flip_horizontal')
-          }}
+        <button
+          class="more-action"
+          type="button"
+          :aria-label="$t('tools.flip_horizontal')"
+          @click="chooseAction('flipHorizontal')"
+        >
+          <i-material-symbols-flip class="icon" />
+          <span>{{ $t('tools.flip_horizontal') }}</span>
         </button>
-        <button type="button" @click="chooseAction('flipVertical')">
-          <i-material-symbols-flip class="icon vertical" />{{
-            $t('tools.flip_vertical')
-          }}
+        <button
+          class="more-action"
+          type="button"
+          :aria-label="$t('tools.flip_vertical')"
+          @click="chooseAction('flipVertical')"
+        >
+          <i-material-symbols-flip class="icon vertical" />
+          <span>{{ $t('tools.flip_vertical') }}</span>
         </button>
-        <button type="button" @click="chooseAction('restore')">
-          <i-material-symbols-restore-page-outline class="icon" />{{
-            $t('editor.actions.restore.button')
-          }}
+        <button
+          class="more-action"
+          type="button"
+          :aria-label="$t('editor.actions.restore.button')"
+          @click="chooseAction('restore')"
+        >
+          <i-material-symbols-restore-page-outline class="icon" />
+          <span>{{ $t('editor.actions.restore.button') }}</span>
         </button>
       </div>
-    </div>
+      <button
+        class="more-toggle more-toggle--close"
+        type="button"
+        :aria-label="$t('mobile_toolbar.close_short')"
+        @click="showMore = false"
+      >
+        <i-material-symbols-close class="icon" />
+        <span>{{ $t('mobile_toolbar.close_short') }}</span>
+      </button>
+    </template>
   </nav>
 </template>
 
@@ -188,6 +176,7 @@ const secondaryTools = [
   { id: 'filledRectangle', label: 'tools.filled_rectangle' },
   { id: 'pan', label: 'tools.pan' },
 ] satisfies Array<{ id: EditorTool; label: string }>
+
 const chooseTool = (tool: EditorTool): void => {
   emit('tool', tool)
   showMore.value = false
@@ -214,8 +203,8 @@ const chooseAction = (action: MobileAction): void => {
     min-height: calc(4rem + env(safe-area-inset-bottom));
     display: flex;
     gap: 0.25rem;
-    padding: 0.25rem max(0.35rem, env(safe-area-inset-right))
-      env(safe-area-inset-bottom) max(0.35rem, env(safe-area-inset-left));
+    padding: 0.25rem 0 env(safe-area-inset-bottom)
+      max(0.35rem, env(safe-area-inset-left));
     border-top: 1px solid var(--border-color);
     background: var(--background-light);
     box-shadow: 0 -2px 10px var(--modal-overlay);
@@ -258,119 +247,76 @@ const chooseAction = (action: MobileAction): void => {
     font-size: 1.35rem;
   }
 
-  .mobile-tool-sheet {
-    position: absolute;
-    right: max(0.5rem, env(safe-area-inset-right));
-    bottom: calc(100% + 0.4rem);
-    left: max(0.5rem, env(safe-area-inset-left));
-    max-height: min(70dvh, 34rem);
-    overflow: auto;
-    padding: 0.7rem;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    background: var(--background-light);
-    box-shadow: 0 4px 18px var(--modal-overlay);
-  }
-
-  .sheet-header {
-    position: sticky;
-    top: -0.7rem;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.4rem 0;
-    background: var(--background-light);
-  }
-
-  .sheet-header button,
-  .sheet-grid button {
-    min-height: 44px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    background: var(--background-base);
-    color: var(--text-color);
-  }
-
-  .sheet-header button {
-    min-width: 44px;
-  }
-
-  .sheet-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.4rem;
-  }
-
-  .sheet-grid button {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 0.5rem;
-    padding: 0.5rem 0.65rem;
-    font-family: var(--normal-font);
-  }
-
-  .sheet-grid button.active {
-    border-color: var(--primary-color);
-    background: var(--primary-color);
-    color: white;
-  }
-
-  .direction-pad {
-    display: grid;
-    grid-column: 1 / -1;
-    grid-template-columns: repeat(3, 3.15rem);
-    grid-template-areas:
-      '. up .'
-      'left center right'
-      '. down .';
-    gap: 0.25rem;
-    width: fit-content;
-    justify-self: center;
-    padding: 0.35rem;
-    border: 1px solid var(--border-color);
-    border-radius: 0.9rem;
+  .more-toggle {
+    flex: 0 0 3.75rem !important;
+    min-width: 3.75rem !important;
+    margin-left: auto;
+    margin-top: -0.25rem;
+    margin-right: 0;
+    margin-bottom: calc(-0.25rem - env(safe-area-inset-bottom));
+    align-self: stretch;
+    padding-right: max(0.35rem, env(safe-area-inset-right)) !important;
+    border: 0 !important;
+    border-left: 1px solid var(--primary-color) !important;
+    border-radius: 0 !important;
     background: color-mix(
       in srgb,
-      var(--primary-color) 8%,
+      var(--primary-color) 24%,
       var(--background-base)
-    );
+    ) !important;
+    color: var(--primary-color) !important;
+    font-weight: 700;
   }
 
-  .direction-pad .direction-up {
-    grid-area: up;
+  .more-toggle--close {
+    border-left-color: var(--danger-color) !important;
+    background: color-mix(
+      in srgb,
+      var(--danger-color) 20%,
+      var(--background-base)
+    ) !important;
+    color: var(--danger-color) !important;
   }
 
-  .direction-pad .direction-left {
-    grid-area: left;
+  .mobile-command-bar--more {
+    gap: 0;
   }
 
-  .direction-pad .direction-right {
-    grid-area: right;
+  .more-rail {
+    min-width: 0;
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
   }
 
-  .direction-pad .direction-down {
-    grid-area: down;
+  .more-rail::-webkit-scrollbar {
+    display: none;
   }
 
-  .direction-pad button {
-    display: grid;
-    min-height: 3.15rem;
-    padding: 0;
-    border-radius: 0.65rem;
-    place-items: center;
+  .more-action {
+    flex: 0 0 4.75rem;
+    min-width: 4.75rem;
+    min-height: 52px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.1rem;
+    padding: 0.2rem;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-color);
+    font-family: var(--normal-font);
+    font-size: 0.68rem;
   }
 
-  .direction-pad::after {
-    width: 0.65rem;
-    height: 0.65rem;
-    grid-area: center;
-    place-self: center;
-    content: '';
-    border: 2px solid color-mix(in srgb, var(--primary-color) 45%, transparent);
-    border-radius: 50%;
-    background: var(--background-light);
+  .more-action:active {
+    background: var(--background-hover);
   }
 
   .vertical {
@@ -382,29 +328,17 @@ const chooseAction = (action: MobileAction): void => {
   .mobile-command-bar > button.toolbar-tool--fill {
     display: flex;
   }
-
-  .sheet-grid button.secondary-tool--fill {
-    display: none;
-  }
 }
 
 @media (min-width: 480px) and (max-width: 719px) {
   .mobile-command-bar > button.toolbar-tool--line {
     display: flex;
   }
-
-  .sheet-grid button.secondary-tool--line {
-    display: none;
-  }
 }
 
 @media (min-width: 600px) and (max-width: 719px) {
   .mobile-command-bar > button.toolbar-tool--rectangle {
     display: flex;
-  }
-
-  .sheet-grid button.secondary-tool--rectangle {
-    display: none;
   }
 }
 
