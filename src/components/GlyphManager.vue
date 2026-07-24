@@ -1541,6 +1541,7 @@ defineExpose({ handleEscape })
   overflow-y: auto;
   overscroll-behavior: contain;
   background: var(--background-light);
+  container-type: inline-size;
 }
 
 .glyph-manager.is-expanded {
@@ -1590,6 +1591,7 @@ defineExpose({ handleEscape })
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: nowrap;
   gap: var(--space-2);
   padding-inline-end: 2.85rem;
 }
@@ -1602,7 +1604,17 @@ defineExpose({ handleEscape })
   gap: var(--space-2);
 }
 
+.glyph-manager-heading__identity {
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.glyph-manager-heading__actions {
+  flex: 0 0 auto;
+}
+
 .compact-count {
+  flex: none;
   min-width: 1.5rem;
   padding: 0.12rem 0.38rem;
   border-radius: 999px;
@@ -1620,10 +1632,43 @@ defineExpose({ handleEscape })
 }
 
 .title {
+  min-width: 0;
+  overflow: hidden;
   margin: 0;
   color: var(--text-color);
   font-size: 1.5rem;
   font-weight: bold;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The sidebar can be narrowed independently of the viewport.  At its compact
+ * width, keep the primary controls on one stable row and use the tools icon
+ * instead of squeezing the title or wrapping it. */
+@container (max-width: 28rem) {
+  .glyph-manager-heading {
+    gap: var(--space-1);
+  }
+
+  .glyph-manager-heading__identity,
+  .glyph-manager-heading__actions {
+    gap: var(--space-1);
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .compact-tools-toggle {
+    flex: none;
+    width: var(--control-height-compact);
+    min-width: var(--control-height-compact);
+    padding-inline: 0;
+  }
+
+  .compact-tools-toggle span {
+    display: none;
+  }
 }
 
 .glyph-manager-expand {

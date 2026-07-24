@@ -1124,14 +1124,27 @@ const handlePasteStart = (): void => {
   position: absolute;
   right: 0;
   top: 0;
-  width: 4px;
+  width: 12px;
   height: 100%;
-  background-color: var(--border-color);
+  background: transparent;
   cursor: col-resize;
-  transition: background-color 0.3s;
+  touch-action: none;
+  z-index: 1;
 }
 
-.sidebar-resizer:hover {
+.sidebar-resizer::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 4px;
+  width: 4px;
+  background-color: var(--border-color);
+  content: '';
+  transition: background-color 0.2s ease;
+}
+
+.sidebar-resizer:hover::after,
+.sidebar-resizer:focus-visible::after {
   background-color: var(--info-color);
 }
 

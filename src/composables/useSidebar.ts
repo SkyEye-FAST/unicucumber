@@ -31,17 +31,18 @@ export function useSidebar() {
   }
 
   const stopResize = (): void => {
+    const activeResizeTarget = resizeTarget
     if (
       resizingPointerId !== null &&
-      resizeTarget?.hasPointerCapture(resizingPointerId)
+      activeResizeTarget?.hasPointerCapture(resizingPointerId)
     ) {
-      resizeTarget.releasePointerCapture(resizingPointerId)
+      activeResizeTarget.releasePointerCapture(resizingPointerId)
     }
+    activeResizeTarget?.removeEventListener('pointermove', doResize)
+    activeResizeTarget?.removeEventListener('pointerup', stopResize)
+    activeResizeTarget?.removeEventListener('pointercancel', stopResize)
     resizingPointerId = null
     resizeTarget = null
-    window.removeEventListener('pointermove', doResize)
-    window.removeEventListener('pointerup', stopResize)
-    window.removeEventListener('pointercancel', stopResize)
   }
 
   let startX = 0
@@ -50,10 +51,9 @@ export function useSidebar() {
     if (event.pointerId !== resizingPointerId) return
     const viewportWidth = window.visualViewport?.width ?? window.innerWidth
     const minWidth = Math.min(300, viewportWidth)
-    const maxWidth = Math.min(
-      viewportWidth - 32,
-      viewportWidth < 1024 ? 720 : 640,
-    )
+    // Keep a visible edge of the editor, but do not impose a desktop-size cap:
+    // users should be able to size the library to the width they need.
+    const maxWidth = Math.max(minWidth, viewportWidth - 32)
     sidebarWidth.value = Math.min(
       Math.max(startWidth + event.clientX - startX, minWidth),
       maxWidth,
@@ -62,14 +62,15 @@ export function useSidebar() {
 
   const startResize = (event: PointerEvent): void => {
     if (window.innerWidth < 720 || resizingPointerId !== null) return
+    event.preventDefault()
     resizingPointerId = event.pointerId
     resizeTarget = event.currentTarget as HTMLElement
     startX = event.clientX
     startWidth = sidebarWidth.value
     resizeTarget.setPointerCapture(event.pointerId)
-    window.addEventListener('pointermove', doResize)
-    window.addEventListener('pointerup', stopResize)
-    window.addEventListener('pointercancel', stopResize)
+    resizeTarget.addEventListener('pointermove', doResize)
+    resizeTarget.addEventListener('pointerup', stopResize)
+    resizeTarget.addEventListener('pointercancel', stopResize)
   }
 
   onMounted(() => window.addEventListener('resize', handleViewportResize))

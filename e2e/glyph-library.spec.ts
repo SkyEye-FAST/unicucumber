@@ -120,6 +120,75 @@ const expandLibrary = async (page: Page, expectedCount = 96) => {
   }
 }
 
+test('resizes the glyph manager freely and keeps its compact heading on one row', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'interaction check runs once')
+  await seedGlyphs(page)
+  await page.setViewportSize({ width: 1024, height: 768 })
+  await openLibrary(page)
+
+  const sidebar = page.locator('.sidebar')
+  const resizer = page.locator('.sidebar-resizer')
+  const initialWidth = await sidebar.evaluate((element) =>
+    Math.round(element.getBoundingClientRect().width),
+  )
+  const resizerBox = await resizer.boundingBox()
+  if (!resizerBox) throw new Error('Glyph manager resize handle is not visible')
+  await page.mouse.move(resizerBox.x + resizerBox.width / 2, resizerBox.y + 160)
+  await page.mouse.down()
+  await page.mouse.move(930, resizerBox.y + 160)
+  await page.mouse.up()
+
+  await expect
+    .poll(() =>
+      sidebar.evaluate((element) =>
+        Math.round(element.getBoundingClientRect().width),
+      ),
+    )
+    .toBeGreaterThan(initialWidth + 300)
+
+  const expandedResizerBox = await resizer.boundingBox()
+  if (!expandedResizerBox)
+    throw new Error('Glyph manager resize handle is not visible after widening')
+  await page.mouse.move(
+    expandedResizerBox.x + expandedResizerBox.width / 2,
+    expandedResizerBox.y + 160,
+  )
+  await page.mouse.down()
+  await page.mouse.move(300, expandedResizerBox.y + 160)
+  await page.mouse.up()
+
+  const compactHeader = await page
+    .locator('.glyph-manager-heading')
+    .evaluate((header) => {
+      const title = header.querySelector<HTMLElement>('.title')
+      const actions = header.querySelector<HTMLElement>(
+        '.glyph-manager-heading__actions',
+      )
+      const headerBox = header.getBoundingClientRect()
+      const titleBox = title?.getBoundingClientRect()
+      const actionsBox = actions?.getBoundingClientRect()
+      if (!titleBox || !actionsBox)
+        throw new Error('Glyph manager heading is incomplete')
+      return {
+        height: headerBox.height,
+        titleCenter: titleBox.top + titleBox.height / 2,
+        actionsCenter: actionsBox.top + actionsBox.height / 2,
+        titleWhiteSpace: title ? getComputedStyle(title).whiteSpace : '',
+        toolsLabelDisplay: getComputedStyle(
+          header.querySelector('.compact-tools-toggle span')!,
+        ).display,
+      }
+    })
+  expect(compactHeader.titleWhiteSpace).toBe('nowrap')
+  expect(compactHeader.toolsLabelDisplay).toBe('none')
+  expect(compactHeader.height).toBeLessThan(50)
+  expect(
+    Math.abs(compactHeader.titleCenter - compactHeader.actionsCenter),
+  ).toBeLessThanOrEqual(1)
+})
+
 test.describe('full-screen glyph library', () => {
   test.beforeEach(async ({ page }) => {
     await seedGlyphs(page)
