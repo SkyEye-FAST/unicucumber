@@ -14,6 +14,7 @@ interface SidebarOptions {
 
 export function useSidebar(options: SidebarOptions = {}) {
   const isSidebarActive = ref(false)
+  const isSidebarResizing = ref(false)
   const sidebarWidth = ref(widthForViewport(window.innerWidth))
   let resizingPointerId: number | null = null
   let resizeTarget: HTMLElement | null = null
@@ -49,6 +50,7 @@ export function useSidebar(options: SidebarOptions = {}) {
     activeResizeTarget?.removeEventListener('pointercancel', stopResize)
     resizingPointerId = null
     resizeTarget = null
+    isSidebarResizing.value = false
   }
 
   let startX = 0
@@ -70,6 +72,7 @@ export function useSidebar(options: SidebarOptions = {}) {
     if (window.innerWidth < 720 || resizingPointerId !== null) return
     event.preventDefault()
     resizingPointerId = event.pointerId
+    isSidebarResizing.value = true
     resizeTarget = event.currentTarget as HTMLElement
     startX = event.clientX
     startWidth = sidebarWidth.value
@@ -85,5 +88,11 @@ export function useSidebar(options: SidebarOptions = {}) {
     stopResize()
   })
 
-  return { isSidebarActive, sidebarWidth, toggleSidebar, startResize }
+  return {
+    isSidebarActive,
+    isSidebarResizing,
+    sidebarWidth,
+    toggleSidebar,
+    startResize,
+  }
 }

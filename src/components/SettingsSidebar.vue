@@ -140,6 +140,7 @@
               <input
                 id="showBorder"
                 type="checkbox"
+                role="switch"
                 :checked="settings.showBorder"
                 @change="updateBoolean('showBorder', $event)"
               />
@@ -152,6 +153,7 @@
               <input
                 id="enableSelection"
                 type="checkbox"
+                role="switch"
                 :checked="settings.enableSelection"
                 @change="updateBoolean('enableSelection', $event)"
               />
@@ -164,6 +166,7 @@
               <input
                 id="alwaysShowMouseCursor"
                 type="checkbox"
+                role="switch"
                 :checked="settings.alwaysShowMouseCursor"
                 @change="updateBoolean('alwaysShowMouseCursor', $event)"
               />
@@ -184,6 +187,7 @@
               <input
                 id="autoSaveEnabled"
                 type="checkbox"
+                role="switch"
                 :checked="settings.autoSaveEnabled"
                 @change="updateBoolean('autoSaveEnabled', $event)"
               />
@@ -235,6 +239,7 @@
               <input
                 id="exportTransparent"
                 type="checkbox"
+                role="switch"
                 :checked="settings.exportTransparent"
                 @change="updateBoolean('exportTransparent', $event)"
               />
@@ -279,6 +284,7 @@
               <input
                 id="imageImportTransparentAsWhite"
                 type="checkbox"
+                role="switch"
                 :checked="settings.imageImportTransparentAsWhite"
                 @change="updateBoolean('imageImportTransparentAsWhite', $event)"
               />
@@ -324,6 +330,7 @@
               <input
                 id="glyphManagerPushEditor"
                 type="checkbox"
+                role="switch"
                 :checked="settings.glyphManagerPushEditor"
                 @change="updateBoolean('glyphManagerPushEditor', $event)"
               />
@@ -396,6 +403,7 @@
               <input
                 id="confirmClear"
                 type="checkbox"
+                role="switch"
                 :checked="settings.confirmClear"
                 @change="updateBoolean('confirmClear', $event)"
               />
@@ -886,12 +894,60 @@ const confirmReset = (): void => {
 }
 
 .settings-check-row input[type='checkbox'] {
-  width: 1.25rem;
-  height: 1.25rem;
+  appearance: none;
+  width: 2.75rem;
+  height: 1.5rem;
   flex: none;
+  position: relative;
   margin: 0;
-  accent-color: var(--primary-color);
+  border: 1px solid var(--input-border);
+  border-radius: 999px;
+  background: var(--background-active);
   cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.settings-check-row input[type='checkbox']::after {
+  content: '';
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 50%;
+  background: var(--background-light);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--text-color) 28%, transparent);
+  transform: translateX(0);
+  scale: 1;
+  transition:
+    transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    scale 120ms ease,
+    background-color 180ms ease;
+}
+
+.settings-check-row input[type='checkbox']:hover {
+  border-color: var(--border-hover);
+}
+
+.settings-check-row input[type='checkbox']:checked {
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+}
+
+.settings-check-row input[type='checkbox']:checked::after {
+  transform: translateX(1.25rem);
+}
+
+.settings-check-row input[type='checkbox']:active::after {
+  scale: 0.88;
+}
+
+.settings-check-row input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .appearance-segment {
@@ -1016,18 +1072,30 @@ const confirmReset = (): void => {
   color: var(--primary-color);
 }
 
-.settings-drawer-enter-active,
-.settings-drawer-leave-active,
-.settings-overlay-enter-active,
-.settings-overlay-leave-active {
+.settings-drawer-enter-active {
   transition:
-    transform 180ms ease,
-    opacity 180ms ease;
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease-out;
+}
+
+.settings-drawer-leave-active {
+  transition:
+    transform 180ms cubic-bezier(0.4, 0, 1, 1),
+    opacity 140ms ease-in;
+}
+
+.settings-overlay-enter-active {
+  transition: opacity 200ms ease-out;
+}
+
+.settings-overlay-leave-active {
+  transition: opacity 160ms ease-in;
 }
 
 .settings-drawer-enter-from,
 .settings-drawer-leave-to {
-  transform: translateX(100%);
+  opacity: 0.82;
+  transform: translateX(calc(100% + var(--space-4)));
 }
 
 .settings-overlay-enter-from,
@@ -1085,6 +1153,11 @@ const confirmReset = (): void => {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .settings-check-row input[type='checkbox'],
+  .settings-check-row input[type='checkbox']::after {
+    transition: none;
+  }
+
   .settings-drawer-enter-active,
   .settings-drawer-leave-active,
   .settings-overlay-enter-active,

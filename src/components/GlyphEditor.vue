@@ -7,6 +7,7 @@
           isSidebarActive &&
           settings.glyphManagerPushEditor &&
           !isGlyphLibraryExpanded,
+        'glyph-sidebar-resizing': isSidebarResizing,
       },
     ]"
   >
@@ -214,43 +215,45 @@
       </aside>
     </main>
 
-    <div
-      :class="[
-        'sidebar',
-        {
-          active: isSidebarActive,
-          'glyph-library-expanded': isGlyphLibraryExpanded,
-        },
-      ]"
-    >
-      <div class="sidebar-resizer" @pointerdown="startResize"></div>
-      <button
-        class="btn-close-sidebar"
-        type="button"
-        :aria-label="$t('header.close_glyph_manager')"
-        @click="handleCloseSidebar"
+    <Transition name="glyph-sidebar">
+      <div
+        v-if="isSidebarActive"
+        :class="[
+          'sidebar',
+          'active',
+          {
+            'glyph-library-expanded': isGlyphLibraryExpanded,
+          },
+        ]"
       >
-        <i-material-symbols-close class="icon" />
-      </button>
-      <KeepAlive>
-        <GlyphManager
-          v-if="isSidebarActive"
-          ref="glyphManagerRef"
-          v-model:expanded="isGlyphLibraryExpanded"
-          :glyphs="glyphs"
-          :library-loading="glyphLibraryLoading"
-          :library-loaded="glyphLibraryLoaded"
-          :library-error="glyphLibraryError"
-          :on-glyph-change="setGlyphs"
-          :on-retry-load="retryGlyphLibrary"
-          :prefill-data="prefillData"
-          :active-code-point="currentCodePoint"
-          @edit-in-grid="handleGlyphEdit"
-          @clear-prefill="clearPrefillData"
-          @saved="handleGlyphSaved"
-        />
-      </KeepAlive>
-    </div>
+        <div class="sidebar-resizer" @pointerdown="startResize"></div>
+        <button
+          class="btn-close-sidebar"
+          type="button"
+          :aria-label="$t('header.close_glyph_manager')"
+          @click="handleCloseSidebar"
+        >
+          <i-material-symbols-close class="icon" />
+        </button>
+        <KeepAlive>
+          <GlyphManager
+            ref="glyphManagerRef"
+            v-model:expanded="isGlyphLibraryExpanded"
+            :glyphs="glyphs"
+            :library-loading="glyphLibraryLoading"
+            :library-loaded="glyphLibraryLoaded"
+            :library-error="glyphLibraryError"
+            :on-glyph-change="setGlyphs"
+            :on-retry-load="retryGlyphLibrary"
+            :prefill-data="prefillData"
+            :active-code-point="currentCodePoint"
+            @edit-in-grid="handleGlyphEdit"
+            @clear-prefill="clearPrefillData"
+            @saved="handleGlyphSaved"
+          />
+        </KeepAlive>
+      </div>
+    </Transition>
 
     <DialogBox
       v-model:show="showDialog"
@@ -354,11 +357,16 @@ const gridData = editorDocument.grid
 const width = editorDocument.width
 const activeGlyphId = editorDocument.activeGlyphId
 const hexCode = computed(() => gridToHex(gridData.value))
-const { isSidebarActive, sidebarWidth, toggleSidebar, startResize } =
-  useSidebar({
-    desktopEditorReserve: () =>
-      settings.value.glyphManagerPushEditor ? 320 : 32,
-  })
+const {
+  isSidebarActive,
+  isSidebarResizing,
+  sidebarWidth,
+  toggleSidebar,
+  startResize,
+} = useSidebar({
+  desktopEditorReserve: () =>
+    settings.value.glyphManagerPushEditor ? 320 : 32,
+})
 
 let previousBodyOverflow = ''
 let bodyScrollLocked = false
@@ -1123,7 +1131,6 @@ const handlePasteStart = (): void => {
   background-color: var(--background-light);
   max-width: calc(100vw - 2rem);
   border-right: 1px solid var(--border-color);
-  transition: transform 0.3s ease;
   transform: translateX(-100%);
   z-index: 1000;
   overflow: hidden;
@@ -1133,6 +1140,24 @@ const handlePasteStart = (): void => {
 .sidebar.active {
   transform: translateX(0);
   box-shadow: 4px 0 18px var(--modal-overlay);
+}
+
+.sidebar.glyph-sidebar-enter-active {
+  transition:
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms ease;
+}
+
+.sidebar.glyph-sidebar-leave-active {
+  transition:
+    transform 220ms cubic-bezier(0.4, 0, 1, 1),
+    box-shadow 180ms ease;
+}
+
+.sidebar.glyph-sidebar-enter-from,
+.sidebar.glyph-sidebar-leave-to {
+  transform: translateX(-100%);
+  box-shadow: none;
 }
 
 .sidebar.glyph-library-expanded {
@@ -1408,7 +1433,8 @@ const handlePasteStart = (): void => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sidebar {
+  .sidebar.glyph-sidebar-enter-active,
+  .sidebar.glyph-sidebar-leave-active {
     transition: none;
   }
 }
@@ -1471,10 +1497,26 @@ const handlePasteStart = (): void => {
 }
 
 @media (min-width: 1024px) {
+  .container {
+    transition: padding-left 220ms cubic-bezier(0.4, 0, 1, 1);
+  }
+
   .container.glyph-sidebar-push {
     padding-left: calc(
       v-bind(sidebarWidth + 'px') + clamp(var(--space-4), 2vw, 2rem)
     );
+    transition-duration: 280ms;
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .container.glyph-sidebar-resizing {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .container {
+    transition: none;
   }
 }
 </style>

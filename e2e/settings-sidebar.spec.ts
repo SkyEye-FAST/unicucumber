@@ -82,6 +82,43 @@ test('appearance preference persists across reloads', async ({ page }) => {
   ).toBeChecked()
 })
 
+test('boolean settings render as animated keyboard-operable switches', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await loadEditor(page)
+  const { drawer } = await openSettings(page)
+  const toggle = drawer.locator('#showBorder')
+
+  await expect(toggle).toHaveAttribute('role', 'switch')
+  const switchStyle = await toggle.evaluate((element) => {
+    const track = getComputedStyle(element)
+    const thumb = getComputedStyle(element, '::after')
+    return {
+      appearance: track.appearance,
+      width: Number.parseFloat(track.width),
+      height: Number.parseFloat(track.height),
+      thumbTransition: thumb.transitionDuration,
+      thumbTransform: thumb.transform,
+    }
+  })
+  expect(switchStyle.appearance).toBe('none')
+  expect(switchStyle.width).toBeGreaterThan(switchStyle.height)
+  expect(switchStyle.thumbTransition).not.toBe('0s')
+
+  const initiallyChecked = await toggle.isChecked()
+  await toggle.focus()
+  await page.keyboard.press('Space')
+  await expect(toggle).toBeChecked({ checked: !initiallyChecked })
+  await expect
+    .poll(() =>
+      toggle.evaluate(
+        (element) => getComputedStyle(element, '::after').transform,
+      ),
+    )
+    .not.toBe(switchStyle.thumbTransform)
+})
+
 test('desktop drawer is non-modal, keyboard operable, and preserves editor state', async ({
   page,
 }) => {
@@ -120,6 +157,32 @@ test('close button returns focus to the settings trigger', async ({ page }) => {
   await drawer.getByRole('button', { name: 'Close settings' }).click()
   await expect(drawer).toBeHidden()
   await expect(trigger).toBeFocused()
+})
+
+test('settings drawer uses distinct enter and leave motion', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 768, height: 1024 })
+  await loadEditor(page)
+  const trigger = page.getByRole('button', { name: 'Open settings' })
+  const drawer = page.getByRole('dialog', { name: 'Settings' })
+
+  await trigger.click()
+  await drawer.waitFor({ state: 'attached' })
+  expect(
+    await drawer.evaluate(
+      (element) => getComputedStyle(element).transitionDuration,
+    ),
+  ).toContain('0.24s')
+  await expect(drawer).toHaveCSS('transform', 'none')
+
+  await drawer.getByRole('button', { name: 'Close settings' }).click()
+  expect(
+    await drawer.evaluate(
+      (element) => getComputedStyle(element).transitionDuration,
+    ),
+  ).toContain('0.18s')
+  await expect(drawer).toBeHidden()
 })
 
 test('tablet overlay closes outside, stays open inside, and locks the page', async ({

@@ -112,6 +112,33 @@ test.describe('wide editor layout', () => {
     expect(sidebar.right).toBeGreaterThan(grid.left)
   })
 
+  test('reveals vertical tool names to the left on hover and focus', async ({
+    page,
+  }) => {
+    await loadWideEditor(page, 768, 1024)
+    const draw = page.getByRole('button', { name: 'Draw', exact: true })
+    const drawLabel = draw.locator('.tool-name-tooltip')
+
+    await expect(drawLabel).toBeHidden()
+    await draw.hover()
+    await expect(drawLabel).toHaveCSS('opacity', '1')
+    await expect(drawLabel).toHaveText('Draw')
+
+    const drawBounds = await draw.boundingBox()
+    const labelBounds = await drawLabel.boundingBox()
+    if (!drawBounds || !labelBounds) {
+      throw new Error('Tool name tooltip is unavailable')
+    }
+    expect(labelBounds.x + labelBounds.width).toBeLessThanOrEqual(drawBounds.x)
+
+    await page.getByRole('button', { name: 'Erase', exact: true }).focus()
+    await expect(
+      page
+        .getByRole('button', { name: 'Erase', exact: true })
+        .locator('.tool-name-tooltip'),
+    ).toHaveCSS('opacity', '1')
+  })
+
   for (const viewport of [
     { width: 1280, height: 720 },
     { width: 1440, height: 900 },
@@ -211,6 +238,8 @@ test.describe('wide editor layout', () => {
     })
 
     await page.getByRole('button', { name: 'Close glyph manager' }).click()
+    await expect(page.locator('.sidebar.active')).toHaveCount(1)
+    await expect(page.locator('.sidebar.active .glyph-manager')).toBeVisible()
     await expect(page.locator('.sidebar.active')).toHaveCount(0)
     await page.getByRole('button', { name: 'Open settings' }).click()
     const settings = page.getByRole('dialog', { name: 'Settings' })
