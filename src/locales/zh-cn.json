@@ -329,6 +329,7 @@
       "label": "绘制模式",
       "single_button": "左键绘制或擦除"
     },
+    "enable_selection": "启用选区工具",
     "font_edit": {
       "cancel": "取消",
       "save": "保存",
@@ -340,6 +341,7 @@
       "label": "字形预览模式",
       "pixel_only": "仅像素预览"
     },
+    "glyph_library_density": "字形库密度",
     "glyph_width": {
       "16px": "16像素",
       "8px": "8像素",
@@ -350,9 +352,10 @@
     },
     "reset": "重置为默认值",
     "sections": {
-      "behaviour": "行为",
-      "drawing": "绘制",
-      "glyph_preview": "字形与预览"
+      "canvas": "画布与工具",
+      "general": "通用",
+      "glyph_preview": "预览与字形库",
+      "safety": "安全操作"
     },
     "show_border": "显示网格边框",
     "title": "设置"

@@ -9,7 +9,7 @@ import type {
 } from '@/types/glyph'
 
 export const SETTINGS_KEY = 'unicucumber_settings'
-const SETTINGS_VERSION = 3
+const SETTINGS_VERSION = 4
 
 export const FONT_LIST = [
   'Noto Sans',
@@ -221,7 +221,10 @@ export const parseSettings = (value: unknown): EditorSettings => {
       storedPreviewFont !== null && !shouldMigratePreviewFont
         ? storedPreviewFont
         : defaultSettings.browserPreviewFont,
-    enableSelection: true,
+    enableSelection:
+      typeof stored.enableSelection === 'boolean'
+        ? stored.enableSelection
+        : defaultSettings.enableSelection,
   }
 }
 

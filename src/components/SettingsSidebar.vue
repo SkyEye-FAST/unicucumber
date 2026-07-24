@@ -33,30 +33,16 @@
         </header>
 
         <div class="settings-content">
-          <section
-            class="settings-section"
-            aria-labelledby="settings-language-title"
-          >
-            <h3 id="settings-language-title" class="settings-section-title">
-              {{ $t('settings.language.label') }}
-            </h3>
-            <div class="settings-field">
-              <CustomSelect
-                :model-value="locale"
-                :ariaLabel="$t('settings.language.label')"
-                :options="languageOptions"
-                @update:model-value="updateLanguage"
-              />
-            </div>
-          </section>
-
           <fieldset
-            class="settings-section appearance-section"
+            class="settings-section"
             aria-describedby="appearance-description"
           >
             <legend class="settings-section-title">
-              {{ $t('settings.appearance.label') }}
+              {{ $t('settings.sections.general') }}
             </legend>
+            <span class="settings-field-label">{{
+              $t('settings.appearance.label')
+            }}</span>
             <p id="appearance-description" class="settings-description">
               {{ $t('settings.appearance.follow_system') }}
             </p>
@@ -101,6 +87,18 @@
                 </span>
               </label>
             </div>
+
+            <div class="settings-field settings-field--inline">
+              <span class="settings-label">{{
+                $t('settings.language.label')
+              }}</span>
+              <CustomSelect
+                :model-value="locale"
+                :ariaLabel="$t('settings.language.label')"
+                :options="languageOptions"
+                @update:model-value="updateLanguage"
+              />
+            </div>
           </fieldset>
 
           <section
@@ -108,13 +106,25 @@
             aria-labelledby="settings-drawing-title"
           >
             <h3 id="settings-drawing-title" class="settings-section-title">
-              {{ $t('settings.sections.drawing') }}
+              {{ $t('settings.sections.canvas') }}
             </h3>
 
-            <div class="settings-field">
-              <span id="drawMode-label" class="settings-label">
-                {{ $t('settings.draw_mode.label') }}
-              </span>
+            <div class="settings-field settings-field--inline">
+              <span class="settings-label">{{
+                $t('settings.glyph_width.label')
+              }}</span>
+              <CustomSelect
+                :model-value="settings.glyphWidth"
+                :ariaLabel="$t('settings.glyph_width.label')"
+                :options="glyphWidthOptions"
+                @update:model-value="updateGlyphWidth"
+              />
+            </div>
+
+            <div class="settings-field settings-field--inline">
+              <span class="settings-label">{{
+                $t('settings.draw_mode.label')
+              }}</span>
               <CustomSelect
                 :model-value="settings.drawMode"
                 :ariaLabel="$t('settings.draw_mode.label')"
@@ -122,6 +132,30 @@
                 @update:model-value="updateDrawMode"
               />
             </div>
+
+            <label class="settings-check-row" for="showBorder">
+              <span class="settings-label">
+                {{ $t('settings.show_border') }}
+              </span>
+              <input
+                id="showBorder"
+                type="checkbox"
+                :checked="settings.showBorder"
+                @change="updateBoolean('showBorder', $event)"
+              />
+            </label>
+
+            <label class="settings-check-row" for="enableSelection">
+              <span class="settings-label">{{
+                $t('settings.enable_selection')
+              }}</span>
+              <input
+                id="enableSelection"
+                type="checkbox"
+                :checked="settings.enableSelection"
+                @change="updateBoolean('enableSelection', $event)"
+              />
+            </label>
 
             <label class="settings-check-row" for="alwaysShowMouseCursor">
               <span class="settings-label">
@@ -144,22 +178,10 @@
               {{ $t('settings.sections.glyph_preview') }}
             </h3>
 
-            <div class="settings-field">
-              <span id="glyphWidth-label" class="settings-label">
-                {{ $t('settings.glyph_width.label') }}
-              </span>
-              <CustomSelect
-                :model-value="settings.glyphWidth"
-                :ariaLabel="$t('settings.glyph_width.label')"
-                :options="glyphWidthOptions"
-                @update:model-value="updateGlyphWidth"
-              />
-            </div>
-
-            <div class="settings-field">
-              <span id="glyphPreviewMode-label" class="settings-label">
-                {{ $t('settings.glyph_preview.label') }}
-              </span>
+            <div class="settings-field settings-field--inline">
+              <span class="settings-label">{{
+                $t('settings.glyph_preview.label')
+              }}</span>
               <CustomSelect
                 :model-value="settings.glyphPreviewMode"
                 :ariaLabel="$t('settings.glyph_preview.label')"
@@ -168,8 +190,20 @@
               />
             </div>
 
+            <div class="settings-field settings-field--inline">
+              <span class="settings-label">{{
+                $t('settings.glyph_library_density')
+              }}</span>
+              <CustomSelect
+                :model-value="settings.glyphLibraryDensity"
+                :ariaLabel="$t('settings.glyph_library_density')"
+                :options="glyphLibraryDensityOptions"
+                @update:model-value="updateGlyphLibraryDensity"
+              />
+            </div>
+
             <div class="settings-field">
-              <span id="browser-font-label" class="settings-label">
+              <span id="browser-font-label" class="settings-field-label">
                 {{ $t('settings.browser_preview_font') }}
               </span>
               <button
@@ -222,20 +256,8 @@
             aria-labelledby="settings-behaviour-title"
           >
             <h3 id="settings-behaviour-title" class="settings-section-title">
-              {{ $t('settings.sections.behaviour') }}
+              {{ $t('settings.sections.safety') }}
             </h3>
-
-            <label class="settings-check-row" for="showBorder">
-              <span class="settings-label">
-                {{ $t('settings.show_border') }}
-              </span>
-              <input
-                id="showBorder"
-                type="checkbox"
-                :checked="settings.showBorder"
-                @change="updateBoolean('showBorder', $event)"
-              />
-            </label>
 
             <label class="settings-check-row" for="confirmClear">
               <span class="settings-label">
@@ -331,6 +353,14 @@ const glyphPreviewModeOptions = computed<CustomSelectOption[]>(() => [
   { value: 'browserOnly', label: $t('settings.glyph_preview.browser_only') },
   { value: 'both', label: $t('settings.glyph_preview.both') },
 ])
+const glyphLibraryDensityOptions = computed<CustomSelectOption[]>(() => [
+  { value: 'compact', label: $t('glyph_manager.library.density.compact') },
+  {
+    value: 'comfortable',
+    label: $t('glyph_manager.library.density.comfortable'),
+  },
+  { value: 'large', label: $t('glyph_manager.library.density.large') },
+])
 const languageOptions: CustomSelectOption[] = [
   { value: 'en', label: 'English' },
   { value: 'zh-CN', label: '简体中文' },
@@ -366,6 +396,12 @@ const updatePreviewMode = (value: string | number): void => {
   })
 }
 
+const updateGlyphLibraryDensity = (value: string | number): void => {
+  updateSettings({
+    glyphLibraryDensity: value as EditorSettings['glyphLibraryDensity'],
+  })
+}
+
 const updateLanguage = (value: string | number): void => {
   const nextLocale = value as SupportedLocale
   locale.value = nextLocale
@@ -377,7 +413,8 @@ const updateLanguage = (value: string | number): void => {
 }
 
 const updateBoolean = (
-  key: 'alwaysShowMouseCursor' | 'showBorder' | 'confirmClear',
+  key:
+    'alwaysShowMouseCursor' | 'showBorder' | 'confirmClear' | 'enableSelection',
   event: Event,
 ): void => {
   updateSettings({ [key]: (event.target as HTMLInputElement).checked })
@@ -568,27 +605,23 @@ const confirmReset = (): void => {
 .settings-section {
   min-width: 0;
   margin: 0;
-  padding: var(--space-6) 0;
+  padding: var(--space-4) 0;
   border: 0;
   border-bottom: 1px solid var(--border-color);
 }
 
-.appearance-section {
-  margin-top: var(--space-6);
-}
-
 .settings-section-title {
   display: block;
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--space-3);
   padding: 0;
   color: var(--text-color);
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 750;
   line-height: 1.25;
 }
 
 .settings-description {
-  margin: calc(var(--space-2) * -1) 0 var(--space-4);
+  margin: calc(var(--space-1) * -1) 0 var(--space-3);
   color: var(--text-secondary);
   font-size: 0.825rem;
   line-height: 1.45;
@@ -597,7 +630,7 @@ const confirmReset = (): void => {
 .settings-field {
   display: grid;
   gap: var(--space-2);
-  margin-top: var(--space-4);
+  margin-top: var(--space-3);
 }
 
 .settings-section-title + .settings-field {
@@ -607,9 +640,23 @@ const confirmReset = (): void => {
 .settings-label {
   min-width: 0;
   color: var(--text-color);
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.8125rem;
+  font-weight: 650;
   line-height: 1.4;
+}
+
+.settings-field-label {
+  min-width: 0;
+  color: var(--text-color);
+  font-size: 0.8125rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.settings-field--inline {
+  grid-template-columns: minmax(0, 1fr) minmax(8.75rem, 10.5rem);
+  align-items: center;
+  gap: var(--space-3);
 }
 
 .settings-field :deep(.custom-select),
@@ -627,12 +674,12 @@ const confirmReset = (): void => {
 }
 
 .settings-check-row {
-  min-height: var(--control-height);
+  min-height: 2.35rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  margin-top: var(--space-3);
+  margin-top: var(--space-2);
   cursor: pointer;
 }
 
@@ -674,7 +721,7 @@ const confirmReset = (): void => {
 }
 
 .appearance-option {
-  min-height: 3.4rem;
+  min-height: 2.8rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -733,7 +780,7 @@ const confirmReset = (): void => {
 
 .font-editor {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
   padding-top: var(--space-1);
 }
 
@@ -753,7 +800,7 @@ const confirmReset = (): void => {
 }
 
 .settings-footer {
-  padding: var(--space-4) 0 0;
+  padding: var(--space-3) 0 0;
 }
 
 .reset-button {
@@ -821,7 +868,11 @@ const confirmReset = (): void => {
   }
 
   .settings-section {
-    padding-block: 1.25rem;
+    padding-block: var(--space-4);
+  }
+
+  .settings-field--inline {
+    grid-template-columns: minmax(0, 1fr) minmax(8.25rem, 10rem);
   }
 
   .appearance-option {

@@ -329,6 +329,7 @@
       "label": "Draw mode",
       "single_button": "Left draw and erase"
     },
+    "enable_selection": "Enable selection tool",
     "font_edit": {
       "cancel": "Cancel",
       "save": "Save",
@@ -340,6 +341,7 @@
       "label": "Glyph preview mode",
       "pixel_only": "Pixel only"
     },
+    "glyph_library_density": "Glyph library density",
     "glyph_width": {
       "16px": "16 pixels",
       "8px": "8 pixels",
@@ -350,9 +352,10 @@
     },
     "reset": "Reset to defaults",
     "sections": {
-      "behaviour": "Behaviour",
-      "drawing": "Drawing",
-      "glyph_preview": "Glyph & preview"
+      "canvas": "Canvas & tools",
+      "general": "General",
+      "glyph_preview": "Preview & library",
+      "safety": "Safety"
     },
     "show_border": "Show grid border",
     "title": "Settings"

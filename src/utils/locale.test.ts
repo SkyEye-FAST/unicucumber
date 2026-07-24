@@ -31,9 +31,12 @@ describe('settings localization', () => {
       locale.settings.appearance.follow_system,
     ]).toEqual(labels)
     expect(locale.settings.close_sidebar).toBeTruthy()
-    expect(locale.settings.sections.drawing).toBeTruthy()
+    expect(locale.settings.sections.general).toBeTruthy()
+    expect(locale.settings.sections.canvas).toBeTruthy()
     expect(locale.settings.sections.glyph_preview).toBeTruthy()
-    expect(locale.settings.sections.behaviour).toBeTruthy()
+    expect(locale.settings.sections.safety).toBeTruthy()
+    expect(locale.settings.enable_selection).toBeTruthy()
+    expect(locale.settings.glyph_library_density).toBeTruthy()
   })
 })
 

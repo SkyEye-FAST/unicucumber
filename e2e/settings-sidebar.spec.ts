@@ -131,7 +131,7 @@ test('tablet overlay closes outside, stays open inside, and locks the page', asy
   await expect(settings.drawer).toHaveAttribute('aria-modal', 'true')
   await expect(page.locator('body')).toHaveCSS('overflow', 'hidden')
 
-  await settings.drawer.getByText('Drawing', { exact: true }).click()
+  await settings.drawer.getByText('Canvas & tools', { exact: true }).click()
   await expect(settings.drawer).toBeVisible()
   await page.locator('.settings-overlay').click({ position: { x: 20, y: 120 } })
   await expect(settings.drawer).toBeHidden()
