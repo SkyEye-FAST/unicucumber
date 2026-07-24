@@ -3,7 +3,13 @@
     <div v-if="show" class="dialog-overlay" @keydown="handleDialogKeydown">
       <div
         ref="dialogRef"
-        class="dialog-box"
+        :class="[
+          'dialog-box',
+          {
+            'dialog-box--danger': danger,
+            'dialog-box--list': type === 'list',
+          },
+        ]"
         role="dialog"
         aria-modal="true"
         :aria-labelledby="titleId"
@@ -328,10 +334,16 @@ const handleDialogKeydown = (event: KeyboardEvent): void => {
 }
 
 .dialog-box {
-  background: var(--dialog-background);
-  border: 1px solid var(--dialog-border);
-  border-radius: 8px;
-  padding: 20px;
+  --dialog-accent: var(--primary-color);
+  background: color-mix(
+    in srgb,
+    var(--dialog-background) 96%,
+    var(--dialog-accent)
+  );
+  border: 1px solid
+    color-mix(in srgb, var(--dialog-accent) 45%, var(--dialog-border));
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
   width: min(800px, 100%);
   max-height: calc(
     100dvh - max(24px, env(safe-area-inset-top)) -
@@ -339,18 +351,28 @@ const handleDialogKeydown = (event: KeyboardEvent): void => {
   );
   display: flex;
   flex-direction: column;
-  box-shadow: 0 2px 12px var(--modal-shadow);
+  box-shadow: 0 12px 32px var(--modal-shadow);
   pointer-events: auto;
 }
 
+.dialog-box--danger {
+  --dialog-accent: var(--danger-color);
+}
+
+.dialog-box--list {
+  --dialog-accent: var(--info-color);
+}
+
 .dialog-title {
-  margin: 0 0 16px 0;
+  margin: 0 0 var(--space-3);
   color: var(--text-color);
-  font-size: 1.2rem;
+  font-size: 1.25rem;
+  font-weight: 750;
+  letter-spacing: -0.015em;
 }
 
 .dialog-content {
-  margin-bottom: 20px;
+  margin-bottom: var(--space-4);
   color: var(--text-color);
   overflow: auto;
   overscroll-behavior: contain;
@@ -359,10 +381,11 @@ const handleDialogKeydown = (event: KeyboardEvent): void => {
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: var(--space-2);
   flex: 0 0 auto;
-  padding-top: 0.5rem;
-  background: var(--dialog-background);
+  padding-top: var(--space-3);
+  border-top: 1px solid
+    color-mix(in srgb, var(--dialog-accent) 18%, var(--border-color));
 }
 
 .conflict-list {
@@ -450,12 +473,18 @@ const handleDialogKeydown = (event: KeyboardEvent): void => {
 .btn-primary,
 .btn-secondary,
 .btn-danger {
-  font-weight: bold;
-  padding: 8px 16px;
+  min-height: var(--control-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
   color: white;
-  border: none;
-  border-radius: 4px;
   cursor: pointer;
+  font-family: var(--normal-font);
+  font-weight: 700;
 }
 
 .btn-primary {
@@ -463,7 +492,9 @@ const handleDialogKeydown = (event: KeyboardEvent): void => {
 }
 
 .btn-secondary {
-  background: var(--grey-color);
+  border-color: var(--input-border);
+  background: var(--background-light);
+  color: var(--text-color);
 }
 
 .btn-danger {
@@ -471,11 +502,6 @@ const handleDialogKeydown = (event: KeyboardEvent): void => {
 }
 
 .dialog-title {
-  color: var(--text-color);
-}
-
-[data-theme='dark'] .btn-secondary {
-  background: var(--background-active);
   color: var(--text-color);
 }
 
@@ -494,7 +520,7 @@ const handleDialogKeydown = (event: KeyboardEvent): void => {
 
 @media (min-width: 1025px) {
   .dialog-box {
-    padding: 24px;
+    padding: var(--space-6);
   }
 
   .conflict-items-container {
@@ -517,16 +543,16 @@ const handleDialogKeydown = (event: KeyboardEvent): void => {
   }
 
   .dialog-box {
-    padding: 28px;
+    padding: var(--space-6);
   }
 
   .dialog-title {
-    font-size: 2rem;
-    margin-bottom: 20px;
+    font-size: 1.35rem;
+    margin-bottom: var(--space-3);
   }
 
   .dialog-content {
-    font-size: 1.5rem;
+    font-size: 1rem;
   }
 
   .conflict-items-container {
@@ -551,8 +577,9 @@ const handleDialogKeydown = (event: KeyboardEvent): void => {
   .btn-primary,
   .btn-secondary,
   .btn-danger {
-    padding: 10px 24px;
-    font-size: 1.5rem;
+    min-height: var(--control-height);
+    padding: 0.55rem 0.9rem;
+    font-size: 1rem;
   }
 
   .checkbox-label {

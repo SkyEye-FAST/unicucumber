@@ -386,6 +386,7 @@ test('image file import still opens the preparation dialog without capture input
   test.skip(testInfo.project.name !== 'chromium', 'one image import smoke test')
   await page.getByRole('button', { name: 'Open glyph manager' }).click()
   await expect(page.locator('input[capture]')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Tools' }).click()
 
   const fileChooserPromise = page.waitForEvent('filechooser')
   await page.getByRole('button', { name: 'Photo Library' }).click()
@@ -402,5 +403,6 @@ test('image file import still opens the preparation dialog without capture input
   await expect(
     page.getByRole('dialog', { name: 'Prepare image as glyph' }),
   ).toBeVisible()
+  await expect(page.locator('.image-import-dialog')).toBeVisible()
   await expect(page.getByLabel('Converted pixel glyph preview')).toBeVisible()
 })

@@ -422,6 +422,17 @@ test.describe('full-screen glyph library', () => {
     await page.getByRole('button', { name: /Remove from manager/ }).click()
     const confirmation = page.getByRole('dialog', { name: 'Confirm Delete' })
     await expect(confirmation).toBeVisible()
+    await expect(confirmation).toHaveClass(/dialog-box--danger/)
+    if (testInfo.project.name === 'chromium') {
+      await page.screenshot({
+        path: join(
+          process.env.TEMP ?? testInfo.outputDir,
+          'unicucumber-glyph-library',
+          'dialog-danger-light.png',
+        ),
+        fullPage: false,
+      })
+    }
     await confirmation.getByRole('button', { name: /Delete/i }).click()
     await expect(page.locator('.glyph-library-cell')).toHaveCount(1)
     await expect(page.locator('.glyph-library-cell')).toHaveAttribute(

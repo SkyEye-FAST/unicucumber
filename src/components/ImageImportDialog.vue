@@ -13,6 +13,7 @@
         <header>
           <h2 id="image-import-title">{{ $t('image_import.title') }}</h2>
           <button
+            class="image-import-close ui-icon-button"
             type="button"
             :aria-label="$t('image_import.cancel')"
             @click="emit('cancel')"
@@ -80,11 +81,15 @@
           </div>
         </div>
         <footer>
-          <button type="button" @click="emit('cancel')">
+          <button
+            class="image-import-cancel ui-button ui-button--quiet"
+            type="button"
+            @click="emit('cancel')"
+          >
             {{ $t('image_import.cancel') }}
           </button>
           <button
-            class="confirm"
+            class="confirm ui-button ui-button--primary"
             type="button"
             :disabled="!preparedGrid"
             @click="confirm"
@@ -245,10 +250,16 @@ const handleKeydown = (event: KeyboardEvent): void => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  background: var(--dialog-background);
+  border: 1px solid
+    color-mix(in srgb, var(--primary-color) 45%, var(--dialog-border));
+  border-radius: var(--radius-md);
+  background: color-mix(
+    in srgb,
+    var(--dialog-background) 96%,
+    var(--primary-color)
+  );
   color: var(--text-color);
+  box-shadow: 0 12px 32px var(--modal-shadow);
 }
 
 .image-import-dialog header,
@@ -256,26 +267,19 @@ const handleKeydown = (event: KeyboardEvent): void => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.65rem;
+  gap: var(--space-2);
+  padding: var(--space-4);
 }
 
 .image-import-dialog header h2 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
+  font-weight: 750;
+  letter-spacing: -0.015em;
 }
 
-.image-import-dialog button,
-.image-import-dialog input {
-  min-height: 44px;
-}
-
-.image-import-dialog button {
-  padding: 0.4rem 0.7rem;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background: var(--background-light);
-  color: var(--text-color);
+.image-import-close {
+  color: var(--text-secondary);
 }
 
 .image-import-content {
@@ -329,12 +333,14 @@ const handleKeydown = (event: KeyboardEvent): void => {
 
 .image-import-dialog footer {
   justify-content: flex-end;
-  border-top: 1px solid var(--border-color);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid
+    color-mix(in srgb, var(--primary-color) 18%, var(--border-color));
 }
 
-.image-import-dialog footer .confirm {
-  background: var(--primary-color);
-  color: white;
+.image-import-cancel {
+  border-color: var(--input-border);
+  color: var(--text-color);
 }
 
 @media (max-width: 560px) {
