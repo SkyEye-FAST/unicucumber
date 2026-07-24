@@ -304,7 +304,7 @@ test('mobile settings and glyph manager stay within the dynamic viewport', async
 }, testInfo) => {
   test.skip(!testInfo.project.name.includes('phone'), 'mobile overlay layout')
 
-  await page.locator('.modal-buttons .modal-button').nth(0).click()
+  await page.getByRole('button', { name: 'Open settings' }).click()
   const settings = page.getByRole('dialog').last()
   await expect(settings).toBeVisible()
   const settingsBounds = await settings.boundingBox()
@@ -315,7 +315,7 @@ test('mobile settings and glyph manager stay within the dynamic viewport', async
   await page.keyboard.press('Escape')
   await expect(settings).toBeHidden()
 
-  await page.locator('.modal-buttons .modal-button').nth(1).click()
+  await page.getByRole('button', { name: 'Open glyph manager' }).click()
   await expect(page.locator('.sidebar.active')).toBeVisible()
   await expect(page.locator('.glyph-manager')).toBeVisible()
   await expect(page.locator('.glyph-manager .search-input')).toBeVisible()
@@ -341,7 +341,7 @@ test('glyph manager loads only the requested Unifont range', async ({
   page.on('request', (request) => {
     if (request.url().includes('/unifont/')) requested.push(request.url())
   })
-  await page.locator('.modal-buttons .modal-button').nth(1).click()
+  await page.getByRole('button', { name: 'Open glyph manager' }).click()
   await expect(page.locator('input[capture]')).toHaveCount(0)
   await expect(
     page.getByRole('button', { name: 'Photo Library' }),
@@ -384,7 +384,7 @@ test('image file import still opens the preparation dialog without capture input
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== 'chromium', 'one image import smoke test')
-  await page.locator('.modal-buttons .modal-button').nth(1).click()
+  await page.getByRole('button', { name: 'Open glyph manager' }).click()
   await expect(page.locator('input[capture]')).toHaveCount(0)
 
   const fileChooserPromise = page.waitForEvent('filechooser')

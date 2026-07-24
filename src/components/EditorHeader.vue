@@ -8,18 +8,18 @@
       <button
         class="modal-button ui-icon-button"
         type="button"
-        :aria-label="$t('header.open_settings')"
-        @click="$emit('openSettings')"
-      >
-        <i-material-symbols-settings class="icon" />
-      </button>
-      <button
-        class="modal-button ui-icon-button"
-        type="button"
         :aria-label="$t('header.open_glyph_manager')"
         @click="$emit('toggleSidebar')"
       >
         <i-material-symbols-glyphs class="icon" />
+      </button>
+      <button
+        class="modal-button ui-icon-button"
+        type="button"
+        :aria-label="$t('header.open_settings')"
+        @click="$emit('openSettings')"
+      >
+        <i-material-symbols-settings class="icon" />
       </button>
       <a
         class="modal-button ui-icon-button"

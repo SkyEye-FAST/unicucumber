@@ -150,7 +150,7 @@ test.describe('responsive visual baseline', () => {
         await expect(hexInput).toHaveAttribute('title', /[0-9A-F]{64}/)
 
         if (viewport.width >= 720 && viewport.width < 1024) {
-          await page.locator('.modal-buttons .modal-button').nth(1).click()
+          await page.getByRole('button', { name: 'Open glyph manager' }).click()
           const drawer = page.locator('.sidebar.active')
           await expect(drawer).toBeVisible()
           const drawerBounds = await drawer.boundingBox()
