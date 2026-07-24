@@ -27,6 +27,7 @@
         v-if="open"
         class="custom-select__overlay"
         :class="{ 'is-modal': useMobileModal }"
+        :style="mobileOverlayStyle"
         :role="useMobileModal ? 'dialog' : undefined"
         :aria-label="useMobileModal ? ariaLabel : undefined"
         :aria-modal="useMobileModal ? 'true' : undefined"
@@ -137,6 +138,8 @@ const open = ref(false)
 const isNarrowViewport = ref(false)
 const query = ref('')
 const highlightedValue = ref<string | number | null>(null)
+const visualViewportHeight = ref<number | null>(null)
+const visualViewportOffsetTop = ref(0)
 const menuId = `custom-select-${++selectId}`
 
 const selectedOption = computed(() =>
@@ -145,6 +148,16 @@ const selectedOption = computed(() =>
 const useMobileModal = computed(
   () => props.mobileModal && isNarrowViewport.value,
 )
+const mobileOverlayStyle = computed(() => {
+  if (!useMobileModal.value || visualViewportHeight.value === null) {
+    return undefined
+  }
+  return {
+    bottom: 'auto',
+    height: `${visualViewportHeight.value}px`,
+    top: `${visualViewportOffsetTop.value}px`,
+  }
+})
 const filteredOptions = computed(() => {
   const normalizedQuery = query.value.trim().toLocaleLowerCase()
   if (!normalizedQuery) return props.options
@@ -259,15 +272,25 @@ let narrowViewportQuery: MediaQueryList | null = null
 const handleNarrowViewportChange = (event: MediaQueryListEvent): void => {
   isNarrowViewport.value = event.matches
 }
+const updateVisualViewport = (): void => {
+  const viewport = window.visualViewport
+  visualViewportHeight.value = viewport?.height ?? null
+  visualViewportOffsetTop.value = viewport?.offsetTop ?? 0
+}
 
 onMounted(() => {
   narrowViewportQuery = window.matchMedia('(max-width: 719px)')
   isNarrowViewport.value = narrowViewportQuery.matches
   narrowViewportQuery.addEventListener('change', handleNarrowViewportChange)
+  updateVisualViewport()
+  window.visualViewport?.addEventListener('resize', updateVisualViewport)
+  window.visualViewport?.addEventListener('scroll', updateVisualViewport)
 })
 onBeforeUnmount(() => {
   document.removeEventListener('pointerdown', handleDocumentPointerDown)
   narrowViewportQuery?.removeEventListener('change', handleNarrowViewportChange)
+  window.visualViewport?.removeEventListener('resize', updateVisualViewport)
+  window.visualViewport?.removeEventListener('scroll', updateVisualViewport)
 })
 </script>
 
@@ -345,7 +368,7 @@ onBeforeUnmount(() => {
 .custom-select__menu--modal {
   position: static;
   min-width: 0;
-  max-height: min(78dvh, 38rem);
+  max-height: min(78dvh, 38rem, 100%);
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   border-width: 1px 0 0;

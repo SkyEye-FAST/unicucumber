@@ -278,6 +278,7 @@ test.describe('full-screen glyph library', () => {
     await seedGlyphs(page)
     await openLibrary(page)
     await expandLibrary(page)
+    await page.getByRole('button', { name: 'Filters' }).click()
 
     await page.getByRole('combobox', { name: 'Unicode plane' }).click()
     await page
@@ -288,6 +289,24 @@ test.describe('full-screen glyph library', () => {
     const modal = page.getByRole('dialog', { name: 'Unicode block' })
     await expect(modal).toBeVisible()
     await expect(modal).toHaveCSS('position', 'fixed')
+    await page.setViewportSize({
+      width: page.viewportSize()?.width ?? 393,
+      height: 420,
+    })
+    await expect
+      .poll(() =>
+        modal.evaluate((element) => {
+          const bounds = element.getBoundingClientRect()
+          const viewport = window.visualViewport
+          const viewportTop = viewport?.offsetTop ?? 0
+          const viewportBottom =
+            viewportTop + (viewport?.height ?? window.innerHeight)
+          return (
+            bounds.top >= viewportTop - 1 && bounds.bottom <= viewportBottom + 1
+          )
+        }),
+      )
+      .toBe(true)
     await modal
       .getByRole('searchbox', { name: 'Unicode block' })
       .fill('Basic Latin')
