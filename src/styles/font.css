@@ -34,6 +34,10 @@ body {
   font-family: var(--normal-font);
 }
 
+:root:lang(zh) {
+  text-autospace: ideograph-alpha ideograph-numeric;
+}
+
 [lang='zh-cn'] body {
   --normal-font: 'Noto Sans CJK SC', 'Source Han Sans SC', sans-serif;
   font-family: 'Noto Sans CJK SC', 'Source Han Sans SC', sans-serif;
