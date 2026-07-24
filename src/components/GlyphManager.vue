@@ -47,6 +47,7 @@
       v-model:search-query="searchQuery"
       :glyphs="props.glyphs"
       @export="exportToHex"
+      @font="exportFont"
       @backup="exportBackup"
       @sheet="exportBitmapSheet"
     />
@@ -72,6 +73,7 @@
       @clear-selection="clearSelection"
       @delete-selected="handleBatchDelete(selectedManagedCodePoints)"
       @export="exportToHex"
+      @font="exportFont"
       @select-filtered="selectFilteredGlyphs"
       @sheet="exportBitmapSheet"
       @toggle-selection-mode="toggleSelectionMode"
@@ -223,6 +225,13 @@ import {
 import { parseHexFile } from '@/utils/hexImport'
 import { gridToHex } from '@/utils/hexUtils'
 import { createBitmapSheet, createGlyphBackup } from '@/utils/libraryExport'
+import {
+  createBdfFont,
+  createPixelFont,
+  createPsfFont,
+  createWoff2Font,
+  type FontExportFormat,
+} from '@/utils/fontExport'
 
 import DialogBox from './DialogBox.vue'
 import GlyphAdder from './GlyphManager/GlyphAdder.vue'
@@ -817,6 +826,49 @@ const exportBackup = (): void => {
     notify({ tone: 'success', message: $t('glyph_manager.backup_exported') })
   } catch (error) {
     console.error('Unable to export glyph backup.', error)
+    notify({ tone: 'error', message: $t('glyph_manager.export_failed') })
+  }
+}
+
+const exportFont = async (
+  format: FontExportFormat | 'woff2' | 'bdf' | 'psf',
+): Promise<void> => {
+  try {
+    const content = await (format === 'woff2'
+      ? createWoff2Font(props.glyphs)
+      : format === 'bdf'
+        ? createBdfFont(props.glyphs)
+        : format === 'psf'
+          ? createPsfFont(props.glyphs)
+          : createPixelFont(props.glyphs, format))
+    const mimeType =
+      format === 'woff2'
+        ? 'font/woff2'
+        : format === 'woff'
+          ? 'font/woff'
+          : format === 'otf'
+            ? 'font/otf'
+            : format === 'ttf'
+              ? 'font/ttf'
+              : format === 'bdf'
+                ? 'application/x-font-bdf'
+                : 'application/x-font-psf'
+    const blobContent =
+      typeof content === 'string'
+        ? content
+        : new Uint8Array(Array.from(content)).buffer
+    downloadBlob(
+      new Blob([blobContent], { type: mimeType }),
+      `unicucumber-pixel-${Date.now()}.${format}`,
+    )
+    notify({
+      tone: 'success',
+      message: $t('glyph_manager.font_exported', {
+        format: format.toUpperCase(),
+      }),
+    })
+  } catch (error) {
+    console.error(`Unable to export ${format} font.`, error)
     notify({ tone: 'error', message: $t('glyph_manager.export_failed') })
   }
 }

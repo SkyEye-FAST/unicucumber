@@ -17,6 +17,54 @@
         {{ $t('glyph_manager.export') }}
       </summary>
       <div class="export-options">
+        <p class="export-options__group">
+          {{ $t('glyph_manager.export_font_files') }}
+        </p>
+        <button
+          type="button"
+          :disabled="!glyphs.length"
+          @click="$emit('font', 'otf')"
+        >
+          {{ $t('glyph_manager.export_otf') }}
+        </button>
+        <button
+          type="button"
+          :disabled="!glyphs.length"
+          @click="$emit('font', 'ttf')"
+        >
+          {{ $t('glyph_manager.export_ttf') }}
+        </button>
+        <button
+          type="button"
+          :disabled="!glyphs.length"
+          @click="$emit('font', 'woff')"
+        >
+          {{ $t('glyph_manager.export_woff') }}
+        </button>
+        <button
+          type="button"
+          :disabled="!glyphs.length"
+          @click="$emit('font', 'woff2')"
+        >
+          {{ $t('glyph_manager.export_woff2') }}
+        </button>
+        <button
+          type="button"
+          :disabled="!glyphs.length"
+          @click="$emit('font', 'bdf')"
+        >
+          {{ $t('glyph_manager.export_bdf') }}
+        </button>
+        <button
+          type="button"
+          :disabled="!glyphs.length"
+          @click="$emit('font', 'psf')"
+        >
+          {{ $t('glyph_manager.export_psf') }}
+        </button>
+        <p class="export-options__group export-options__group--data">
+          {{ $t('glyph_manager.export_data_files') }}
+        </p>
         <button
           type="button"
           :disabled="!glyphs.length"
@@ -85,6 +133,7 @@ defineEmits<{
   'update:searchQuery': [value: string]
   export: []
   backup: []
+  font: [format: 'otf' | 'ttf' | 'woff' | 'woff2' | 'bdf' | 'psf']
   sheet: [options: { columns: number; scale: number }]
 }>()
 
@@ -170,31 +219,57 @@ const sheetScaleOptions: CustomSelectOption[] = [
   z-index: 5;
   right: 0;
   top: calc(100% + 0.25rem);
-  width: min(14rem, calc(100vw - 2rem));
+  width: min(18.5rem, calc(100vw - 1.5rem));
+  max-height: calc(100dvh - 6rem);
   display: grid;
   padding: 0.35rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   background: var(--dialog-background);
   box-shadow: 0 4px 12px var(--modal-shadow);
 }
 
 .export-options button {
-  min-height: 44px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 2.25rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-sm);
   border: 0;
   background: transparent;
   color: var(--text-color);
+  font-size: 0.8125rem;
+  line-height: 1.25;
   text-align: left;
 }
 
+.export-options__group {
+  margin: 0;
+  padding: 0.55rem 0.55rem 0.2rem;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.export-options__group--data {
+  margin-block-start: 0.2rem;
+  border-block-start: 1px solid var(--border-color);
+}
+
 .export-options label {
-  min-height: 44px;
+  min-height: 2.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
   padding-inline: 0.35rem;
   color: var(--text-color);
+  font-size: 0.8125rem;
+  line-height: 1.25;
 }
 
 .export-options :deep(.custom-select) {
@@ -202,7 +277,19 @@ const sheetScaleOptions: CustomSelectOption[] = [
 }
 
 .export-options :deep(.custom-select__trigger) {
-  min-height: 36px;
+  min-height: 2rem;
+  font-size: 0.8125rem;
+}
+
+.export-options label:last-child :deep(.custom-select__menu) {
+  inset-block-start: auto;
+  inset-block-end: calc(100% + 0.3rem);
+  z-index: 60;
+}
+
+/* A select list must be able to escape the scrollable export menu. */
+.export-options:has(:deep(.custom-select.is-open)) {
+  overflow: visible;
 }
 
 .export-options button:hover,

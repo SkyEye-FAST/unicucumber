@@ -105,6 +105,56 @@
           <span>{{ $t('glyph_manager.export') }}</span>
         </summary>
         <div class="library-export-options">
+          <p class="library-export-options__group">
+            {{ $t('glyph_manager.export_font_files') }}
+          </p>
+          <button
+            type="button"
+            :disabled="managedCount === 0"
+            @click="exportFont('otf')"
+          >
+            {{ $t('glyph_manager.export_otf') }}
+          </button>
+          <button
+            type="button"
+            :disabled="managedCount === 0"
+            @click="exportFont('ttf')"
+          >
+            {{ $t('glyph_manager.export_ttf') }}
+          </button>
+          <button
+            type="button"
+            :disabled="managedCount === 0"
+            @click="exportFont('woff')"
+          >
+            {{ $t('glyph_manager.export_woff') }}
+          </button>
+          <button
+            type="button"
+            :disabled="managedCount === 0"
+            @click="exportFont('woff2')"
+          >
+            {{ $t('glyph_manager.export_woff2') }}
+          </button>
+          <button
+            type="button"
+            :disabled="managedCount === 0"
+            @click="exportFont('bdf')"
+          >
+            {{ $t('glyph_manager.export_bdf') }}
+          </button>
+          <button
+            type="button"
+            :disabled="managedCount === 0"
+            @click="exportFont('psf')"
+          >
+            {{ $t('glyph_manager.export_psf') }}
+          </button>
+          <p
+            class="library-export-options__group library-export-options__group--data"
+          >
+            {{ $t('glyph_manager.export_data_files') }}
+          </p>
           <button
             type="button"
             :disabled="managedCount === 0"
@@ -268,6 +318,7 @@ const emit = defineEmits<{
   'clear-selection': []
   'delete-selected': []
   export: []
+  font: [format: 'otf' | 'ttf' | 'woff' | 'woff2' | 'bdf' | 'psf']
   'select-filtered': []
   sheet: [options: { columns: number; scale: number }]
   'toggle-selection-mode': []
@@ -375,6 +426,12 @@ const exportHex = (): void => {
 }
 const exportBackup = (): void => {
   emit('backup')
+  closeExportMenu()
+}
+const exportFont = (
+  format: 'otf' | 'ttf' | 'woff' | 'woff2' | 'bdf' | 'psf',
+): void => {
+  emit('font', format)
   closeExportMenu()
 }
 const exportSheet = (): void => {
@@ -639,10 +696,13 @@ const exportSheet = (): void => {
   position: absolute;
   inset-block-start: calc(100% + 0.35rem);
   inset-inline-end: 0;
-  width: min(15rem, calc(100vw - 1.5rem));
+  width: min(18.5rem, calc(100vw - 1.5rem));
+  max-height: calc(100dvh - 5rem);
   display: grid;
   gap: 1px;
   padding: 0.35rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   background: var(--dialog-background);
@@ -651,7 +711,7 @@ const exportSheet = (): void => {
 
 .library-export-options button,
 .library-export-options label {
-  min-height: 2.5rem;
+  min-height: 2.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -661,8 +721,23 @@ const exportSheet = (): void => {
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--text-color);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
+  line-height: 1.25;
   text-align: start;
+}
+
+.library-export-options__group {
+  margin: 0;
+  padding: 0.5rem 0.6rem 0.15rem;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.library-export-options__group--data {
+  margin-block-start: 0.2rem;
+  border-block-start: 1px solid var(--border-color);
 }
 
 .library-export-options button:hover,
@@ -675,7 +750,19 @@ const exportSheet = (): void => {
 }
 
 .library-export-options :deep(.custom-select__trigger) {
-  min-height: 2rem;
+  min-height: 1.875rem;
+  font-size: 0.75rem;
+}
+
+.library-export-options label:last-child :deep(.custom-select__menu) {
+  inset-block-start: auto;
+  inset-block-end: calc(100% + 0.3rem);
+  z-index: 60;
+}
+
+/* Keep nested select options above the export panel instead of clipping them. */
+.library-export-options:has(:deep(.custom-select.is-open)) {
+  overflow: visible;
 }
 
 .density-control {
