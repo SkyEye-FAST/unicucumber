@@ -1396,6 +1396,7 @@ const handlePasteStart = (): void => {
     width: var(--control-height);
     padding: 0;
     font-size: 0;
+    gap: 0;
   }
 
   .editor-actions,

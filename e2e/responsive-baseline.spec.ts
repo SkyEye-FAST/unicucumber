@@ -199,6 +199,27 @@ test.describe('responsive visual baseline', () => {
         } else {
           await expect(page.locator('.mobile-command-bar')).toBeHidden()
           await expect(page.locator('.tool-buttons')).toBeVisible()
+
+          if (viewport.width >= 1024) {
+            const restoreAlignment = await page
+              .locator('.editor-control-stack .restore-action')
+              .evaluate((button) => {
+                const icon = button.querySelector<HTMLElement>('.icon')
+                const buttonBounds = button.getBoundingClientRect()
+                const iconBounds = icon?.getBoundingClientRect()
+                if (!iconBounds)
+                  throw new Error('Restore button icon is missing')
+                return {
+                  buttonCenter: buttonBounds.left + buttonBounds.width / 2,
+                  iconCenter: iconBounds.left + iconBounds.width / 2,
+                }
+              })
+            expect(
+              Math.abs(
+                restoreAlignment.buttonCenter - restoreAlignment.iconCenter,
+              ),
+            ).toBeLessThanOrEqual(1)
+          }
         }
 
         const hexInput = page.locator('#hexInput')
