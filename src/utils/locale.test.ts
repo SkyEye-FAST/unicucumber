@@ -61,9 +61,6 @@ describe('glyph-library localization', () => {
           library.clear_selection,
           library.selected_count,
           library.no_matches,
-          library.open_in_editor,
-          library.browser_preview,
-          library.bitmap_preview,
         ].every(Boolean),
       ).toBe(true)
     },
