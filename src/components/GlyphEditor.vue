@@ -82,17 +82,17 @@
             />
           </template>
         </GlyphGrid>
-
-        <div class="editor-output-stack">
-          <HexCodeInput :hex-code="hexCode" @apply="applyHexCode" />
-          <DownloadButtons
-            v-model:export-scale="settings.exportScale"
-            v-model:export-transparent="settings.exportTransparent"
-            :grid-data="gridData"
-            :codepoint="currentCodePoint"
-          />
-        </div>
       </section>
+
+      <div class="editor-output-stack">
+        <HexCodeInput :hex-code="hexCode" @apply="applyHexCode" />
+        <DownloadButtons
+          v-model:export-scale="settings.exportScale"
+          v-model:export-transparent="settings.exportTransparent"
+          :grid-data="gridData"
+          :codepoint="currentCodePoint"
+        />
+      </div>
 
       <aside class="editor-control-stack">
         <div class="editor-actions">
@@ -1416,10 +1416,23 @@ const handlePasteStart = (): void => {
 @media (min-width: 720px) {
   .editor-layout {
     grid-template-columns: minmax(0, 1fr) var(--control-height);
-    gap: var(--space-3);
+    column-gap: var(--space-3);
+    row-gap: var(--space-2);
+  }
+
+  .editor-canvas-column {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .editor-output-stack {
+    grid-column: 1;
+    grid-row: 2;
   }
 
   .editor-control-stack {
+    grid-column: 2;
+    grid-row: 1;
     position: sticky;
     top: var(--space-4);
     width: var(--control-height);
@@ -1448,6 +1461,12 @@ const handlePasteStart = (): void => {
 
   .action-group {
     flex-wrap: nowrap;
+  }
+}
+
+@media (min-width: 720px) and (max-width: 899px) {
+  .editor-output-stack {
+    grid-column: 1 / -1;
   }
 }
 
