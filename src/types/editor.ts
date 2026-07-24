@@ -9,13 +9,7 @@ import type {
 export type ShiftDirection = 'up' | 'down' | 'left' | 'right'
 export type RectangleMode = 'outline' | 'filled'
 export type MobileAction =
-  | 'paste'
-  | 'invert'
-  | 'flipHorizontal'
-  | 'flipVertical'
-  | 'restore'
-  | 'clear'
-  | `shift-${ShiftDirection}`
+  'paste' | 'invert' | 'flipHorizontal' | 'flipVertical' | 'restore'
 
 export interface CellUpdate extends GridPosition {
   value: GridCell

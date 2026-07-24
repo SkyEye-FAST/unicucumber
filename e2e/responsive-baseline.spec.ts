@@ -199,6 +199,12 @@ test.describe('responsive visual baseline', () => {
         } else {
           await expect(page.locator('.mobile-command-bar')).toBeHidden()
           await expect(page.locator('.tool-buttons')).toBeVisible()
+          await expect(
+            page.locator('.editor-actions .ui-button--danger'),
+          ).toHaveCount(0)
+          await expect(
+            page.locator('.tool-sheet-group').last().locator('button'),
+          ).toHaveCount(3)
 
           if (viewport.width >= 1024) {
             const restoreAlignment = await page

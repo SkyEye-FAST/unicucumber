@@ -93,27 +93,6 @@
               $t('tools.flip_vertical')
             }}
           </button>
-          <button
-            v-for="direction in shiftDirections"
-            :key="direction"
-            type="button"
-            @click="emit('command', { type: 'shiftGrid', direction })"
-          >
-            <i-material-symbols-arrow-upward
-              v-if="direction === 'up'"
-              class="icon"
-            />
-            <i-material-symbols-arrow-downward
-              v-else-if="direction === 'down'"
-              class="icon"
-            />
-            <i-material-symbols-arrow-back
-              v-else-if="direction === 'left'"
-              class="icon"
-            />
-            <i-material-symbols-arrow-forward v-else class="icon" />
-            {{ $t(`tools.shift_${direction}`) }}
-          </button>
         </div>
       </div>
     </details>
@@ -123,7 +102,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 
-import type { EditorCommand, ShiftDirection } from '@/types/editor'
+import type { EditorCommand } from '@/types/editor'
 import type { EditorTool } from '@/types/glyph'
 
 interface Props {
@@ -168,7 +147,6 @@ const secondaryTools = [
   { id: 'pan', label: 'tools.pan', shortcut: 'H' },
 ] satisfies Array<{ id: EditorTool; label: string; shortcut: string }>
 
-const shiftDirections: ShiftDirection[] = ['up', 'down', 'left', 'right']
 const updateTool = (tool: EditorTool): void => {
   if (props.disabled && (tool === 'draw' || tool === 'erase')) return
   emit('update:currentTool', tool)
