@@ -661,6 +661,7 @@ test('compact manager preloads once, windows rows, and preserves state on reopen
 
 const visualViewports = [
   { width: 390, height: 844 },
+  { width: 640, height: 800 },
   { width: 768, height: 1024 },
   { width: 1024, height: 768 },
   { width: 1280, height: 800 },
@@ -709,6 +710,10 @@ for (const viewport of visualViewports) {
         toolbarRight: document
           .querySelector('.library-toolbar')
           ?.getBoundingClientRect().right,
+        identityScrollWidth:
+          document.querySelector<HTMLElement>('.library-identity')?.scrollWidth,
+        identityClientWidth:
+          document.querySelector<HTMLElement>('.library-identity')?.clientWidth,
         gridRight: document
           .querySelector('.glyph-library-grid')
           ?.getBoundingClientRect().right,
@@ -717,6 +722,9 @@ for (const viewport of visualViewports) {
       expect(metrics.documentWidth).toBeLessThanOrEqual(metrics.viewportWidth)
       expect(metrics.toolbarRight ?? Infinity).toBeLessThanOrEqual(
         metrics.viewportWidth + 1,
+      )
+      expect(metrics.identityScrollWidth ?? 0).toBeLessThanOrEqual(
+        metrics.identityClientWidth ?? 0,
       )
       expect(metrics.gridRight ?? Infinity).toBeLessThanOrEqual(
         metrics.viewportWidth + 1,

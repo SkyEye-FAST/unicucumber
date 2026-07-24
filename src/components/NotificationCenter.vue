@@ -184,21 +184,25 @@ const runAction = (notification: AppNotification): void => {
 .notification-actions {
   flex: none;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 0.35rem;
   pointer-events: auto;
 }
 
 .notification-action {
-  min-height: 2.25rem;
+  box-sizing: border-box;
+  min-height: var(--control-height);
+  height: var(--control-height);
   padding-inline: 0.7rem;
   white-space: nowrap;
 }
 
 .notification .dismiss {
-  width: 2.25rem;
-  min-width: 2.25rem;
-  height: 2.25rem;
+  box-sizing: border-box;
+  width: var(--control-height);
+  min-width: var(--control-height);
+  min-height: var(--control-height);
+  height: var(--control-height);
   padding: 0;
 }
 

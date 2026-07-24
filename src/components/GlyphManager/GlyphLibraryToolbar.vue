@@ -893,6 +893,13 @@ const exportSheet = (): void => {
   .library-identity {
     min-width: 0;
     gap: var(--space-2);
+    overflow: hidden;
+  }
+
+  /* Keep the action row usable on narrow screens; the searchable library
+     remains identifiable without repeating its total in the constrained row. */
+  .library-count {
+    display: none;
   }
 
   .library-filters {
@@ -965,7 +972,7 @@ const exportSheet = (): void => {
 
 @media (max-width: 420px) {
   .library-identity {
-    padding-inline-end: 2.5rem;
+    padding-inline-end: 0;
   }
 
   .library-identity h2 {
