@@ -754,6 +754,12 @@ const exportSheet = (): void => {
   font-size: 0.75rem;
 }
 
+.library-export-options label:last-child :deep(.custom-select__menu) {
+  inset-block-start: auto;
+  inset-block-end: calc(100% + 0.3rem);
+  z-index: 60;
+}
+
 /* Keep nested select options above the export panel instead of clipping them. */
 .library-export-options:has(:deep(.custom-select.is-open)) {
   overflow: visible;

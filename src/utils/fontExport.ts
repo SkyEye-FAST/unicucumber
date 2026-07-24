@@ -43,7 +43,10 @@ class Writer {
   }
 
   append(value: Uint8Array): void {
-    this.bytes.push(...value)
+    const chunkSize = 8192
+    for (let offset = 0; offset < value.length; offset += chunkSize) {
+      this.bytes.push(...value.subarray(offset, offset + chunkSize))
+    }
   }
 
   padTo4(): void {
@@ -264,6 +267,35 @@ const createTrueTypeGlyph = (glyph: Glyph | null): Uint8Array => {
 }
 
 const createTrueTypeCmap = (glyphs: Glyph[]): Uint8Array => {
+  const bmp = glyphs
+    .map((glyph, index) => ({
+      codePoint: Number.parseInt(glyph.codePoint, 16),
+      glyphId: index + 1,
+    }))
+    .filter(({ codePoint }) => codePoint < 0xffff)
+  const canUseFormat4 = bmp.length < 8190
+  const format4 = new Writer()
+  if (canUseFormat4) {
+    const segmentCount = bmp.length + 1
+    const searchPower = powerOfTwoAtMost(segmentCount)
+    format4.u16(4)
+    format4.u16(16 + segmentCount * 8)
+    format4.u16(0)
+    format4.u16(segmentCount * 2)
+    format4.u16(searchPower * 2)
+    format4.u16(Math.log2(searchPower))
+    format4.u16(segmentCount * 2 - searchPower * 2)
+    bmp.forEach(({ codePoint }) => format4.u16(codePoint))
+    format4.u16(0xffff)
+    format4.u16(0)
+    bmp.forEach(({ codePoint }) => format4.u16(codePoint))
+    format4.u16(0xffff)
+    bmp.forEach(({ codePoint, glyphId }) =>
+      format4.u16((glyphId - codePoint) & 0xffff),
+    )
+    format4.u16(1)
+    for (let index = 0; index < segmentCount; index += 1) format4.u16(0)
+  }
   const groups: Array<{ start: number; end: number; glyphId: number }> = []
   glyphs.forEach((glyph, index) => {
     const codePoint = Number.parseInt(glyph.codePoint, 16)
@@ -273,10 +305,17 @@ const createTrueTypeCmap = (glyphs: Glyph[]): Uint8Array => {
   })
   const writer = new Writer()
   writer.u16(0)
-  writer.u16(1)
+  writer.u16(canUseFormat4 ? 2 : 1)
+  const firstOffset = 4 + (canUseFormat4 ? 16 : 8)
+  if (canUseFormat4) {
+    writer.u16(3)
+    writer.u16(1)
+    writer.u32(firstOffset)
+  }
   writer.u16(3)
   writer.u16(10)
-  writer.u32(12)
+  writer.u32(firstOffset + (canUseFormat4 ? format4.length : 0))
+  if (canUseFormat4) writer.append(format4.toUint8Array())
   writer.u16(12)
   writer.u16(0)
   writer.u32(16 + groups.length * 12)
@@ -350,6 +389,8 @@ const createTrueType = (
   head.u32(0x5f0f3cf5)
   head.u16(3)
   head.u16(UNITS_PER_EM)
+  head.u32(0)
+  head.u32(0)
   head.u32(0)
   head.u32(0)
   head.i16(0)

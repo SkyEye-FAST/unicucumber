@@ -134,6 +134,7 @@
     "export_sheet": "Bitmap sheet (.png)",
     "export_ttf": "TrueType font (.ttf)",
     "export_woff": "Web Open Font (.woff)",
+    "export_woff2": "Web Open Font 2 (.woff2)",
     "font_exported": "{format} font exported.",
     "glyph": {
       "code_point": "Code point:",

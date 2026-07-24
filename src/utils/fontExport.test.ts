@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import * as opentype from 'opentype.js'
 
-import { createBdfFont, createPixelFont, createPsfFont } from './fontExport'
+import {
+  createBdfFont,
+  createPixelFont,
+  createPsfFont,
+  createWoff2Font,
+} from './fontExport'
 
 const readTag = (bytes: Uint8Array, offset: number): string =>
   String.fromCharCode(...bytes.slice(offset, offset + 4))
@@ -46,6 +51,11 @@ describe('pixel font export', () => {
     expect(readTag(font, 0)).toBe('wOFF')
     expect(readUint32(font, 8)).toBe(font.length)
     expect(readUint32(font, 16)).toBeGreaterThan(0)
+  })
+
+  it('encodes the TrueType source as WOFF2', async () => {
+    const font = await createWoff2Font(glyphs)
+    expect(readTag(font, 0)).toBe('wOF2')
   })
 
   it('keeps Unifont bitmap data in BDF and PSF exports', () => {

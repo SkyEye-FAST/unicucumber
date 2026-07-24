@@ -134,6 +134,7 @@
     "export_sheet": "位图表（.png）",
     "export_ttf": "TrueType字体（.ttf）",
     "export_woff": "Web Open Font（.woff）",
+    "export_woff2": "Web Open Font 2（.woff2）",
     "font_exported": "{format}字体文件已导出。",
     "glyph": {
       "code_point": "码位：",

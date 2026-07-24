@@ -229,6 +229,7 @@ import {
   createBdfFont,
   createPixelFont,
   createPsfFont,
+  createWoff2Font,
   type FontExportFormat,
 } from '@/utils/fontExport'
 
@@ -829,24 +830,29 @@ const exportBackup = (): void => {
   }
 }
 
-const exportFont = (format: FontExportFormat | 'bdf' | 'psf'): void => {
+const exportFont = async (
+  format: FontExportFormat | 'woff2' | 'bdf' | 'psf',
+): Promise<void> => {
   try {
-    const content =
-      format === 'bdf'
+    const content = await (format === 'woff2'
+      ? createWoff2Font(props.glyphs)
+      : format === 'bdf'
         ? createBdfFont(props.glyphs)
         : format === 'psf'
           ? createPsfFont(props.glyphs)
-          : createPixelFont(props.glyphs, format)
+          : createPixelFont(props.glyphs, format))
     const mimeType =
-      format === 'woff'
-        ? 'font/woff'
-        : format === 'otf'
-          ? 'font/otf'
-          : format === 'ttf'
-            ? 'font/ttf'
-            : format === 'bdf'
-              ? 'application/x-font-bdf'
-              : 'application/x-font-psf'
+      format === 'woff2'
+        ? 'font/woff2'
+        : format === 'woff'
+          ? 'font/woff'
+          : format === 'otf'
+            ? 'font/otf'
+            : format === 'ttf'
+              ? 'font/ttf'
+              : format === 'bdf'
+                ? 'application/x-font-bdf'
+                : 'application/x-font-psf'
     const blobContent =
       typeof content === 'string'
         ? content

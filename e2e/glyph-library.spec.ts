@@ -459,9 +459,9 @@ test.describe('full-screen glyph library', () => {
       })
     }
     const downloadPromise = page.waitForEvent('download')
-    await page.getByRole('button', { name: /OpenType font/ }).click()
+    await page.getByRole('button', { name: /Web Open Font 2/ }).click()
     await expect((await downloadPromise).suggestedFilename()).toMatch(
-      /^unicucumber-pixel-\d+\.otf$/,
+      /^unicucumber-pixel-\d+\.woff2$/,
     )
 
     await page

@@ -281,6 +281,12 @@ const sheetScaleOptions: CustomSelectOption[] = [
   font-size: 0.8125rem;
 }
 
+.export-options label:last-child :deep(.custom-select__menu) {
+  inset-block-start: auto;
+  inset-block-end: calc(100% + 0.3rem);
+  z-index: 60;
+}
+
 /* A select list must be able to escape the scrollable export menu. */
 .export-options:has(:deep(.custom-select.is-open)) {
   overflow: visible;
