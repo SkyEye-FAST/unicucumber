@@ -66,7 +66,7 @@
             :hex-value="hexCode"
             :width="settings.glyphWidth"
             :browser-preview-font="settings.browserPreviewFont"
-            :save-status="saveStatus"
+            :save-status="documentSaveStatus"
             :save-status-label="saveStatusLabel"
           />
         </template>
@@ -126,12 +126,25 @@
             </button>
             <button
               class="action-button ui-button ui-button--primary"
-              :title="$t('editor.actions.add_to_glyphset.title')"
+              :disabled="!hasUnsavedChanges || isSavingGlyph"
+              :title="
+                $t(
+                  currentGlyphIsManaged
+                    ? 'editor.actions.save.title'
+                    : 'editor.actions.add_to_glyphset.title',
+                )
+              "
               type="button"
-              @click="addToGlyphset"
+              @click="saveCurrentGlyph"
             >
-              <i-material-symbols-add-box-outline class="icon" />
-              {{ $t('editor.actions.add_to_glyphset.button') }}
+              <i-material-symbols-save-outline class="icon" />
+              {{
+                $t(
+                  currentGlyphIsManaged
+                    ? 'editor.actions.save.button'
+                    : 'editor.actions.add_to_glyphset.button',
+                )
+              }}
             </button>
           </div>
           <div class="history-controls">
@@ -223,10 +236,13 @@
       :current-tool="currentTool"
       :can-undo="canUndo"
       :can-redo="canRedo"
+      :can-save="hasUnsavedChanges && !isSavingGlyph"
+      :save-action="currentGlyphIsManaged ? 'save' : 'add_to_glyphset'"
       :has-clipboard-data="hasClipboardData"
       @tool="selectTool"
       @undo="handleUndo"
       @redo="handleRedo"
+      @save="saveCurrentGlyph"
       @action="handleMobileAction"
     />
     <div class="copyright-text" role="contentinfo">
@@ -444,7 +460,15 @@ const prefillData = ref<PrefillData | null>(null)
 const hasUnsavedChanges = editorDocument.dirty
 type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error'
 const saveStatus = ref<SaveStatus>('saved')
-const saveStatusLabel = computed(() => $t(`storage.status_${saveStatus.value}`))
+const documentSaveStatus = computed<SaveStatus>(() => {
+  if (saveStatus.value === 'error') return 'error'
+  if (!hasUnsavedChanges.value) return 'saved'
+  return saveStatus.value === 'saving' ? 'saving' : 'unsaved'
+})
+const saveStatusLabel = computed(() =>
+  $t(`storage.status_${documentSaveStatus.value}`),
+)
+const isSavingGlyph = ref(false)
 const pendingRestoredDraft = ref<StoredDraft | null>(null)
 let draftTimer: number | null = null
 let storageReady = false
@@ -486,6 +510,12 @@ const currentCodePoint = computed({
     editorDocument.execute({ type: 'setCodePoint', codePoint })
   },
 })
+
+const currentGlyphIsManaged = computed(
+  () =>
+    activeGlyphId.value === currentCodePoint.value ||
+    glyphs.value.some((glyph) => glyph.codePoint === currentCodePoint.value),
+)
 
 const unifontVersion = ref<string>(
   (import.meta.env.VITE_UNIFONT_VERSION as string) || '',
@@ -682,6 +712,9 @@ const handleKeydown = (e: KeyboardEvent): void => {
       if (hasClipboardData.value) {
         handlePaste()
       }
+    } else if (key === 's') {
+      e.preventDefault()
+      void saveCurrentGlyph()
     } else if (key === 'a') {
       e.preventDefault()
       selectTool('select')
@@ -768,13 +801,35 @@ const beginGlyphLibraryLoad = (): void => {
   void loadGlyphLibrary().catch(() => undefined)
 }
 
-const addToGlyphset = (): void => {
-  prefillData.value = {
-    hexValue: hexCode.value,
-    codePoint: currentCodePoint.value,
+const saveCurrentGlyph = async (): Promise<void> => {
+  if (!hasUnsavedChanges.value || isSavingGlyph.value) return
+
+  isSavingGlyph.value = true
+  try {
+    await loadGlyphLibrary()
+    const glyph: Glyph = {
+      codePoint: currentCodePoint.value,
+      hexValue: hexCode.value,
+    }
+    const existingIndex = glyphs.value.findIndex(
+      (item) => item.codePoint === glyph.codePoint,
+    )
+    const nextGlyphs =
+      existingIndex === -1
+        ? [...glyphs.value, glyph]
+        : glyphs.value.map((item, index) =>
+            index === existingIndex ? glyph : item,
+          )
+
+    await replaceGlyphLibrary(nextGlyphs)
+    handleGlyphSaved(glyph)
+  } catch (error) {
+    console.error('Unable to save the current glyph.', error)
+    saveStatus.value = 'error'
+    notify({ tone: 'error', message: $t('storage.glyph_save_failed') })
+  } finally {
+    isSavingGlyph.value = false
   }
-  beginGlyphLibraryLoad()
-  isSidebarActive.value = true
 }
 
 interface ShowConfirmDialogParams {

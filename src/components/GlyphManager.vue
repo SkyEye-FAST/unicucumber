@@ -219,19 +219,19 @@ import type {
 } from '@/types/glyph'
 import { canvasToBlob } from '@/utils/exportUtils'
 import {
-  formatGlyphCodePoint,
-  sortGlyphsByCodePoint,
-} from '@/utils/glyphLibrary'
-import { parseHexFile } from '@/utils/hexImport'
-import { gridToHex } from '@/utils/hexUtils'
-import { createBitmapSheet, createGlyphBackup } from '@/utils/libraryExport'
-import {
   createBdfFont,
   createPixelFont,
   createPsfFont,
   createWoff2Font,
   type FontExportFormat,
 } from '@/utils/fontExport'
+import {
+  formatGlyphCodePoint,
+  sortGlyphsByCodePoint,
+} from '@/utils/glyphLibrary'
+import { parseHexFile } from '@/utils/hexImport'
+import { gridToHex } from '@/utils/hexUtils'
+import { createBitmapSheet, createGlyphBackup } from '@/utils/libraryExport'
 
 import DialogBox from './DialogBox.vue'
 import GlyphAdder from './GlyphManager/GlyphAdder.vue'

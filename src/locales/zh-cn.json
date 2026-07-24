@@ -61,6 +61,10 @@
         "button": "恢复已保存",
         "title": "将此字形恢复到上次保存的状态"
       },
+      "save": {
+        "button": "保存字形",
+        "title": "保存当前字形到字形管理器（Ctrl+S）"
+      },
       "show_encoding_info": "显示编码信息",
       "undo": {
         "title": "撤销 (Ctrl+Z)"
@@ -169,6 +173,7 @@
       "exited_fullscreen": "已返回字形管理器侧栏。",
       "expand": "展开字形管理器",
       "filtered_count": "{filtered} / {total}",
+      "filters": "筛选",
       "glyph_count": "{count}个字形",
       "grid_label": "Unifont字形库",
       "inspector_title": "添加 / 导入",
@@ -184,7 +189,7 @@
       "search_label": "搜索字形库",
       "select_filtered": "选择筛选出的字形",
       "selected_count": "已选择{count}项",
-      "selection_mode": "选择",
+      "selection_mode": "选择添加",
       "source": {
         "all": "全部字形",
         "modified": "已修改（{count}）"

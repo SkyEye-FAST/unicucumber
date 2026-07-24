@@ -17,6 +17,16 @@
       <span>{{ $t(tool.label) }}</span>
     </button>
     <button
+      class="save-button"
+      type="button"
+      :disabled="!canSave"
+      :aria-label="$t(`editor.actions.${saveAction}.title`)"
+      @click="emit('save')"
+    >
+      <i-material-symbols-save-outline class="icon" />
+      <span>{{ $t(`editor.actions.${saveAction}.button`) }}</span>
+    </button>
+    <button
       type="button"
       :disabled="!canUndo"
       :aria-label="$t('editor.actions.undo.title')"
@@ -155,6 +165,8 @@ defineProps<{
   currentTool: EditorTool
   canUndo: boolean
   canRedo: boolean
+  canSave: boolean
+  saveAction: 'save' | 'add_to_glyphset'
   hasClipboardData: boolean
 }>()
 
@@ -162,6 +174,7 @@ const emit = defineEmits<{
   tool: [tool: EditorTool]
   undo: []
   redo: []
+  save: []
   action: [action: MobileAction]
 }>()
 
@@ -170,9 +183,9 @@ const showMore = ref(false)
 const primaryTools = [
   { id: 'draw', label: 'tools.draw' },
   { id: 'erase', label: 'tools.erase' },
-  { id: 'select', label: 'tools.select' },
 ] satisfies Array<{ id: EditorTool; label: string }>
 const secondaryTools = [
+  { id: 'select', label: 'tools.select' },
   { id: 'fill', label: 'tools.fill' },
   { id: 'line', label: 'tools.line' },
   { id: 'rectangle', label: 'tools.rectangle' },
@@ -231,6 +244,20 @@ const chooseAction = (action: MobileAction): void => {
   }
 
   .mobile-command-bar > button.active {
+    background: var(--primary-color);
+    color: white;
+  }
+
+  .mobile-command-bar > button.save-button {
+    background: color-mix(
+      in srgb,
+      var(--primary-color) 14%,
+      var(--background-light)
+    );
+    color: var(--primary-darker);
+  }
+
+  .mobile-command-bar > button.save-button:not(:disabled):active {
     background: var(--primary-color);
     color: white;
   }

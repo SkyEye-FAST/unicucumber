@@ -61,6 +61,10 @@
         "button": "Restore saved",
         "title": "Restore this glyph to its last saved state"
       },
+      "save": {
+        "button": "Save glyph",
+        "title": "Save this glyph to the glyph manager (Ctrl+S)"
+      },
       "show_encoding_info": "Show Encoding Info",
       "undo": {
         "title": "Undo (Ctrl+Z)"
@@ -169,6 +173,7 @@
       "exited_fullscreen": "Returned to the glyph-manager sidebar.",
       "expand": "Expand glyph manager",
       "filtered_count": "{filtered} / {total}",
+      "filters": "Filters",
       "glyph_count": "{count} glyph | {count} glyphs",
       "grid_label": "Unifont glyph library",
       "inspector_title": "Add / Import",
@@ -184,7 +189,7 @@
       "search_label": "Search glyph library",
       "select_filtered": "Select filtered glyphs",
       "selected_count": "{count} selected",
-      "selection_mode": "Select",
+      "selection_mode": "Select to add",
       "source": {
         "all": "All glyphs",
         "modified": "Modified ({count})"

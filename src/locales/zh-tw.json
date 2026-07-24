@@ -61,6 +61,10 @@
         "button": "還原已儲存",
         "title": "將此字形還原到上次儲存的狀態"
       },
+      "save": {
+        "button": "儲存字形",
+        "title": "儲存目前字形至字形管理器（Ctrl+S）"
+      },
       "show_encoding_info": "顯示編碼資訊",
       "undo": {
         "title": "復原 (Ctrl+Z)"
@@ -169,6 +173,7 @@
       "exited_fullscreen": "已返回字形管理器側欄。",
       "expand": "展開字形管理器",
       "filtered_count": "{filtered} / {total}",
+      "filters": "篩選",
       "glyph_count": "{count}個字形",
       "grid_label": "Unifont字形庫",
       "inspector_title": "新增 / 匯入",
@@ -184,7 +189,7 @@
       "search_label": "搜尋字形庫",
       "select_filtered": "選取篩選出的字形",
       "selected_count": "已選取{count}項",
-      "selection_mode": "選取",
+      "selection_mode": "選取新增",
       "source": {
         "all": "全部字形",
         "modified": "已修改（{count}）"

@@ -350,7 +350,7 @@ test.describe('full-screen glyph library', () => {
     await page.getByRole('button', { name: 'Tools' }).click()
     const selectionButton = page
       .locator('.library-toolbar')
-      .getByRole('button', { name: 'Select', exact: true })
+      .getByRole('button', { name: 'Select to add', exact: true })
     await selectionButton.click()
     await expect(selectionButton).toHaveAttribute('aria-pressed', 'true')
 
@@ -402,7 +402,7 @@ test.describe('full-screen glyph library', () => {
     await page.getByRole('button', { name: 'Tools' }).click()
     await page
       .locator('.library-toolbar')
-      .getByRole('button', { name: 'Select', exact: true })
+      .getByRole('button', { name: 'Select to add', exact: true })
       .click()
     await page.getByRole('button', { name: 'Select filtered glyphs' }).click()
     await expect(page.locator('.glyph-library-cell')).toHaveAttribute(
@@ -466,7 +466,7 @@ test.describe('full-screen glyph library', () => {
 
     await page
       .locator('.library-toolbar')
-      .getByRole('button', { name: 'Select', exact: true })
+      .getByRole('button', { name: 'Select to add', exact: true })
       .click()
     await page.getByRole('button', { name: 'Select filtered glyphs' }).click()
     await expect(
@@ -522,7 +522,7 @@ test.describe('full-screen glyph library', () => {
     await page.getByRole('button', { name: 'Tools' }).click()
     await page
       .locator('.library-toolbar')
-      .getByRole('button', { name: 'Select', exact: true })
+      .getByRole('button', { name: 'Select to add', exact: true })
       .click()
     await page.getByRole('button', { name: 'Select filtered glyphs' }).click()
     await expect(

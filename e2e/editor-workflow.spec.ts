@@ -159,9 +159,7 @@ test('autosaved drafts restore after reload and can be discarded', async ({
     /filled/,
   )
   await expect(page.locator('.document-status')).toHaveText(/Unsaved/i)
-  await expect(page.locator('.document-status')).toHaveText(/^\s*Saved\s*$/i, {
-    timeout: 5000,
-  })
+  await page.waitForTimeout(500)
   const storedDraftState = await page.evaluate(
     () =>
       new Promise<{ indexedDb: unknown; localStorage: string | null }>(
@@ -200,6 +198,45 @@ test('autosaved drafts restore after reload and can be discarded', async ({
   )
 })
 
+test('Add to glyph set persists the editor glyph to the glyph manager', async ({
+  page,
+}) => {
+  const cell = await cellCenter(page, 0, 0)
+  await page.mouse.click(cell.x, cell.y)
+  await expect(page.locator('.document-status')).toHaveText(/Unsaved/i)
+
+  const saveButton = page
+    .locator('.editor-actions')
+    .getByRole('button', { name: 'Add to Glyph Set' })
+  await saveButton.click()
+  await expect(page.locator('.document-status')).toHaveText(/^\s*Saved\s*$/i)
+  await expect(
+    page.locator('.editor-actions').getByRole('button', { name: 'Save glyph' }),
+  ).toBeDisabled()
+
+  const savedGlyphs = await page.evaluate(
+    () =>
+      new Promise<Array<{ codePoint: string; hexValue: string }>>(
+        (resolve, reject) => {
+          const request = indexedDB.open('unicucumber')
+          request.onerror = () => reject(request.error)
+          request.onsuccess = () => {
+            const transaction = request.result.transaction('glyphs', 'readonly')
+            const getRequest = transaction.objectStore('glyphs').getAll()
+            getRequest.onerror = () => reject(getRequest.error)
+            getRequest.onsuccess = () => resolve(getRequest.result)
+          }
+        },
+      ),
+  )
+  expect(savedGlyphs).toEqual([
+    {
+      codePoint: '0000',
+      hexValue: `8${'0'.repeat(63)}`,
+    },
+  ])
+})
+
 test('empty autosaved drafts restore without showing the restore notice', async ({
   page,
 }) => {
@@ -229,7 +266,7 @@ test('empty autosaved drafts restore without showing the restore notice', async 
 
   await page.reload({ waitUntil: 'domcontentloaded' })
   await expect(page.locator('.grid-container')).toBeVisible()
-  await expect(page.locator('.document-status')).toHaveText(/Unsaved/i)
+  await expect(page.locator('.document-status')).toHaveText(/^\s*Saved\s*$/i)
   await expect(page.locator('.restored-draft-notice')).toBeHidden()
 })
 
@@ -237,7 +274,8 @@ test('mobile selection exposes copy and visible paste preview actions', async ({
   page,
 }, testInfo) => {
   test.skip(!testInfo.project.name.includes('phone'), 'mobile command surface')
-  await page.getByRole('button', { name: 'Select', exact: true }).last().click()
+  await page.getByRole('button', { name: 'More', exact: true }).click()
+  await page.getByRole('button', { name: 'Select', exact: true }).click()
   const first = await cellCenter(page, 0, 0)
   const last = await cellCenter(page, 1, 1)
   await page.mouse.move(first.x, first.y)

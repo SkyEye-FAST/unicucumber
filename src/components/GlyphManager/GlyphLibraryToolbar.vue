@@ -28,7 +28,11 @@
         </button>
       </div>
 
-      <div class="library-filters">
+      <div
+        v-show="filtersOpen"
+        id="glyph-library-filters"
+        class="library-filters"
+      >
         <label>
           <span>{{ $t('glyph_manager.library.source_filter_label') }}</span>
           <CustomSelect
@@ -67,6 +71,26 @@
       </div>
 
       <div class="library-toolbar__buttons">
+        <button
+          class="ui-button library-filter-toggle"
+          type="button"
+          :aria-expanded="filtersOpen"
+          aria-controls="glyph-library-filters"
+          @click="filtersOpen = !filtersOpen"
+        >
+          <i-material-symbols-filter-alt aria-hidden="true" />
+          <span>{{ $t('glyph_manager.library.filters') }}</span>
+        </button>
+        <button
+          class="ui-button library-action library-selection-toggle"
+          type="button"
+          :class="{ 'is-active': selectionMode }"
+          :aria-pressed="selectionMode"
+          @click="$emit('toggle-selection-mode')"
+        >
+          <i-material-symbols-select-check-box aria-hidden="true" />
+          <span>{{ $t('glyph_manager.library.selection_mode') }}</span>
+        </button>
         <button
           class="ui-button library-tools-toggle"
           type="button"
@@ -195,17 +219,6 @@
         </div>
       </details>
 
-      <button
-        class="ui-button library-action"
-        type="button"
-        :class="{ 'is-active': selectionMode }"
-        :aria-pressed="selectionMode"
-        @click="$emit('toggle-selection-mode')"
-      >
-        <i-material-symbols-select-check-box aria-hidden="true" />
-        <span>{{ $t('glyph_manager.library.selection_mode') }}</span>
-      </button>
-
       <fieldset class="density-control">
         <legend class="visually-hidden">
           {{ $t('glyph_manager.library.density_label') }}
@@ -227,7 +240,7 @@
       <strong>{{ selectedLabel }}</strong>
       <span class="library-selection-spacer" />
       <button
-        class="ui-button ui-button--primary"
+        class="ui-button ui-button--primary library-selection-add"
         type="button"
         :disabled="selectedAddableCount === 0"
         @click="$emit('add-selected')"
@@ -335,6 +348,7 @@ const densityOptions: GlyphLibraryDensity[] = [
   'large',
 ]
 const exportMenu = ref<HTMLDetailsElement | null>(null)
+const filtersOpen = ref(false)
 const toolsOpen = ref(false)
 const sheetColumns = ref(16)
 const sheetScale = ref(2)
@@ -453,10 +467,12 @@ const exportSheet = (): void => {
 
 .library-toolbar__main {
   display: grid;
-  grid-template-areas: 'identity search filters actions';
-  grid-template-columns: max-content minmax(14rem, 1fr) auto auto;
+  grid-template-areas:
+    'identity search actions'
+    'filters filters filters';
+  grid-template-columns: max-content minmax(12rem, 1fr) auto;
   align-items: end;
-  gap: var(--space-3);
+  gap: var(--space-2) var(--space-3);
   padding: 0.55rem max(0.75rem, env(safe-area-inset-right)) 0.55rem
     max(0.75rem, env(safe-area-inset-left));
 }
@@ -636,6 +652,29 @@ const exportSheet = (): void => {
   grid-area: actions;
 }
 
+.library-filter-toggle,
+.library-tools-toggle,
+.library-selection-toggle {
+  min-height: var(--control-height-compact);
+  padding-inline: 0.55rem;
+  font-size: 0.75rem;
+}
+
+.library-selection-toggle {
+  border-color: color-mix(
+    in srgb,
+    var(--primary-color) 45%,
+    var(--border-color)
+  );
+  background: color-mix(
+    in srgb,
+    var(--primary-color) 8%,
+    var(--background-light)
+  );
+  color: var(--primary-darker);
+  font-weight: 700;
+}
+
 .library-tools {
   min-height: 3rem;
   padding: 0.35rem max(0.75rem, env(safe-area-inset-right)) 0.35rem
@@ -646,12 +685,6 @@ const exportSheet = (): void => {
     var(--background-color) 45%,
     var(--background-light)
   );
-}
-
-.library-tools-toggle {
-  min-height: var(--control-height-compact);
-  padding-inline: 0.55rem;
-  font-size: 0.75rem;
 }
 
 .library-action,
@@ -844,16 +877,6 @@ const exportSheet = (): void => {
   font-size: 0.78rem;
 }
 
-@media (max-width: 1599px) and (min-width: 720px) {
-  .library-toolbar__main {
-    grid-template-areas:
-      'identity filters actions'
-      'search search search';
-    grid-template-columns: max-content minmax(0, 1fr) auto;
-    row-gap: var(--space-2);
-  }
-}
-
 @media (max-width: 719px) {
   .library-toolbar__main {
     grid-template-areas:
@@ -861,10 +884,10 @@ const exportSheet = (): void => {
       'search search'
       'filters filters';
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: var(--space-4);
-    padding: max(1.25rem, env(safe-area-inset-top))
-      max(1.5rem, env(safe-area-inset-right)) 1.25rem
-      max(1.5rem, env(safe-area-inset-left));
+    gap: var(--space-2);
+    padding: max(0.75rem, env(safe-area-inset-top))
+      max(0.75rem, env(safe-area-inset-right)) 0.75rem
+      max(0.75rem, env(safe-area-inset-left));
   }
 
   .library-identity {
@@ -875,7 +898,7 @@ const exportSheet = (): void => {
   .library-filters {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--space-4);
+    gap: var(--space-2);
   }
 
   .library-filters label {
@@ -897,6 +920,30 @@ const exportSheet = (): void => {
     flex-wrap: wrap;
   }
 
+  .library-toolbar__buttons {
+    gap: 0.2rem;
+  }
+
+  .library-filter-toggle,
+  .library-tools-toggle {
+    width: 2.25rem;
+    min-width: 2.25rem;
+    padding: 0;
+  }
+
+  .library-filter-toggle span,
+  .library-tools-toggle span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  .library-selection-toggle {
+    padding-inline: 0.45rem;
+  }
+
   .library-action span {
     white-space: nowrap;
   }
@@ -908,6 +955,11 @@ const exportSheet = (): void => {
 
   .library-selection-spacer {
     display: none;
+  }
+
+  .library-selection-bar .library-selection-add {
+    order: -1;
+    width: 100%;
   }
 }
 

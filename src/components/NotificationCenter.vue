@@ -83,7 +83,7 @@ const runAction = (notification: AppNotification): void => {
 .notification-region {
   position: fixed;
   z-index: 2000;
-  top: max(0.75rem, env(safe-area-inset-top));
+  bottom: max(0.75rem, env(safe-area-inset-bottom));
   right: max(0.75rem, env(safe-area-inset-right));
   width: min(24rem, calc(100vw - 1.5rem));
   display: grid;
@@ -105,7 +105,8 @@ const runAction = (notification: AppNotification): void => {
   background: var(--dialog-background);
   color: var(--text-color);
   box-shadow: 0 8px 20px var(--modal-shadow);
-  pointer-events: auto;
+  /* Status messages must not block primary workspace controls beneath them. */
+  pointer-events: none;
 }
 
 .notification.success {
@@ -185,6 +186,7 @@ const runAction = (notification: AppNotification): void => {
   display: flex;
   align-items: center;
   gap: 0.35rem;
+  pointer-events: auto;
 }
 
 .notification-action {
@@ -201,6 +203,10 @@ const runAction = (notification: AppNotification): void => {
 }
 
 @media (max-width: 480px) {
+  .notification-region {
+    bottom: calc(4.75rem + env(safe-area-inset-bottom));
+  }
+
   .notification {
     padding: 0.65rem;
   }
