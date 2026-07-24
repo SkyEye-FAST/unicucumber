@@ -4,7 +4,11 @@
       v-for="tool in primaryTools"
       :key="tool.id"
       type="button"
-      :class="{ active: currentTool === tool.id }"
+      :class="[
+        'toolbar-tool',
+        `toolbar-tool--${tool.id}`,
+        { active: currentTool === tool.id },
+      ]"
       :aria-label="$t(tool.label)"
       @click="emit('tool', tool.id)"
     >
@@ -13,36 +17,20 @@
         v-else-if="tool.id === 'erase'"
         class="icon"
       />
-      <i-material-symbols-select v-else class="icon" />
+      <i-material-symbols-select
+        v-else-if="tool.id === 'select'"
+        class="icon"
+      />
+      <i-material-symbols-format-color-fill
+        v-else-if="tool.id === 'fill'"
+        class="icon"
+      />
+      <i-material-symbols-diagonal-line
+        v-else-if="tool.id === 'line'"
+        class="icon"
+      />
+      <i-material-symbols-rectangle-outline v-else class="icon" />
       <span>{{ $t(tool.label) }}</span>
-    </button>
-    <button
-      class="save-button"
-      type="button"
-      :disabled="!canSave"
-      :aria-label="$t(`editor.actions.${saveAction}.title`)"
-      @click="emit('save')"
-    >
-      <i-material-symbols-save-outline class="icon" />
-      <span>{{ $t(`editor.actions.${saveAction}.button`) }}</span>
-    </button>
-    <button
-      type="button"
-      :disabled="!canUndo"
-      :aria-label="$t('editor.actions.undo.title')"
-      @click="emit('undo')"
-    >
-      <i-material-symbols-undo class="icon" />
-      <span>{{ $t('mobile_toolbar.undo') }}</span>
-    </button>
-    <button
-      type="button"
-      :disabled="!canRedo"
-      :aria-label="$t('editor.actions.redo.title')"
-      @click="emit('redo')"
-    >
-      <i-material-symbols-redo class="icon" />
-      <span>{{ $t('mobile_toolbar.redo') }}</span>
     </button>
     <button
       type="button"
@@ -67,11 +55,49 @@
         </button>
       </div>
       <div class="sheet-grid">
+        <div class="direction-pad">
+          <button
+            class="direction-up"
+            type="button"
+            :aria-label="$t('tools.shift_up')"
+            @click="chooseAction('shift-up')"
+          >
+            <i-material-symbols-arrow-upward class="icon" />
+          </button>
+          <button
+            class="direction-left"
+            type="button"
+            :aria-label="$t('tools.shift_left')"
+            @click="chooseAction('shift-left')"
+          >
+            <i-material-symbols-arrow-back class="icon" />
+          </button>
+          <button
+            class="direction-right"
+            type="button"
+            :aria-label="$t('tools.shift_right')"
+            @click="chooseAction('shift-right')"
+          >
+            <i-material-symbols-arrow-forward class="icon" />
+          </button>
+          <button
+            class="direction-down"
+            type="button"
+            :aria-label="$t('tools.shift_down')"
+            @click="chooseAction('shift-down')"
+          >
+            <i-material-symbols-arrow-downward class="icon" />
+          </button>
+        </div>
         <button
           v-for="tool in secondaryTools"
           :key="tool.id"
           type="button"
-          :class="{ active: currentTool === tool.id }"
+          :class="[
+            'secondary-tool',
+            `secondary-tool--${tool.id}`,
+            { active: currentTool === tool.id },
+          ]"
           @click="chooseTool(tool.id)"
         >
           <i-material-symbols-format-color-fill
@@ -122,32 +148,6 @@
             $t('editor.actions.restore.button')
           }}
         </button>
-        <button
-          v-for="direction in shiftDirections"
-          :key="direction"
-          type="button"
-          @click="chooseAction(`shift-${direction}`)"
-        >
-          <i-material-symbols-arrow-upward
-            v-if="direction === 'up'"
-            class="icon"
-          />
-          <i-material-symbols-arrow-downward
-            v-else-if="direction === 'down'"
-            class="icon"
-          />
-          <i-material-symbols-arrow-back
-            v-else-if="direction === 'left'"
-            class="icon"
-          />
-          <i-material-symbols-arrow-forward v-else class="icon" />
-          {{ $t(`tools.shift_${direction}`) }}
-        </button>
-        <button class="danger" type="button" @click="chooseAction('clear')">
-          <i-material-symbols-mop-outline class="icon" />{{
-            $t('editor.actions.clear.button')
-          }}
-        </button>
       </div>
     </div>
   </nav>
@@ -158,23 +158,16 @@ import { ref } from 'vue'
 
 import { useI18n } from 'vue-i18n'
 
-import type { MobileAction, ShiftDirection } from '@/types/editor'
+import type { MobileAction } from '@/types/editor'
 import type { EditorTool } from '@/types/glyph'
 
 defineProps<{
   currentTool: EditorTool
-  canUndo: boolean
-  canRedo: boolean
-  canSave: boolean
-  saveAction: 'save' | 'add_to_glyphset'
   hasClipboardData: boolean
 }>()
 
 const emit = defineEmits<{
   tool: [tool: EditorTool]
-  undo: []
-  redo: []
-  save: []
   action: [action: MobileAction]
 }>()
 
@@ -183,16 +176,18 @@ const showMore = ref(false)
 const primaryTools = [
   { id: 'draw', label: 'tools.draw' },
   { id: 'erase', label: 'tools.erase' },
+  { id: 'select', label: 'tools.select' },
+  { id: 'fill', label: 'tools.fill' },
+  { id: 'line', label: 'tools.line' },
+  { id: 'rectangle', label: 'tools.rectangle' },
 ] satisfies Array<{ id: EditorTool; label: string }>
 const secondaryTools = [
-  { id: 'select', label: 'tools.select' },
   { id: 'fill', label: 'tools.fill' },
   { id: 'line', label: 'tools.line' },
   { id: 'rectangle', label: 'tools.rectangle' },
   { id: 'filledRectangle', label: 'tools.filled_rectangle' },
   { id: 'pan', label: 'tools.pan' },
 ] satisfies Array<{ id: EditorTool; label: string }>
-const shiftDirections: ShiftDirection[] = ['up', 'down', 'left', 'right']
 const chooseTool = (tool: EditorTool): void => {
   emit('tool', tool)
   showMore.value = false
@@ -217,8 +212,8 @@ const chooseAction = (action: MobileAction): void => {
     bottom: 0;
     left: 0;
     min-height: calc(4rem + env(safe-area-inset-bottom));
-    display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    display: flex;
+    gap: 0.25rem;
     padding: 0.25rem max(0.35rem, env(safe-area-inset-right))
       env(safe-area-inset-bottom) max(0.35rem, env(safe-area-inset-left));
     border-top: 1px solid var(--border-color);
@@ -227,6 +222,7 @@ const chooseAction = (action: MobileAction): void => {
   }
 
   .mobile-command-bar > button {
+    flex: 1 1 0;
     min-width: 44px;
     min-height: 52px;
     display: flex;
@@ -248,18 +244,10 @@ const chooseAction = (action: MobileAction): void => {
     color: white;
   }
 
-  .mobile-command-bar > button.save-button {
-    background: color-mix(
-      in srgb,
-      var(--primary-color) 14%,
-      var(--background-light)
-    );
-    color: var(--primary-darker);
-  }
-
-  .mobile-command-bar > button.save-button:not(:disabled):active {
-    background: var(--primary-color);
-    color: white;
+  .mobile-command-bar > button.toolbar-tool--fill,
+  .mobile-command-bar > button.toolbar-tool--line,
+  .mobile-command-bar > button.toolbar-tool--rectangle {
+    display: none;
   }
 
   .mobile-command-bar > button:disabled {
@@ -329,12 +317,94 @@ const chooseAction = (action: MobileAction): void => {
     color: white;
   }
 
-  .sheet-grid button.danger {
-    color: var(--danger-color);
+  .direction-pad {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(3, 3.15rem);
+    grid-template-areas:
+      '. up .'
+      'left center right'
+      '. down .';
+    gap: 0.25rem;
+    width: fit-content;
+    justify-self: center;
+    padding: 0.35rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.9rem;
+    background: color-mix(
+      in srgb,
+      var(--primary-color) 8%,
+      var(--background-base)
+    );
+  }
+
+  .direction-pad .direction-up {
+    grid-area: up;
+  }
+
+  .direction-pad .direction-left {
+    grid-area: left;
+  }
+
+  .direction-pad .direction-right {
+    grid-area: right;
+  }
+
+  .direction-pad .direction-down {
+    grid-area: down;
+  }
+
+  .direction-pad button {
+    display: grid;
+    min-height: 3.15rem;
+    padding: 0;
+    border-radius: 0.65rem;
+    place-items: center;
+  }
+
+  .direction-pad::after {
+    width: 0.65rem;
+    height: 0.65rem;
+    grid-area: center;
+    place-self: center;
+    content: '';
+    border: 2px solid color-mix(in srgb, var(--primary-color) 45%, transparent);
+    border-radius: 50%;
+    background: var(--background-light);
   }
 
   .vertical {
     rotate: 90deg;
+  }
+}
+
+@media (min-width: 390px) and (max-width: 719px) {
+  .mobile-command-bar > button.toolbar-tool--fill {
+    display: flex;
+  }
+
+  .sheet-grid button.secondary-tool--fill {
+    display: none;
+  }
+}
+
+@media (min-width: 480px) and (max-width: 719px) {
+  .mobile-command-bar > button.toolbar-tool--line {
+    display: flex;
+  }
+
+  .sheet-grid button.secondary-tool--line {
+    display: none;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 719px) {
+  .mobile-command-bar > button.toolbar-tool--rectangle {
+    display: flex;
+  }
+
+  .sheet-grid button.secondary-tool--rectangle {
+    display: none;
   }
 }
 

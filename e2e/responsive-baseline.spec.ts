@@ -7,6 +7,8 @@ const viewports = [
   { name: 'android-phone', width: 360, height: 800 },
   { name: 'iphone', width: 390, height: 844 },
   { name: 'large-phone', width: 412, height: 915 },
+  { name: 'wide-phone', width: 480, height: 854 },
+  { name: 'large-mobile', width: 600, height: 960 },
   { name: 'tablet-portrait', width: 768, height: 1024 },
   { name: 'tablet-landscape', width: 1024, height: 768 },
   { name: 'desktop-compact', width: 1280, height: 720 },
@@ -138,8 +140,36 @@ test.describe('responsive visual baseline', () => {
         )
 
         if (viewport.width < 720) {
-          await expect(page.locator('.mobile-command-bar')).toBeVisible()
+          const mobileCommandBar = page.locator('.mobile-command-bar')
+          await expect(mobileCommandBar).toBeVisible()
           await expect(page.locator('.tool-buttons')).toBeHidden()
+          const expectedToolbarButtonCount =
+            viewport.width >= 600
+              ? 7
+              : viewport.width >= 480
+                ? 6
+                : viewport.width >= 390
+                  ? 5
+                  : 4
+          await expect(
+            mobileCommandBar.locator(':scope > button:visible'),
+          ).toHaveCount(expectedToolbarButtonCount)
+          await expect(mobileCommandBar.locator('.save-button')).toHaveCount(0)
+          await expect(mobileCommandBar.locator('.danger')).toHaveCount(0)
+
+          await mobileCommandBar
+            .getByRole('button', { name: 'More', exact: true })
+            .click()
+          const directionPad = mobileCommandBar.locator('.direction-pad')
+          await expect(directionPad).toBeVisible()
+          await expect(directionPad.getByRole('button')).toHaveCount(4)
+          await page.screenshot({
+            path: join(
+              screenshotDir,
+              `${viewport.width}x${viewport.height}-${colorScheme}-more.png`,
+            ),
+            fullPage: false,
+          })
         } else {
           await expect(page.locator('.mobile-command-bar')).toBeHidden()
           await expect(page.locator('.tool-buttons')).toBeVisible()

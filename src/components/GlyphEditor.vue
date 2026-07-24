@@ -239,15 +239,8 @@
     />
     <MobileCommandBar
       :current-tool="currentTool"
-      :can-undo="canUndo"
-      :can-redo="canRedo"
-      :can-save="hasUnsavedChanges && !isSavingGlyph"
-      :save-action="currentGlyphIsManaged ? 'save' : 'add_to_glyphset'"
       :has-clipboard-data="hasClipboardData"
       @tool="selectTool"
-      @undo="handleUndo"
-      @redo="handleRedo"
-      @save="saveCurrentGlyph"
       @action="handleMobileAction"
     />
     <div class="copyright-text" role="contentinfo">
