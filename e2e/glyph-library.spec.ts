@@ -441,7 +441,28 @@ test.describe('full-screen glyph library', () => {
     await expect(
       page.getByRole('button', { name: /Unifont glyphs/ }),
     ).toBeVisible()
-    await page.locator('.library-export-menu summary').click()
+    await expect(page.getByText('Font files', { exact: true })).toBeVisible()
+    await expect(
+      page.getByRole('button', { name: /OpenType font/ }),
+    ).toBeVisible()
+    await page.getByRole('combobox', { name: 'Pixel scale' }).click()
+    await expect(page.getByRole('option', { name: '4×' })).toBeVisible()
+    await page.getByRole('option', { name: '4×' }).click()
+    if (testInfo.project.name === 'chromium') {
+      await page.screenshot({
+        path: join(
+          process.env.TEMP ?? testInfo.outputDir,
+          'unicucumber-glyph-library',
+          '1280x720-export-menu-light.png',
+        ),
+        fullPage: false,
+      })
+    }
+    const downloadPromise = page.waitForEvent('download')
+    await page.getByRole('button', { name: /OpenType font/ }).click()
+    await expect((await downloadPromise).suggestedFilename()).toMatch(
+      /^unicucumber-pixel-\d+\.otf$/,
+    )
 
     await page
       .locator('.library-toolbar')
