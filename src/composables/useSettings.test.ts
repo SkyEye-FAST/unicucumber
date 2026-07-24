@@ -11,6 +11,7 @@ describe('settings parsing and migration', () => {
       drawMode: 'doubleButtonDraw',
       enableSelection: defaultSettings.enableSelection,
       glyphLibraryDensity: defaultSettings.glyphLibraryDensity,
+      glyphManagerPushEditor: true,
     })
   })
 
@@ -41,6 +42,15 @@ describe('settings parsing and migration', () => {
   it('keeps the selection-tool preference', () => {
     expect(parseSettings({ enableSelection: false })).toMatchObject({
       enableSelection: false,
+    })
+  })
+
+  it('keeps the desktop glyph-manager layout preference', () => {
+    expect(parseSettings({ glyphManagerPushEditor: false })).toMatchObject({
+      glyphManagerPushEditor: false,
+    })
+    expect(parseSettings({ glyphManagerPushEditor: 'yes' })).toMatchObject({
+      glyphManagerPushEditor: true,
     })
   })
 

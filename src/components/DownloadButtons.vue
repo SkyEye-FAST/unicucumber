@@ -307,6 +307,30 @@ const shareImage = async (): Promise<void> => {
   grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
 }
 
+@container (min-width: 40rem) {
+  .export-panel {
+    grid-template-columns: auto minmax(18rem, 1.45fr) minmax(14rem, 1fr);
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: 0;
+    padding-top: var(--space-2);
+  }
+
+  .export-panel summary {
+    min-height: var(--control-height);
+    white-space: nowrap;
+  }
+
+  .download-buttons,
+  .export-actions {
+    align-items: center;
+  }
+
+  .export-actions {
+    grid-template-columns: repeat(auto-fit, minmax(6.75rem, 1fr));
+  }
+}
+
 @media (max-width: 519px) {
   .download-buttons {
     grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -317,6 +317,21 @@
               />
             </div>
 
+            <label class="settings-check-row" for="glyphManagerPushEditor">
+              <span class="settings-label">{{
+                $t('settings.glyph_manager_push_editor')
+              }}</span>
+              <input
+                id="glyphManagerPushEditor"
+                type="checkbox"
+                :checked="settings.glyphManagerPushEditor"
+                @change="updateBoolean('glyphManagerPushEditor', $event)"
+              />
+            </label>
+            <p class="settings-hint">
+              {{ $t('settings.glyph_manager_push_editor_hint') }}
+            </p>
+
             <div class="settings-field">
               <span id="browser-font-label" class="settings-field-label">
                 {{ $t('settings.browser_preview_font') }}
@@ -573,6 +588,7 @@ const updateBoolean = (
   key:
     | 'alwaysShowMouseCursor'
     | 'showBorder'
+    | 'glyphManagerPushEditor'
     | 'confirmClear'
     | 'enableSelection'
     | 'exportTransparent'

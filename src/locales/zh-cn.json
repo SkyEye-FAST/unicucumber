@@ -344,6 +344,8 @@
       "pixel_only": "仅像素预览"
     },
     "glyph_library_density": "字形库密度",
+    "glyph_manager_push_editor": "在字形管理器旁显示编辑区",
+    "glyph_manager_push_editor_hint": "宽屏下调整字形管理器宽度时，编辑区会同步缩放而不会被遮挡。",
     "glyph_width": {
       "16px": "16像素",
       "8px": "8像素",

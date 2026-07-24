@@ -8,7 +8,11 @@ const widthForViewport = (viewportWidth: number): number => {
   return 450
 }
 
-export function useSidebar() {
+interface SidebarOptions {
+  desktopEditorReserve?: () => number
+}
+
+export function useSidebar(options: SidebarOptions = {}) {
   const isSidebarActive = ref(false)
   const sidebarWidth = ref(widthForViewport(window.innerWidth))
   let resizingPointerId: number | null = null
@@ -20,9 +24,11 @@ export function useSidebar() {
       sidebarWidth.value = viewportWidth
       return
     }
+    const editorReserve =
+      viewportWidth >= 1024 ? (options.desktopEditorReserve?.() ?? 32) : 32
     sidebarWidth.value = Math.min(
       Math.max(sidebarWidth.value, Math.min(320, viewportWidth - 32)),
-      viewportWidth - 32,
+      Math.max(300, viewportWidth - editorReserve),
     )
   }
 
@@ -51,9 +57,9 @@ export function useSidebar() {
     if (event.pointerId !== resizingPointerId) return
     const viewportWidth = window.visualViewport?.width ?? window.innerWidth
     const minWidth = Math.min(300, viewportWidth)
-    // Keep a visible edge of the editor, but do not impose a desktop-size cap:
-    // users should be able to size the library to the width they need.
-    const maxWidth = Math.max(minWidth, viewportWidth - 32)
+    const editorReserve =
+      viewportWidth >= 1024 ? (options.desktopEditorReserve?.() ?? 32) : 32
+    const maxWidth = Math.max(minWidth, viewportWidth - editorReserve)
     sidebarWidth.value = Math.min(
       Math.max(startWidth + event.clientX - startX, minWidth),
       maxWidth,

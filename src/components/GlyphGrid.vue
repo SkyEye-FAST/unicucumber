@@ -605,13 +605,27 @@ const clampPan = (): void => {
 }
 
 const calculateFitCellSize = (): number => {
-  const available = Math.max(
+  const viewport = viewportRef.value
+  const availableWidth = Math.max(
     1,
-    (viewportRef.value?.clientWidth ?? window.innerWidth) - 4,
+    (viewport?.clientWidth ?? window.innerWidth) - 4,
+  )
+  const configuredMaxHeight = viewport
+    ? Number.parseFloat(window.getComputedStyle(viewport).maxHeight)
+    : Number.NaN
+  const availableHeight = Math.max(
+    1,
+    (Number.isFinite(configuredMaxHeight)
+      ? configuredMaxHeight
+      : documentHeight.value) - 4,
   )
   return Math.max(
     MIN_CELL_SIZE,
-    Math.min(DEFAULT_CELL_SIZE, Math.floor(available / (gridWidth.value + 1))),
+    Math.min(
+      DEFAULT_CELL_SIZE,
+      Math.floor(availableWidth / (gridWidth.value + 1)),
+      Math.floor(availableHeight / (props.gridData.length + 1)),
+    ),
   )
 }
 
@@ -1530,6 +1544,12 @@ defineExpose({
     padding: 0.25rem 0 0;
     border-inline-start: 0;
     border-top: 1px solid var(--border-color);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-viewport {
+    max-height: max(260px, calc(100dvh - 24rem));
   }
 }
 

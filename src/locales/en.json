@@ -344,6 +344,8 @@
       "pixel_only": "Pixel only"
     },
     "glyph_library_density": "Glyph library density",
+    "glyph_manager_push_editor": "Move the editor beside the glyph manager",
+    "glyph_manager_push_editor_hint": "On wide screens, resizing the glyph manager also resizes the editor instead of covering it.",
     "glyph_width": {
       "16px": "16 pixels",
       "8px": "8 pixels",

@@ -1,5 +1,15 @@
 <template>
-  <div class="container">
+  <div
+    :class="[
+      'container',
+      {
+        'glyph-sidebar-push':
+          isSidebarActive &&
+          settings.glyphManagerPushEditor &&
+          !isGlyphLibraryExpanded,
+      },
+    ]"
+  >
     <EditorHeader
       @open-settings="showSettings = true"
       @toggle-sidebar="handleToggleSidebar"
@@ -43,36 +53,48 @@
     />
 
     <main class="editor-layout">
-      <GlyphGrid
-        ref="gridRef"
-        :grid-data="gridData"
-        :draw-mode="settings.drawMode"
-        :draw-value="drawValue"
-        :cursor-effect="settings.alwaysShowMouseCursor"
-        :show-border="settings.showBorder"
-        :current-tool="currentTool"
-        :enable-selection="settings.enableSelection"
-        @update:draw-value="updateDrawValue"
-        @selection-change="handleSelectionChange"
-        @tool-change="handleToolChange"
-        @tool-state-change="handleToolStateChange"
-        @command="handleGridCommand"
-        @clipboard-change="handleClipboardChange"
-        @paste-start="handlePasteStart"
-      >
-        <template #toolbar>
-          <GlyphInfo
-            v-model="currentCodePoint"
-            :hex-value="hexCode"
-            :width="settings.glyphWidth"
-            :browser-preview-font="settings.browserPreviewFont"
-            :save-status="documentSaveStatus"
-            :save-status-label="saveStatusLabel"
-          />
-        </template>
-      </GlyphGrid>
+      <section class="editor-canvas-column">
+        <GlyphGrid
+          ref="gridRef"
+          :grid-data="gridData"
+          :draw-mode="settings.drawMode"
+          :draw-value="drawValue"
+          :cursor-effect="settings.alwaysShowMouseCursor"
+          :show-border="settings.showBorder"
+          :current-tool="currentTool"
+          :enable-selection="settings.enableSelection"
+          @update:draw-value="updateDrawValue"
+          @selection-change="handleSelectionChange"
+          @tool-change="handleToolChange"
+          @tool-state-change="handleToolStateChange"
+          @command="handleGridCommand"
+          @clipboard-change="handleClipboardChange"
+          @paste-start="handlePasteStart"
+        >
+          <template #toolbar>
+            <GlyphInfo
+              v-model="currentCodePoint"
+              :hex-value="hexCode"
+              :width="settings.glyphWidth"
+              :browser-preview-font="settings.browserPreviewFont"
+              :save-status="documentSaveStatus"
+              :save-status-label="saveStatusLabel"
+            />
+          </template>
+        </GlyphGrid>
 
-      <div class="editor-control-stack">
+        <div class="editor-output-stack">
+          <HexCodeInput :hex-code="hexCode" @apply="applyHexCode" />
+          <DownloadButtons
+            v-model:export-scale="settings.exportScale"
+            v-model:export-transparent="settings.exportTransparent"
+            :grid-data="gridData"
+            :codepoint="currentCodePoint"
+          />
+        </div>
+      </section>
+
+      <aside class="editor-control-stack">
         <div class="editor-actions">
           <div class="action-group">
             <button
@@ -110,6 +132,7 @@
               type="button"
               :disabled="!hasUnsavedChanges || !activeGlyphId"
               :title="$t('editor.actions.restore.title')"
+              :aria-label="$t('editor.actions.restore.title')"
               @click="restoreSavedGlyph"
             >
               <i-material-symbols-restore-page-outline class="icon" />
@@ -118,6 +141,7 @@
             <button
               class="action-button ui-button ui-button--danger"
               :title="$t('editor.actions.clear.title')"
+              :aria-label="$t('editor.actions.clear.title')"
               type="button"
               @click="handleClear"
             >
@@ -128,6 +152,13 @@
               class="action-button ui-button ui-button--primary"
               :disabled="!hasUnsavedChanges || isSavingGlyph"
               :title="
+                $t(
+                  currentGlyphIsManaged
+                    ? 'editor.actions.save.title'
+                    : 'editor.actions.add_to_glyphset.title',
+                )
+              "
+              :aria-label="
                 $t(
                   currentGlyphIsManaged
                     ? 'editor.actions.save.title'
@@ -180,14 +211,7 @@
           @command="handleGridCommand"
           @update:model-value="updateDrawValue"
         />
-        <HexCodeInput :hex-code="hexCode" @apply="applyHexCode" />
-        <DownloadButtons
-          v-model:export-scale="settings.exportScale"
-          v-model:export-transparent="settings.exportTransparent"
-          :grid-data="gridData"
-          :codepoint="currentCodePoint"
-        />
-      </div>
+      </aside>
     </main>
 
     <div
@@ -331,7 +355,10 @@ const width = editorDocument.width
 const activeGlyphId = editorDocument.activeGlyphId
 const hexCode = computed(() => gridToHex(gridData.value))
 const { isSidebarActive, sidebarWidth, toggleSidebar, startResize } =
-  useSidebar()
+  useSidebar({
+    desktopEditorReserve: () =>
+      settings.value.glyphManagerPushEditor ? 320 : 32,
+  })
 
 let previousBodyOverflow = ''
 let bodyScrollLocked = false
@@ -1155,6 +1182,18 @@ const handlePasteStart = (): void => {
   gap: var(--space-2);
 }
 
+.editor-canvas-column,
+.editor-output-stack {
+  min-width: 0;
+  width: 100%;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.editor-output-stack {
+  container-type: inline-size;
+}
+
 .editor-layout {
   width: min(100%, var(--workspace-max));
   display: grid;
@@ -1375,24 +1414,26 @@ const handlePasteStart = (): void => {
 }
 
 @media (min-width: 1024px) {
+  .container.glyph-sidebar-push {
+    padding-left: calc(
+      v-bind(sidebarWidth + 'px') + clamp(var(--space-4), 2vw, 2rem)
+    );
+  }
+
   .editor-layout {
-    grid-template-columns: minmax(32rem, 1fr) minmax(22rem, 28rem);
-    gap: clamp(1rem, 2.5vw, 2rem);
+    grid-template-columns: minmax(0, 1fr) var(--control-height);
+    gap: var(--space-3);
   }
 
   .editor-control-stack {
     position: sticky;
     top: var(--space-4);
+    width: var(--control-height);
+    align-content: start;
     padding-top: 0.15rem;
   }
 
   .editor-control-stack .action-button {
-    padding-inline: 0.55rem;
-    font-size: 0.78rem;
-    white-space: nowrap;
-  }
-
-  .editor-control-stack .restore-action {
     width: var(--control-height);
     padding: 0;
     font-size: 0;
@@ -1400,8 +1441,15 @@ const handlePasteStart = (): void => {
   }
 
   .editor-actions,
-  .action-group {
+  .action-group,
+  .history-controls {
+    width: var(--control-height);
+    flex-direction: column;
     gap: var(--space-1);
+  }
+
+  .editor-actions {
+    align-items: center;
   }
 
   .action-group {

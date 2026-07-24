@@ -12,7 +12,7 @@ import type {
 } from '@/types/glyph'
 
 export const SETTINGS_KEY = 'unicucumber_settings'
-const SETTINGS_VERSION = 6
+const SETTINGS_VERSION = 7
 
 export const FONT_LIST = [
   'Noto Sans',
@@ -164,6 +164,7 @@ export const defaultSettings: Readonly<EditorSettings> = {
   drawMode: 'singleButtonDraw',
   alwaysShowMouseCursor: false,
   showBorder: true,
+  glyphManagerPushEditor: true,
   confirmClear: true,
   glyphPreviewMode: 'pixelOnly',
   glyphLibraryDensity: 'comfortable',
@@ -232,6 +233,10 @@ export const parseSettings = (value: unknown): EditorSettings => {
       typeof stored.showBorder === 'boolean'
         ? stored.showBorder
         : defaultSettings.showBorder,
+    glyphManagerPushEditor:
+      typeof stored.glyphManagerPushEditor === 'boolean'
+        ? stored.glyphManagerPushEditor
+        : defaultSettings.glyphManagerPushEditor,
     confirmClear:
       typeof stored.confirmClear === 'boolean'
         ? stored.confirmClear

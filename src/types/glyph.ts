@@ -42,6 +42,7 @@ export interface EditorSettings {
   drawMode: DrawMode
   alwaysShowMouseCursor: boolean
   showBorder: boolean
+  glyphManagerPushEditor: boolean
   confirmClear: boolean
   glyphPreviewMode: GlyphPreviewMode
   glyphLibraryDensity: GlyphLibraryDensity

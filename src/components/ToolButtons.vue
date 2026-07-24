@@ -290,4 +290,42 @@ const updateTool = (tool: EditorTool): void => {
     display: none;
   }
 }
+
+@media (min-width: 1024px) {
+  .tool-buttons {
+    width: var(--control-height);
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .tool-button,
+  .tool-overflow > summary {
+    width: var(--control-height);
+    min-width: var(--control-height);
+    flex: none;
+    box-sizing: border-box;
+    border-width: 1px;
+    border-radius: var(--radius-sm);
+  }
+
+  .tool-buttons > .tool-button:first-child {
+    border-radius: var(--radius-sm);
+  }
+
+  .tool-overflow {
+    width: var(--control-height);
+    flex: none;
+  }
+
+  .tool-overflow > summary {
+    border-width: 1px;
+    border-radius: var(--radius-sm);
+  }
+
+  .tool-sheet {
+    top: 0;
+    right: calc(100% + var(--space-2));
+    width: min(30rem, calc(100vw - 6rem));
+  }
+}
 </style>
