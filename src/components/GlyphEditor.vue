@@ -181,7 +181,12 @@
           @update:model-value="updateDrawValue"
         />
         <HexCodeInput :hex-code="hexCode" @apply="applyHexCode" />
-        <DownloadButtons :grid-data="gridData" :codepoint="currentCodePoint" />
+        <DownloadButtons
+          v-model:export-scale="settings.exportScale"
+          v-model:export-transparent="settings.exportTransparent"
+          :grid-data="gridData"
+          :codepoint="currentCodePoint"
+        />
       </div>
     </main>
 
@@ -526,7 +531,7 @@ onMounted(() => {
   narrowSidebarQuery.addEventListener('change', handleSidebarMediaChange)
   window.addEventListener('beforeunload', handleBeforeUnload)
   document.addEventListener('visibilitychange', handleDraftVisibilityChange)
-  unregisterDraftFlusher = registerDraftFlusher(flushDraft)
+  unregisterDraftFlusher = registerDraftFlusher(() => flushDraft(true))
   void initializeDraftStorage()
   cancelGlyphPreload = scheduleGlyphPreload()
   cancelUnifontPreload = scheduleIdleTask(() => {
@@ -553,7 +558,7 @@ onBeforeUnmount(() => {
   cancelGlyphPreload?.()
   cancelUnifontPreload?.()
   releaseBodyScrollLock()
-  if (saveStatus.value !== 'saved') void flushDraft().catch(() => undefined)
+  if (saveStatus.value !== 'saved') void flushDraft(true).catch(() => undefined)
 })
 
 const initializeDraftStorage = async (): Promise<void> => {
@@ -579,9 +584,10 @@ const initializeDraftStorage = async (): Promise<void> => {
   }
 }
 
-const flushDraft = async (): Promise<void> => {
+const flushDraft = async (force = false): Promise<void> => {
   if (!storageReady) return
   if (saveStatus.value === 'saved') return
+  if (!settings.value.autoSaveEnabled && !force) return
   if (draftFlushPromise) return draftFlushPromise
   if (draftTimer !== null) {
     window.clearTimeout(draftTimer)
@@ -601,10 +607,7 @@ const flushDraft = async (): Promise<void> => {
         saveStatus.value = 'saved'
       } else {
         saveStatus.value = 'unsaved'
-        draftTimer = window.setTimeout(
-          () => void flushDraft().catch(() => undefined),
-          0,
-        )
+        queueDraftSave()
       }
     })
     .catch((error: unknown) => {
@@ -627,20 +630,37 @@ const flushDraft = async (): Promise<void> => {
   return draftFlushPromise
 }
 
+const queueDraftSave = (): void => {
+  if (!storageReady || !settings.value.autoSaveEnabled) return
+  if (draftTimer !== null) window.clearTimeout(draftTimer)
+  draftTimer = window.setTimeout(
+    () => void flushDraft().catch(() => undefined),
+    settings.value.autoSaveInterval,
+  )
+}
+
 const scheduleDraftSave = (): void => {
   if (!storageReady) return
   draftRevision += 1
   saveStatus.value = 'unsaved'
-  if (draftTimer !== null) window.clearTimeout(draftTimer)
-  draftTimer = window.setTimeout(
-    () => void flushDraft().catch(() => undefined),
-    350,
-  )
+  queueDraftSave()
 }
 
 watch(
   [gridData, editorDocument.codePoint, editorDocument.activeGlyphId],
   scheduleDraftSave,
+)
+
+watch(
+  () => [settings.value.autoSaveEnabled, settings.value.autoSaveInterval],
+  ([enabled]) => {
+    if (!enabled && draftTimer !== null) {
+      window.clearTimeout(draftTimer)
+      draftTimer = null
+    } else if (enabled && saveStatus.value !== 'saved') {
+      queueDraftSave()
+    }
+  },
 )
 
 const handleBeforeUnload = (event: BeforeUnloadEvent): void => {
@@ -651,7 +671,7 @@ const handleBeforeUnload = (event: BeforeUnloadEvent): void => {
 
 const handleDraftVisibilityChange = (): void => {
   if (document.visibilityState !== 'visible' && saveStatus.value !== 'saved') {
-    void flushDraft().catch(() => undefined)
+    void flushDraft(true).catch(() => undefined)
   }
 }
 

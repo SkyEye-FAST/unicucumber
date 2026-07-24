@@ -3,13 +3,16 @@ import { ref, watch } from 'vue'
 import type {
   DrawMode,
   EditorSettings,
+  AutoSaveInterval,
+  ExportScale,
   GlyphLibraryDensity,
   GlyphPreviewMode,
   GlyphWidth,
+  ImageImportMode,
 } from '@/types/glyph'
 
 export const SETTINGS_KEY = 'unicucumber_settings'
-const SETTINGS_VERSION = 4
+const SETTINGS_VERSION = 6
 
 export const FONT_LIST = [
   'Noto Sans',
@@ -166,6 +169,13 @@ export const defaultSettings: Readonly<EditorSettings> = {
   glyphLibraryDensity: 'comfortable',
   browserPreviewFont: defaultFontStack,
   enableSelection: true,
+  exportScale: 8,
+  exportTransparent: false,
+  imageImportMode: 'fit',
+  imageImportThreshold: 128,
+  imageImportTransparentAsWhite: true,
+  autoSaveEnabled: true,
+  autoSaveInterval: 1000,
 }
 
 type StoredSettings = Partial<EditorSettings> & { version?: number }
@@ -178,6 +188,21 @@ const isPreviewMode = (value: unknown): value is GlyphPreviewMode =>
   value === 'pixelOnly' || value === 'browserOnly' || value === 'both'
 const isGlyphLibraryDensity = (value: unknown): value is GlyphLibraryDensity =>
   value === 'compact' || value === 'comfortable' || value === 'large'
+const isExportScale = (value: unknown): value is ExportScale =>
+  value === 1 || value === 2 || value === 4 || value === 8 || value === 16
+const isImageImportMode = (value: unknown): value is ImageImportMode =>
+  value === 'fit' || value === 'crop'
+const isImageImportThreshold = (value: unknown): value is number =>
+  typeof value === 'number' &&
+  Number.isInteger(value) &&
+  value >= 0 &&
+  value <= 255
+const isAutoSaveInterval = (value: unknown): value is AutoSaveInterval =>
+  value === 500 ||
+  value === 1000 ||
+  value === 3000 ||
+  value === 5000 ||
+  value === 10000
 
 export const parseSettings = (value: unknown): EditorSettings => {
   const stored =
@@ -225,6 +250,30 @@ export const parseSettings = (value: unknown): EditorSettings => {
       typeof stored.enableSelection === 'boolean'
         ? stored.enableSelection
         : defaultSettings.enableSelection,
+    exportScale: isExportScale(stored.exportScale)
+      ? stored.exportScale
+      : defaultSettings.exportScale,
+    exportTransparent:
+      typeof stored.exportTransparent === 'boolean'
+        ? stored.exportTransparent
+        : defaultSettings.exportTransparent,
+    imageImportMode: isImageImportMode(stored.imageImportMode)
+      ? stored.imageImportMode
+      : defaultSettings.imageImportMode,
+    imageImportThreshold: isImageImportThreshold(stored.imageImportThreshold)
+      ? stored.imageImportThreshold
+      : defaultSettings.imageImportThreshold,
+    imageImportTransparentAsWhite:
+      typeof stored.imageImportTransparentAsWhite === 'boolean'
+        ? stored.imageImportTransparentAsWhite
+        : defaultSettings.imageImportTransparentAsWhite,
+    autoSaveEnabled:
+      typeof stored.autoSaveEnabled === 'boolean'
+        ? stored.autoSaveEnabled
+        : defaultSettings.autoSaveEnabled,
+    autoSaveInterval: isAutoSaveInterval(stored.autoSaveInterval)
+      ? stored.autoSaveInterval
+      : defaultSettings.autoSaveInterval,
   }
 }
 

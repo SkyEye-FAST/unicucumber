@@ -182,6 +182,9 @@
     />
 
     <ImageImportDialog
+      v-model:mode="settings.imageImportMode"
+      v-model:threshold="settings.imageImportThreshold"
+      v-model:transparent-as-white="settings.imageImportTransparentAsWhite"
       :file="pendingImageFile"
       @confirm="handlePreparedImage"
       @cancel="pendingImageFile = null"

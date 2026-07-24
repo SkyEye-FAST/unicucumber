@@ -64,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 
 import { useI18n } from 'vue-i18n'
 
@@ -72,7 +72,7 @@ import CustomSelect, {
   type CustomSelectOption,
 } from '@/components/CustomSelect.vue'
 import { useNotifications } from '@/composables/useNotifications'
-import type { GridData } from '@/types/glyph'
+import type { ExportScale, GridData } from '@/types/glyph'
 import {
   canvasToBlob,
   createCanvasFromGrid,
@@ -84,6 +84,12 @@ import { gridToHex } from '@/utils/hexUtils'
 const props = defineProps<{
   gridData: GridData
   codepoint: string
+  exportScale: ExportScale
+  exportTransparent: boolean
+}>()
+const emit = defineEmits<{
+  'update:exportScale': [value: ExportScale]
+  'update:exportTransparent': [value: boolean]
 }>()
 
 const { t: $t } = useI18n()
@@ -95,8 +101,15 @@ const scaleOptions: CustomSelectOption[] = scales.map((value) => ({
   value,
   label: `${value}×`,
 }))
-const scale = ref(8)
-const transparent = ref(false)
+const scale = computed({
+  get: () => props.exportScale,
+  set: (value: string | number) =>
+    emit('update:exportScale', Number(value) as ExportScale),
+})
+const transparent = computed({
+  get: () => props.exportTransparent,
+  set: (value: boolean) => emit('update:exportTransparent', value),
+})
 const baseFilename = computed(() => props.codepoint || 'glyph')
 const canShare =
   typeof navigator !== 'undefined' && typeof navigator.share === 'function'

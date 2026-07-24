@@ -92,13 +92,9 @@
     "transparent": "透明背景"
   },
   "glyph_editor": {
-    "code_point": "碼位：U+{value}",
     "copy_title": "複製 (Ctrl+C)",
     "cut_title": "剪下 (Ctrl+X)",
-    "glyph_data": "字形資料",
     "invalid_code_point": "請輸入U+0000至U+10FFFF的Unicode純量值（不含代理碼位）。",
-    "move_hint": "移動到網格位置",
-    "paste_hint": "點擊網格位置以貼上",
     "paste_title": "貼上 (Ctrl+V)"
   },
   "glyph_manager": {
@@ -120,7 +116,6 @@
       "warning": "已存在碼位為U+{codePoint}的字形！"
     },
     "error": {
-      "loading_storage": "從存儲載入字形時出錯",
       "loading_unicode_names": "無法載入Unicode名稱，仍可使用碼位搜尋。",
       "loading_unifont": "載入Unifont資料出錯",
       "saving_storage": "儲存字形到存儲時出錯",
@@ -157,8 +152,6 @@
     "library": {
       "add_selected_to_manager": "新增至字形管理器（{count}）",
       "added_to_manager": "已新增{count}個字形至字形管理器。",
-      "bitmap_preview": "點陣圖預覽",
-      "browser_preview": "瀏覽器預覽",
       "cell_accessible": "{character}，U+{codePoint}，{width}像素字形{states}",
       "clear_search": "清除搜尋",
       "clear_selection": "清除選取",
@@ -183,7 +176,6 @@
       "modified_badge": "已修改",
       "no_matches": "沒有符合的字形",
       "no_matches_hint": "請清除搜尋，或嘗試其他字元或碼位。",
-      "open_in_editor": "在編輯器中開啟字形",
       "remove_from_manager": "從字形管理器移除（{count}）",
       "retry": "重試",
       "search_label": "搜尋字形庫",
@@ -314,6 +306,16 @@
   },
   "settings": {
     "always_show_mouse_cursor": "始終顯示滑鼠游標",
+    "auto_save_enabled": "自動儲存草稿",
+    "auto_save_hint": "關閉後，頁面隱藏、更新或關閉時仍會嘗試保留草稿。",
+    "auto_save_interval": "儲存間隔",
+    "auto_save_intervals": {
+      "1s": "1秒",
+      "3s": "3秒",
+      "5s": "5秒",
+      "10s": "10秒",
+      "500ms": "0.5秒"
+    },
     "appearance": {
       "auto": "自動",
       "dark": "深色",
@@ -330,6 +332,9 @@
       "single_button": "左鍵繪製或擦除"
     },
     "enable_selection": "啟用選取工具",
+    "export_defaults": "匯出預設值",
+    "export_scale": "影像縮放倍率",
+    "export_transparent": "使用透明背景",
     "font_edit": {
       "cancel": "取消",
       "save": "儲存",
@@ -350,12 +355,18 @@
     "language": {
       "label": "語言"
     },
+    "image_import_defaults": "影像匯入預設值",
+    "image_import_mode": "縮放方式",
+    "image_import_threshold": "黑色閾值",
+    "image_import_transparent_white": "將透明像素視為白色",
     "reset": "重設為預設值",
     "sections": {
       "canvas": "畫布與工具",
       "general": "一般",
       "glyph_preview": "預覽與字形庫",
-      "safety": "安全操作"
+      "import_export": "匯入與匯出",
+      "safety": "安全操作",
+      "workflow": "工作流程"
     },
     "show_border": "顯示網格邊框",
     "title": "設定"

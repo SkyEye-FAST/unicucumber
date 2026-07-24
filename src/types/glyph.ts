@@ -18,6 +18,9 @@ export type EditorTool =
 export type DrawMode = 'singleButtonDraw' | 'doubleButtonDraw'
 export type GlyphPreviewMode = 'pixelOnly' | 'browserOnly' | 'both'
 export type GlyphLibraryDensity = 'compact' | 'comfortable' | 'large'
+export type ExportScale = 1 | 2 | 4 | 8 | 16
+export type ImageImportMode = 'fit' | 'crop'
+export type AutoSaveInterval = 500 | 1000 | 3000 | 5000 | 10000
 export type GlyphSourceFilter = 'all' | 'modified'
 export type GlyphUnicodePlaneFilter = 'all' | `${number}`
 export type GlyphUnicodeBlockFilter = 'all' | string
@@ -44,6 +47,13 @@ export interface EditorSettings {
   glyphLibraryDensity: GlyphLibraryDensity
   browserPreviewFont: string
   enableSelection: boolean
+  exportScale: ExportScale
+  exportTransparent: boolean
+  imageImportMode: ImageImportMode
+  imageImportThreshold: number
+  imageImportTransparentAsWhite: boolean
+  autoSaveEnabled: boolean
+  autoSaveInterval: AutoSaveInterval
 }
 
 export interface PrefillData extends Glyph {

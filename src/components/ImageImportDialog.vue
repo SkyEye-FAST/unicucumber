@@ -110,14 +110,22 @@ import { useI18n } from 'vue-i18n'
 import CustomSelect, {
   type CustomSelectOption,
 } from '@/components/CustomSelect.vue'
-import type { GlyphWidth, GridData } from '@/types/glyph'
+import type { GlyphWidth, GridData, ImageImportMode } from '@/types/glyph'
 import { prepareImageGrid } from '@/utils/imageImport'
 import { acquireOverlayLock, releaseOverlayLock } from '@/utils/overlayStack'
 
-const props = defineProps<{ file: File | null }>()
+const props = defineProps<{
+  file: File | null
+  mode: ImageImportMode
+  threshold: number
+  transparentAsWhite: boolean
+}>()
 const emit = defineEmits<{
   confirm: [grid: GridData]
   cancel: []
+  'update:mode': [value: ImageImportMode]
+  'update:threshold': [value: number]
+  'update:transparentAsWhite': [value: boolean]
 }>()
 
 const dialogRef = ref<HTMLElement | null>(null)
@@ -126,10 +134,10 @@ const errorMessage = ref('')
 const { t: $t } = useI18n()
 const options = reactive({
   targetWidth: 16 as GlyphWidth,
-  mode: 'fit' as 'fit' | 'crop',
-  threshold: 128,
+  mode: props.mode,
+  threshold: props.threshold,
   invert: false,
-  transparentAsWhite: true,
+  transparentAsWhite: props.transparentAsWhite,
 })
 const targetWidthOptions: CustomSelectOption[] = [
   { value: 8, label: '8×16' },
@@ -170,6 +178,9 @@ watch(
     imageData.value = null
     errorMessage.value = ''
     if (file) {
+      options.mode = props.mode
+      options.threshold = props.threshold
+      options.transparentAsWhite = props.transparentAsWhite
       if (!registered) {
         registered = true
         previouslyFocused = document.activeElement as HTMLElement | null
@@ -193,6 +204,19 @@ watch(
     }
   },
   { immediate: true },
+)
+
+watch(
+  () => options.mode,
+  (value) => emit('update:mode', value),
+)
+watch(
+  () => options.threshold,
+  (value) => emit('update:threshold', value),
+)
+watch(
+  () => options.transparentAsWhite,
+  (value) => emit('update:transparentAsWhite', value),
 )
 
 onBeforeUnmount(() => {

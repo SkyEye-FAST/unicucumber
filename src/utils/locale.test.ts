@@ -37,6 +37,9 @@ describe('settings localization', () => {
     expect(locale.settings.sections.safety).toBeTruthy()
     expect(locale.settings.enable_selection).toBeTruthy()
     expect(locale.settings.glyph_library_density).toBeTruthy()
+    expect(locale.settings.sections.import_export).toBeTruthy()
+    expect(locale.settings.sections.workflow).toBeTruthy()
+    expect(locale.settings.auto_save_enabled).toBeTruthy()
   })
 })
 

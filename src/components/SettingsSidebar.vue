@@ -172,6 +172,121 @@
 
           <section
             class="settings-section"
+            aria-labelledby="settings-workflow-title"
+          >
+            <h3 id="settings-workflow-title" class="settings-section-title">
+              {{ $t('settings.sections.workflow') }}
+            </h3>
+            <label class="settings-check-row" for="autoSaveEnabled">
+              <span class="settings-label">{{
+                $t('settings.auto_save_enabled')
+              }}</span>
+              <input
+                id="autoSaveEnabled"
+                type="checkbox"
+                :checked="settings.autoSaveEnabled"
+                @change="updateBoolean('autoSaveEnabled', $event)"
+              />
+            </label>
+            <div class="settings-field settings-field--inline">
+              <span class="settings-label">{{
+                $t('settings.auto_save_interval')
+              }}</span>
+              <CustomSelect
+                :model-value="settings.autoSaveInterval"
+                :ariaLabel="$t('settings.auto_save_interval')"
+                :disabled="!settings.autoSaveEnabled"
+                :options="autoSaveIntervalOptions"
+                @update:model-value="updateAutoSaveInterval"
+              />
+            </div>
+            <p class="settings-hint">{{ $t('settings.auto_save_hint') }}</p>
+          </section>
+
+          <section
+            class="settings-section"
+            aria-labelledby="settings-import-export-title"
+          >
+            <h3
+              id="settings-import-export-title"
+              class="settings-section-title"
+            >
+              {{ $t('settings.sections.import_export') }}
+            </h3>
+
+            <span class="settings-field-label">{{
+              $t('settings.export_defaults')
+            }}</span>
+            <div class="settings-field settings-field--inline">
+              <span class="settings-label">{{
+                $t('settings.export_scale')
+              }}</span>
+              <CustomSelect
+                :model-value="settings.exportScale"
+                :ariaLabel="$t('settings.export_scale')"
+                :options="exportScaleOptions"
+                @update:model-value="updateExportScale"
+              />
+            </div>
+            <label class="settings-check-row" for="exportTransparent">
+              <span class="settings-label">{{
+                $t('settings.export_transparent')
+              }}</span>
+              <input
+                id="exportTransparent"
+                type="checkbox"
+                :checked="settings.exportTransparent"
+                @change="updateBoolean('exportTransparent', $event)"
+              />
+            </label>
+
+            <span class="settings-field-label settings-field-label--spaced">{{
+              $t('settings.image_import_defaults')
+            }}</span>
+            <div class="settings-field settings-field--inline">
+              <span class="settings-label">{{
+                $t('settings.image_import_mode')
+              }}</span>
+              <CustomSelect
+                :model-value="settings.imageImportMode"
+                :ariaLabel="$t('settings.image_import_mode')"
+                :options="imageImportModeOptions"
+                @update:model-value="updateImageImportMode"
+              />
+            </div>
+            <div class="settings-field settings-field--inline">
+              <label class="settings-label" for="imageImportThreshold">{{
+                $t('settings.image_import_threshold')
+              }}</label>
+              <input
+                id="imageImportThreshold"
+                class="settings-number-input"
+                type="number"
+                min="0"
+                max="255"
+                step="1"
+                :value="settings.imageImportThreshold"
+                @change="updateImageImportThreshold"
+              />
+            </div>
+            <label
+              class="settings-check-row"
+              for="imageImportTransparentAsWhite"
+            >
+              <span class="settings-label">{{
+                $t('settings.image_import_transparent_white')
+              }}</span>
+              <input
+                id="imageImportTransparentAsWhite"
+                type="checkbox"
+                :checked="settings.imageImportTransparentAsWhite"
+                @change="updateBoolean('imageImportTransparentAsWhite', $event)"
+              />
+            </label>
+          </section>
+
+          <section
+            class="settings-section"
             aria-labelledby="settings-glyph-title"
           >
             <h3 id="settings-glyph-title" class="settings-section-title">
@@ -361,6 +476,20 @@ const glyphLibraryDensityOptions = computed<CustomSelectOption[]>(() => [
   },
   { value: 'large', label: $t('glyph_manager.library.density.large') },
 ])
+const exportScaleOptions: CustomSelectOption[] = [1, 2, 4, 8, 16].map(
+  (value) => ({ value, label: `${value}×` }),
+)
+const imageImportModeOptions = computed<CustomSelectOption[]>(() => [
+  { value: 'fit', label: $t('image_import.fit') },
+  { value: 'crop', label: $t('image_import.crop') },
+])
+const autoSaveIntervalOptions = computed<CustomSelectOption[]>(() => [
+  { value: 500, label: $t('settings.auto_save_intervals.500ms') },
+  { value: 1000, label: $t('settings.auto_save_intervals.1s') },
+  { value: 3000, label: $t('settings.auto_save_intervals.3s') },
+  { value: 5000, label: $t('settings.auto_save_intervals.5s') },
+  { value: 10000, label: $t('settings.auto_save_intervals.10s') },
+])
 const languageOptions: CustomSelectOption[] = [
   { value: 'en', label: 'English' },
   { value: 'zh-CN', label: '简体中文' },
@@ -402,6 +531,34 @@ const updateGlyphLibraryDensity = (value: string | number): void => {
   })
 }
 
+const updateExportScale = (value: string | number): void => {
+  updateSettings({
+    exportScale: Number(value) as EditorSettings['exportScale'],
+  })
+}
+
+const updateImageImportMode = (value: string | number): void => {
+  updateSettings({
+    imageImportMode: value as EditorSettings['imageImportMode'],
+  })
+}
+
+const updateImageImportThreshold = (event: Event): void => {
+  const input = event.target as HTMLInputElement
+  const value = Number(input.value)
+  if (!Number.isInteger(value) || value < 0 || value > 255) {
+    input.value = String(props.settings.imageImportThreshold)
+    return
+  }
+  updateSettings({ imageImportThreshold: value })
+}
+
+const updateAutoSaveInterval = (value: string | number): void => {
+  updateSettings({
+    autoSaveInterval: Number(value) as EditorSettings['autoSaveInterval'],
+  })
+}
+
 const updateLanguage = (value: string | number): void => {
   const nextLocale = value as SupportedLocale
   locale.value = nextLocale
@@ -414,7 +571,13 @@ const updateLanguage = (value: string | number): void => {
 
 const updateBoolean = (
   key:
-    'alwaysShowMouseCursor' | 'showBorder' | 'confirmClear' | 'enableSelection',
+    | 'alwaysShowMouseCursor'
+    | 'showBorder'
+    | 'confirmClear'
+    | 'enableSelection'
+    | 'exportTransparent'
+    | 'imageImportTransparentAsWhite'
+    | 'autoSaveEnabled',
   event: Event,
 ): void => {
   updateSettings({ [key]: (event.target as HTMLInputElement).checked })
@@ -627,6 +790,13 @@ const confirmReset = (): void => {
   line-height: 1.45;
 }
 
+.settings-hint {
+  margin: var(--space-2) 0 0;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
 .settings-field {
   display: grid;
   gap: var(--space-2);
@@ -646,11 +816,16 @@ const confirmReset = (): void => {
 }
 
 .settings-field-label {
+  display: block;
   min-width: 0;
   color: var(--text-color);
   font-size: 0.8125rem;
   font-weight: 650;
   line-height: 1.4;
+}
+
+.settings-field-label--spaced {
+  margin-top: var(--space-4);
 }
 
 .settings-field--inline {
@@ -660,7 +835,8 @@ const confirmReset = (): void => {
 }
 
 .settings-field :deep(.custom-select),
-.font-input {
+.font-input,
+.settings-number-input {
   box-sizing: border-box;
   width: 100%;
   border: 1px solid var(--input-border);
@@ -671,6 +847,12 @@ const confirmReset = (): void => {
 
 .settings-field :deep(.custom-select__trigger) {
   min-height: var(--control-height);
+}
+
+.settings-number-input {
+  min-height: var(--control-height);
+  padding: 0.4rem 0.7rem;
+  font: inherit;
 }
 
 .settings-check-row {

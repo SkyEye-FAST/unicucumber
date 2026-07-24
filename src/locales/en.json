@@ -92,13 +92,9 @@
     "transparent": "Transparent background"
   },
   "glyph_editor": {
-    "code_point": "Code Point: U+{value}",
     "copy_title": "Copy (Ctrl+C)",
     "cut_title": "Cut (Ctrl+X)",
-    "glyph_data": "Glyph Data",
     "invalid_code_point": "Enter a Unicode scalar value from U+0000 to U+10FFFF, excluding surrogates.",
-    "move_hint": "Move to grid position",
-    "paste_hint": "Click grid position to paste",
     "paste_title": "Paste (Ctrl+V)"
   },
   "glyph_manager": {
@@ -120,7 +116,6 @@
       "warning": "A glyph with code point U+{codePoint} already exists"
     },
     "error": {
-      "loading_storage": "Error loading glyphs from storage",
       "loading_unicode_names": "Unicode names could not be loaded. Code-point search remains available.",
       "loading_unifont": "Error loading Unifont data",
       "saving_storage": "Error saving glyphs to storage",
@@ -157,8 +152,6 @@
     "library": {
       "add_selected_to_manager": "Add to glyph manager ({count})",
       "added_to_manager": "Added {count} glyphs to the glyph manager.",
-      "bitmap_preview": "Bitmap preview",
-      "browser_preview": "Browser preview",
       "cell_accessible": "{character}, U+{codePoint}, {width}-pixel glyph{states}",
       "clear_search": "Clear glyph search",
       "clear_selection": "Clear selection",
@@ -183,7 +176,6 @@
       "modified_badge": "Modified",
       "no_matches": "No matching glyphs",
       "no_matches_hint": "Clear the search or try another character or code point.",
-      "open_in_editor": "Open glyph in editor",
       "remove_from_manager": "Remove from manager ({count})",
       "retry": "Retry",
       "search_label": "Search glyph library",
@@ -314,6 +306,16 @@
   },
   "settings": {
     "always_show_mouse_cursor": "Always show mouse cursor",
+    "auto_save_enabled": "Automatically save draft",
+    "auto_save_hint": "When disabled, drafts are still preserved when the page is hidden, updated, or closed.",
+    "auto_save_interval": "Save interval",
+    "auto_save_intervals": {
+      "1s": "1 second",
+      "3s": "3 seconds",
+      "5s": "5 seconds",
+      "10s": "10 seconds",
+      "500ms": "0.5 seconds"
+    },
     "appearance": {
       "auto": "Auto",
       "dark": "Dark",
@@ -330,6 +332,9 @@
       "single_button": "Left draw and erase"
     },
     "enable_selection": "Enable selection tool",
+    "export_defaults": "Export defaults",
+    "export_scale": "Image scale",
+    "export_transparent": "Use transparent background",
     "font_edit": {
       "cancel": "Cancel",
       "save": "Save",
@@ -350,12 +355,18 @@
     "language": {
       "label": "Language"
     },
+    "image_import_defaults": "Image import defaults",
+    "image_import_mode": "Sizing mode",
+    "image_import_threshold": "Black threshold",
+    "image_import_transparent_white": "Treat transparent pixels as white",
     "reset": "Reset to defaults",
     "sections": {
       "canvas": "Canvas & tools",
       "general": "General",
       "glyph_preview": "Preview & library",
-      "safety": "Safety"
+      "import_export": "Import & export",
+      "safety": "Safety",
+      "workflow": "Workflow"
     },
     "show_border": "Show grid border",
     "title": "Settings"
