@@ -1519,7 +1519,7 @@ defineExpose({
   font-size: 1.1rem;
 }
 
-@media (max-width: 899px) {
+@media (max-width: 719px) {
   .workspace-toolbar {
     grid-template-columns: minmax(0, 1fr);
     gap: 0.3rem;
@@ -1547,9 +1547,15 @@ defineExpose({
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 720px) {
   .grid-viewport {
     max-height: max(260px, calc(100dvh - 24rem));
+  }
+}
+
+@media (min-width: 720px) and (max-width: 755px) {
+  .grid-viewport {
+    max-height: max(260px, calc(100dvh - 32rem));
   }
 }
 

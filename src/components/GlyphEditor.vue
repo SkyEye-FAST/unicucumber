@@ -1413,13 +1413,7 @@ const handlePasteStart = (): void => {
   }
 }
 
-@media (min-width: 1024px) {
-  .container.glyph-sidebar-push {
-    padding-left: calc(
-      v-bind(sidebarWidth + 'px') + clamp(var(--space-4), 2vw, 2rem)
-    );
-  }
-
+@media (min-width: 720px) {
   .editor-layout {
     grid-template-columns: minmax(0, 1fr) var(--control-height);
     gap: var(--space-3);
@@ -1454,6 +1448,14 @@ const handlePasteStart = (): void => {
 
   .action-group {
     flex-wrap: nowrap;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container.glyph-sidebar-push {
+    padding-left: calc(
+      v-bind(sidebarWidth + 'px') + clamp(var(--space-4), 2vw, 2rem)
+    );
   }
 }
 </style>

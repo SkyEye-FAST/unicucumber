@@ -291,7 +291,7 @@ const updateTool = (tool: EditorTool): void => {
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 720px) {
   .tool-buttons {
     width: var(--control-height);
     flex-direction: column;

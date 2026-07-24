@@ -43,6 +43,62 @@ test.describe('wide editor layout', () => {
   })
 
   for (const viewport of [
+    { width: 720, height: 900 },
+    { width: 768, height: 1024 },
+    { width: 1000, height: 768 },
+    { width: 1023, height: 768 },
+  ]) {
+    test(`keeps the tablet command rail beside the canvas at ${viewport.width}x${viewport.height}`, async ({
+      page,
+    }) => {
+      await loadWideEditor(page, viewport.width, viewport.height)
+
+      const grid = await getBounds(page, '.grid-viewport')
+      const hex = await getBounds(page, '.hex-code-container')
+      const exportPanel = await getBounds(page, '.export-panel')
+      const rail = await getBounds(page, '.editor-control-stack')
+
+      expect(rail.left).toBeGreaterThanOrEqual(grid.right)
+      expect(hex.top).toBeGreaterThanOrEqual(grid.bottom)
+      expect(exportPanel.top).toBeGreaterThanOrEqual(hex.bottom)
+      expect(exportPanel.right).toBeLessThanOrEqual(viewport.width)
+      expect(exportPanel.bottom).toBeLessThanOrEqual(viewport.height)
+      await expect(page.locator('.editor-actions')).toHaveCSS(
+        'flex-direction',
+        'column',
+      )
+      await expect(page.locator('.history-controls')).toHaveCSS(
+        'flex-direction',
+        'column',
+      )
+      await expect(page.locator('.tool-buttons')).toHaveCSS(
+        'flex-direction',
+        'column',
+      )
+
+      const documentHeight = await page.evaluate(() =>
+        Math.max(
+          document.documentElement.scrollHeight,
+          document.body.scrollHeight,
+        ),
+      )
+      expect(documentHeight).toBeLessThanOrEqual(viewport.height + 1)
+    })
+  }
+
+  test('keeps the glyph manager as an overlay on tablets', async ({ page }) => {
+    await loadWideEditor(page, 1000, 768)
+    const grid = await getBounds(page, '.grid-viewport')
+
+    await page.getByRole('button', { name: 'Open glyph manager' }).click()
+    await waitForSidebarSettled(page)
+
+    const sidebar = await getBounds(page, '.sidebar.active')
+    expect(sidebar.width).toBeLessThan(1000)
+    expect(sidebar.right).toBeGreaterThan(grid.left)
+  })
+
+  for (const viewport of [
     { width: 1280, height: 720 },
     { width: 1440, height: 900 },
   ]) {
