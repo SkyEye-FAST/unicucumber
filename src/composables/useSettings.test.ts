@@ -88,6 +88,23 @@ describe('settings parsing and migration', () => {
     ).toBe(defaultSettings.browserPreviewFont)
   })
 
+  it('upgrades the unchanged version 7 preview-font default', () => {
+    const version7DefaultFontStack = FONT_LIST.filter(
+      (font) => font !== 'Plangothic',
+    )
+      .map((font) =>
+        font.includes(' ') || font.includes('-') ? `"${font}"` : font,
+      )
+      .join(', ')
+
+    expect(
+      parseSettings({
+        version: 7,
+        browserPreviewFont: version7DefaultFontStack,
+      }).browserPreviewFont,
+    ).toBe(defaultSettings.browserPreviewFont)
+  })
+
   it('retains a custom preview-font stack during migration', () => {
     expect(
       parseSettings({ version: 2, browserPreviewFont: '"Custom CJK", serif' })
@@ -101,6 +118,12 @@ describe('settings parsing and migration', () => {
     )
     expect(FONT_LIST.indexOf('Noto Sans TC')).toBeLessThan(
       FONT_LIST.indexOf('Noto Sans CJK TC'),
+    )
+  })
+
+  it('puts the loaded Plangothic family before its local aliases', () => {
+    expect(FONT_LIST.indexOf('Plangothic')).toBeLessThan(
+      FONT_LIST.indexOf('Plangothic P1'),
     )
   })
 

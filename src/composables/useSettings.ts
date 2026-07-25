@@ -12,7 +12,7 @@ import type {
 } from '@/types/glyph'
 
 export const SETTINGS_KEY = 'unicucumber_settings'
-const SETTINGS_VERSION = 7
+const SETTINGS_VERSION = 8
 
 export const FONT_LIST = [
   'Noto Sans',
@@ -74,6 +74,7 @@ export const FONT_LIST = [
   'Meiryo',
   'Malgun Gothic',
   'Apple SD Gothic Neo',
+  'Plangothic',
   'Plangothic P1',
   'Plangothic P2',
   'ui-sans-serif',
@@ -115,9 +116,9 @@ const createFontStack = (fonts: readonly string[]): string =>
 
 const defaultFontStack = createFontStack(FONT_LIST)
 
-// Version 2's stock value is migrated so that users who never changed this
-// setting receive the expanded fallback stack, while custom stacks stay intact.
-const previousDefaultFontStack = createFontStack([
+// Stock values are migrated so that users who never changed this setting receive
+// updated web-font family names, while custom stacks stay intact.
+const version2DefaultFontStack = createFontStack([
   'Noto Sans',
   'Noto Sans CJK SC',
   'Plangothic P1',
@@ -158,6 +159,11 @@ const previousDefaultFontStack = createFontStack([
   'ZhongHuaSongPlane02',
   'ZhongHuaSongPlane00',
 ])
+
+const legacyDefaultFontStacks = [
+  version2DefaultFontStack,
+  createFontStack(FONT_LIST.filter((font) => font !== 'Plangothic')),
+]
 
 export const defaultSettings: Readonly<EditorSettings> = {
   glyphWidth: 16,
@@ -216,7 +222,7 @@ export const parseSettings = (value: unknown): EditorSettings => {
   const shouldMigratePreviewFont =
     storedPreviewFont !== null &&
     (stored.version === undefined || stored.version < SETTINGS_VERSION) &&
-    storedPreviewFont === previousDefaultFontStack
+    legacyDefaultFontStacks.includes(storedPreviewFont)
 
   return {
     glyphWidth: isGlyphWidth(stored.glyphWidth)
@@ -296,7 +302,9 @@ const loadSettings = (): EditorSettings => {
         : null
 
     if (
-      storedSettings?.browserPreviewFont === previousDefaultFontStack &&
+      legacyDefaultFontStacks.includes(
+        storedSettings?.browserPreviewFont ?? '',
+      ) &&
       loadedSettings.browserPreviewFont === defaultSettings.browserPreviewFont
     ) {
       try {
