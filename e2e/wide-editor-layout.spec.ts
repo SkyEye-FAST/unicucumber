@@ -167,24 +167,58 @@ test.describe('wide editor layout', () => {
     expect(sidebar.right).toBeGreaterThan(grid.left)
   })
 
-  test('reveals vertical tool names to the left on hover and focus', async ({
-    page,
-  }) => {
+  test('reveals every vertical command name to the left', async ({ page }) => {
     await loadWideEditor(page, 768, 1024)
-    const draw = page.getByRole('button', { name: 'Draw', exact: true })
-    const drawLabel = draw.locator('.tool-name-tooltip')
+    const actionButtons = page.locator(
+      '.action-group > button, .history-controls > button',
+    )
+    const toolButtons = page.locator(
+      '.tool-buttons > .tool-button, .tool-overflow > summary',
+    )
 
-    await expect(drawLabel).toBeHidden()
-    await draw.hover()
-    await expect(drawLabel).toHaveCSS('opacity', '1')
-    await expect(drawLabel).toHaveText('Draw')
+    await expect(actionButtons).toHaveCount(5)
+    await expect(toolButtons).toHaveCount(4)
 
-    const drawBounds = await draw.boundingBox()
-    const labelBounds = await drawLabel.boundingBox()
-    if (!drawBounds || !labelBounds) {
-      throw new Error('Tool name tooltip is unavailable')
+    for (const button of await actionButtons.all()) {
+      const label = await button.getAttribute('aria-label')
+      if (!label) throw new Error('Vertical command is missing its label')
+      await expect(button).not.toHaveAttribute('title')
+      await button.hover({ force: true })
+      await expect
+        .poll(() =>
+          button.evaluate((element) => ({
+            content: getComputedStyle(element, '::after').content,
+            opacity: getComputedStyle(element, '::after').opacity,
+          })),
+        )
+        .toEqual({
+          content: `"${label}"`,
+          opacity: '1',
+        })
+      expect(
+        await button.evaluate((element) =>
+          Number.parseFloat(getComputedStyle(element, '::after').right),
+        ),
+      ).toBeGreaterThan(8)
     }
-    expect(labelBounds.x + labelBounds.width).toBeLessThanOrEqual(drawBounds.x)
+
+    for (const button of await toolButtons.all()) {
+      const label = await button.getAttribute('aria-label')
+      const tooltip = button.locator('.tool-name-tooltip')
+      if (!label) throw new Error('Vertical tool is missing its label')
+      await expect(button).not.toHaveAttribute('title')
+      await button.hover()
+      await expect(tooltip).toHaveCSS('opacity', '1')
+      await expect(tooltip).toHaveText(label)
+      const buttonBounds = await button.boundingBox()
+      const tooltipBounds = await tooltip.boundingBox()
+      if (!buttonBounds || !tooltipBounds) {
+        throw new Error('Tool name tooltip is unavailable')
+      }
+      expect(tooltipBounds.x + tooltipBounds.width).toBeLessThanOrEqual(
+        buttonBounds.x,
+      )
+    }
 
     await page.getByRole('button', { name: 'Erase', exact: true }).focus()
     await expect(

@@ -101,7 +101,6 @@
             <button
               v-if="hasSelection"
               class="action-button icon-only ui-icon-button"
-              :title="$t('glyph_editor.cut_title')"
               type="button"
               :aria-label="$t('glyph_editor.cut_title')"
               @click="handleCut"
@@ -111,7 +110,6 @@
             <button
               v-if="hasSelection"
               class="action-button icon-only ui-icon-button"
-              :title="$t('glyph_editor.copy_title')"
               type="button"
               :aria-label="$t('glyph_editor.copy_title')"
               @click="handleCopy"
@@ -121,7 +119,6 @@
             <button
               v-if="hasClipboardData"
               class="action-button icon-only ui-icon-button"
-              :title="$t('glyph_editor.paste_title')"
               type="button"
               :aria-label="$t('glyph_editor.paste_title')"
               @click="handlePaste"
@@ -132,7 +129,6 @@
               class="action-button restore-action ui-button"
               type="button"
               :disabled="!hasUnsavedChanges || !activeGlyphId"
-              :title="$t('editor.actions.restore.title')"
               :aria-label="$t('editor.actions.restore.title')"
               @click="restoreSavedGlyph"
             >
@@ -141,7 +137,6 @@
             </button>
             <button
               class="action-button clear-action ui-button ui-button--danger"
-              :title="$t('editor.actions.clear.title')"
               :aria-label="$t('editor.actions.clear.title')"
               type="button"
               @click="handleClear"
@@ -152,13 +147,6 @@
             <button
               class="action-button ui-button ui-button--primary"
               :disabled="!hasUnsavedChanges || isSavingGlyph"
-              :title="
-                $t(
-                  currentGlyphIsManaged
-                    ? 'editor.actions.save.title'
-                    : 'editor.actions.add_to_glyphset.title',
-                )
-              "
               :aria-label="
                 $t(
                   currentGlyphIsManaged
@@ -183,7 +171,6 @@
             <button
               class="icon-button ui-icon-button"
               :disabled="!canUndo"
-              :title="$t('editor.actions.undo.title')"
               type="button"
               :aria-label="$t('editor.actions.undo.title')"
               @click="handleUndo"
@@ -193,7 +180,6 @@
             <button
               class="icon-button ui-icon-button"
               :disabled="!canRedo"
-              :title="$t('editor.actions.redo.title')"
               type="button"
               :aria-label="$t('editor.actions.redo.title')"
               @click="handleRedo"
@@ -1465,9 +1451,56 @@ const handlePasteStart = (): void => {
 
   .editor-control-stack .action-button {
     width: var(--control-height);
+    position: relative;
+    overflow: visible;
     padding: 0;
     font-size: 0;
     gap: 0;
+  }
+
+  .editor-control-stack .history-controls button {
+    position: relative;
+    overflow: visible;
+  }
+
+  .editor-control-stack .action-button::after,
+  .editor-control-stack .history-controls button::after {
+    content: attr(aria-label);
+    position: absolute;
+    z-index: 50;
+    top: 50%;
+    right: calc(100% + var(--space-2));
+    display: block;
+    padding: 0.35rem 0.6rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--background-light);
+    box-shadow: 0 3px 10px var(--modal-overlay);
+    color: var(--text-color);
+    font-family: var(--normal-font);
+    font-size: 0.78rem;
+    font-weight: 650;
+    line-height: 1.2;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(0.35rem, -50%) scale(0.96);
+    transform-origin: right center;
+    transition:
+      opacity 120ms ease,
+      transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      visibility 0s linear 160ms;
+  }
+
+  .editor-control-stack .action-button:hover::after,
+  .editor-control-stack .action-button:focus-visible::after,
+  .editor-control-stack .history-controls button:hover::after,
+  .editor-control-stack .history-controls button:focus-visible::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(0, -50%) scale(1);
+    transition-delay: 70ms;
   }
 
   .editor-actions,
@@ -1513,6 +1546,11 @@ const handlePasteStart = (): void => {
 
 @media (prefers-reduced-motion: reduce) {
   .container {
+    transition: none;
+  }
+
+  .editor-control-stack .action-button::after,
+  .editor-control-stack .history-controls button::after {
     transition: none;
   }
 }
