@@ -12,7 +12,8 @@ import type {
 } from '@/types/glyph'
 
 export const SETTINGS_KEY = 'unicucumber_settings'
-const SETTINGS_VERSION = 8
+export const SETTINGS_VERSION = 1
+export const SETTINGS_BASELINE = '2026-07-settings-reset'
 
 export const FONT_LIST = [
   'Noto Sans',
@@ -116,55 +117,6 @@ const createFontStack = (fonts: readonly string[]): string =>
 
 const defaultFontStack = createFontStack(FONT_LIST)
 
-// Stock values are migrated so that users who never changed this setting receive
-// updated web-font family names, while custom stacks stay intact.
-const version2DefaultFontStack = createFontStack([
-  'Noto Sans',
-  'Noto Sans CJK SC',
-  'Plangothic P1',
-  'Plangothic P2',
-  'ui-sans-serif',
-  'system-ui',
-  '-apple-system',
-  'BlinkMacSystemFont',
-  'sans-serif',
-  'Noto Sans CJK TC',
-  'Noto Sans SC',
-  'Noto Sans TC',
-  'Source Han Sans SC',
-  'Source Han Sans TC',
-  'Source Han Sans CN',
-  'Source Han Sans TW',
-  'serif',
-  'BabelStone Han',
-  'FZSongS-Extended',
-  'FZSongS-Extended(SIP)',
-  'HanaMinA',
-  'HanaMinB',
-  'FZSong-Extended',
-  'Arial Unicode MS',
-  'DFSongStd',
-  'STHeiti SC',
-  'unifont',
-  'SimSun-ExtG',
-  'SimSun-ExtB',
-  'TH-Tshyn-P16',
-  'TH-Tshyn-P2',
-  'TH-Tshyn-P1',
-  'TH-Tshyn-P0',
-  'Jigmo3',
-  'Jigmo2',
-  'Jigmo',
-  'ZhongHuaSongPlane15',
-  'ZhongHuaSongPlane02',
-  'ZhongHuaSongPlane00',
-])
-
-const legacyDefaultFontStacks = [
-  version2DefaultFontStack,
-  createFontStack(FONT_LIST.filter((font) => font !== 'Plangothic')),
-]
-
 export const defaultSettings: Readonly<EditorSettings> = {
   glyphWidth: 16,
   drawMode: 'singleButtonDraw',
@@ -185,7 +137,10 @@ export const defaultSettings: Readonly<EditorSettings> = {
   autoSaveInterval: 1000,
 }
 
-type StoredSettings = Partial<EditorSettings> & { version?: number }
+type StoredSettings = Partial<EditorSettings> & {
+  baseline?: string
+  version?: number
+}
 
 const isGlyphWidth = (value: unknown): value is GlyphWidth =>
   value === 8 || value === 16
@@ -214,15 +169,18 @@ const isAutoSaveInterval = (value: unknown): value is AutoSaveInterval =>
 export const parseSettings = (value: unknown): EditorSettings => {
   const stored =
     value !== null && typeof value === 'object' ? (value as StoredSettings) : {}
+  if (
+    stored.version !== SETTINGS_VERSION ||
+    stored.baseline !== SETTINGS_BASELINE
+  ) {
+    return { ...defaultSettings }
+  }
+
   const storedPreviewFont =
     typeof stored.browserPreviewFont === 'string' &&
     stored.browserPreviewFont.trim().length > 0
       ? stored.browserPreviewFont
       : null
-  const shouldMigratePreviewFont =
-    storedPreviewFont !== null &&
-    (stored.version === undefined || stored.version < SETTINGS_VERSION) &&
-    legacyDefaultFontStacks.includes(storedPreviewFont)
 
   return {
     glyphWidth: isGlyphWidth(stored.glyphWidth)
@@ -253,10 +211,7 @@ export const parseSettings = (value: unknown): EditorSettings => {
     glyphLibraryDensity: isGlyphLibraryDensity(stored.glyphLibraryDensity)
       ? stored.glyphLibraryDensity
       : defaultSettings.glyphLibraryDensity,
-    browserPreviewFont:
-      storedPreviewFont !== null && !shouldMigratePreviewFont
-        ? storedPreviewFont
-        : defaultSettings.browserPreviewFont,
+    browserPreviewFont: storedPreviewFont ?? defaultSettings.browserPreviewFont,
     enableSelection:
       typeof stored.enableSelection === 'boolean'
         ? stored.enableSelection
@@ -288,38 +243,48 @@ export const parseSettings = (value: unknown): EditorSettings => {
   }
 }
 
+const persistSettings = (value: EditorSettings): void => {
+  try {
+    window.localStorage.setItem(
+      SETTINGS_KEY,
+      JSON.stringify({
+        version: SETTINGS_VERSION,
+        baseline: SETTINGS_BASELINE,
+        ...value,
+      }),
+    )
+  } catch {
+    // Privacy mode and quota failures must not prevent editing.
+  }
+}
+
+const resetSettings = (): EditorSettings => {
+  const settings = { ...defaultSettings }
+  persistSettings(settings)
+  return settings
+}
+
 const loadSettings = (): EditorSettings => {
   if (typeof window === 'undefined') return { ...defaultSettings }
   try {
     const stored = window.localStorage.getItem(SETTINGS_KEY)
-    if (stored === null) return { ...defaultSettings }
+    if (stored === null) return resetSettings()
 
     const parsed = JSON.parse(stored)
-    const loadedSettings = parseSettings(parsed)
     const storedSettings =
       parsed !== null && typeof parsed === 'object'
         ? (parsed as StoredSettings)
         : null
-
     if (
-      legacyDefaultFontStacks.includes(
-        storedSettings?.browserPreviewFont ?? '',
-      ) &&
-      loadedSettings.browserPreviewFont === defaultSettings.browserPreviewFont
+      storedSettings?.version !== SETTINGS_VERSION ||
+      storedSettings.baseline !== SETTINGS_BASELINE
     ) {
-      try {
-        window.localStorage.setItem(
-          SETTINGS_KEY,
-          JSON.stringify({ version: SETTINGS_VERSION, ...loadedSettings }),
-        )
-      } catch {
-        // The in-memory migration is still usable when storage is unavailable.
-      }
+      return resetSettings()
     }
 
-    return loadedSettings
+    return parseSettings(storedSettings)
   } catch {
-    return { ...defaultSettings }
+    return resetSettings()
   }
 }
 
@@ -330,14 +295,7 @@ watch(
   settings,
   (value) => {
     if (typeof window === 'undefined') return
-    try {
-      window.localStorage.setItem(
-        SETTINGS_KEY,
-        JSON.stringify({ version: SETTINGS_VERSION, ...value }),
-      )
-    } catch {
-      // Privacy mode and quota failures must not prevent editing.
-    }
+    persistSettings(value)
   },
   { deep: true },
 )

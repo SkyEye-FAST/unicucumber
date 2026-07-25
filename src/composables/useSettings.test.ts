@@ -1,11 +1,22 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
-import { defaultSettings, FONT_LIST, parseSettings } from './useSettings'
+import {
+  defaultSettings,
+  FONT_LIST,
+  parseSettings,
+  SETTINGS_BASELINE,
+  SETTINGS_VERSION,
+} from './useSettings'
 
-describe('settings parsing and migration', () => {
+describe('settings parsing and baseline reset', () => {
   it('keeps valid persisted values and supplies defaults for missing settings', () => {
     expect(
-      parseSettings({ glyphWidth: 8, drawMode: 'doubleButtonDraw' }),
+      parseSettings({
+        version: SETTINGS_VERSION,
+        baseline: SETTINGS_BASELINE,
+        glyphWidth: 8,
+        drawMode: 'doubleButtonDraw',
+      }),
     ).toMatchObject({
       glyphWidth: 8,
       drawMode: 'doubleButtonDraw',
@@ -27,29 +38,49 @@ describe('settings parsing and migration', () => {
     expect(parseSettings(null)).toEqual(defaultSettings)
   })
 
-  it('keeps a valid glyph-library density and migrates older settings', () => {
-    expect(parseSettings({ glyphLibraryDensity: 'compact' })).toMatchObject({
-      glyphLibraryDensity: 'compact',
-    })
+  it('keeps a valid glyph-library density only on the current baseline', () => {
     expect(
-      parseSettings({ version: 1, glyphPreviewMode: 'both' }),
-    ).toMatchObject({
-      glyphPreviewMode: 'both',
-      glyphLibraryDensity: 'comfortable',
-    })
+      parseSettings({
+        version: SETTINGS_VERSION,
+        baseline: SETTINGS_BASELINE,
+        glyphLibraryDensity: 'compact',
+      }),
+    ).toMatchObject({ glyphLibraryDensity: 'compact' })
+    expect(
+      parseSettings({
+        version: SETTINGS_VERSION - 1,
+        glyphLibraryDensity: 'compact',
+      }),
+    ).toEqual(defaultSettings)
   })
 
   it('keeps the selection-tool preference', () => {
-    expect(parseSettings({ enableSelection: false })).toMatchObject({
-      enableSelection: false,
-    })
+    expect(
+      parseSettings({
+        version: SETTINGS_VERSION,
+        baseline: SETTINGS_BASELINE,
+        enableSelection: false,
+      }),
+    ).toMatchObject({ enableSelection: false })
   })
 
   it('keeps the desktop glyph-manager layout preference', () => {
-    expect(parseSettings({ glyphManagerPushEditor: false })).toMatchObject({
+    expect(
+      parseSettings({
+        version: SETTINGS_VERSION,
+        baseline: SETTINGS_BASELINE,
+        glyphManagerPushEditor: false,
+      }),
+    ).toMatchObject({
       glyphManagerPushEditor: false,
     })
-    expect(parseSettings({ glyphManagerPushEditor: 'yes' })).toMatchObject({
+    expect(
+      parseSettings({
+        version: SETTINGS_VERSION,
+        baseline: SETTINGS_BASELINE,
+        glyphManagerPushEditor: 'yes',
+      }),
+    ).toMatchObject({
       glyphManagerPushEditor: true,
     })
   })
@@ -57,6 +88,8 @@ describe('settings parsing and migration', () => {
   it('keeps valid import, export, and workflow preferences', () => {
     expect(
       parseSettings({
+        version: SETTINGS_VERSION,
+        baseline: SETTINGS_BASELINE,
         exportScale: 4,
         exportTransparent: true,
         imageImportMode: 'crop',
@@ -76,40 +109,23 @@ describe('settings parsing and migration', () => {
     })
   })
 
-  it('upgrades the unchanged version 2 preview-font default', () => {
-    const version2DefaultFontStack =
-      '"Noto Sans", "Noto Sans CJK SC", "Plangothic P1", "Plangothic P2", "ui-sans-serif", "system-ui", "-apple-system", BlinkMacSystemFont, "sans-serif", "Noto Sans CJK TC", "Noto Sans SC", "Noto Sans TC", "Source Han Sans SC", "Source Han Sans TC", "Source Han Sans CN", "Source Han Sans TW", serif, "BabelStone Han", "FZSongS-Extended", "FZSongS-Extended(SIP)", HanaMinA, HanaMinB, "FZSong-Extended", "Arial Unicode MS", DFSongStd, "STHeiti SC", unifont, "SimSun-ExtG", "SimSun-ExtB", "TH-Tshyn-P16", "TH-Tshyn-P2", "TH-Tshyn-P1", "TH-Tshyn-P0", Jigmo3, Jigmo2, Jigmo, ZhongHuaSongPlane15, ZhongHuaSongPlane02, ZhongHuaSongPlane00'
-
+  it('resets every older settings record, including custom font stacks', () => {
     expect(
       parseSettings({
-        version: 2,
-        browserPreviewFont: version2DefaultFontStack,
-      }).browserPreviewFont,
-    ).toBe(defaultSettings.browserPreviewFont)
+        version: SETTINGS_VERSION - 1,
+        browserPreviewFont: '"Custom CJK", serif',
+        glyphPreviewMode: 'both',
+      }),
+    ).toEqual(defaultSettings)
   })
 
-  it('upgrades the unchanged version 7 preview-font default', () => {
-    const version7DefaultFontStack = FONT_LIST.filter(
-      (font) => font !== 'Plangothic',
-    )
-      .map((font) =>
-        font.includes(' ') || font.includes('-') ? `"${font}"` : font,
-      )
-      .join(', ')
-
+  it('resets a historical version 1 record without the new baseline marker', () => {
     expect(
       parseSettings({
-        version: 7,
-        browserPreviewFont: version7DefaultFontStack,
-      }).browserPreviewFont,
-    ).toBe(defaultSettings.browserPreviewFont)
-  })
-
-  it('retains a custom preview-font stack during migration', () => {
-    expect(
-      parseSettings({ version: 2, browserPreviewFont: '"Custom CJK", serif' })
-        .browserPreviewFont,
-    ).toBe('"Custom CJK", serif')
+        version: SETTINGS_VERSION,
+        glyphPreviewMode: 'both',
+      }),
+    ).toEqual(defaultSettings)
   })
 
   it('puts Google Fonts Noto Sans CJK names before local CJK variants', () => {
@@ -134,5 +150,27 @@ describe('settings parsing and migration', () => {
     first.settings.value.showBorder = false
     expect(second.settings.value.showBorder).toBe(false)
     second.settings.value.showBorder = defaultSettings.showBorder
+  })
+
+  it('replaces old localStorage settings with the new version 1 baseline', async () => {
+    window.localStorage.setItem(
+      'unicucumber_settings',
+      JSON.stringify({ version: 8, glyphWidth: 8, glyphPreviewMode: 'both' }),
+    )
+    vi.resetModules()
+
+    const settingsModule = await import('./useSettings')
+    expect(settingsModule.useSettings().settings.value).toEqual(
+      settingsModule.defaultSettings,
+    )
+    expect(
+      JSON.parse(
+        window.localStorage.getItem(settingsModule.SETTINGS_KEY) ?? '{}',
+      ),
+    ).toMatchObject({
+      version: settingsModule.SETTINGS_VERSION,
+      baseline: settingsModule.SETTINGS_BASELINE,
+      glyphWidth: settingsModule.defaultSettings.glyphWidth,
+    })
   })
 })
