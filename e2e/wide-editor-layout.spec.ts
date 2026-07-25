@@ -66,16 +66,14 @@ test.describe('wide editor layout', () => {
       expect(exportPanel.right).toBeLessThanOrEqual(viewport.width)
       expect(exportPanel.bottom).toBeLessThanOrEqual(viewport.height)
       if (viewport.width < 900) {
-        expect(Math.abs(outputStack.left - layout.left)).toBeLessThanOrEqual(1)
-        expect(Math.abs(outputStack.right - layout.right)).toBeLessThanOrEqual(
-          1,
-        )
         expect(
           Math.abs(
             (outputStack.left + outputStack.right) / 2 -
               (layout.left + layout.right) / 2,
           ),
         ).toBeLessThanOrEqual(1)
+        expect(outputStack.right).toBeLessThanOrEqual(layout.right + 1)
+        expect(outputStack.width).toBeLessThanOrEqual(43 * 16 + 1)
       }
       await expect(page.locator('.editor-actions')).toHaveCSS(
         'flex-direction',

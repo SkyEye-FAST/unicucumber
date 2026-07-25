@@ -1448,6 +1448,9 @@ const handlePasteStart = (): void => {
   .editor-output-stack {
     grid-column: 1;
     grid-row: 2;
+    /* 64 hexadecimal digits for a 16px glyph, plus input actions and gaps. */
+    width: min(100%, 43rem);
+    justify-self: center;
   }
 
   .editor-control-stack {
