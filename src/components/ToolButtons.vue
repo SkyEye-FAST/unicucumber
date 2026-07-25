@@ -14,13 +14,21 @@
         v-else-if="tool.id === 'erase'"
         class="icon"
       />
-      <i-material-symbols-select v-else class="icon" />
+      <i-material-symbols-select
+        v-else-if="tool.id === 'select'"
+        class="icon"
+      />
+      <i-material-symbols-pan-tool-outline v-else class="icon" />
       <span class="tool-name-tooltip" aria-hidden="true">
         {{ $t(tool.label) }}
       </span>
     </button>
 
-    <details class="tool-overflow">
+    <details
+      ref="overflowRef"
+      class="tool-overflow"
+      @keydown.esc="closeOverflow(true)"
+    >
       <summary
         class="tool-button"
         :class="{
@@ -35,7 +43,7 @@
       </summary>
       <div class="tool-sheet">
         <div
-          class="tool-sheet-group"
+          class="tool-sheet-group tool-sheet-group--tools"
           role="group"
           :aria-label="$t('tools.secondary')"
         >
@@ -44,7 +52,7 @@
             :key="tool.id"
             type="button"
             :class="{ active: currentTool === tool.id }"
-            :title="`${$t(tool.label)} (${tool.shortcut})`"
+            :aria-label="$t(tool.label)"
             @click="updateTool(tool.id)"
           >
             <i-material-symbols-format-color-fill
@@ -59,39 +67,46 @@
               v-else-if="tool.id === 'rectangle'"
               class="icon"
             />
-            <i-material-symbols-rectangle
-              v-else-if="tool.id === 'filledRectangle'"
-              class="icon"
-            />
-            <i-material-symbols-pan-tool-outline v-else class="icon" />
-            {{ $t(tool.label) }}
+            <i-material-symbols-rectangle v-else class="icon" />
+            <span class="tool-menu-tooltip" aria-hidden="true">
+              {{ $t(tool.label) }} ({{ tool.shortcut }})
+            </span>
           </button>
         </div>
         <div
-          class="tool-sheet-group"
+          class="tool-sheet-group tool-sheet-group--transforms"
           role="group"
           :aria-label="$t('tools.transforms')"
         >
-          <button type="button" @click="emit('command', { type: 'invert' })">
-            <i-material-symbols-invert-colors class="icon" />{{
-              $t('tools.invert')
-            }}
+          <button
+            type="button"
+            :aria-label="$t('tools.invert')"
+            @click="runCommand({ type: 'invert' })"
+          >
+            <i-material-symbols-invert-colors class="icon" />
+            <span class="tool-menu-tooltip" aria-hidden="true">
+              {{ $t('tools.invert') }}
+            </span>
           </button>
           <button
             type="button"
-            @click="emit('command', { type: 'flipHorizontal' })"
+            :aria-label="$t('tools.flip_horizontal')"
+            @click="runCommand({ type: 'flipHorizontal' })"
           >
-            <i-material-symbols-flip class="icon" />{{
-              $t('tools.flip_horizontal')
-            }}
+            <i-material-symbols-flip class="icon" />
+            <span class="tool-menu-tooltip" aria-hidden="true">
+              {{ $t('tools.flip_horizontal') }}
+            </span>
           </button>
           <button
             type="button"
-            @click="emit('command', { type: 'flipVertical' })"
+            :aria-label="$t('tools.flip_vertical')"
+            @click="runCommand({ type: 'flipVertical' })"
           >
-            <i-material-symbols-flip class="icon vertical" />{{
-              $t('tools.flip_vertical')
-            }}
+            <i-material-symbols-flip class="icon vertical" />
+            <span class="tool-menu-tooltip" aria-hidden="true">
+              {{ $t('tools.flip_vertical') }}
+            </span>
           </button>
         </div>
       </div>
@@ -100,6 +115,8 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 
 import type { EditorCommand } from '@/types/editor'
@@ -128,11 +145,13 @@ const emit = defineEmits<{
 }>()
 
 const { t: $t } = useI18n()
+const overflowRef = ref<HTMLDetailsElement | null>(null)
 
 const primaryTools = [
   { id: 'draw', label: 'tools.draw', shortcut: 'P' },
   { id: 'erase', label: 'tools.erase', shortcut: 'E' },
   { id: 'select', label: 'tools.select', shortcut: 'S' },
+  { id: 'pan', label: 'tools.pan', shortcut: 'H' },
 ] satisfies Array<{ id: EditorTool; label: string; shortcut: string }>
 
 const secondaryTools = [
@@ -144,8 +163,16 @@ const secondaryTools = [
     label: 'tools.filled_rectangle',
     shortcut: 'Shift+R',
   },
-  { id: 'pan', label: 'tools.pan', shortcut: 'H' },
 ] satisfies Array<{ id: EditorTool; label: string; shortcut: string }>
+
+const closeOverflow = (restoreFocus = false): void => {
+  const overflow = overflowRef.value
+  if (!overflow?.open) return
+  overflow.open = false
+  if (restoreFocus) {
+    overflow.querySelector<HTMLElement>('summary')?.focus()
+  }
+}
 
 const updateTool = (tool: EditorTool): void => {
   if (props.disabled && (tool === 'draw' || tool === 'erase')) return
@@ -153,6 +180,12 @@ const updateTool = (tool: EditorTool): void => {
   if (tool === 'draw') emit('update:modelValue', 1)
   else if (tool === 'erase') emit('update:modelValue', 0)
   else if (tool === 'select') emit('update:modelValue', 2)
+  closeOverflow()
+}
+
+const runCommand = (command: EditorCommand): void => {
+  emit('command', command)
+  closeOverflow()
 }
 </script>
 
@@ -281,8 +314,11 @@ const updateTool = (tool: EditorTool): void => {
 @media (min-width: 720px) {
   .tool-buttons {
     width: var(--control-height);
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: var(--control-height);
+    grid-auto-rows: var(--control-height);
     gap: var(--space-1);
+    align-items: start;
   }
 
   .tool-button,
@@ -291,6 +327,7 @@ const updateTool = (tool: EditorTool): void => {
     min-width: var(--control-height);
     flex: none;
     box-sizing: border-box;
+    grid-column: 1;
     border-width: 1px;
     border-radius: var(--radius-sm);
   }
@@ -301,7 +338,8 @@ const updateTool = (tool: EditorTool): void => {
 
   .tool-overflow {
     width: var(--control-height);
-    flex: none;
+    display: block;
+    grid-column: 1;
   }
 
   .tool-overflow > summary {
@@ -353,14 +391,82 @@ const updateTool = (tool: EditorTool): void => {
   }
 
   .tool-sheet {
+    position: absolute;
     top: 0;
     right: calc(100% + var(--space-2));
-    width: min(30rem, calc(100vw - 6rem));
+    left: auto;
+    width: calc(var(--control-height) + (2 * var(--space-2)));
+    box-sizing: border-box;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+    padding: var(--space-2);
+    box-shadow: 0 3px 10px
+      color-mix(in srgb, var(--modal-overlay) 72%, transparent);
+  }
+
+  .tool-sheet-group--tools,
+  .tool-sheet-group--transforms {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tool-sheet-group + .tool-sheet-group {
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--border-color);
+  }
+
+  .tool-sheet button {
+    width: var(--control-height);
+    min-width: var(--control-height);
+    min-height: var(--control-height);
+    position: relative;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .tool-sheet button .icon {
+    flex: none;
+  }
+
+  .tool-menu-tooltip {
+    position: absolute;
+    z-index: 55;
+    top: 50%;
+    right: calc(100% + var(--space-2));
+    display: block;
+    padding: 0.35rem 0.6rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--background-light);
+    box-shadow: 0 3px 10px var(--modal-overlay);
+    color: var(--text-color);
+    font-family: var(--normal-font);
+    font-size: 0.78rem;
+    font-weight: 650;
+    line-height: 1.2;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(0.35rem, -50%) scale(0.96);
+    transform-origin: right center;
+    transition:
+      opacity 120ms ease,
+      transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      visibility 0s linear 160ms;
+  }
+
+  .tool-sheet button:hover > .tool-menu-tooltip,
+  .tool-sheet button:focus-visible > .tool-menu-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(0, -50%) scale(1);
+    transition-delay: 70ms;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tool-name-tooltip {
+  .tool-name-tooltip,
+  .tool-menu-tooltip {
     transition: none;
   }
 }

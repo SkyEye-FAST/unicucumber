@@ -29,16 +29,18 @@
           v-else-if="tool.id === 'select'"
           class="icon"
         />
-        <i-material-symbols-format-color-fill
-          v-else-if="tool.id === 'fill'"
-          class="icon"
-        />
-        <i-material-symbols-diagonal-line
-          v-else-if="tool.id === 'line'"
-          class="icon"
-        />
-        <i-material-symbols-rectangle-outline v-else class="icon" />
+        <i-material-symbols-pan-tool-outline v-else class="icon" />
         <span>{{ $t(tool.label) }}</span>
+      </button>
+      <button
+        class="toolbar-action toolbar-action--paste"
+        type="button"
+        :disabled="!hasClipboardData"
+        :aria-label="$t('selection.confirm_paste')"
+        @click="emit('action', 'paste')"
+      >
+        <i-material-symbols-content-paste class="icon" />
+        <span>{{ $t('selection.confirm_paste') }}</span>
       </button>
       <button
         class="more-toggle"
@@ -54,6 +56,16 @@
 
     <template v-else>
       <div class="more-rail">
+        <button
+          class="more-action more-action--paste"
+          type="button"
+          :disabled="!hasClipboardData"
+          :aria-label="$t('selection.confirm_paste')"
+          @click="chooseAction('paste')"
+        >
+          <i-material-symbols-content-paste class="icon" />
+          <span>{{ $t('selection.confirm_paste') }}</span>
+        </button>
         <button
           v-for="tool in secondaryTools"
           :key="tool.id"
@@ -78,18 +90,7 @@
             v-else-if="tool.id === 'filledRectangle'"
             class="icon"
           />
-          <i-material-symbols-pan-tool-outline v-else class="icon" />
           <span>{{ $t(tool.label) }}</span>
-        </button>
-        <button
-          class="more-action"
-          type="button"
-          :disabled="!hasClipboardData"
-          :aria-label="$t('selection.confirm_paste')"
-          @click="chooseAction('paste')"
-        >
-          <i-material-symbols-content-paste class="icon" />
-          <span>{{ $t('selection.confirm_paste') }}</span>
         </button>
         <button
           class="more-action"
@@ -165,16 +166,13 @@ const primaryTools = [
   { id: 'draw', label: 'tools.draw' },
   { id: 'erase', label: 'tools.erase' },
   { id: 'select', label: 'tools.select' },
-  { id: 'fill', label: 'tools.fill' },
-  { id: 'line', label: 'tools.line' },
-  { id: 'rectangle', label: 'tools.rectangle' },
+  { id: 'pan', label: 'tools.pan' },
 ] satisfies Array<{ id: EditorTool; label: string }>
 const secondaryTools = [
   { id: 'fill', label: 'tools.fill' },
   { id: 'line', label: 'tools.line' },
   { id: 'rectangle', label: 'tools.rectangle' },
   { id: 'filledRectangle', label: 'tools.filled_rectangle' },
-  { id: 'pan', label: 'tools.pan' },
 ] satisfies Array<{ id: EditorTool; label: string }>
 
 const chooseTool = (tool: EditorTool): void => {
@@ -233,9 +231,7 @@ const chooseAction = (action: MobileAction): void => {
     color: white;
   }
 
-  .mobile-command-bar > button.toolbar-tool--fill,
-  .mobile-command-bar > button.toolbar-tool--line,
-  .mobile-command-bar > button.toolbar-tool--rectangle {
+  .mobile-command-bar > button.toolbar-action--paste {
     display: none;
   }
 
@@ -324,21 +320,13 @@ const chooseAction = (action: MobileAction): void => {
   }
 }
 
-@media (min-width: 390px) and (max-width: 719px) {
-  .mobile-command-bar > button.toolbar-tool--fill {
+@media (min-width: 360px) and (max-width: 719px) {
+  .mobile-command-bar > button.toolbar-action--paste {
     display: flex;
   }
-}
 
-@media (min-width: 480px) and (max-width: 719px) {
-  .mobile-command-bar > button.toolbar-tool--line {
-    display: flex;
-  }
-}
-
-@media (min-width: 600px) and (max-width: 719px) {
-  .mobile-command-bar > button.toolbar-tool--rectangle {
-    display: flex;
+  .more-action--paste {
+    display: none;
   }
 }
 

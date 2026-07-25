@@ -143,22 +143,26 @@ test.describe('responsive visual baseline', () => {
           const mobileCommandBar = page.locator('.mobile-command-bar')
           await expect(mobileCommandBar).toBeVisible()
           await expect(page.locator('.tool-buttons')).toBeHidden()
-          const expectedToolbarButtonCount =
-            viewport.width >= 600
-              ? 7
-              : viewport.width >= 480
-                ? 6
-                : viewport.width >= 390
-                  ? 5
-                  : 4
-          await expect(
-            mobileCommandBar.locator(':scope > button:visible'),
-          ).toHaveCount(expectedToolbarButtonCount)
+          const visibleToolbarButtons = mobileCommandBar.locator(
+            ':scope > button:visible',
+          )
+          await expect(visibleToolbarButtons).toHaveCount(
+            viewport.width >= 360 ? 6 : 5,
+          )
+          expect(
+            await visibleToolbarButtons.evaluateAll((buttons) =>
+              buttons.map((button) => button.getAttribute('aria-label')),
+            ),
+          ).toEqual(
+            viewport.width >= 360
+              ? ['Draw', 'Erase', 'Select', 'Pan', 'Paste', 'More']
+              : ['Draw', 'Erase', 'Select', 'Pan', 'More'],
+          )
           await expect(mobileCommandBar.locator('.save-button')).toHaveCount(0)
           await expect(mobileCommandBar.locator('.danger')).toHaveCount(0)
           await expect(
             page.locator('.editor-actions .clear-action'),
-          ).toBeHidden()
+          ).toBeVisible()
 
           const moreToggle = mobileCommandBar.getByRole('button', {
             name: 'More',
@@ -186,7 +190,7 @@ test.describe('responsive visual baseline', () => {
           ).toHaveCount(0)
           const moreRail = mobileCommandBar.locator('.more-rail')
           await expect(moreRail.locator('.more-action').first()).toContainText(
-            'Flood fill',
+            viewport.width >= 360 ? 'Flood fill' : 'Paste',
           )
           const toolbarBounds = await mobileCommandBar.boundingBox()
           expect(metrics.grid?.bottom ?? Infinity).toBeLessThanOrEqual(

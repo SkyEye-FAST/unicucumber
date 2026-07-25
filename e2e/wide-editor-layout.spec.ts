@@ -83,10 +83,7 @@ test.describe('wide editor layout', () => {
         'flex-direction',
         'column',
       )
-      await expect(page.locator('.tool-buttons')).toHaveCSS(
-        'flex-direction',
-        'column',
-      )
+      await expect(page.locator('.tool-buttons')).toHaveCSS('display', 'grid')
 
       const documentHeight = await page.evaluate(() =>
         Math.max(
@@ -177,7 +174,7 @@ test.describe('wide editor layout', () => {
     )
 
     await expect(actionButtons).toHaveCount(5)
-    await expect(toolButtons).toHaveCount(4)
+    await expect(toolButtons).toHaveCount(5)
 
     for (const button of await actionButtons.all()) {
       const label = await button.getAttribute('aria-label')
@@ -226,6 +223,30 @@ test.describe('wide editor layout', () => {
         .getByRole('button', { name: 'Erase', exact: true })
         .locator('.tool-name-tooltip'),
     ).toHaveCSS('opacity', '1')
+
+    const gridBefore = await getBounds(page, '.grid-container')
+    const canvasBefore = await getBounds(page, '.editor-canvas-column')
+    const outputBefore = await getBounds(page, '.editor-output-stack')
+    await page.getByRole('button', { name: 'More', exact: true }).click()
+    const gridAfter = await getBounds(page, '.grid-container')
+    const sheet = await getBounds(page, '.tool-sheet')
+
+    expect(gridAfter).toEqual(gridBefore)
+    expect(await getBounds(page, '.editor-canvas-column')).toEqual(canvasBefore)
+    expect(await getBounds(page, '.editor-output-stack')).toEqual(outputBefore)
+    expect(sheet.left).toBeGreaterThanOrEqual(gridAfter.right)
+
+    const menuButtons = page.locator('.tool-sheet button')
+    await expect(menuButtons).toHaveCount(7)
+    for (const button of await menuButtons.all()) {
+      const label = await button.getAttribute('aria-label')
+      const tooltip = button.locator('.tool-menu-tooltip')
+      if (!label) throw new Error('Overflow tool is missing its label')
+      await expect(button).not.toHaveAttribute('title')
+      await button.hover()
+      await expect(tooltip).toHaveCSS('opacity', '1')
+      await expect(tooltip).toContainText(label)
+    }
   })
 
   for (const viewport of [
@@ -253,10 +274,7 @@ test.describe('wide editor layout', () => {
         'flex-direction',
         'column',
       )
-      await expect(page.locator('.tool-buttons')).toHaveCSS(
-        'flex-direction',
-        'column',
-      )
+      await expect(page.locator('.tool-buttons')).toHaveCSS('display', 'grid')
       await expect(page.locator('.history-controls')).toHaveCSS(
         'flex-direction',
         'column',
