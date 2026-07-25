@@ -931,6 +931,7 @@ const exportSheet = (): void => {
   .library-tools-toggle {
     width: 2.25rem;
     min-width: 2.25rem;
+    justify-content: center;
     padding: 0;
   }
 
@@ -941,6 +942,10 @@ const exportSheet = (): void => {
     height: 1px;
     overflow: hidden;
     clip: rect(0, 0, 0, 0);
+  }
+
+  .library-tools-toggle > i:last-child {
+    display: none;
   }
 
   .library-selection-toggle {
