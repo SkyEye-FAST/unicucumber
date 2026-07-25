@@ -58,6 +58,37 @@ const pointerEvent = (pointerId: number, clientX: number, clientY: number) => ({
 })
 
 describe('GlyphGrid', () => {
+  it('keeps mobile fit sizing stable when the viewport has no height limit', async () => {
+    const wrapper = mount(GlyphGrid, {
+      props: {
+        gridData: createGrid(16),
+        drawMode: 'singleButtonDraw',
+        drawValue: 1,
+        showBorder: true,
+      },
+      global: {
+        plugins: [createI18n({ legacy: false, locale: 'en', messages })],
+      },
+    })
+    const viewport = wrapper.get('.grid-viewport').element
+    Object.defineProperties(viewport, {
+      clientWidth: { configurable: true, value: 374 },
+      clientHeight: { configurable: true, value: 359 },
+    })
+    const gridApi = wrapper.vm as unknown as {
+      resetView: () => Promise<void>
+      fitToScreen: () => Promise<void>
+    }
+
+    await gridApi.resetView()
+    await gridApi.fitToScreen()
+    await gridApi.fitToScreen()
+
+    expect(wrapper.get('.grid-container').attributes('style')).toContain(
+      '--cell-size: 21px',
+    )
+  })
+
   it('previews selected pixels at the target while moving a selection', async () => {
     const grid = createGrid(8)
     grid[0]![0] = 1

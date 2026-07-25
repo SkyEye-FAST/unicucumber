@@ -613,12 +613,9 @@ const calculateFitCellSize = (): number => {
   const configuredMaxHeight = viewport
     ? Number.parseFloat(window.getComputedStyle(viewport).maxHeight)
     : Number.NaN
-  const availableHeight = Math.max(
-    1,
-    (Number.isFinite(configuredMaxHeight)
-      ? configuredMaxHeight
-      : documentHeight.value) - 4,
-  )
+  const availableHeight = Number.isFinite(configuredMaxHeight)
+    ? Math.max(1, configuredMaxHeight - 4)
+    : Number.POSITIVE_INFINITY
   return Math.max(
     MIN_CELL_SIZE,
     Math.min(

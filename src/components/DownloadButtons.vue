@@ -1,54 +1,43 @@
 <template>
   <section class="export-panel" :aria-label="$t('export.title')">
-    <details class="export-settings">
-      <summary>
-        <span class="section-heading">{{ $t('export.options') }}</span>
-      </summary>
-      <div class="export-options">
-        <label>
-          {{ $t('export.scale') }}
-          <CustomSelect
-            v-model="scale"
-            :ariaLabel="$t('export.scale')"
-            :options="scaleOptions"
-          />
-        </label>
-        <label class="checkbox-option">
-          <input v-model="transparent" type="checkbox" />
-          {{ $t('export.transparent') }}
-        </label>
-        <output class="filename-preview">
-          {{ $t('export.filename') }}: {{ filename('png') }}
-        </output>
-      </div>
-    </details>
+    <div class="export-title-row">
+      <span class="section-heading">{{ $t('export.title') }}</span>
+      <output class="filename-preview" :aria-label="$t('export.filename')">
+        {{ filename(selectedFormat.toLowerCase()) }}
+      </output>
+    </div>
 
-    <div class="export-actions">
-      <details
-        ref="downloadMenu"
-        class="export-download"
-        @keydown.esc="closeDownloadMenu"
+    <div class="export-command">
+      <div
+        class="format-picker"
+        role="radiogroup"
+        :aria-label="$t('export.title')"
       >
-        <summary class="download-button ui-button ui-button--primary">
-          <i-material-symbols-download class="icon" />
-          <span>{{ $t('export.title') }}</span>
-          <i-material-symbols-keyboard-arrow-down
-            class="icon download-chevron"
-          />
-        </summary>
-        <div class="download-menu">
-          <button
-            v-for="format in downloadFormats"
-            :key="format"
-            class="ui-button"
-            type="button"
-            @click="downloadFormat(format)"
-          >
-            <i-material-symbols-download class="icon" />
-            <span>{{ format }}</span>
-          </button>
-        </div>
-      </details>
+        <button
+          v-for="format in downloadFormats"
+          :key="format"
+          class="format-option"
+          :class="{ selected: selectedFormat === format }"
+          type="button"
+          role="radio"
+          :aria-checked="selectedFormat === format"
+          @click="selectedFormat = format"
+        >
+          {{ format }}
+        </button>
+      </div>
+
+      <button
+        class="download-button ui-button ui-button--primary"
+        type="button"
+        @click="downloadFile(selectedFormat)"
+      >
+        <i-material-symbols-download class="icon" />
+        <span>{{ $t('export.download', { format: selectedFormat }) }}</span>
+      </button>
+    </div>
+
+    <div v-if="canCopyImage || canShare" class="utility-actions">
       <button
         v-if="canCopyImage"
         class="ui-button"
@@ -68,6 +57,28 @@
         {{ $t('export.share') }}
       </button>
     </div>
+
+    <details class="export-settings">
+      <summary class="settings-trigger">
+        <i-material-symbols-tune class="icon" />
+        <span>{{ $t('export.options') }}</span>
+        <i-material-symbols-keyboard-arrow-down class="icon settings-chevron" />
+      </summary>
+      <div class="export-options">
+        <label>
+          {{ $t('export.scale') }}
+          <CustomSelect
+            v-model="scale"
+            :ariaLabel="$t('export.scale')"
+            :options="scaleOptions"
+          />
+        </label>
+        <label class="checkbox-option">
+          <input v-model="transparent" type="checkbox" />
+          {{ $t('export.transparent') }}
+        </label>
+      </div>
+    </details>
   </section>
 </template>
 
@@ -125,7 +136,7 @@ const canCopyImage =
   typeof navigator !== 'undefined' &&
   typeof navigator.clipboard?.write === 'function' &&
   typeof ClipboardItem !== 'undefined'
-const downloadMenu = ref<HTMLDetailsElement | null>(null)
+const selectedFormat = ref<DownloadFormat>('PNG')
 
 const filename = (extension: string): string =>
   `${baseFilename.value}.${extension.toLowerCase()}`
@@ -185,16 +196,6 @@ const downloadFile = async (format: DownloadFormat): Promise<void> => {
   }
 }
 
-const closeDownloadMenu = (): void => {
-  downloadMenu.value?.removeAttribute('open')
-  downloadMenu.value?.querySelector<HTMLElement>('summary')?.focus()
-}
-
-const downloadFormat = async (format: DownloadFormat): Promise<void> => {
-  closeDownloadMenu()
-  await downloadFile(format)
-}
-
 const createPngBlob = (): Promise<Blob> =>
   canvasToBlob(
     createCanvasFromGrid(props.gridData, {
@@ -234,37 +235,131 @@ const shareImage = async (): Promise<void> => {
 
 <style scoped>
 .export-panel {
+  box-sizing: border-box;
   width: 100%;
   margin: 0.35rem 0 0;
   display: grid;
   gap: var(--space-2);
-  padding-top: var(--space-3);
+  padding: var(--space-3);
   border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--primary-color) 7%, transparent),
+      transparent 42%
+    ),
+    var(--background-light);
+}
+
+.export-title-row {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.filename-preview {
+  min-width: 0;
+  color: var(--text-secondary);
+  font-family: var(--monospace-font);
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+  text-align: end;
+}
+
+.export-command {
+  min-width: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.format-picker {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 0.2rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--background-hover);
+}
+
+.format-option {
+  min-width: 0;
+  min-height: var(--control-height);
+  padding: 0.4rem 0.25rem;
+  border: 0;
+  border-radius: calc(var(--radius-md) - 0.15rem);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--monospace-font);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.format-option:hover,
+.format-option:focus-visible {
+  background: var(--background-light);
+  color: var(--text-color);
+}
+
+.format-option.selected {
+  background: var(--primary-color);
+  box-shadow: 0 1px 3px
+    color-mix(in srgb, var(--primary-darker) 28%, transparent);
+  color: white;
+}
+
+.download-button,
+.utility-actions button {
+  width: 100%;
+  min-width: 0;
+}
+
+.utility-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--space-2);
 }
 
 .export-settings {
   min-width: 0;
+  border-top: 1px solid var(--border-color);
 }
 
-.export-settings > summary {
-  min-height: 2rem;
+.settings-trigger {
+  min-height: var(--control-height-compact);
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: 0;
+  padding: var(--space-2) 0 0;
   cursor: pointer;
-  color: var(--text-color);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  list-style: none;
 }
 
-.export-settings > summary::marker {
-  color: var(--text-secondary);
+.settings-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.settings-chevron {
+  margin-left: auto;
+  transition: transform 140ms ease;
+}
+
+.export-settings[open] .settings-chevron {
+  transform: rotate(180deg);
 }
 
 .export-options {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-3);
+  gap: var(--space-2);
   margin-top: var(--space-2);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-sm);
@@ -273,7 +368,7 @@ const shareImage = async (): Promise<void> => {
 
 .export-options label {
   min-height: var(--control-height-compact);
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0.4rem;
 }
@@ -291,100 +386,32 @@ const shareImage = async (): Promise<void> => {
   height: 1.2rem;
 }
 
-.filename-preview {
-  flex: 1 1 12rem;
-  color: var(--text-secondary);
-  font-family: var(--monospace-font);
-  font-size: 0.78rem;
-  overflow-wrap: anywhere;
-}
-
-.export-actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
-  gap: var(--space-2);
-}
-
-.export-download {
-  position: relative;
-  min-width: 0;
-}
-
-.export-download > summary {
-  list-style: none;
-}
-
-.export-download > summary::-webkit-details-marker {
-  display: none;
-}
-
-.export-download[open] .download-chevron {
-  transform: rotate(180deg);
-}
-
-.download-chevron {
-  margin-left: auto;
-  transition: transform 140ms ease;
-}
-
-.download-menu {
-  position: absolute;
-  z-index: 70;
-  right: 0;
-  bottom: calc(100% + var(--space-2));
-  left: 0;
-  display: grid;
-  gap: var(--space-1);
-  padding: var(--space-2);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  background: var(--background-light);
-  box-shadow: 0 4px 14px var(--modal-overlay);
-}
-
-.export-download:not([open]) .download-menu {
-  display: none;
-}
-
-.download-menu button {
-  justify-content: flex-start;
-}
-
-.export-download,
-.download-button,
-.export-actions button {
-  min-width: 0;
-  width: 100%;
-}
-
 @container (min-width: 40rem) {
-  .export-panel {
-    grid-template-columns: auto minmax(32rem, 1fr);
-    align-items: center;
-    gap: var(--space-2);
-    margin-top: 0;
-    padding-top: var(--space-2);
-  }
-
-  .export-settings > summary {
-    min-height: var(--control-height);
-    white-space: nowrap;
-  }
-
-  .export-actions {
-    align-items: center;
-    grid-template-columns: repeat(auto-fit, minmax(6.75rem, 1fr));
+  .export-command {
+    grid-template-columns: minmax(0, 1fr) minmax(11rem, 0.55fr);
   }
 }
 
 @media (max-width: 519px) {
-  .export-actions {
+  .export-panel {
+    margin-inline: calc(-1 * var(--space-2));
+    width: calc(100% + (2 * var(--space-2)));
+    padding-inline: var(--space-2);
+  }
+
+  .utility-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
+@media (max-width: 359px) {
+  .export-options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .download-chevron {
+  .settings-chevron {
     transition: none;
   }
 }

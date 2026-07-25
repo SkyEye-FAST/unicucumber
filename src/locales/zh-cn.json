@@ -77,6 +77,7 @@
   "export": {
     "copy_failed": "无法访问剪贴板，请改为下载文件。",
     "copy_image": "复制图像",
+    "download": "下载{format}",
     "download_ready": "{format}导出已就绪。",
     "failed": "{format}导出失败。",
     "filename": "文件名",
@@ -301,22 +302,22 @@
   },
   "settings": {
     "always_show_mouse_cursor": "始终显示鼠标光标",
-    "auto_save_enabled": "自动保存草稿",
-    "auto_save_hint": "关闭后，页面隐藏、更新或关闭时仍会尝试保留草稿。",
-    "auto_save_interval": "保存间隔",
-    "auto_save_intervals": {
-      "1s": "1秒",
-      "3s": "3秒",
-      "5s": "5秒",
-      "10s": "10秒",
-      "500ms": "0.5秒"
-    },
     "appearance": {
       "auto": "自动",
       "dark": "深色",
       "follow_system": "跟随系统外观",
       "label": "外观",
       "light": "浅色"
+    },
+    "auto_save_enabled": "自动保存草稿",
+    "auto_save_hint": "关闭后，页面隐藏、更新或关闭时仍会尝试保留草稿。",
+    "auto_save_interval": "保存间隔",
+    "auto_save_intervals": {
+      "10s": "10秒",
+      "1s": "1秒",
+      "3s": "3秒",
+      "500ms": "0.5秒",
+      "5s": "5秒"
     },
     "browser_preview_font": "字形预览字体",
     "close_sidebar": "关闭设置",
@@ -335,27 +336,27 @@
       "save": "保存",
       "title": "编辑预览字体"
     },
+    "glyph_library_density": "字形库密度",
+    "glyph_manager_push_editor": "在字形管理器旁显示编辑区",
+    "glyph_manager_push_editor_hint": "宽屏下调整字形管理器宽度时，编辑区会同步缩放而不会被遮挡。",
     "glyph_preview": {
       "both": "双重预览",
       "browser_only": "仅浏览器显示",
       "label": "字形预览模式",
       "pixel_only": "仅像素预览"
     },
-    "glyph_library_density": "字形库密度",
-    "glyph_manager_push_editor": "在字形管理器旁显示编辑区",
-    "glyph_manager_push_editor_hint": "宽屏下调整字形管理器宽度时，编辑区会同步缩放而不会被遮挡。",
     "glyph_width": {
       "16px": "16像素",
       "8px": "8像素",
       "label": "字形宽度"
     },
-    "language": {
-      "label": "语言"
-    },
     "image_import_defaults": "图片导入默认值",
     "image_import_mode": "缩放方式",
     "image_import_threshold": "黑色阈值",
     "image_import_transparent_white": "将透明像素视为白色",
+    "language": {
+      "label": "语言"
+    },
     "reset": "重置为默认值",
     "sections": {
       "canvas": "画布与工具",

@@ -145,7 +145,7 @@
               {{ $t('editor.actions.clear.button') }}
             </button>
             <button
-              class="action-button ui-button ui-button--primary"
+              class="action-button save-action ui-button ui-button--primary"
               :disabled="!hasUnsavedChanges || isSavingGlyph"
               :aria-label="
                 $t(
@@ -1347,6 +1347,18 @@ const handlePasteStart = (): void => {
 }
 
 @media (max-width: 719px) {
+  .editor-canvas-column {
+    order: 1;
+  }
+
+  .editor-control-stack {
+    order: 2;
+  }
+
+  .editor-output-stack {
+    order: 3;
+  }
+
   .restored-draft-notice {
     grid-template-columns: auto minmax(0, 1fr);
     gap: var(--space-2);
@@ -1385,16 +1397,27 @@ const handlePasteStart = (): void => {
   }
 
   .editor-actions {
-    align-items: flex-start;
+    align-items: center;
     gap: var(--space-2);
+  }
+
+  .action-group {
+    min-width: 0;
+    flex: 1;
+    flex-wrap: nowrap;
   }
 
   .restore-action {
     display: none;
   }
 
-  .clear-action {
+  .action-button.icon-only {
     display: none;
+  }
+
+  .save-action {
+    min-width: 0;
+    flex: 1;
   }
 
   .action-button {

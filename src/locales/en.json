@@ -77,6 +77,7 @@
   "export": {
     "copy_failed": "Clipboard access failed. Download the file instead.",
     "copy_image": "Copy image",
+    "download": "Download {format}",
     "download_ready": "{format} export is ready.",
     "failed": "{format} export failed.",
     "filename": "Filename",
@@ -301,22 +302,22 @@
   },
   "settings": {
     "always_show_mouse_cursor": "Always show mouse cursor",
-    "auto_save_enabled": "Automatically save draft",
-    "auto_save_hint": "When disabled, drafts are still preserved when the page is hidden, updated, or closed.",
-    "auto_save_interval": "Save interval",
-    "auto_save_intervals": {
-      "1s": "1 second",
-      "3s": "3 seconds",
-      "5s": "5 seconds",
-      "10s": "10 seconds",
-      "500ms": "0.5 seconds"
-    },
     "appearance": {
       "auto": "Auto",
       "dark": "Dark",
       "follow_system": "Follow system appearance",
       "label": "Appearance",
       "light": "Light"
+    },
+    "auto_save_enabled": "Automatically save draft",
+    "auto_save_hint": "When disabled, drafts are still preserved when the page is hidden, updated, or closed.",
+    "auto_save_interval": "Save interval",
+    "auto_save_intervals": {
+      "10s": "10 seconds",
+      "1s": "1 second",
+      "3s": "3 seconds",
+      "500ms": "0.5 seconds",
+      "5s": "5 seconds"
     },
     "browser_preview_font": "Glyph preview font",
     "close_sidebar": "Close settings",
@@ -335,27 +336,27 @@
       "save": "Save",
       "title": "Edit preview font"
     },
+    "glyph_library_density": "Glyph library density",
+    "glyph_manager_push_editor": "Move the editor beside the glyph manager",
+    "glyph_manager_push_editor_hint": "On wide screens, resizing the glyph manager also resizes the editor instead of covering it.",
     "glyph_preview": {
       "both": "Both",
       "browser_only": "Browser only",
       "label": "Glyph preview mode",
       "pixel_only": "Pixel only"
     },
-    "glyph_library_density": "Glyph library density",
-    "glyph_manager_push_editor": "Move the editor beside the glyph manager",
-    "glyph_manager_push_editor_hint": "On wide screens, resizing the glyph manager also resizes the editor instead of covering it.",
     "glyph_width": {
       "16px": "16 pixels",
       "8px": "8 pixels",
       "label": "Glyph width"
     },
-    "language": {
-      "label": "Language"
-    },
     "image_import_defaults": "Image import defaults",
     "image_import_mode": "Sizing mode",
     "image_import_threshold": "Black threshold",
     "image_import_transparent_white": "Treat transparent pixels as white",
+    "language": {
+      "label": "Language"
+    },
     "reset": "Reset to defaults",
     "sections": {
       "canvas": "Canvas & tools",
