@@ -76,12 +76,10 @@
   },
   "export": {
     "copy_failed": "無法存取剪貼簿，請改為下載檔案。",
-    "copy_hex": "複製HEX",
     "copy_image": "複製影像",
     "download_ready": "{format}匯出已就緒。",
     "failed": "{format}匯出失敗。",
     "filename": "檔案名稱",
-    "hex_copied": "已複製16進位字形資料。",
     "image_copied": "已複製字形影像。",
     "options": "匯出選項",
     "scale": "像素縮放",

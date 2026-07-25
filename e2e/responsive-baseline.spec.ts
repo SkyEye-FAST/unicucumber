@@ -156,6 +156,9 @@ test.describe('responsive visual baseline', () => {
           ).toHaveCount(expectedToolbarButtonCount)
           await expect(mobileCommandBar.locator('.save-button')).toHaveCount(0)
           await expect(mobileCommandBar.locator('.danger')).toHaveCount(0)
+          await expect(
+            page.locator('.editor-actions .clear-action'),
+          ).toBeHidden()
 
           const moreToggle = mobileCommandBar.getByRole('button', {
             name: 'More',
@@ -200,8 +203,11 @@ test.describe('responsive visual baseline', () => {
           await expect(page.locator('.mobile-command-bar')).toBeHidden()
           await expect(page.locator('.tool-buttons')).toBeVisible()
           await expect(
-            page.locator('.editor-actions .ui-button--danger'),
-          ).toHaveCount(0)
+            page.locator('.editor-actions .clear-action'),
+          ).toBeVisible()
+          await expect(
+            page.locator('.clear-action + .ui-button--primary'),
+          ).toHaveCount(1)
           await expect(
             page.locator('.tool-sheet-group').last().locator('button'),
           ).toHaveCount(3)

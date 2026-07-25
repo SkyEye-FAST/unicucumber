@@ -100,6 +100,63 @@ test.describe('wide editor layout', () => {
     })
   }
 
+  test('combines export formats behind one download button', async ({
+    page,
+  }, testInfo) => {
+    await loadWideEditor(page, 1280, 720)
+    const exportPanel = page.locator('.export-panel')
+    const downloadControl = exportPanel.locator('.export-download')
+    const downloadButton = downloadControl.locator('.download-button')
+    const formatButtons = downloadControl.locator('.download-menu button')
+
+    await expect(downloadButton).toHaveCount(1)
+    await expect(downloadButton).toContainText('Export glyph')
+    await expect(formatButtons.first()).toBeHidden()
+    await downloadButton.click()
+    await expect(downloadControl).toHaveAttribute('open', '')
+    await expect(formatButtons.first()).toBeVisible()
+    await expect(formatButtons).toHaveText(['PNG', 'BMP', 'SVG', 'HEX'])
+    await page.screenshot({
+      path: join(
+        process.env.TEMP ?? testInfo.outputDir,
+        'unicucumber-export-menu-desktop.png',
+      ),
+      fullPage: false,
+    })
+    await expect(
+      exportPanel.getByRole('button', { name: 'Copy hex' }),
+    ).toHaveCount(0)
+
+    const downloadPromise = page.waitForEvent('download')
+    await formatButtons.filter({ hasText: 'HEX' }).click()
+    const download = await downloadPromise
+    expect(download.suggestedFilename()).toMatch(/\.hex$/)
+    await expect(downloadControl).not.toHaveAttribute('open', '')
+    await expect(downloadButton).toBeFocused()
+    await expect(page.locator('.notification')).toContainText(
+      'HEX export is ready.',
+    )
+
+    const mobilePage = await page.context().newPage()
+    await loadWideEditor(mobilePage, 390, 844)
+    await mobilePage.evaluate(() =>
+      window.scrollTo({ top: document.documentElement.scrollHeight }),
+    )
+    const mobileDownloadControl = mobilePage.locator('.export-download')
+    await mobileDownloadControl.locator('.download-button').click()
+    await expect(
+      mobileDownloadControl.locator('.download-menu button').first(),
+    ).toBeVisible()
+    await mobilePage.screenshot({
+      path: join(
+        process.env.TEMP ?? testInfo.outputDir,
+        'unicucumber-export-menu-mobile.png',
+      ),
+      fullPage: false,
+    })
+    await mobilePage.close()
+  })
+
   test('keeps the glyph manager as an overlay on tablets', async ({ page }) => {
     await loadWideEditor(page, 1000, 768)
     const grid = await getBounds(page, '.grid-viewport')

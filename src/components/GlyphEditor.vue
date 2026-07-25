@@ -140,6 +140,16 @@
               {{ $t('editor.actions.restore.button') }}
             </button>
             <button
+              class="action-button clear-action ui-button ui-button--danger"
+              :title="$t('editor.actions.clear.title')"
+              :aria-label="$t('editor.actions.clear.title')"
+              type="button"
+              @click="handleClear"
+            >
+              <i-material-symbols-mop-outline class="icon" />
+              {{ $t('editor.actions.clear.button') }}
+            </button>
+            <button
               class="action-button ui-button ui-button--primary"
               :disabled="!hasUnsavedChanges || isSavingGlyph"
               :title="
@@ -950,6 +960,24 @@ const clearPrefillData = (): void => {
 
 const { canUndo, canRedo } = editorDocument
 
+const handleClear = (): void => {
+  const doClear = () => {
+    editorDocument.execute({ type: 'clearGrid' })
+    showDialog.value = false
+  }
+
+  if (settings.value.confirmClear) {
+    showConfirmDialog({
+      title: $t('dialog.clear_confirm.title'),
+      message: $t('dialog.clear_confirm.message'),
+      confirmText: $t('dialog.clear_confirm.confirm'),
+      onConfirm: doClear,
+    })
+  } else {
+    doClear()
+  }
+}
+
 const handleUndo = (): void => {
   editorDocument.undo()
 }
@@ -1376,6 +1404,10 @@ const handlePasteStart = (): void => {
   }
 
   .restore-action {
+    display: none;
+  }
+
+  .clear-action {
     display: none;
   }
 

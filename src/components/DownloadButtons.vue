@@ -1,6 +1,6 @@
 <template>
   <section class="export-panel" :aria-label="$t('export.title')">
-    <details>
+    <details class="export-settings">
       <summary>
         <span class="section-heading">{{ $t('export.options') }}</span>
       </summary>
@@ -23,24 +23,32 @@
       </div>
     </details>
 
-    <div class="download-buttons">
-      <button
-        v-for="format in downloadFormats"
-        :key="format"
-        class="download-button ui-button ui-button--primary"
-        type="button"
-        @click="downloadFile(format)"
-      >
-        <i-material-symbols-download class="icon" />
-        <span>{{ format }}</span>
-      </button>
-    </div>
-
     <div class="export-actions">
-      <button class="ui-button" type="button" @click="copyHex">
-        <i-material-symbols-content-copy-outline class="icon" />
-        {{ $t('export.copy_hex') }}
-      </button>
+      <details
+        ref="downloadMenu"
+        class="export-download"
+        @keydown.esc="closeDownloadMenu"
+      >
+        <summary class="download-button ui-button ui-button--primary">
+          <i-material-symbols-download class="icon" />
+          <span>{{ $t('export.title') }}</span>
+          <i-material-symbols-keyboard-arrow-down
+            class="icon download-chevron"
+          />
+        </summary>
+        <div class="download-menu">
+          <button
+            v-for="format in downloadFormats"
+            :key="format"
+            class="ui-button"
+            type="button"
+            @click="downloadFormat(format)"
+          >
+            <i-material-symbols-download class="icon" />
+            <span>{{ format }}</span>
+          </button>
+        </div>
+      </details>
       <button
         v-if="canCopyImage"
         class="ui-button"
@@ -64,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 import { useI18n } from 'vue-i18n'
 
@@ -117,6 +125,7 @@ const canCopyImage =
   typeof navigator !== 'undefined' &&
   typeof navigator.clipboard?.write === 'function' &&
   typeof ClipboardItem !== 'undefined'
+const downloadMenu = ref<HTMLDetailsElement | null>(null)
 
 const filename = (extension: string): string =>
   `${baseFilename.value}.${extension.toLowerCase()}`
@@ -176,14 +185,14 @@ const downloadFile = async (format: DownloadFormat): Promise<void> => {
   }
 }
 
-const copyHex = async (): Promise<void> => {
-  try {
-    await navigator.clipboard.writeText(gridToHex(props.gridData))
-    notify({ tone: 'success', message: $t('export.hex_copied') })
-  } catch (error) {
-    console.error('Unable to copy hexadecimal glyph data.', error)
-    notify({ tone: 'error', message: $t('export.copy_failed') })
-  }
+const closeDownloadMenu = (): void => {
+  downloadMenu.value?.removeAttribute('open')
+  downloadMenu.value?.querySelector<HTMLElement>('summary')?.focus()
+}
+
+const downloadFormat = async (format: DownloadFormat): Promise<void> => {
+  closeDownloadMenu()
+  await downloadFile(format)
 }
 
 const createPngBlob = (): Promise<Blob> =>
@@ -233,11 +242,11 @@ const shareImage = async (): Promise<void> => {
   border-top: 1px solid var(--border-color);
 }
 
-.export-panel details {
+.export-settings {
   min-width: 0;
 }
 
-.export-panel summary {
+.export-settings > summary {
   min-height: 2rem;
   display: flex;
   align-items: center;
@@ -247,7 +256,7 @@ const shareImage = async (): Promise<void> => {
   color: var(--text-color);
 }
 
-.export-panel summary::marker {
+.export-settings > summary::marker {
   color: var(--text-secondary);
 }
 
@@ -290,54 +299,93 @@ const shareImage = async (): Promise<void> => {
   overflow-wrap: anywhere;
 }
 
-.download-buttons,
 .export-actions {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
   gap: var(--space-2);
 }
 
+.export-download {
+  position: relative;
+  min-width: 0;
+}
+
+.export-download > summary {
+  list-style: none;
+}
+
+.export-download > summary::-webkit-details-marker {
+  display: none;
+}
+
+.export-download[open] .download-chevron {
+  transform: rotate(180deg);
+}
+
+.download-chevron {
+  margin-left: auto;
+  transition: transform 140ms ease;
+}
+
+.download-menu {
+  position: absolute;
+  z-index: 70;
+  right: 0;
+  bottom: calc(100% + var(--space-2));
+  left: 0;
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--background-light);
+  box-shadow: 0 4px 14px var(--modal-overlay);
+}
+
+.export-download:not([open]) .download-menu {
+  display: none;
+}
+
+.download-menu button {
+  justify-content: flex-start;
+}
+
+.export-download,
 .download-button,
 .export-actions button {
   min-width: 0;
   width: 100%;
 }
 
-.export-actions {
-  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
-}
-
 @container (min-width: 40rem) {
   .export-panel {
-    grid-template-columns: auto minmax(18rem, 1.45fr) minmax(14rem, 1fr);
+    grid-template-columns: auto minmax(32rem, 1fr);
     align-items: center;
     gap: var(--space-2);
     margin-top: 0;
     padding-top: var(--space-2);
   }
 
-  .export-panel summary {
+  .export-settings > summary {
     min-height: var(--control-height);
     white-space: nowrap;
   }
 
-  .download-buttons,
   .export-actions {
     align-items: center;
-  }
-
-  .export-actions {
     grid-template-columns: repeat(auto-fit, minmax(6.75rem, 1fr));
   }
 }
 
 @media (max-width: 519px) {
-  .download-buttons {
+  .export-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
 
-  .export-actions {
-    grid-template-columns: 1fr;
+@media (prefers-reduced-motion: reduce) {
+  .download-chevron {
+    transition: none;
   }
 }
 </style>

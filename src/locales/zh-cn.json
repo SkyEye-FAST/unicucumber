@@ -76,12 +76,10 @@
   },
   "export": {
     "copy_failed": "无法访问剪贴板，请改为下载文件。",
-    "copy_hex": "复制HEX",
     "copy_image": "复制图像",
     "download_ready": "{format}导出已就绪。",
     "failed": "{format}导出失败。",
     "filename": "文件名",
-    "hex_copied": "已复制16进制字形数据。",
     "image_copied": "已复制字形图像。",
     "options": "导出选项",
     "scale": "像素缩放",

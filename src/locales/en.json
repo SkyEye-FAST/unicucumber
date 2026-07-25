@@ -76,12 +76,10 @@
   },
   "export": {
     "copy_failed": "Clipboard access failed. Download the file instead.",
-    "copy_hex": "Copy hex",
     "copy_image": "Copy image",
     "download_ready": "{format} export is ready.",
     "failed": "{format} export failed.",
     "filename": "Filename",
-    "hex_copied": "Hexadecimal glyph data copied.",
     "image_copied": "Glyph image copied.",
     "options": "Export options",
     "scale": "Pixel scale",
