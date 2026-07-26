@@ -244,6 +244,46 @@ test.describe('full-screen glyph library', () => {
     }
   })
 
+  test('provides a persistent draggable scrollbar for the full-screen library', async ({
+    page,
+  }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== 'chromium',
+      'scrollbar interaction runs once',
+    )
+    await openLibrary(page)
+    await expandLibrary(page)
+
+    const scrollContainer = page.locator('.glyph-library-scroll')
+    const scrollbar = page.getByRole('scrollbar', {
+      name: 'Scroll glyph library',
+    })
+    await expect(scrollbar).toBeVisible()
+    const thumb = scrollbar.locator('.glyph-library-scrollbar-thumb')
+    const thumbBox = await thumb.boundingBox()
+    const trackBox = await scrollbar.boundingBox()
+    if (!thumbBox || !trackBox)
+      throw new Error('Glyph library scrollbar is not measurable')
+
+    await page.mouse.move(
+      thumbBox.x + thumbBox.width / 2,
+      thumbBox.y + thumbBox.height / 2,
+    )
+    await page.mouse.down()
+    await page.mouse.move(
+      thumbBox.x + thumbBox.width / 2,
+      trackBox.y + trackBox.height * 0.75,
+      { steps: 8 },
+    )
+    await page.mouse.up()
+
+    await expect
+      .poll(() =>
+        scrollContainer.evaluate((element) => Math.round(element.scrollTop)),
+      )
+      .toBeGreaterThan(0)
+  })
+
   test('filters Unicode blocks through the searchable custom range selectors', async ({
     page,
   }) => {

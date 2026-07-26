@@ -18,6 +18,24 @@ test.beforeEach(async ({ page }) => {
   await expect(page.locator('.grid-container')).toBeVisible()
 })
 
+test('allows page wheel scrolling while the pointer is over the editor viewport', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'wheel regression runs once')
+  await page.setViewportSize({ width: 1440, height: 700 })
+  await page.evaluate(() => window.scrollTo(0, 0))
+
+  const viewport = page.locator('.grid-viewport')
+  const box = await viewport.boundingBox()
+  if (!box) throw new Error('Editor viewport is not visible')
+  await page.mouse.move(box.x + 12, box.y + box.height / 2)
+  await page.mouse.wheel(0, 600)
+
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY))
+    .toBeGreaterThan(0)
+})
+
 test('fast pointer drawing is atomic and undoable', async ({ page }) => {
   const first = await cellCenter(page, 0, 0)
   const last = await cellCenter(page, 0, 5)

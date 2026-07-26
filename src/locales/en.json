@@ -178,6 +178,7 @@
       "remove_from_manager": "Remove from manager ({count})",
       "retry": "Retry",
       "search_label": "Search glyph library",
+      "scrollbar_label": "Scroll glyph library",
       "select_filtered": "Select filtered glyphs",
       "selected_count": "{count} selected",
       "selection_mode": "Select to add",

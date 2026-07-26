@@ -1,124 +1,152 @@
 <template>
-  <div
-    ref="scrollContainer"
-    class="glyph-library-scroll"
-    :class="`density-${density}`"
-    @scroll="handleScroll"
-  >
+  <div class="glyph-library-shell">
     <div
-      v-if="baseGlyphs.length"
-      ref="gridElement"
-      class="glyph-library-grid"
-      role="grid"
-      :aria-label="$t('glyph_manager.library.grid_label')"
-      :aria-colcount="columnCount"
-      :aria-rowcount="rowCount"
-      :data-total-count="baseGlyphs.length"
-      @click="handleClick"
-      @dblclick="handleDoubleClick"
-      @focusin="handleFocusIn"
-      @keydown="handleKeydown"
-      @pointerdown="handleSelectionPointerDown"
-      @pointermove="handleSelectionPointerMove"
-      @pointerup="finishSelectionDrag"
-      @pointercancel="finishSelectionDrag"
+      id="glyph-library-scroll"
+      ref="scrollContainer"
+      class="glyph-library-scroll"
+      :class="`density-${density}`"
+      @scroll="handleScroll"
     >
       <div
-        v-if="topSpacerHeight > 0"
-        class="virtual-spacer"
-        :style="{ height: `${topSpacerHeight}px` }"
-        aria-hidden="true"
-      />
-
-      <button
-        v-for="item in visibleGlyphs"
-        :key="item.glyph.codePoint"
-        class="glyph-library-cell"
-        :class="{
-          'is-active': isActive(item.glyph.codePoint),
-          'is-selected': selectedSet.has(item.glyph.codePoint),
-          'is-modified': modifiedSet.has(item.glyph.codePoint),
-          'is-selection-mode': selectionMode,
-          'preview-pixel-only': previewMode === 'pixelOnly',
-          'preview-browser-only': previewMode === 'browserOnly',
-          'preview-both': previewMode === 'both',
-        }"
-        type="button"
-        role="gridcell"
-        :data-code-point="item.glyph.codePoint"
-        :data-index="item.index"
-        :tabindex="item.index === rovingIndex ? 0 : -1"
-        :aria-colindex="(item.index % columnCount) + 1"
-        :aria-rowindex="Math.floor(item.index / columnCount) + 1"
-        :aria-current="isActive(item.glyph.codePoint) ? 'true' : undefined"
-        :aria-selected="selectedSet.has(item.glyph.codePoint)"
-        :aria-label="cellAccessibleName(item.glyph)"
-        :title="cellAccessibleName(item.glyph)"
+        v-if="baseGlyphs.length"
+        ref="gridElement"
+        class="glyph-library-grid"
+        role="grid"
+        :aria-label="$t('glyph_manager.library.grid_label')"
+        :aria-colcount="columnCount"
+        :aria-rowcount="rowCount"
+        :data-total-count="baseGlyphs.length"
+        @click="handleClick"
+        @dblclick="handleDoubleClick"
+        @focusin="handleFocusIn"
+        @keydown="handleKeydown"
+        @pointerdown="handleSelectionPointerDown"
+        @pointermove="handleSelectionPointerMove"
+        @pointerup="finishSelectionDrag"
+        @pointercancel="finishSelectionDrag"
       >
-        <span v-if="selectionMode" class="selection-marker" aria-hidden="true">
-          <i-material-symbols-check
-            v-if="selectedSet.has(item.glyph.codePoint)"
-          />
-        </span>
-
-        <span
-          class="glyph-character-label"
-          :class="{ 'browser-reference': previewMode === 'both' }"
-          :style="{ fontFamily: browserPreviewFont }"
+        <div
+          v-if="topSpacerHeight > 0"
+          class="virtual-spacer"
+          :style="{ height: `${topSpacerHeight}px` }"
           aria-hidden="true"
-        >
-          {{ item.glyph.character }}
-        </span>
+        />
 
-        <span
-          v-if="previewMode !== 'browserOnly'"
-          class="bitmap-preview"
-          aria-hidden="true"
+        <button
+          v-for="item in visibleGlyphs"
+          :key="item.glyph.codePoint"
+          class="glyph-library-cell"
+          :class="{
+            'is-active': isActive(item.glyph.codePoint),
+            'is-selected': selectedSet.has(item.glyph.codePoint),
+            'is-modified': modifiedSet.has(item.glyph.codePoint),
+            'is-selection-mode': selectionMode,
+            'preview-pixel-only': previewMode === 'pixelOnly',
+            'preview-browser-only': previewMode === 'browserOnly',
+            'preview-both': previewMode === 'both',
+          }"
+          type="button"
+          role="gridcell"
+          :data-code-point="item.glyph.codePoint"
+          :data-index="item.index"
+          :tabindex="item.index === rovingIndex ? 0 : -1"
+          :aria-colindex="(item.index % columnCount) + 1"
+          :aria-rowindex="Math.floor(item.index / columnCount) + 1"
+          :aria-current="isActive(item.glyph.codePoint) ? 'true' : undefined"
+          :aria-selected="selectedSet.has(item.glyph.codePoint)"
+          :aria-label="cellAccessibleName(item.glyph)"
+          :title="cellAccessibleName(item.glyph)"
         >
-          <svg
-            class="bitmap-svg"
-            :viewBox="`0 0 ${item.glyph.width} 16`"
-            role="img"
-            shape-rendering="crispEdges"
-            preserveAspectRatio="xMidYMid meet"
-          >
-            <path :d="item.glyph.path" />
-          </svg>
-        </span>
-
-        <span
-          v-if="previewMode === 'browserOnly'"
-          class="browser-primary"
-          :style="{ fontFamily: browserPreviewFont }"
-          aria-hidden="true"
-        >
-          {{ item.glyph.character }}
-        </span>
-
-        <span class="glyph-cell-meta" aria-hidden="true">
-          U+{{ item.glyph.codePoint }}
-          <span class="glyph-width">{{ item.glyph.width }}px</span>
           <span
-            v-if="modifiedSet.has(item.glyph.codePoint)"
-            class="modified-badge"
+            v-if="selectionMode"
+            class="selection-marker"
+            aria-hidden="true"
           >
-            {{ $t('glyph_manager.library.modified_badge') }}
+            <i-material-symbols-check
+              v-if="selectedSet.has(item.glyph.codePoint)"
+            />
           </span>
-        </span>
-      </button>
 
-      <div
-        v-if="bottomSpacerHeight > 0"
-        class="virtual-spacer"
-        :style="{ height: `${bottomSpacerHeight}px` }"
-        aria-hidden="true"
-      />
+          <span
+            class="glyph-character-label"
+            :class="{ 'browser-reference': previewMode === 'both' }"
+            :style="{ fontFamily: browserPreviewFont }"
+            aria-hidden="true"
+          >
+            {{ item.glyph.character }}
+          </span>
+
+          <span
+            v-if="previewMode !== 'browserOnly'"
+            class="bitmap-preview"
+            aria-hidden="true"
+          >
+            <svg
+              class="bitmap-svg"
+              :viewBox="`0 0 ${item.glyph.width} 16`"
+              role="img"
+              shape-rendering="crispEdges"
+              preserveAspectRatio="xMidYMid meet"
+            >
+              <path :d="item.glyph.path" />
+            </svg>
+          </span>
+
+          <span
+            v-if="previewMode === 'browserOnly'"
+            class="browser-primary"
+            :style="{ fontFamily: browserPreviewFont }"
+            aria-hidden="true"
+          >
+            {{ item.glyph.character }}
+          </span>
+
+          <span class="glyph-cell-meta" aria-hidden="true">
+            U+{{ item.glyph.codePoint }}
+            <span class="glyph-width">{{ item.glyph.width }}px</span>
+            <span
+              v-if="modifiedSet.has(item.glyph.codePoint)"
+              class="modified-badge"
+            >
+              {{ $t('glyph_manager.library.modified_badge') }}
+            </span>
+          </span>
+        </button>
+
+        <div
+          v-if="bottomSpacerHeight > 0"
+          class="virtual-spacer"
+          :style="{ height: `${bottomSpacerHeight}px` }"
+          aria-hidden="true"
+        />
+      </div>
+
+      <div v-else class="glyph-library-empty" role="status">
+        <i-material-symbols-search-off aria-hidden="true" />
+        <strong>{{ $t('glyph_manager.library.no_matches') }}</strong>
+        <span>{{ $t('glyph_manager.library.no_matches_hint') }}</span>
+      </div>
     </div>
 
-    <div v-else class="glyph-library-empty" role="status">
-      <i-material-symbols-search-off aria-hidden="true" />
-      <strong>{{ $t('glyph_manager.library.no_matches') }}</strong>
-      <span>{{ $t('glyph_manager.library.no_matches_hint') }}</span>
+    <div
+      v-if="scrollRange > 0"
+      ref="scrollbarTrack"
+      class="glyph-library-scrollbar"
+      role="scrollbar"
+      tabindex="0"
+      aria-orientation="vertical"
+      aria-controls="glyph-library-scroll"
+      :aria-label="$t('glyph_manager.library.scrollbar_label')"
+      :aria-valuemin="0"
+      :aria-valuemax="Math.round(scrollRange)"
+      :aria-valuenow="Math.round(scrollPosition)"
+      @keydown="handleScrollbarKeydown"
+      @pointercancel="finishScrollbarDrag"
+      @pointerdown="startScrollbarDrag"
+      @pointermove="moveScrollbarDrag"
+      @pointerup="finishScrollbarDrag"
+    >
+      <div class="glyph-library-scrollbar-thumb" :style="scrollbarThumbStyle" />
     </div>
   </div>
 </template>
@@ -168,10 +196,12 @@ const emit = defineEmits<{
 
 const scrollContainer = ref<HTMLElement | null>(null)
 const gridElement = ref<HTMLElement | null>(null)
+const scrollbarTrack = ref<HTMLElement | null>(null)
 const rovingIndex = ref(0)
 const columnCount = ref(1)
 const columnsMeasured = ref(false)
 const scrollPosition = ref(0)
+const scrollRange = ref(0)
 const viewportHeight = ref(800)
 const measuredRowHeight = ref(128)
 let resizeObserver: ResizeObserver | null = null
@@ -179,11 +209,14 @@ let scrollFrame = 0
 let selectionPointerId: number | null = null
 let selectionDragValue = false
 let suppressNextSelectionClick = false
+let scrollbarPointerId: number | null = null
+let scrollbarGrabOffset = 0
 const draggedCodePoints = new Set<string>()
 
 const VIRTUALIZATION_THRESHOLD = 400
 const INITIAL_MEASUREMENT_COUNT = 240
 const OVERSCAN_ROWS = 4
+const MIN_SCROLLBAR_THUMB_SIZE = 44
 
 const baseGlyphs = computed(() => props.glyphs)
 const selectedSet = computed(() => new Set(props.selectedCodePoints))
@@ -243,6 +276,32 @@ const bottomSpacerHeight = computed(() => {
   )
   return Math.max(0, rowCount.value - renderedEndRow) * measuredRowHeight.value
 })
+const scrollbarThumbSize = computed(() => {
+  const scrollHeight = viewportHeight.value + scrollRange.value
+  if (scrollHeight <= 0) return viewportHeight.value
+  return Math.min(
+    viewportHeight.value,
+    Math.max(
+      MIN_SCROLLBAR_THUMB_SIZE,
+      (viewportHeight.value / scrollHeight) * viewportHeight.value,
+    ),
+  )
+})
+const scrollbarThumbOffset = computed(() => {
+  const availableTrack = Math.max(
+    0,
+    viewportHeight.value - scrollbarThumbSize.value,
+  )
+  if (scrollRange.value <= 0) return 0
+  return (
+    (Math.min(scrollPosition.value, scrollRange.value) / scrollRange.value) *
+    availableTrack
+  )
+})
+const scrollbarThumbStyle = computed(() => ({
+  height: `${scrollbarThumbSize.value}px`,
+  transform: `translateY(${scrollbarThumbOffset.value}px)`,
+}))
 
 const normalizeCodePoint = (value: string): string =>
   value.trim() ? value.trim().toUpperCase().padStart(4, '0') : ''
@@ -431,12 +490,100 @@ const handleKeydown = (event: KeyboardEvent): void => {
   focusCell(nextIndex)
 }
 
+const updateScrollMetrics = (): void => {
+  const container = scrollContainer.value
+  if (!container) {
+    scrollRange.value = 0
+    return
+  }
+  viewportHeight.value = container.clientHeight || 800
+  scrollRange.value = Math.max(
+    0,
+    container.scrollHeight - container.clientHeight,
+  )
+  if (container.scrollTop > scrollRange.value) {
+    container.scrollTop = scrollRange.value
+  }
+  scrollPosition.value = Math.min(container.scrollTop, scrollRange.value)
+}
+
+const setScrollPosition = (position: number): void => {
+  const container = scrollContainer.value
+  if (!container) return
+  const nextPosition = Math.max(0, Math.min(position, scrollRange.value))
+  container.scrollTop = nextPosition
+  scrollPosition.value = nextPosition
+}
+
+const updateScrollFromPointer = (clientY: number): void => {
+  const track = scrollbarTrack.value
+  if (!track || scrollRange.value <= 0) return
+  const bounds = track.getBoundingClientRect()
+  const availableTrack = Math.max(1, bounds.height - scrollbarThumbSize.value)
+  const thumbOffset = Math.max(
+    0,
+    Math.min(clientY - bounds.top - scrollbarGrabOffset, availableTrack),
+  )
+  setScrollPosition((thumbOffset / availableTrack) * scrollRange.value)
+}
+
+const startScrollbarDrag = (event: PointerEvent): void => {
+  if (event.button !== 0 || scrollRange.value <= 0) return
+  const track = scrollbarTrack.value
+  if (!track) return
+  event.preventDefault()
+  const target = event.target as HTMLElement | null
+  const thumb = target?.closest<HTMLElement>('.glyph-library-scrollbar-thumb')
+  scrollbarPointerId = event.pointerId
+  scrollbarGrabOffset = thumb
+    ? event.clientY - thumb.getBoundingClientRect().top
+    : scrollbarThumbSize.value / 2
+  track.setPointerCapture?.(event.pointerId)
+  updateScrollFromPointer(event.clientY)
+}
+
+const moveScrollbarDrag = (event: PointerEvent): void => {
+  if (scrollbarPointerId !== event.pointerId) return
+  event.preventDefault()
+  updateScrollFromPointer(event.clientY)
+}
+
+const finishScrollbarDrag = (event: PointerEvent): void => {
+  if (scrollbarPointerId !== event.pointerId) return
+  const track = scrollbarTrack.value
+  if (track?.hasPointerCapture?.(event.pointerId)) {
+    track.releasePointerCapture(event.pointerId)
+  }
+  scrollbarPointerId = null
+}
+
+const handleScrollbarKeydown = (event: KeyboardEvent): void => {
+  const nextPosition =
+    event.key === 'ArrowUp'
+      ? scrollPosition.value - 40
+      : event.key === 'ArrowDown'
+        ? scrollPosition.value + 40
+        : event.key === 'PageUp'
+          ? scrollPosition.value - viewportHeight.value * 0.9
+          : event.key === 'PageDown'
+            ? scrollPosition.value + viewportHeight.value * 0.9
+            : event.key === 'Home'
+              ? 0
+              : event.key === 'End'
+                ? scrollRange.value
+                : null
+  if (nextPosition === null) return
+  event.preventDefault()
+  setScrollPosition(nextPosition)
+}
+
 const updateColumnCount = (): void => {
   const cells = gridElement.value?.querySelectorAll<HTMLElement>(
     '.glyph-library-cell',
   )
   if (!cells?.length) {
     columnCount.value = 1
+    nextTick(updateScrollMetrics)
     return
   }
   const firstTop = cells[0]?.offsetTop
@@ -455,14 +602,15 @@ const updateColumnCount = (): void => {
   ) {
     rovingIndex.value = virtualWindow.value.startIndex
   }
+  nextTick(updateScrollMetrics)
 }
 
 const handleScroll = (): void => {
   if (scrollFrame) return
   scrollFrame = window.requestAnimationFrame(() => {
     scrollFrame = 0
+    updateScrollMetrics()
     scrollPosition.value = scrollContainer.value?.scrollTop ?? 0
-    viewportHeight.value = scrollContainer.value?.clientHeight ?? 800
     if (
       rovingIndex.value < virtualWindow.value.startIndex ||
       rovingIndex.value >= virtualWindow.value.endIndex
@@ -502,12 +650,12 @@ onMounted(() => {
   if (scrollContainer.value) {
     scrollContainer.value.scrollTop = props.initialScrollTop
     scrollPosition.value = props.initialScrollTop
-    viewportHeight.value = scrollContainer.value.clientHeight || 800
+    updateScrollMetrics()
   }
   nextTick(updateColumnCount)
   if (typeof ResizeObserver !== 'undefined' && scrollContainer.value) {
     resizeObserver = new ResizeObserver(() => {
-      viewportHeight.value = scrollContainer.value?.clientHeight ?? 800
+      updateScrollMetrics()
       columnsMeasured.value = false
       nextTick(updateColumnCount)
     })
@@ -518,6 +666,12 @@ onMounted(() => {
 onBeforeUnmount(() => {
   resizeObserver?.disconnect()
   if (scrollFrame) window.cancelAnimationFrame(scrollFrame)
+  if (
+    scrollbarPointerId !== null &&
+    scrollbarTrack.value?.hasPointerCapture?.(scrollbarPointerId)
+  ) {
+    scrollbarTrack.value.releasePointerCapture(scrollbarPointerId)
+  }
   if (selectionPointerId !== null) {
     const grid = gridElement.value
     if (
@@ -538,6 +692,15 @@ defineExpose({
 </script>
 
 <style scoped>
+.glyph-library-shell {
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1rem;
+  background: var(--background-color);
+}
+
 .glyph-library-scroll {
   --library-cell-min: clamp(5.75rem, 7vw, 7.25rem);
   --library-cell-height: clamp(7.5rem, 10vw, 8.75rem);
@@ -548,7 +711,44 @@ defineExpose({
   overflow: auto;
   overscroll-behavior: contain;
   background: var(--background-color);
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: none;
+}
+
+.glyph-library-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.glyph-library-scrollbar {
+  position: relative;
+  min-height: 0;
+  border-inline-start: 1px solid var(--border-color);
+  background: var(--scrollbar-track);
+  cursor: pointer;
+  touch-action: none;
+}
+
+.glyph-library-scrollbar:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: -2px;
+}
+
+.glyph-library-scrollbar-thumb {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 3px;
+  border-radius: 999px;
+  background: var(--scrollbar-thumb);
+  cursor: grab;
+  will-change: transform;
+}
+
+.glyph-library-scrollbar:hover .glyph-library-scrollbar-thumb,
+.glyph-library-scrollbar:focus-visible .glyph-library-scrollbar-thumb {
+  background: var(--border-hover);
+}
+
+.glyph-library-scrollbar:active .glyph-library-scrollbar-thumb {
+  cursor: grabbing;
 }
 
 .glyph-library-scroll.density-compact {

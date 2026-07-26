@@ -1365,7 +1365,7 @@ defineExpose({
   min-height: 260px;
   position: relative;
   overflow: hidden;
-  overscroll-behavior: contain;
+  overscroll-behavior: auto;
   touch-action: none;
   outline: none;
   border-radius: 2px;

@@ -178,6 +178,7 @@
       "remove_from_manager": "从字形管理器移除（{count}）",
       "retry": "重试",
       "search_label": "搜索字形库",
+      "scrollbar_label": "滚动字形库",
       "select_filtered": "选择筛选出的字形",
       "selected_count": "已选择{count}项",
       "selection_mode": "选择添加",
