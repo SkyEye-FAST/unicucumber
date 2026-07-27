@@ -1546,13 +1546,11 @@ defineExpose({
 
 @media (min-width: 720px) {
   .grid-viewport {
-    max-height: max(260px, calc(100dvh - 24rem));
-  }
-}
-
-@media (min-width: 720px) and (max-width: 755px) {
-  .grid-viewport {
-    max-height: max(260px, calc(100dvh - 32rem));
+    /* Keep the hex and export controls reachable without scrolling on short
+       desktop and tablet viewports. The canvas remains pannable when its
+       natural grid size exceeds this allocation. */
+    min-height: max(160px, min(260px, calc(100dvh - 37.5rem)));
+    max-height: max(160px, calc(100dvh - 37.5rem));
   }
 }
 

@@ -83,17 +83,16 @@
             />
           </template>
         </GlyphGrid>
+        <div class="editor-output-stack">
+          <HexCodeInput :hex-code="hexCode" @apply="applyHexCode" />
+          <DownloadButtons
+            v-model:export-scale="settings.exportScale"
+            v-model:export-transparent="settings.exportTransparent"
+            :grid-data="gridData"
+            :codepoint="currentCodePoint"
+          />
+        </div>
       </section>
-
-      <div class="editor-output-stack">
-        <HexCodeInput :hex-code="hexCode" @apply="applyHexCode" />
-        <DownloadButtons
-          v-model:export-scale="settings.exportScale"
-          v-model:export-transparent="settings.exportTransparent"
-          :grid-data="gridData"
-          :codepoint="currentCodePoint"
-        />
-      </div>
 
       <aside class="editor-control-stack">
         <div class="editor-actions">
@@ -1355,10 +1354,6 @@ const handlePasteStart = (): void => {
     order: 2;
   }
 
-  .editor-output-stack {
-    order: 3;
-  }
-
   .restored-draft-notice {
     grid-template-columns: auto minmax(0, 1fr);
     gap: var(--space-2);
@@ -1455,8 +1450,6 @@ const handlePasteStart = (): void => {
   }
 
   .editor-output-stack {
-    grid-column: 1;
-    grid-row: 2;
     /* 64 hexadecimal digits for a 16px glyph, plus input actions and gaps. */
     width: min(100%, 43rem);
     justify-self: center;
@@ -1545,7 +1538,10 @@ const handlePasteStart = (): void => {
 
 @media (min-width: 720px) and (max-width: 899px) {
   .editor-output-stack {
-    grid-column: 1 / -1;
+    width: 100%;
+    /* The command rail occupies the second layout column. Compensate for it
+       so the output stays centered under the whole editor, not just canvas. */
+    transform: translateX(calc((var(--control-height) + var(--space-3)) / 2));
   }
 }
 

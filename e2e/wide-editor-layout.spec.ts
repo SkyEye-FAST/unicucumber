@@ -95,39 +95,35 @@ test.describe('wide editor layout', () => {
     })
   }
 
-  test('combines export formats behind one download button', async ({
+  test('selects an export format before downloading', async ({
     page,
   }, testInfo) => {
     await loadWideEditor(page, 1280, 720)
     const exportPanel = page.locator('.export-panel')
-    const downloadControl = exportPanel.locator('.export-download')
-    const downloadButton = downloadControl.locator('.download-button')
-    const formatButtons = downloadControl.locator('.download-menu button')
+    const downloadButton = exportPanel.locator('.download-button')
+    const formatButtons = exportPanel.locator('.format-option')
 
     await expect(downloadButton).toHaveCount(1)
-    await expect(downloadButton).toContainText('Export glyph')
-    await expect(formatButtons.first()).toBeHidden()
-    await downloadButton.click()
-    await expect(downloadControl).toHaveAttribute('open', '')
     await expect(formatButtons.first()).toBeVisible()
     await expect(formatButtons).toHaveText(['PNG', 'BMP', 'SVG', 'HEX'])
+    await expect(formatButtons.first()).toHaveClass(/selected/)
+    await formatButtons.filter({ hasText: 'HEX' }).click()
+    await expect(formatButtons.filter({ hasText: 'HEX' })).toHaveClass(
+      /selected/,
+    )
+    await expect(downloadButton).toContainText('Download HEX')
     await page.screenshot({
       path: join(
         process.env.TEMP ?? testInfo.outputDir,
-        'unicucumber-export-menu-desktop.png',
+        'unicucumber-export-format-desktop.png',
       ),
       fullPage: false,
     })
-    await expect(
-      exportPanel.getByRole('button', { name: 'Copy hex' }),
-    ).toHaveCount(0)
 
     const downloadPromise = page.waitForEvent('download')
-    await formatButtons.filter({ hasText: 'HEX' }).click()
+    await downloadButton.click()
     const download = await downloadPromise
     expect(download.suggestedFilename()).toMatch(/\.hex$/)
-    await expect(downloadControl).not.toHaveAttribute('open', '')
-    await expect(downloadButton).toBeFocused()
     await expect(page.locator('.notification')).toContainText(
       'HEX export is ready.',
     )
@@ -137,15 +133,18 @@ test.describe('wide editor layout', () => {
     await mobilePage.evaluate(() =>
       window.scrollTo({ top: document.documentElement.scrollHeight }),
     )
-    const mobileDownloadControl = mobilePage.locator('.export-download')
-    await mobileDownloadControl.locator('.download-button').click()
+    const mobileExportPanel = mobilePage.locator('.export-panel')
+    await mobileExportPanel
+      .locator('.format-option')
+      .filter({ hasText: 'SVG' })
+      .click()
     await expect(
-      mobileDownloadControl.locator('.download-menu button').first(),
+      mobileExportPanel.locator('.format-option').filter({ hasText: 'SVG' }),
     ).toBeVisible()
     await mobilePage.screenshot({
       path: join(
         process.env.TEMP ?? testInfo.outputDir,
-        'unicucumber-export-menu-mobile.png',
+        'unicucumber-export-format-mobile.png',
       ),
       fullPage: false,
     })
@@ -227,7 +226,7 @@ test.describe('wide editor layout', () => {
     const gridBefore = await getBounds(page, '.grid-container')
     const canvasBefore = await getBounds(page, '.editor-canvas-column')
     const outputBefore = await getBounds(page, '.editor-output-stack')
-    await page.getByRole('button', { name: 'More', exact: true }).click()
+    await page.locator('.tool-overflow > summary').click()
     const gridAfter = await getBounds(page, '.grid-container')
     const sheet = await getBounds(page, '.tool-sheet')
 
