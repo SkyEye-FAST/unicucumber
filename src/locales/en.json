@@ -239,7 +239,8 @@
     "close_glyph_manager": "Close glyph manager",
     "github": "Open the UniCucumber repository on GitHub",
     "open_glyph_manager": "Open glyph manager",
-    "open_settings": "Open settings"
+    "open_settings": "Open settings",
+    "toggle_theme": "Toggle color theme"
   },
   "hex_input": {
     "apply": "Apply",

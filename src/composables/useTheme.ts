@@ -128,6 +128,16 @@ export const setThemePreference = (value: ThemePreference): void => {
   applyResolvedTheme()
 }
 
+export const toggleTheme = (): void => {
+  if (!initialized) initializeTheme()
+  const nextPreference: Record<ThemePreference, ThemePreference> = {
+    auto: 'light',
+    light: 'dark',
+    dark: 'auto',
+  }
+  setThemePreference(nextPreference[preference.value])
+}
+
 export const disposeTheme = (): void => {
   removeSystemListener()
   mediaQuery = null
@@ -140,5 +150,6 @@ export function useTheme() {
     resolvedTheme: readonly(resolvedTheme),
     isDark,
     setPreference: setThemePreference,
+    toggleTheme,
   }
 }

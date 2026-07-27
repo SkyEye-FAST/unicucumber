@@ -239,7 +239,8 @@
     "close_glyph_manager": "关闭字形管理器",
     "github": "在GitHub上打开UniCucumber仓库",
     "open_glyph_manager": "打开字形管理器",
-    "open_settings": "打开设置"
+    "open_settings": "打开设置",
+    "toggle_theme": "切换颜色主题"
   },
   "hex_input": {
     "apply": "应用",

@@ -8,6 +8,22 @@
       <button
         class="modal-button ui-icon-button"
         type="button"
+        :aria-label="$t('header.toggle_theme')"
+        @click="toggleTheme"
+      >
+        <i-material-symbols-brightness-auto
+          v-if="preference === 'auto'"
+          class="icon"
+        />
+        <i-material-symbols-light-mode
+          v-else-if="preference === 'light'"
+          class="icon"
+        />
+        <i-material-symbols-dark-mode v-else class="icon" />
+      </button>
+      <button
+        class="modal-button ui-icon-button"
+        type="button"
         :aria-label="$t('header.open_glyph_manager')"
         @click="$emit('toggleSidebar')"
       >
@@ -35,7 +51,10 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 
+import { useTheme } from '@/composables/useTheme'
+
 const { t: $t } = useI18n()
+const { preference, toggleTheme } = useTheme()
 defineEmits(['openSettings', 'toggleSidebar'])
 </script>
 

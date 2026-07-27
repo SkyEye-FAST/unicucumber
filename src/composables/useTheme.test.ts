@@ -124,6 +124,25 @@ describe('theme preference', () => {
     theme.disposeTheme()
   })
 
+  it('cycles through Auto, Light, and Dark preferences', async () => {
+    installMatchMedia(false)
+    const theme = await import('./useTheme')
+    theme.initializeTheme()
+
+    theme.toggleTheme()
+    expect(theme.useTheme().preference.value).toBe('light')
+    expect(theme.useTheme().resolvedTheme.value).toBe('light')
+
+    theme.toggleTheme()
+    expect(theme.useTheme().preference.value).toBe('dark')
+    expect(theme.useTheme().resolvedTheme.value).toBe('dark')
+
+    theme.toggleTheme()
+    expect(theme.useTheme().preference.value).toBe('auto')
+    expect(theme.useTheme().resolvedTheme.value).toBe('light')
+    theme.disposeTheme()
+  })
+
   it('switches from a manual preference back to the current system theme', async () => {
     const system = installMatchMedia(false)
     const theme = await import('./useTheme')

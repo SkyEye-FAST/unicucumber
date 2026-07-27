@@ -67,6 +67,52 @@ test('Auto follows live system changes while manual themes remain stable', async
     .toBe('auto')
 })
 
+test('header appearance toggle cycles through all preferences and syncs with settings', async ({
+  page,
+}) => {
+  await loadEditor(page, 'light')
+  const headerActions = page.locator('.editor-header .modal-buttons > *')
+  await expect(headerActions).toHaveCount(4)
+  expect(
+    await headerActions.evaluateAll((actions) =>
+      actions.map((action) => action.getAttribute('aria-label')),
+    ),
+  ).toEqual([
+    'Toggle color theme',
+    'Open glyph manager',
+    'Open settings',
+    'Open the UniCucumber repository on GitHub',
+  ])
+
+  const themeToggle = page.getByRole('button', { name: 'Toggle color theme' })
+  await themeToggle.click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+  await expect
+    .poll(() =>
+      page.evaluate(() => localStorage.getItem('unicucumber_theme_preference')),
+    )
+    .toBe('light')
+
+  await themeToggle.click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await expect
+    .poll(() =>
+      page.evaluate(() => localStorage.getItem('unicucumber_theme_preference')),
+    )
+    .toBe('dark')
+
+  await themeToggle.click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+  await expect
+    .poll(() =>
+      page.evaluate(() => localStorage.getItem('unicucumber_theme_preference')),
+    )
+    .toBe('auto')
+
+  const { drawer } = await openSettings(page)
+  await expect(drawer.getByRole('radio', { name: 'Auto' })).toBeChecked()
+})
+
 test('appearance preference persists across reloads', async ({ page }) => {
   await loadEditor(page, 'light')
   let settings = await openSettings(page)
