@@ -243,13 +243,7 @@ const shareImage = async (): Promise<void> => {
   padding: var(--space-3);
   border-top: 1px solid var(--border-color);
   border-bottom: 1px solid var(--border-color);
-  background:
-    linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--primary-color) 7%, transparent),
-      transparent 42%
-    ),
-    var(--background-light);
+  background: var(--background-light);
 }
 
 .export-title-row {
