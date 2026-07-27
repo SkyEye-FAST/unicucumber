@@ -72,6 +72,14 @@ test('header appearance toggle cycles through all preferences and syncs with set
 }) => {
   await loadEditor(page, 'light')
   const headerActions = page.locator('.editor-header .modal-buttons > *')
+  const title = page.locator('.title')
+  const transitionProperties = await title.evaluate((element) =>
+    getComputedStyle(element)
+      .transitionProperty.split(',')
+      .map((value) => value.trim()),
+  )
+  expect(transitionProperties).toContain('background-color')
+  expect(transitionProperties).not.toContain('color')
   await expect(headerActions).toHaveCount(4)
   expect(
     await headerActions.evaluateAll((actions) =>
@@ -93,8 +101,12 @@ test('header appearance toggle cycles through all preferences and syncs with set
     )
     .toBe('light')
 
+  const lightTitleColor = await title.evaluate(
+    (element) => getComputedStyle(element).color,
+  )
   await themeToggle.click()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await expect(title).not.toHaveCSS('color', lightTitleColor)
   await expect
     .poll(() =>
       page.evaluate(() => localStorage.getItem('unicucumber_theme_preference')),

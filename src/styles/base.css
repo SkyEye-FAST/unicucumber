@@ -39,12 +39,12 @@
   --modal-overlay: rgba(0, 0, 0, 0.5);
   --focus-ring: color-mix(in srgb, var(--primary-color) 45%, transparent);
 
-  /* Transitions */
+  /* Theme motion */
   --theme-transition-time: 0.2s;
   --theme-transition-curve: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Global Theme Transition */
+/* Keep the surface transition, but never animate text color during a theme change. */
 *:not(
   .tool-buttons,
   .tool-buttons *,
@@ -55,7 +55,6 @@
   transition:
     background-color var(--theme-transition-time) var(--theme-transition-curve),
     border-color var(--theme-transition-time) var(--theme-transition-curve),
-    color var(--theme-transition-time) var(--theme-transition-curve),
     box-shadow var(--theme-transition-time) var(--theme-transition-curve);
 }
 
