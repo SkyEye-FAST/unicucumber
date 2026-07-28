@@ -98,6 +98,53 @@ describe('GlyphGrid', () => {
     expect(wrapper.find('.preview-cell').exists()).toBe(true)
   })
 
+  it('duplicates a selection beside its bounds without overlapping it', async () => {
+    const wrapper = mount(GlyphGrid, {
+      props: {
+        gridData: createGrid(8),
+        drawMode: 'singleButtonDraw',
+        drawValue: 1,
+        showBorder: true,
+        currentTool: 'select',
+      },
+      global: {
+        plugins: [createI18n({ legacy: false, locale: 'en', messages })],
+      },
+    })
+    const grid = wrapper.get('.grid-container').element as HTMLElement
+    grid.getBoundingClientRect = () =>
+      ({
+        x: 0,
+        y: 0,
+        top: 0,
+        left: 0,
+        right: 90,
+        bottom: 90,
+        width: 90,
+        height: 90,
+        toJSON: () => ({}),
+      }) as DOMRect
+    const viewport = wrapper.get('.grid-viewport')
+
+    await viewport.trigger('pointerdown', pointerEvent(1, 15, 15))
+    await viewport.trigger('pointermove', pointerEvent(1, 25, 25))
+    await viewport.trigger('pointerup', pointerEvent(1, 25, 25))
+    await wrapper.get('[aria-label="selection.duplicate"]').trigger('click')
+
+    expect(wrapper.emitted('command')).toEqual([
+      [
+        {
+          type: 'pasteSelection',
+          data: [
+            [0, 0],
+            [0, 0],
+          ],
+          target: { row: 2, col: 2 },
+        },
+      ],
+    ])
+  })
+
   it('previews selected pixels at the target while moving a selection', async () => {
     const grid = createGrid(8)
     grid[0]![0] = 1

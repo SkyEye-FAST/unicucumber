@@ -1144,7 +1144,10 @@ const handleDuplicate = (): void => {
   clipboard.copy(payload)
   emit('clipboard-change', true)
   const target = clampSelectionPosition(
-    { row: rectangle.startRow + 1, col: rectangle.startCol + 1 },
+    {
+      row: rectangle.startRow + payload.height,
+      col: rectangle.startCol + payload.width,
+    },
     payload.width,
     payload.height,
     gridWidth.value,
