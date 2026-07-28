@@ -48,4 +48,14 @@ describe('useEditorDocument', () => {
       false,
     )
   })
+
+  it('preserves imported variable-width grids', () => {
+    const editor = useEditorDocument({ width: 12 })
+    expect(editor.width.value).toBe(12)
+    expect(editor.grid.value[0]).toHaveLength(12)
+
+    editor.load({ width: 20 })
+    expect(editor.width.value).toBe(20)
+    expect(editor.grid.value[0]).toHaveLength(20)
+  })
 })

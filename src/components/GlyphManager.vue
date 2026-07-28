@@ -234,7 +234,7 @@ import {
   sortGlyphsByCodePoint,
 } from '@/utils/glyphLibrary'
 import { parseHexFile } from '@/utils/hexImport'
-import { gridToHex } from '@/utils/hexUtils'
+import { gridToHex, normalizeHex } from '@/utils/hexUtils'
 import { createBitmapSheet, createGlyphBackup } from '@/utils/libraryExport'
 
 import DialogBox from './DialogBox.vue'
@@ -562,7 +562,7 @@ const isValidInput = computed(() => {
   const isValidCodePoint = /^[0-9A-Fa-f]{1,6}$/.test(normalizedCodePoint)
   const hasValidHex =
     (props.prefillData && props.prefillData.hexValue) ||
-    /^[0-9A-Fa-f]{32}$|^[0-9A-Fa-f]{64}$/.test(newGlyph.value.hexValue)
+    normalizeHex(newGlyph.value.hexValue) !== null
   return isValidCodePoint && hasValidHex
 })
 
@@ -1047,10 +1047,7 @@ const handleHexFileUpload = async (event: Event): Promise<void> => {
 }
 
 const validateImageDimensions = (img: ImageWithDimensions): boolean => {
-  if (
-    (img.width === 16 && img.height === 16) ||
-    (img.width === 8 && img.height === 16)
-  ) {
+  if (img.height === 16 && [4, 8, 12, 16, 20].includes(img.width)) {
     return true
   }
 

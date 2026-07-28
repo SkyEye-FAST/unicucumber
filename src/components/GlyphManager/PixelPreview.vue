@@ -52,7 +52,7 @@ const drawGlyph = () => {
     ctx.fillStyle = 'white'
     ctx.fillRect(0, 0, props.width, 16)
 
-    const expectedLength = props.width === 8 ? 32 : 64
+    const expectedLength = (props.width * 16) / 4
     const hexLength = props.hexValue.length
 
     if (!props.hexValue || hexLength !== expectedLength) {

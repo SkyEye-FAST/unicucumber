@@ -1,7 +1,12 @@
 import type { EditorDocumentSnapshot } from '@/types/editor'
 import type { Glyph } from '@/types/glyph'
 import { normalizeCodePointHex } from '@/utils/charUtils'
-import { deepCloneGrid, gridToHex, normalizeHex } from '@/utils/hexUtils'
+import {
+  deepCloneGrid,
+  gridToHex,
+  isGlyphWidth,
+  normalizeHex,
+} from '@/utils/hexUtils'
 
 const DATABASE_NAME = 'unicucumber'
 const DATABASE_VERSION = 1
@@ -112,7 +117,7 @@ const validateSnapshot = (value: unknown): EditorDocumentSnapshot | null => {
       : null
   if (
     codePoint === null ||
-    (candidate.width !== 8 && candidate.width !== 16) ||
+    !isGlyphWidth(candidate.width) ||
     !Array.isArray(candidate.grid)
   ) {
     return null

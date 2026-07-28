@@ -140,8 +140,11 @@ const options = reactive({
   transparentAsWhite: props.transparentAsWhite,
 })
 const targetWidthOptions: CustomSelectOption[] = [
+  { value: 4, label: '4×16' },
   { value: 8, label: '8×16' },
+  { value: 12, label: '12×16' },
   { value: 16, label: '16×16' },
+  { value: 20, label: '20×16' },
 ]
 const modeOptions = computed<CustomSelectOption[]>(() => [
   { value: 'fit', label: $t('image_import.fit') },

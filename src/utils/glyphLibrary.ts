@@ -1,4 +1,5 @@
 import type { Glyph, GlyphWidth } from '@/types/glyph'
+import { getGlyphWidthFromHex, getHexLengthForWidth } from './hexUtils'
 
 export interface GlyphLibraryPreview {
   character: string
@@ -12,7 +13,7 @@ const previewCache = new Map<string, GlyphLibraryPreview>()
 const MAX_PREVIEW_CACHE_SIZE = 4096
 
 export const glyphWidthFromData = (hexValue: string): GlyphWidth =>
-  hexValue.length === 32 ? 8 : 16
+  getGlyphWidthFromHex(hexValue) ?? 16
 
 export const formatGlyphCodePoint = (codePoint: string): string =>
   codePoint.trim().toUpperCase().padStart(4, '0')
@@ -40,7 +41,7 @@ export const createGlyphBitmapPath = (
   hexValue: string,
   width: GlyphWidth,
 ): string => {
-  const expectedLength = width === 8 ? 32 : 64
+  const expectedLength = getHexLengthForWidth(width)
   if (hexValue.length !== expectedLength || !/^[0-9a-f]+$/i.test(hexValue)) {
     return ''
   }

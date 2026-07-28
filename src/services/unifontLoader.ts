@@ -3,6 +3,7 @@ import {
   type UnifontManifest,
 } from '@/services/unifontManifest'
 import type { Glyph } from '@/types/glyph'
+import { normalizeHex } from '@/utils/hexUtils'
 
 export type UnifontChunk = Record<string, string>
 
@@ -79,7 +80,7 @@ export class UnifontLoader {
             codePoint < 0 ||
             codePoint > 0x10ffff ||
             typeof hexValue !== 'string' ||
-            !/^(?:[0-9a-f]{32}|[0-9a-f]{64})$/i.test(hexValue)
+            normalizeHex(hexValue) === null
           ) {
             return []
           }

@@ -14,7 +14,7 @@
           id="hexInput"
           v-model="draft"
           class="hex-input"
-          maxlength="64"
+          maxlength="80"
           inputmode="text"
           autocapitalize="characters"
           autocomplete="off"
@@ -112,7 +112,7 @@ watch(
 )
 
 const normalizeDraft = (): void => {
-  draft.value = draft.value.toUpperCase().slice(0, 64)
+  draft.value = draft.value.toUpperCase().slice(0, 80)
 }
 
 const applyDraft = (): void => {

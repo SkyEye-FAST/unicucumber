@@ -483,8 +483,11 @@ const drawModeOptions = computed<CustomSelectOption[]>(() => [
   },
 ])
 const glyphWidthOptions = computed<CustomSelectOption[]>(() => [
+  { value: 4, label: '4×16' },
   { value: 8, label: $t('settings.glyph_width.8px') },
+  { value: 12, label: '12×16' },
   { value: 16, label: $t('settings.glyph_width.16px') },
+  { value: 20, label: '20×16' },
 ])
 const glyphPreviewModeOptions = computed<CustomSelectOption[]>(() => [
   { value: 'pixelOnly', label: $t('settings.glyph_preview.pixel_only') },

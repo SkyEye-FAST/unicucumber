@@ -95,6 +95,7 @@ import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import PixelPreview from './PixelPreview.vue'
+import { getGlyphWidthFromHex, normalizeHex } from '@/utils/hexUtils'
 
 interface GlyphData {
   codePoint: string
@@ -203,7 +204,7 @@ const isValidInput = computed(() => {
   const isValidCodePoint = /^[0-9A-Fa-f]{1,6}$/.test(hexDigits)
   const hasValidHex =
     (props.prefillData && props.prefillData.hexValue) ||
-    /^[0-9A-Fa-f]{32}$|^[0-9A-Fa-f]{64}$/.test(props.modelValue.hexValue)
+    normalizeHex(props.modelValue.hexValue) !== null
   return isValidCodePoint && hasValidHex
 })
 
@@ -213,10 +214,7 @@ const getAddButtonTitle = computed(() => {
   const hexDigits = extractHexDigits(props.modelValue.codePoint)
   if (!/^[0-9A-Fa-f]{1,6}$/.test(hexDigits))
     return $t('glyph_manager.validation.invalid_code_point')
-  if (
-    !props.prefillData &&
-    !/^[0-9A-Fa-f]{32}$|^[0-9A-Fa-f]{64}$/.test(props.modelValue.hexValue)
-  ) {
+  if (!props.prefillData && normalizeHex(props.modelValue.hexValue) === null) {
     return $t('glyph_manager.validation.invalid_hex')
   }
   return $t('glyph_manager.validation.add_glyph')
@@ -224,7 +222,7 @@ const getAddButtonTitle = computed(() => {
 
 const shouldShowPreview = computed(() => {
   const hexValue = getHexValue.value
-  return hexValue && /^[0-9A-Fa-f]{32}$|^[0-9A-Fa-f]{64}$/.test(hexValue)
+  return hexValue && normalizeHex(hexValue) !== null
 })
 
 const getHexValue = computed(() => {
@@ -233,7 +231,7 @@ const getHexValue = computed(() => {
 
 const getGlyphWidth = computed(() => {
   const hexValue = getHexValue.value
-  return hexValue && hexValue.length <= 32 ? 8 : 16
+  return hexValue ? (getGlyphWidthFromHex(hexValue) ?? 16) : 16
 })
 
 watch(

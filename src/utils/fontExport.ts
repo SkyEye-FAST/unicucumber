@@ -106,7 +106,7 @@ const validGlyphs = (glyphs: Glyph[]): Glyph[] => {
 }
 
 /**
- * Construct a pixel outline from the same 8×16 / 16×16 bitmap source that
+ * Construct a pixel outline from the bitmap source that
  * GNU Unifont's `hex2otf` consumes. opentype.js serializes the OpenType
  * tables, avoiding a second, hand-written font container implementation.
  */
@@ -421,7 +421,7 @@ const createTrueType = (
   hmtx.u16(UNITS_PER_EM)
   hmtx.i16(0)
   glyphs.forEach((glyph) => {
-    hmtx.u16(hexToGrid(glyph.hexValue)?.[0]?.length === 8 ? 32 : 64)
+    hmtx.u16((hexToGrid(glyph.hexValue)?.[0]?.length ?? 16) * PIXEL_UNIT)
     hmtx.i16(0)
   })
   const loca = new Writer()

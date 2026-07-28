@@ -1,12 +1,25 @@
 import type { GlyphWidth, GridCell, GridData } from '@/types/glyph'
 
 export const GRID_HEIGHT = 16
-const HEX_LENGTHS: Readonly<Record<GlyphWidth, number>> = { 8: 32, 16: 64 }
+export const GLYPH_WIDTHS = [4, 8, 12, 16, 20] as const
+const HEX_LENGTHS: Readonly<Record<GlyphWidth, number>> = {
+  4: 16,
+  8: 32,
+  12: 48,
+  16: 64,
+  20: 80,
+}
+
+export const isGlyphWidth = (value: unknown): value is GlyphWidth =>
+  typeof value === 'number' && GLYPH_WIDTHS.includes(value as GlyphWidth)
+
+export const getHexLengthForWidth = (width: GlyphWidth): number =>
+  HEX_LENGTHS[width]
 
 export class InvalidHexCodeError extends Error {
   constructor(hex: string) {
     super(
-      `Expected a 32- or 64-character hexadecimal glyph, received ${hex.length} characters.`,
+      `Expected a 16-, 32-, 48-, 64-, or 80-character hexadecimal glyph, received ${hex.length} characters.`,
     )
     this.name = 'InvalidHexCodeError'
   }
@@ -14,9 +27,7 @@ export class InvalidHexCodeError extends Error {
 
 export const getGlyphWidthFromHex = (hex: string): GlyphWidth | null => {
   if (!/^[\dA-Fa-f]+$/.test(hex)) return null
-  if (hex.length === HEX_LENGTHS[8]) return 8
-  if (hex.length === HEX_LENGTHS[16]) return 16
-  return null
+  return GLYPH_WIDTHS.find((width) => hex.length === HEX_LENGTHS[width]) ?? null
 }
 
 export const normalizeHex = (hex: string): string | null => {
@@ -56,7 +67,7 @@ export const deepCloneGrid = (grid: GridData): GridData =>
 export const gridToHex = (grid: GridData): string => {
   if (grid.length !== GRID_HEIGHT || grid[0] === undefined) return ''
   const width = grid[0].length
-  if (width !== 8 && width !== 16) return ''
+  if (!isGlyphWidth(width)) return ''
   if (grid.some((row) => row.length !== width)) return ''
 
   const binary = grid

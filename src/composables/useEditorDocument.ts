@@ -8,7 +8,12 @@ import type {
 } from '@/types/editor'
 import type { GlyphWidth, GridData } from '@/types/glyph'
 import { normalizeCodePointHex } from '@/utils/charUtils'
-import { createGrid, deepCloneGrid, gridToHex } from '@/utils/hexUtils'
+import {
+  createGrid,
+  deepCloneGrid,
+  gridToHex,
+  isGlyphWidth,
+} from '@/utils/hexUtils'
 
 interface InitialEditorDocument {
   codePoint?: string
@@ -59,7 +64,7 @@ export function useEditorDocument(
   historyLimit = 100,
 ): EditorDocumentController {
   const initialWidth = initial.grid?.[0]?.length ?? initial.width ?? 16
-  const width = ref<GlyphWidth>(initialWidth === 8 ? 8 : 16)
+  const width = ref<GlyphWidth>(isGlyphWidth(initialWidth) ? initialWidth : 16)
   const codePoint = ref(
     normalizeCodePointHex(initial.codePoint ?? '0000') ?? '0000',
   )
@@ -104,7 +109,7 @@ export function useEditorDocument(
   ): void => {
     const nextWidth =
       document.grid?.[0]?.length ?? document.width ?? width.value
-    const normalizedWidth: GlyphWidth = nextWidth === 8 ? 8 : 16
+    const normalizedWidth: GlyphWidth = isGlyphWidth(nextWidth) ? nextWidth : 16
     const normalizedCodePoint =
       normalizeCodePointHex(document.codePoint ?? codePoint.value) ?? '0000'
     const next: EditorDocumentSnapshot = {
@@ -144,7 +149,7 @@ export function useEditorDocument(
       next = {
         ...current,
         grid: nextGrid,
-        width: nextWidth === 8 ? 8 : 16,
+        width: isGlyphWidth(nextWidth) ? nextWidth : current.width,
       }
     }
 

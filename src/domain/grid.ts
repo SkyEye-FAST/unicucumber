@@ -5,7 +5,7 @@ import type {
   GridPosition,
   SelectionRectangle,
 } from '@/types/glyph'
-import { createGrid, deepCloneGrid } from '@/utils/hexUtils'
+import { createGrid, deepCloneGrid, isGlyphWidth } from '@/utils/hexUtils'
 import {
   clampSelectionPosition,
   normalizeSelectionRectangle,
@@ -172,7 +172,7 @@ export const shiftGrid = (
   wrap = false,
 ): GridData => {
   const width = grid[0]?.length
-  if (width !== 8 && width !== 16) return grid
+  if (!isGlyphWidth(width)) return grid
   const height = grid.length
   const next = createGrid(width)
   const delta = {
@@ -306,7 +306,7 @@ export const applyEditorCommand = (
       return deepCloneGrid(command.grid)
     case 'clearGrid': {
       const width = grid[0]?.length
-      return width === 8 || width === 16 ? createGrid(width) : grid
+      return isGlyphWidth(width) ? createGrid(width) : grid
     }
     case 'moveSelection':
       return moveSelection(grid, command.rectangle, command.target).grid

@@ -9,7 +9,7 @@ import {
 } from './hexUtils'
 
 describe('glyph hexadecimal conversion', () => {
-  it('creates and converts 8- and 16-column grids', () => {
+  it('creates and converts supported column widths', () => {
     const narrow = createGrid(8)
     narrow[0]![0] = 1
     expect(narrow).toHaveLength(16)
@@ -19,6 +19,15 @@ describe('glyph hexadecimal conversion', () => {
     const wide = hexToGrid(`F${'0'.repeat(63)}`)
     expect(wide?.[0]).toHaveLength(16)
     expect(gridToHex(wide!)).toBe(`F${'0'.repeat(63)}`)
+
+    for (const width of [4, 12, 20] as const) {
+      const grid = createGrid(width)
+      grid[0]![0] = 1
+      const hex = gridToHex(grid)
+      expect(hex).toHaveLength(width * 4)
+      expect(getGlyphWidthFromHex(hex)).toBe(width)
+      expect(hexToGrid(hex)?.[0]).toHaveLength(width)
+    }
   })
 
   it('normalizes valid input and rejects incomplete, malformed and boundary lengths', () => {
@@ -27,5 +36,6 @@ describe('glyph hexadecimal conversion', () => {
     expect(hexToGrid('0'.repeat(33))).toBeNull()
     expect(hexToGrid('G'.repeat(32))).toBeNull()
     expect(hexToGrid('0'.repeat(64))).not.toBeNull()
+    expect(hexToGrid('0'.repeat(80))).not.toBeNull()
   })
 })

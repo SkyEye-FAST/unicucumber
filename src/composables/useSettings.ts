@@ -7,9 +7,9 @@ import type {
   ExportScale,
   GlyphLibraryDensity,
   GlyphPreviewMode,
-  GlyphWidth,
   ImageImportMode,
 } from '@/types/glyph'
+import { isGlyphWidth } from '@/utils/hexUtils'
 
 export const SETTINGS_KEY = 'unicucumber_settings'
 export const SETTINGS_VERSION = 1
@@ -142,8 +142,6 @@ type StoredSettings = Partial<EditorSettings> & {
   version?: number
 }
 
-const isGlyphWidth = (value: unknown): value is GlyphWidth =>
-  value === 8 || value === 16
 const isDrawMode = (value: unknown): value is DrawMode =>
   value === 'singleButtonDraw' || value === 'doubleButtonDraw'
 const isPreviewMode = (value: unknown): value is GlyphPreviewMode =>

@@ -13,7 +13,7 @@
     },
     "confirm": "Confirm",
     "dimension_error": {
-      "message": "Image dimensions must be 8×16 or 16×16 pixels",
+      "message": "Image dimensions must be 4×16, 8×16, 12×16, 16×16, or 20×16 pixels",
       "title": "Invalid Image Dimensions"
     },
     "format_error": {
@@ -247,9 +247,9 @@
     "committed": "Glyph data is applied.",
     "copy": "Copy",
     "invalid_characters": "Only hexadecimal digits are allowed.",
-    "invalid_length": "Enter exactly 32 digits for an 8×16 glyph or 64 digits for a 16×16 glyph.",
+    "invalid_length": "Enter 16, 32, 48, 64, or 80 digits for a 4×16, 8×16, 12×16, 16×16, or 20×16 glyph.",
     "label": "Hexadecimal glyph data",
-    "placeholder": "Enter glyph data (32 or 64 hex digits)",
+    "placeholder": "Enter glyph data (16, 32, 48, 64, or 80 hex digits)",
     "ready": "Valid glyph data is ready to apply.",
     "width": "{width}px"
   },
