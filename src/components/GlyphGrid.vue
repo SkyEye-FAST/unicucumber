@@ -311,11 +311,13 @@ interface Props {
   showBorder: boolean
   currentTool?: EditorTool
   enableSelection?: boolean
+  cursorEffect?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   currentTool: 'draw',
   enableSelection: true,
+  cursorEffect: false,
 })
 
 const emit = defineEmits<{
@@ -555,6 +557,7 @@ const previewPoints = computed<GridPosition[]>(() => {
     return points
   }
   if (
+    props.cursorEffect &&
     hoverCell.value &&
     (props.currentTool === 'draw' || props.currentTool === 'erase')
   ) {

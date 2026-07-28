@@ -86,6 +86,18 @@ describe('GlyphGrid', () => {
     )
   })
 
+  it('only shows the hover preview when the cursor effect is enabled', async () => {
+    const wrapper = mountGrid()
+    const viewport = wrapper.get('.grid-viewport')
+
+    await viewport.trigger('pointermove', pointerEvent(1, 45, 45))
+    expect(wrapper.find('.preview-cell').exists()).toBe(false)
+
+    await wrapper.setProps({ cursorEffect: true })
+    await viewport.trigger('pointermove', pointerEvent(1, 45, 45))
+    expect(wrapper.find('.preview-cell').exists()).toBe(true)
+  })
+
   it('previews selected pixels at the target while moving a selection', async () => {
     const grid = createGrid(8)
     grid[0]![0] = 1
