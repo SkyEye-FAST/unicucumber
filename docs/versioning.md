@@ -2,8 +2,16 @@
 
 UniCucumber uses [Semantic Versioning 2.0.0](https://semver.org/). The `version`
 field in `package.json` is the single application-version source. Production builds
-embed it as `VITE_APP_VERSION`, which is displayed in Settings. The Unifont data
-version is separate and must not be used as the application version.
+embed a display identifier based on it as `VITE_APP_VERSION`, which is shown in
+Settings. The Unifont data version is separate and must not be used as the
+application version.
+
+When commit metadata is available, Settings appends a seven-character Git commit
+identifier, for example `v1.3.0-abcdef0`. This suffix identifies the exact deployed
+source revision only. The composite display string is not treated as a SemVer release
+identifier and must not be written back to `package.json`, used for release tags, or
+added as a changelog version. Builds without commit metadata fall back to the plain
+package version.
 
 ## When to bump
 
