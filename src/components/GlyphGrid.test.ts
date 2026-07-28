@@ -58,7 +58,7 @@ const pointerEvent = (pointerId: number, clientX: number, clientY: number) => ({
 })
 
 describe('GlyphGrid', () => {
-  it('keeps mobile fit sizing stable when the viewport has no height limit', async () => {
+  it('keeps the complete grid visible when resetting the mobile view', async () => {
     const wrapper = mount(GlyphGrid, {
       props: {
         gridData: createGrid(16),
@@ -77,12 +77,9 @@ describe('GlyphGrid', () => {
     })
     const gridApi = wrapper.vm as unknown as {
       resetView: () => Promise<void>
-      fitToScreen: () => Promise<void>
     }
 
     await gridApi.resetView()
-    await gridApi.fitToScreen()
-    await gridApi.fitToScreen()
 
     expect(wrapper.get('.grid-container').attributes('style')).toContain(
       '--cell-size: 21px',

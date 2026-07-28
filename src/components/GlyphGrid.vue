@@ -636,12 +636,7 @@ const fitToScreen = async (): Promise<void> => {
 }
 
 const resetView = async (): Promise<void> => {
-  fitMode.value = false
-  cellSize.value = DEFAULT_CELL_SIZE
-  pan.x = 0
-  pan.y = 0
-  await nextTick()
-  clampPan()
+  await fitToScreen()
 }
 
 const applyZoom = (
