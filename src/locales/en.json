@@ -240,6 +240,7 @@
     "github": "Open the UniCucumber repository on GitHub",
     "open_glyph_manager": "Open glyph manager",
     "open_settings": "Open settings",
+    "open_text_preview": "Open text preview",
     "toggle_theme": "Toggle color theme"
   },
   "hex_input": {
@@ -395,6 +396,21 @@
     "status_saved": "Saved",
     "status_saving": "Saving…",
     "status_unsaved": "Unsaved"
+  },
+  "text_preview": {
+    "close": "Close text preview",
+    "empty": "Type text to preview.",
+    "hint": "Rendered directly from the current Unifont bitmap glyph data.",
+    "input_label": "Preview text",
+    "live_hint": "Current editor and glyph-manager changes appear here automatically.",
+    "load_failed": "Some Unifont glyph data could not be loaded.",
+    "loading": "Loading glyphs…",
+    "missing": "{count} glyph is unavailable. | {count} glyphs are unavailable.",
+    "placeholder": "Type a line of text",
+    "preview_label": "Unifont text preview: {text}",
+    "sample": "南去經三國，東來過五湖。",
+    "scale": "Scale",
+    "title": "Text preview"
   },
   "title": "UniCucumber - Unifont Web Editor",
   "tools": {

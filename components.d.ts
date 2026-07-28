@@ -85,6 +85,7 @@ declare module 'vue' {
     IMaterialSymbolsSync: typeof import('~icons/material-symbols/sync')['default']
     IMaterialSymbolsSyncOutline: typeof import('~icons/material-symbols/sync-outline')['default']
     IMaterialSymbolsSystemUpdateAlt: typeof import('~icons/material-symbols/system-update-alt')['default']
+    IMaterialSymbolsTextFields: typeof import('~icons/material-symbols/text-fields')['default']
     IMaterialSymbolsTune: typeof import('~icons/material-symbols/tune')['default']
     IMaterialSymbolsUndo: typeof import('~icons/material-symbols/undo')['default']
     IMaterialSymbolsUploadFileOutline: typeof import('~icons/material-symbols/upload-file-outline')['default']
@@ -97,6 +98,7 @@ declare module 'vue' {
     PwaStatus: typeof import('./src/components/PwaStatus.vue')['default']
     SearchToolbar: typeof import('./src/components/GlyphManager/SearchToolbar.vue')['default']
     SettingsSidebar: typeof import('./src/components/SettingsSidebar.vue')['default']
+    TextPreview: typeof import('./src/components/TextPreview.vue')['default']
     ToolButtons: typeof import('./src/components/ToolButtons.vue')['default']
     UploadSection: typeof import('./src/components/GlyphManager/UploadSection.vue')['default']
   }

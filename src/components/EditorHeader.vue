@@ -32,6 +32,14 @@
       <button
         class="modal-button ui-icon-button"
         type="button"
+        :aria-label="$t('header.open_text_preview')"
+        @click="$emit('openTextPreview')"
+      >
+        <i-material-symbols-text-fields class="icon" />
+      </button>
+      <button
+        class="modal-button ui-icon-button"
+        type="button"
         :aria-label="$t('header.open_settings')"
         @click="$emit('openSettings')"
       >
@@ -55,7 +63,7 @@ import { useTheme } from '@/composables/useTheme'
 
 const { t: $t } = useI18n()
 const { preference, toggleTheme } = useTheme()
-defineEmits(['openSettings', 'toggleSidebar'])
+defineEmits(['openSettings', 'openTextPreview', 'toggleSidebar'])
 </script>
 
 <style scoped>

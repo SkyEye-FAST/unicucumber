@@ -240,6 +240,7 @@
     "github": "在GitHub上開啟UniCucumber儲存庫",
     "open_glyph_manager": "開啟字形管理器",
     "open_settings": "開啟設定",
+    "open_text_preview": "開啟文字預覽",
     "toggle_theme": "切換色彩主題"
   },
   "hex_input": {
@@ -395,6 +396,21 @@
     "status_saved": "已儲存",
     "status_saving": "正在儲存…",
     "status_unsaved": "未儲存"
+  },
+  "text_preview": {
+    "close": "關閉文字預覽",
+    "empty": "輸入文字後即可預覽。",
+    "hint": "直接使用目前Unifont點陣字形資料呈現。",
+    "input_label": "預覽文字",
+    "live_hint": "編輯器和字形管理器中的修改會自動顯示在此處。",
+    "load_failed": "部分Unifont字形資料無法載入。",
+    "loading": "正在載入字形…",
+    "missing": "有{count}個字形無法使用。",
+    "placeholder": "輸入一行文字",
+    "preview_label": "Unifont文字預覽：{text}",
+    "sample": "南去經三國，東來過五湖。",
+    "scale": "縮放",
+    "title": "文字預覽"
   },
   "title": "UniCucumber - Unifont網頁編輯器",
   "tools": {

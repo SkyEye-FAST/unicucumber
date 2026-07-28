@@ -13,6 +13,7 @@
   >
     <EditorHeader
       @open-settings="showSettings = true"
+      @open-text-preview="openTextPreview"
       @toggle-sidebar="handleToggleSidebar"
     />
 
@@ -51,6 +52,14 @@
       v-model="showSettings"
       :settings="settings"
       @update:settings="updateSettings"
+    />
+    <TextPreview
+      v-model="showTextPreview"
+      :glyphs="glyphs"
+      :current-glyph="{
+        codePoint: currentCodePoint,
+        hexValue: hexCode,
+      }"
     />
 
     <main class="editor-layout">
@@ -312,6 +321,7 @@ import GlyphManager from './GlyphManager.vue'
 import HexCodeInput from './HexCodeInput.vue'
 import MobileCommandBar from './MobileCommandBar.vue'
 import SettingsSidebar from './SettingsSidebar.vue'
+import TextPreview from './TextPreview.vue'
 import ToolButtons from './ToolButtons.vue'
 
 interface DialogConfigExtended {
@@ -360,6 +370,7 @@ let cancelUnifontPreload: (() => void) | null = null
 const narrowSidebarQuery = window.matchMedia('(max-width: 719px)')
 const isNarrowSidebar = ref(narrowSidebarQuery.matches)
 const isGlyphLibraryExpanded = ref(false)
+const showTextPreview = ref(false)
 const glyphManagerRef = ref<{ handleEscape: () => boolean } | null>(null)
 
 watch(
@@ -717,6 +728,11 @@ const handleGlyphSaved = (glyph: Glyph): void => {
 
 const handleKeydown = (e: KeyboardEvent): void => {
   const target = e.target as HTMLElement | null
+  if (e.key === 'Escape' && showTextPreview.value) {
+    e.preventDefault()
+    showTextPreview.value = false
+    return
+  }
   if (e.key === 'Escape' && isSidebarActive.value) {
     e.preventDefault()
     if (!glyphManagerRef.value?.handleEscape()) handleCloseSidebar()
@@ -995,6 +1011,12 @@ const handleToggleSidebar = (): void => {
     beginGlyphLibraryLoad()
     toggleSidebar()
   }
+}
+
+const openTextPreview = (): void => {
+  if (isSidebarActive.value) handleCloseSidebar()
+  showSettings.value = false
+  showTextPreview.value = true
 }
 
 const updateSettings = (newSettings: typeof settings.value): void => {

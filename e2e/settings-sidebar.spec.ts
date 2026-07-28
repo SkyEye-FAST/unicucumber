@@ -80,7 +80,7 @@ test('header appearance toggle cycles through all preferences and syncs with set
   )
   expect(transitionProperties).toContain('background-color')
   expect(transitionProperties).not.toContain('color')
-  await expect(headerActions).toHaveCount(4)
+  await expect(headerActions).toHaveCount(5)
   expect(
     await headerActions.evaluateAll((actions) =>
       actions.map((action) => action.getAttribute('aria-label')),
@@ -88,6 +88,7 @@ test('header appearance toggle cycles through all preferences and syncs with set
   ).toEqual([
     'Toggle color theme',
     'Open glyph manager',
+    'Open text preview',
     'Open settings',
     'Open the UniCucumber repository on GitHub',
   ])
