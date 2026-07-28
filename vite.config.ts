@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, realpathSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath, URL } from 'node:url'
@@ -19,6 +20,37 @@ import {
   parseUnifontManifest,
 } from './src/services/unifontManifest'
 
+const normalizeCommitSha = (value: string | undefined): string => {
+  const normalized = value?.trim().toLowerCase()
+  return normalized && /^[0-9a-f]{7,64}$/.test(normalized)
+    ? normalized.slice(0, 7)
+    : ''
+}
+
+const getCommitSha = (): string => {
+  const environmentSha = [
+    process.env.VERCEL_GIT_COMMIT_SHA,
+    process.env.CF_PAGES_COMMIT_SHA,
+    process.env.GITHUB_SHA,
+    process.env.COMMIT_REF,
+  ]
+    .map(normalizeCommitSha)
+    .find(Boolean)
+
+  if (environmentSha) return environmentSha
+
+  try {
+    return normalizeCommitSha(
+      execFileSync('git', ['rev-parse', 'HEAD'], {
+        encoding: 'utf-8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }),
+    )
+  } catch {
+    return ''
+  }
+}
+
 const getUnifontVersion = (): string => {
   try {
     const content = readFileSync(
@@ -35,10 +67,14 @@ const unifontCaches = getUnifontRuntimeCacheNames(unifontVersion)
 const packageVersion = JSON.parse(
   readFileSync(new URL('./package.json', import.meta.url), 'utf-8'),
 ).version as string
+const commitSha = getCommitSha()
+const applicationVersion = commitSha
+  ? `${packageVersion}-${commitSha}`
+  : packageVersion
 
 export default defineConfig(({ command }) => ({
   define: {
-    'import.meta.env.VITE_APP_VERSION': JSON.stringify(packageVersion),
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(applicationVersion),
     'import.meta.env.VITE_UNIFONT_VERSION': JSON.stringify(unifontVersion),
   },
   plugins: [
