@@ -58,7 +58,8 @@ generated glyph map:
 pnpm update-unifont
 ```
 
-The script validates the release listing and `.hex` records, times out failed
-requests, and leaves the current map untouched if an update fails. This updates
-Unifont data, not the application version; see [Versioning](versioning.md) for
-application releases.
+The script validates the release listing and `.hex` records, overlays the regular
+`unifont` build over `unifont_all` for the BMP (avoiding the Unifont 17.0.04+ CJK
+JP-build regression), times out failed requests, and leaves the current map
+untouched if an update fails. This updates Unifont data, not the application
+version; see [Versioning](versioning.md) for application releases.

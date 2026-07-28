@@ -40,3 +40,17 @@ export const unifontHexToMap = (source, version) => {
 
   return { meta: { version, source: 'unifont_all' }, glyphs }
 }
+
+/**
+ * Apply glyphs from a second Unifont build over a complete glyph map.
+ *
+ * The upstream `unifont_all` build for Unifont 17.0.04 and later contains
+ * Japanese-variant glyphs for part of the CJK repertoire.  The regular
+ * `unifont` build is the authoritative source for the BMP glyphs, so it is
+ * merged over `unifont_all` while retaining the latter's metadata and upper
+ * plane coverage.
+ */
+export const overlayUnifontGlyphs = (baseMap, overrideMap) => ({
+  meta: baseMap.meta,
+  glyphs: { ...baseMap.glyphs, ...overrideMap.glyphs },
+})

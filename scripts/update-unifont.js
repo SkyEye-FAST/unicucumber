@@ -5,7 +5,11 @@ import { promisify } from 'node:util'
 import { gunzip } from 'node:zlib'
 
 import { writeUnifontChunks } from './chunk-unifont.js'
-import { parseUnifontVersions, unifontHexToMap } from './unifont-utils.js'
+import {
+  overlayUnifontGlyphs,
+  parseUnifontVersions,
+  unifontHexToMap,
+} from './unifont-utils.js'
 
 const unzip = promisify(gunzip)
 const scriptDirectory = dirname(fileURLToPath(import.meta.url))
@@ -34,8 +38,8 @@ const getLatestVersion = async () => {
   return latest
 }
 
-const downloadUnifontMap = async (version) => {
-  const url = `https://unifoundry.com/pub/unifont/unifont-${version}/font-builds/unifont_all-${version}.hex.gz`
+const downloadUnifontMap = async (version, build = 'unifont_all') => {
+  const url = `https://unifoundry.com/pub/unifont/unifont-${version}/font-builds/${build}-${version}.hex.gz`
   const response = await fetchWithTimeout(url)
   const compressed = Buffer.from(await response.arrayBuffer())
   const source = (await unzip(compressed)).toString('utf8')
@@ -55,7 +59,11 @@ const replaceMapAtomically = async (map) => {
 const main = async () => {
   const version = await getLatestVersion()
   console.log(`Downloading Unifont ${version}…`)
-  const map = await downloadUnifontMap(version)
+  const [allMap, standardMap] = await Promise.all([
+    downloadUnifontMap(version),
+    downloadUnifontMap(version, 'unifont'),
+  ])
+  const map = overlayUnifontGlyphs(allMap, standardMap)
   await replaceMapAtomically(map)
   await writeUnifontChunks(map, chunksDirectory)
   console.log(
