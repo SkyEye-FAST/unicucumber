@@ -410,6 +410,37 @@
             </label>
           </section>
 
+          <section
+            class="settings-section"
+            aria-labelledby="settings-updates-title"
+          >
+            <h3 id="settings-updates-title" class="settings-section-title">
+              {{ $t('settings.sections.updates') }}
+            </h3>
+            <div class="settings-field settings-field--inline">
+              <span class="settings-label">{{
+                $t('settings.updates.version')
+              }}</span>
+              <output class="settings-version"
+                >v{{ applicationVersion }}</output
+              >
+            </div>
+            <p class="settings-hint">{{ $t('settings.updates.hint') }}</p>
+            <button
+              class="ui-button ui-button--primary update-check-button"
+              type="button"
+              :disabled="isCheckingPwaUpdates"
+              @click="void checkForPwaUpdates()"
+            >
+              <i-material-symbols-system-update-alt class="settings-icon" />
+              {{
+                isCheckingPwaUpdates
+                  ? $t('settings.updates.checking')
+                  : $t('settings.updates.check')
+              }}
+            </button>
+          </section>
+
           <footer class="settings-footer">
             <button
               class="ui-button ui-button--quiet reset-button"
@@ -445,6 +476,10 @@ import CustomSelect, {
 } from '@/components/CustomSelect.vue'
 import { useSettings } from '@/composables/useSettings'
 import { useTheme } from '@/composables/useTheme'
+import {
+  checkForPwaUpdates,
+  isCheckingPwaUpdates,
+} from '@/platform/pwaUpdateCheck'
 import type { EditorSettings } from '@/types/glyph'
 import { acquireOverlayLock, releaseOverlayLock } from '@/utils/overlayStack'
 import { LOCALE_PREFERENCE_KEY, type SupportedLocale } from '@/utils/locale'
@@ -464,6 +499,8 @@ const emit = defineEmits<{
 const { defaultSettings } = useSettings()
 const { preference, setPreference } = useTheme()
 const { t: $t, locale } = useI18n()
+const applicationVersion =
+  (import.meta.env.VITE_APP_VERSION as string) || '0.0.0'
 
 const sidebarRef = ref<HTMLElement | null>(null)
 const closeButtonRef = ref<HTMLButtonElement | null>(null)
@@ -863,6 +900,19 @@ const confirmReset = (): void => {
   grid-template-columns: minmax(0, 1fr) minmax(8.75rem, 10.5rem);
   align-items: center;
   gap: var(--space-3);
+}
+
+.settings-version {
+  justify-self: end;
+  color: var(--text-secondary);
+  font-family: var(--monospace-font);
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+
+.update-check-button {
+  width: 100%;
+  margin-top: var(--space-3);
 }
 
 .settings-field :deep(.custom-select),

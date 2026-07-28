@@ -32,9 +32,13 @@ const getUnifontVersion = (): string => {
 
 const unifontVersion = getUnifontVersion()
 const unifontCaches = getUnifontRuntimeCacheNames(unifontVersion)
+const packageVersion = JSON.parse(
+  readFileSync(new URL('./package.json', import.meta.url), 'utf-8'),
+).version as string
 
 export default defineConfig(({ command }) => ({
   define: {
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(packageVersion),
     'import.meta.env.VITE_UNIFONT_VERSION': JSON.stringify(unifontVersion),
   },
   plugins: [

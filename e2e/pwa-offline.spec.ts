@@ -41,6 +41,10 @@ test('production shell reloads offline after service-worker installation', async
   await expect
     .poll(() => page.evaluate(async () => (await caches.keys()).length))
     .toBeGreaterThan(0)
+  const unifontVersion = await page.evaluate(async () => {
+    const response = await fetch('/unifont/index.json')
+    return (await response.json()).version as string
+  })
   await expect
     .poll(() =>
       page.evaluate(async () => {
@@ -51,13 +55,19 @@ test('production shell reloads offline after service-worker installation', async
     .toBe(true)
   await expect
     .poll(() =>
-      page.evaluate(async () =>
-        (await caches.keys()).some((name) =>
-          name.startsWith('unicucumber-unifont-chunks-17.0.03'),
-        ),
+      page.evaluate(
+        async (version) =>
+          (await caches.keys()).some((name) =>
+            name.startsWith(`unicucumber-unifont-chunks-${version}`),
+          ),
+        unifontVersion,
       ),
     )
     .toBe(true)
+
+  await page.getByRole('button', { name: 'Open settings' }).click()
+  await page.getByRole('button', { name: 'Check for updates' }).click()
+  await expect(page.getByText("You're using the latest version.")).toBeVisible()
 
   await context.setOffline(true)
   try {

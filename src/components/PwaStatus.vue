@@ -13,11 +13,15 @@ import { useI18n } from 'vue-i18n'
 
 import { useNotifications } from '@/composables/useNotifications'
 import { flushPendingDrafts } from '@/platform/draftFlush'
+import { registerPwaUpdateChecker } from '@/platform/pwaUpdateCheck'
 
 const { t: $t } = useI18n()
 const { notify } = useNotifications()
 const online = ref(navigator.onLine)
 let updateServiceWorker: ((reloadPage?: boolean) => Promise<void>) | null = null
+let registration: ServiceWorkerRegistration | null = null
+let updateAvailable = false
+let unregisterPwaUpdateChecker: (() => void) | null = null
 
 const updateOnlineState = (): void => {
   online.value = navigator.onLine
@@ -40,24 +44,64 @@ const applyUpdate = async (): Promise<void> => {
   }
 }
 
+const notifyUpdateAvailable = (): void => {
+  if (updateAvailable) return
+  updateAvailable = true
+  notify(
+    {
+      tone: 'info',
+      kind: 'update',
+      title: $t('pwa.update_title'),
+      message: $t('pwa.update_ready'),
+      actionLabel: $t('pwa.apply_update'),
+      action: () => void applyUpdate(),
+    },
+    0,
+  )
+}
+
+const checkForUpdates = async (): Promise<void> => {
+  if (!import.meta.env.PROD) {
+    notify({ tone: 'warning', message: $t('pwa.update_check_unavailable') })
+    return
+  }
+  if (!navigator.onLine) {
+    notify({ tone: 'warning', message: $t('pwa.update_check_offline') })
+    return
+  }
+
+  const activeRegistration =
+    registration ?? (await navigator.serviceWorker.getRegistration())
+  if (!activeRegistration) {
+    notify({ tone: 'warning', message: $t('pwa.update_check_unavailable') })
+    return
+  }
+
+  registration = activeRegistration
+  updateAvailable = Boolean(activeRegistration.waiting)
+  try {
+    await activeRegistration.update()
+  } catch (error) {
+    console.error('Unable to check for a service worker update.', error)
+    notify({ tone: 'error', message: $t('pwa.update_check_failed') })
+    return
+  }
+  if (activeRegistration.waiting) {
+    notifyUpdateAvailable()
+  } else {
+    notify({ tone: 'success', message: $t('pwa.update_not_found') })
+  }
+}
+
 onMounted(() => {
   window.addEventListener('online', updateOnlineState)
   window.addEventListener('offline', updateOnlineState)
+  unregisterPwaUpdateChecker = registerPwaUpdateChecker(checkForUpdates)
   if (import.meta.env.PROD) {
     updateServiceWorker = registerSW({
       immediate: true,
       onNeedRefresh() {
-        notify(
-          {
-            tone: 'info',
-            kind: 'update',
-            title: $t('pwa.update_title'),
-            message: $t('pwa.update_ready'),
-            actionLabel: $t('pwa.apply_update'),
-            action: () => void applyUpdate(),
-          },
-          0,
-        )
+        notifyUpdateAvailable()
       },
       onOfflineReady() {
         notify({ tone: 'success', message: $t('pwa.offline_ready') })
@@ -66,6 +110,9 @@ onMounted(() => {
         console.error('Service worker registration failed.', error)
         notify({ tone: 'error', message: $t('pwa.registration_failed') })
       },
+      onRegisteredSW(_swUrl, serviceWorkerRegistration) {
+        registration = serviceWorkerRegistration ?? null
+      },
     })
   }
 })
@@ -73,6 +120,9 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('online', updateOnlineState)
   window.removeEventListener('offline', updateOnlineState)
+  unregisterPwaUpdateChecker?.()
+  unregisterPwaUpdateChecker = null
+  registration = null
 })
 </script>
 

@@ -283,7 +283,11 @@
     "offline_ready": "UniCucumber現已支援離線使用。",
     "online_again": "已恢復連線。",
     "registration_failed": "離線模式啟用失敗。",
+    "update_check_failed": "暫時無法檢查更新，請稍後再試。",
+    "update_check_offline": "請先連線，再檢查更新。",
+    "update_check_unavailable": "請在已部署的正式版應用程式中檢查更新。",
     "update_failed": "因目前草稿無法保留，未套用更新。",
+    "update_not_found": "目前已是最新版本。",
     "update_ready": "更新前會先安全儲存目前草稿。",
     "update_title": "有可用更新"
   },
@@ -366,10 +370,17 @@
       "glyph_preview": "預覽與字形庫",
       "import_export": "匯入與匯出",
       "safety": "安全操作",
+      "updates": "更新",
       "workflow": "工作流程"
     },
     "show_border": "顯示網格邊框",
-    "title": "設定"
+    "title": "設定",
+    "updates": {
+      "check": "檢查更新",
+      "checking": "正在檢查更新…",
+      "hint": "套用更新前會安全儲存目前草稿。",
+      "version": "應用程式版本"
+    }
   },
   "storage": {
     "discard_draft": "捨棄",

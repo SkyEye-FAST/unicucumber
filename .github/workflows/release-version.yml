@@ -1,0 +1,22 @@
+name: Release version
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  verify-release-version:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Verify release version
+        run: pnpm version:check

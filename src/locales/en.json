@@ -283,7 +283,11 @@
     "offline_ready": "UniCucumber is ready to use offline.",
     "online_again": "Back online.",
     "registration_failed": "Offline support could not be enabled.",
+    "update_check_failed": "Unable to check for updates. Try again shortly.",
+    "update_check_offline": "Connect to the internet before checking for updates.",
+    "update_check_unavailable": "Update checks are available in the installed production app.",
     "update_failed": "The update was not applied because the draft could not be preserved.",
+    "update_not_found": "You're using the latest version.",
     "update_ready": "Your current draft will be saved safely before updating.",
     "update_title": "Update available"
   },
@@ -366,10 +370,17 @@
       "glyph_preview": "Preview & library",
       "import_export": "Import & export",
       "safety": "Safety",
+      "updates": "Updates",
       "workflow": "Workflow"
     },
     "show_border": "Show grid border",
-    "title": "Settings"
+    "title": "Settings",
+    "updates": {
+      "check": "Check for updates",
+      "checking": "Checking for updates…",
+      "hint": "Updates save your current draft before they are applied.",
+      "version": "App version"
+    }
   },
   "storage": {
     "discard_draft": "Discard",

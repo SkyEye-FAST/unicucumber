@@ -217,6 +217,19 @@ test('close button returns focus to the settings trigger', async ({ page }) => {
   await expect(trigger).toBeFocused()
 })
 
+test('settings shows the application version and update-check control', async ({
+  page,
+}) => {
+  await loadEditor(page)
+  const { drawer } = await openSettings(page)
+
+  await expect(drawer.getByText('Updates', { exact: true })).toBeVisible()
+  await expect(drawer.locator('.settings-version')).toHaveText('v1.3.0')
+  await expect(
+    drawer.getByRole('button', { name: 'Check for updates' }),
+  ).toBeVisible()
+})
+
 test('settings drawer uses distinct enter and leave motion', async ({
   page,
 }) => {
