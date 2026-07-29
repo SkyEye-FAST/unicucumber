@@ -1,6 +1,6 @@
 import { nextTick } from 'vue'
 
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 
 import en from '@/locales/en.json'
@@ -36,6 +36,28 @@ const glyphs: Glyph[] = [
   { codePoint: '0041', hexValue: 'AA'.repeat(16) },
 ]
 
+const mockViewport = (matches: boolean): void => {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn(
+      () =>
+        ({
+          matches,
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+        }) as unknown as MediaQueryList,
+    ),
+  )
+}
+
+beforeEach(() => {
+  mockViewport(false)
+})
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
+
 const mountManager = (overrides: Record<string, unknown> = {}) => {
   repository.listGlyphs.mockResolvedValue(glyphs)
   return mount(GlyphManager, {
@@ -62,7 +84,20 @@ const mountManager = (overrides: Record<string, unknown> = {}) => {
 }
 
 describe('GlyphManager full-screen state', () => {
-  it('keeps the compact add/import tools collapsed until requested', async () => {
+  it('opens the compact add/import tools by default on desktop', async () => {
+    const wrapper = mountManager()
+    await flushPromises()
+    expect(wrapper.get('#compact-glyph-tools').isVisible()).toBe(true)
+    const toggle = wrapper.get<HTMLButtonElement>('.compact-tools-toggle')
+    expect(toggle.attributes('aria-expanded')).toBe('true')
+    await toggle.trigger('click')
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+    expect(wrapper.get('#compact-glyph-tools').isVisible()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('keeps the compact add/import tools collapsed on mobile until requested', async () => {
+    mockViewport(true)
     const wrapper = mountManager()
     await flushPromises()
     expect(wrapper.get('#compact-glyph-tools').isVisible()).toBe(false)
@@ -71,6 +106,22 @@ describe('GlyphManager full-screen state', () => {
     await toggle.trigger('click')
     expect(toggle.attributes('aria-expanded')).toBe('true')
     expect(wrapper.get('#compact-glyph-tools').isVisible()).toBe(true)
+    wrapper.unmount()
+  })
+
+  it('keeps the full-screen tools action explicit and toggleable', async () => {
+    const wrapper = mountManager()
+    await flushPromises()
+    await wrapper.get('.glyph-manager-expand').trigger('click')
+    await flushPromises()
+
+    const toolsToggle = wrapper.get<HTMLButtonElement>('.library-tools-toggle')
+    expect(toolsToggle.text()).toContain('Tools')
+    expect(toolsToggle.attributes('aria-expanded')).toBe('false')
+    expect(wrapper.get('#glyph-library-tools').isVisible()).toBe(false)
+    await toolsToggle.trigger('click')
+    expect(toolsToggle.attributes('aria-expanded')).toBe('true')
+    expect(wrapper.get('#glyph-library-tools').isVisible()).toBe(true)
     wrapper.unmount()
   })
 
@@ -199,7 +250,7 @@ describe('GlyphManager full-screen state', () => {
     wrapper.unmount()
   })
 
-  it('handles Escape in selection, full-screen, then sidebar order', async () => {
+  it('handles Escape in selection, full-screen, then desktop tools order', async () => {
     const wrapper = mountManager()
     await flushPromises()
     await wrapper
@@ -217,6 +268,7 @@ describe('GlyphManager full-screen state', () => {
     expect(wrapper.find('.glyph-manager').classes()).not.toContain(
       'is-expanded',
     )
+    expect(wrapper.vm.handleEscape()).toBe(true)
     expect(wrapper.vm.handleEscape()).toBe(false)
     wrapper.unmount()
   })

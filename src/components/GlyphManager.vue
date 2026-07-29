@@ -204,6 +204,7 @@ import {
   computed,
   nextTick,
   onBeforeUnmount,
+  onMounted,
   ref,
   shallowRef,
   watch,
@@ -286,6 +287,7 @@ const expandButton = ref<HTMLButtonElement | null>(null)
 const inspector = ref<HTMLElement | null>(null)
 let nameLookupRequest = 0
 let unifontPrefetchTimer = 0
+let narrowViewportQuery: MediaQueryList | null = null
 
 const { settings } = useSettings()
 
@@ -442,6 +444,10 @@ const expandLibrary = (): void => {
 
 const collapseLibrary = (): void => {
   isExpanded.value = false
+}
+
+const handleNarrowViewportChange = (event: MediaQueryListEvent): void => {
+  compactToolsOpen.value = !event.matches
 }
 
 const handleEscape = (): boolean => {
@@ -1521,8 +1527,15 @@ const handleBatchDelete = (codePoints: string[]): void => {
   }
 }
 
+onMounted(() => {
+  narrowViewportQuery = window.matchMedia('(max-width: 719px)')
+  compactToolsOpen.value = !narrowViewportQuery.matches
+  narrowViewportQuery.addEventListener('change', handleNarrowViewportChange)
+})
+
 onBeforeUnmount(() => {
   window.clearTimeout(unifontPrefetchTimer)
+  narrowViewportQuery?.removeEventListener('change', handleNarrowViewportChange)
 })
 
 defineExpose({ handleEscape })
@@ -1555,6 +1568,40 @@ defineExpose({ handleEscape })
   isolation: isolate;
   overflow: hidden;
   background: var(--background-color);
+  transform-origin: left top;
+  animation: glyph-library-workspace-enter 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.glyph-manager.is-expanded > :deep(.library-toolbar) {
+  animation: glyph-library-toolbar-enter 240ms 30ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.glyph-manager.is-expanded > :deep(.glyph-library-shell),
+.glyph-manager.is-expanded > .glyph-library-status {
+  animation: glyph-library-content-enter 300ms 60ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes glyph-library-workspace-enter {
+  from {
+    opacity: 0.72;
+    transform: translateX(-0.85rem) scale(0.985);
+  }
+}
+
+@keyframes glyph-library-toolbar-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+}
+
+@keyframes glyph-library-content-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
 }
 
 .glyph-library-status {
@@ -1645,9 +1692,9 @@ defineExpose({ handleEscape })
   white-space: nowrap;
 }
 
-/* The sidebar can be narrowed independently of the viewport.  At its compact
- * width, keep the primary controls on one stable row and use the tools icon
- * instead of squeezing the title or wrapping it. */
+/* The sidebar can be narrowed independently of the viewport. At its compact
+ * width, keep the primary controls on one stable row by reducing gaps and
+ * truncating the title before hiding the tools action's visible guidance. */
 @container (max-width: 28rem) {
   .glyph-manager-heading {
     gap: var(--space-1);
@@ -1660,21 +1707,6 @@ defineExpose({ handleEscape })
 
   .title {
     font-size: 1.25rem;
-  }
-
-  .compact-tools-toggle {
-    flex: none;
-    width: var(--control-height-compact);
-    min-width: var(--control-height-compact);
-    padding-inline: 0;
-  }
-
-  .compact-tools-toggle span {
-    display: none;
-  }
-
-  .compact-tools-toggle__indicator {
-    display: none;
   }
 }
 
@@ -1783,20 +1815,6 @@ defineExpose({ handleEscape })
     padding-inline-end: 3.25rem;
   }
 
-  .compact-tools-toggle span {
-    display: none;
-  }
-
-  .compact-tools-toggle__indicator {
-    display: none;
-  }
-
-  .compact-tools-toggle {
-    width: var(--control-height-compact);
-    min-width: var(--control-height-compact);
-    padding-inline: 0;
-  }
-
   .is-expanded .glyph-manager-inspector {
     position: fixed;
     width: 100%;
@@ -1817,6 +1835,10 @@ defineExpose({ handleEscape })
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .glyph-manager.is-expanded,
+  .glyph-manager.is-expanded > :deep(.library-toolbar),
+  .glyph-manager.is-expanded > :deep(.glyph-library-shell),
+  .glyph-manager.is-expanded > .glyph-library-status,
   .is-expanded .glyph-manager-inspector {
     animation: none;
   }

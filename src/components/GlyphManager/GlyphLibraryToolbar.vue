@@ -94,6 +94,7 @@
         <button
           class="ui-button library-tools-toggle"
           type="button"
+          :aria-label="$t('glyph_manager.library.tools')"
           :aria-expanded="toolsOpen"
           aria-controls="glyph-library-tools"
           @click="toolsOpen = !toolsOpen"
@@ -102,9 +103,14 @@
           <span>{{ $t('glyph_manager.library.tools') }}</span>
           <i-material-symbols-keyboard-arrow-up
             v-if="toolsOpen"
+            class="library-tools-toggle__indicator"
             aria-hidden="true"
           />
-          <i-material-symbols-keyboard-arrow-down v-else aria-hidden="true" />
+          <i-material-symbols-keyboard-arrow-down
+            v-else
+            class="library-tools-toggle__indicator"
+            aria-hidden="true"
+          />
         </button>
         <button
           class="ui-icon-button library-collapse"
@@ -927,25 +933,19 @@ const exportSheet = (): void => {
     gap: 0.2rem;
   }
 
-  .library-filter-toggle,
-  .library-tools-toggle {
+  .library-filter-toggle {
     width: 2.25rem;
     min-width: 2.25rem;
     justify-content: center;
     padding: 0;
   }
 
-  .library-filter-toggle span,
-  .library-tools-toggle span {
+  .library-filter-toggle span {
     position: absolute;
     width: 1px;
     height: 1px;
     overflow: hidden;
     clip: rect(0, 0, 0, 0);
-  }
-
-  .library-tools-toggle > i:last-child {
-    display: none;
   }
 
   .library-selection-toggle {

@@ -182,14 +182,31 @@ test('resizes the glyph manager freely and keeps its compact heading on one row'
       }
     })
   expect(compactHeader.titleWhiteSpace).toBe('nowrap')
-  expect(compactHeader.toolsLabelDisplay).toBe('none')
+  expect(compactHeader.toolsLabelDisplay).not.toBe('none')
   expect(compactHeader.height).toBeLessThan(50)
   expect(
     Math.abs(compactHeader.titleCenter - compactHeader.actionsCenter),
   ).toBeLessThanOrEqual(1)
 })
 
-test('uses an icon-sized tools toggle in the mobile glyph manager', async ({
+test('keeps the tools action expanded on desktop', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'interaction check runs once')
+  await seedGlyphs(page)
+  await page.setViewportSize({ width: 1024, height: 768 })
+  await openLibrary(page)
+
+  const toolsToggle = page.locator('.compact-tools-toggle')
+  await expect(toolsToggle.locator('span')).toBeVisible()
+  await expect(
+    toolsToggle.locator('.compact-tools-toggle__indicator'),
+  ).toBeVisible()
+  await expect(toolsToggle).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.locator('#compact-glyph-tools')).toBeVisible()
+})
+
+test('keeps the tools action explicit in the mobile glyph manager', async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== 'chromium', 'interaction check runs once')
@@ -199,15 +216,61 @@ test('uses an icon-sized tools toggle in the mobile glyph manager', async ({
 
   const toolsToggle = page.locator('.compact-tools-toggle')
   const expandButton = page.locator('.glyph-manager-expand')
-  await expect(toolsToggle.locator('span')).toBeHidden()
+  await expect(toolsToggle).toHaveAccessibleName('Tools')
+  await expect(toolsToggle.locator('span')).toBeVisible()
   await expect(
     toolsToggle.locator('.compact-tools-toggle__indicator'),
-  ).toBeHidden()
-  await expect(toolsToggle).toHaveCSS('padding-left', '0px')
-  await expect(toolsToggle).toHaveCSS('padding-right', '0px')
-  await expect(toolsToggle).toHaveCSS(
-    'width',
-    await expandButton.evaluate((button) => getComputedStyle(button).width),
+  ).toBeVisible()
+  const toolsToggleWidth = await toolsToggle.evaluate(
+    (button) => button.getBoundingClientRect().width,
+  )
+  const expandButtonWidth = await expandButton.evaluate(
+    (button) => button.getBoundingClientRect().width,
+  )
+  expect(toolsToggleWidth).toBeGreaterThan(expandButtonWidth)
+
+  await expect(toolsToggle).toHaveAttribute('aria-expanded', 'false')
+  await toolsToggle.click()
+  await expect(toolsToggle).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.locator('#compact-glyph-tools')).toBeVisible()
+})
+
+test('keeps the full-screen tools action explicit on mobile', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'interaction check runs once')
+  await seedGlyphs(page)
+  await page.setViewportSize({ width: 600, height: 800 })
+  await openLibrary(page)
+  await expandLibrary(page)
+
+  const toolsToggle = page.locator('.library-tools-toggle')
+  await expect(toolsToggle).toHaveAccessibleName('Tools')
+  await expect(toolsToggle.locator('span')).toBeVisible()
+  await expect(
+    toolsToggle.locator('.library-tools-toggle__indicator'),
+  ).toBeVisible()
+  await expect(toolsToggle).toHaveAttribute('aria-expanded', 'false')
+  await toolsToggle.click()
+  await expect(toolsToggle).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.locator('#glyph-library-tools')).toBeVisible()
+})
+
+test('animates the transition into the full-screen glyph library', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'interaction check runs once')
+  await seedGlyphs(page)
+  await page.setViewportSize({ width: 1024, height: 768 })
+  await openLibrary(page)
+  await page.getByRole('button', { name: 'Expand glyph manager' }).click()
+
+  await expect(
+    page.getByRole('region', { name: 'Full-screen glyph library' }),
+  ).toBeVisible()
+  await expect(page.locator('.glyph-manager')).toHaveCSS(
+    'animation-name',
+    /^glyph-library-workspace-enter-/,
   )
 })
 
