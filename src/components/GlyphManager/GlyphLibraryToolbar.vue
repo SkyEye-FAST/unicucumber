@@ -715,6 +715,20 @@ const exportSheet = (): void => {
   box-shadow: inset 0 -2px var(--primary-color);
 }
 
+[data-theme='dark'] .library-action.is-active {
+  border-color: color-mix(
+    in srgb,
+    var(--primary-color) 70%,
+    var(--border-color)
+  );
+  background: color-mix(
+    in srgb,
+    var(--primary-color) 18%,
+    var(--background-light)
+  );
+  color: var(--text-primary);
+}
+
 .library-export-menu {
   position: relative;
 }

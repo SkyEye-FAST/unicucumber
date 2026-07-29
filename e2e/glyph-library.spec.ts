@@ -274,6 +274,24 @@ test('animates the transition into the full-screen glyph library', async ({
   )
 })
 
+test('keeps the active selection action legible in dark mode', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'interaction check runs once')
+  await seedGlyphs(page)
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
+  await page.evaluate(() => {
+    document.documentElement.dataset.theme = 'dark'
+  })
+  await page.getByRole('button', { name: 'Open glyph manager' }).click()
+  await expandLibrary(page)
+
+  const selectionToggle = page.locator('.library-selection-toggle')
+  await selectionToggle.click()
+  await expect(selectionToggle).toHaveClass(/is-active/)
+  await expect(selectionToggle).toHaveCSS('color', 'rgb(224, 224, 224)')
+})
+
 test.describe('full-screen glyph library', () => {
   test.beforeEach(async ({ page }) => {
     await seedGlyphs(page)
