@@ -65,8 +65,8 @@
         <i-material-symbols-keyboard-arrow-down class="icon settings-chevron" />
       </summary>
       <div class="export-options">
-        <label>
-          {{ $t('export.scale') }}
+        <label class="export-option">
+          <span class="export-option__label">{{ $t('export.scale') }}</span>
           <CustomSelect
             v-model="scale"
             :ariaLabel="$t('export.scale')"
@@ -75,7 +75,7 @@
         </label>
         <label class="checkbox-option">
           <input v-model="transparent" type="checkbox" />
-          {{ $t('export.transparent') }}
+          <span>{{ $t('export.transparent') }}</span>
         </label>
       </div>
     </details>
@@ -351,7 +351,7 @@ const shareImage = async (): Promise<void> => {
 
 .export-options {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
   align-items: center;
   gap: var(--space-2);
   margin-top: var(--space-2);
@@ -361,21 +361,33 @@ const shareImage = async (): Promise<void> => {
 }
 
 .export-options label {
+  min-width: 0;
   min-height: var(--control-height-compact);
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.4rem;
 }
 
+.export-option__label {
+  min-width: max-content;
+}
+
 .export-options :deep(.custom-select) {
-  width: 4.5rem;
+  flex: 0 0 5.25rem;
+  width: 5.25rem;
 }
 
 .export-options :deep(.custom-select__trigger) {
   min-height: var(--control-height-compact);
 }
 
+.checkbox-option {
+  justify-content: flex-start !important;
+}
+
 .checkbox-option input {
+  flex: none;
   width: 1.2rem;
   height: 1.2rem;
 }
@@ -395,12 +407,6 @@ const shareImage = async (): Promise<void> => {
 
   .utility-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 359px) {
-  .export-options {
-    grid-template-columns: minmax(0, 1fr);
   }
 }
 

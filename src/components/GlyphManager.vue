@@ -50,11 +50,14 @@
 
     <SearchToolbar
       v-if="!isExpanded"
+      v-model:export-scope="fontExportScope"
+      v-model:font-metadata="activeFontMetadata"
       v-model:search-query="searchQuery"
-      :glyphs="props.glyphs"
+      :font-export-busy="fontExportBusy"
       @export="exportToHex"
       @font="exportFont"
       @backup="exportBackup"
+      @reset-font-metadata="resetFontMetadata"
       @sheet="exportBitmapSheet"
     />
 
@@ -62,11 +65,13 @@
       v-else
       v-model:search-query="searchQuery"
       :density="settings.glyphLibraryDensity"
+      v-model:export-scope="fontExportScope"
       :filtered-count="filteredGlyphs.length"
+      :font-export-busy="fontExportBusy"
+      v-model:font-metadata="activeFontMetadata"
       v-model:source-filter="sourceFilter"
       v-model:unicode-block="unicodeBlock"
       v-model:unicode-plane="unicodePlane"
-      :managed-count="props.glyphs.length"
       :modified-count="modifiedCodePoints.length"
       :selected-addable-count="selectedAddableCodePoints.length"
       :selected-count="selectedCodePoints.length"
@@ -80,6 +85,7 @@
       @delete-selected="handleBatchDelete(selectedManagedCodePoints)"
       @export="exportToHex"
       @font="exportFont"
+      @reset-font-metadata="resetFontMetadata"
       @select-filtered="selectFilteredGlyphs"
       @sheet="exportBitmapSheet"
       @toggle-selection-mode="toggleSelectionMode"
@@ -231,10 +237,14 @@ import type {
 import { canvasToBlob } from '@/utils/exportUtils'
 import {
   createBdfFont,
+  createFontExportMetadata,
+  createOfficialUnifontMetadata,
   createPixelFont,
   createPsfFont,
   createWoff2Font,
+  type FontExportMetadata,
   type FontExportFormat,
+  type FontExportScope,
 } from '@/utils/fontExport'
 import {
   formatGlyphCodePoint,
@@ -282,12 +292,31 @@ const matrixScrollTop = ref(0)
 const unifontGlyphs = shallowRef<Glyph[]>([])
 const catalogLoading = ref(false)
 const catalogError = shallowRef<Error | null>(null)
+const fontExportBusy = ref(false)
+const fontExportScope = ref<FontExportScope>('full')
+const unifontVersion =
+  (import.meta.env.VITE_UNIFONT_VERSION as string | undefined) || '17.0.05'
+const fullFontMetadata = ref<FontExportMetadata>(
+  createOfficialUnifontMetadata(unifontVersion),
+)
+const modifiedFontMetadata = ref<FontExportMetadata>(createFontExportMetadata())
+const activeFontMetadata = computed<FontExportMetadata>({
+  get: () =>
+    fontExportScope.value === 'full'
+      ? fullFontMetadata.value
+      : modifiedFontMetadata.value,
+  set: (value) => {
+    if (fontExportScope.value === 'full') fullFontMetadata.value = value
+    else modifiedFontMetadata.value = value
+  },
+})
 const libraryAnnouncement = ref('')
 const expandButton = ref<HTMLButtonElement | null>(null)
 const inspector = ref<HTMLElement | null>(null)
 let nameLookupRequest = 0
 let unifontPrefetchTimer = 0
 let narrowViewportQuery: MediaQueryList | null = null
+let catalogLoadPromise: Promise<void> | null = null
 
 const { settings } = useSettings()
 
@@ -362,18 +391,33 @@ const selectedAddableCodePoints = computed(() =>
   ),
 )
 
-const loadUnifontCatalog = async (): Promise<void> => {
-  if (unifontGlyphs.value.length || catalogLoading.value) return
+const loadUnifontCatalog = (): Promise<void> => {
+  if (unifontGlyphs.value.length) return Promise.resolve()
+  if (catalogLoadPromise) return catalogLoadPromise
   catalogLoading.value = true
   catalogError.value = null
-  try {
-    unifontGlyphs.value = await unifontLoader.loadAllGlyphs()
-  } catch (error) {
-    catalogError.value =
-      error instanceof Error ? error : new Error('Unable to load Unifont.')
-  } finally {
-    catalogLoading.value = false
-  }
+  const request = unifontLoader
+    .loadAllGlyphs()
+    .then((glyphs) => {
+      unifontGlyphs.value = glyphs
+    })
+    .catch((error) => {
+      catalogError.value =
+        error instanceof Error ? error : new Error('Unable to load Unifont.')
+    })
+    .finally(() => {
+      catalogLoading.value = false
+      if (catalogLoadPromise === request) catalogLoadPromise = null
+    })
+  catalogLoadPromise = request
+  return request
+}
+
+const resetFontMetadata = (): void => {
+  activeFontMetadata.value =
+    fontExportScope.value === 'full'
+      ? createOfficialUnifontMetadata(unifontVersion)
+      : createFontExportMetadata()
 }
 
 const retryLibraryLoad = (): void => {
@@ -855,17 +899,57 @@ const exportBackup = (): void => {
   }
 }
 
+const resolveFontExportGlyphs = async (): Promise<Glyph[]> => {
+  await loadUnifontCatalog()
+  if (catalogError.value || unifontGlyphs.value.length === 0) {
+    throw (
+      catalogError.value ?? new Error('The bundled Unifont catalog is empty.')
+    )
+  }
+  if (fontExportScope.value === 'modified') {
+    return props.glyphs.filter((glyph) =>
+      modifiedSet.value.has(formatGlyphCodePoint(glyph.codePoint)),
+    )
+  }
+  return catalogGlyphs.value.filter(
+    (glyph) => Number.parseInt(glyph.codePoint, 16) <= 0xffff,
+  )
+}
+
+const fontExportFilename = (
+  format: FontExportFormat | 'woff2' | 'bdf' | 'psf',
+  metadata: FontExportMetadata,
+): string => {
+  const baseName =
+    metadata.postScriptName.replaceAll(/[^A-Za-z0-9_-]/g, '') ||
+    'UniCucumberPixel'
+  if (fontExportScope.value === 'full') {
+    const version =
+      metadata.version
+        .replace(/^version\s*/i, '')
+        .replaceAll(/[^A-Za-z0-9._-]/g, '-') || unifontVersion
+    return `${baseName}-${version}.${format}`
+  }
+  return `${baseName}-modified-${Date.now()}.${format}`
+}
+
 const exportFont = async (
   format: FontExportFormat | 'woff2' | 'bdf' | 'psf',
 ): Promise<void> => {
+  if (fontExportBusy.value) return
+  fontExportBusy.value = true
   try {
+    const glyphs = await resolveFontExportGlyphs()
+    const metadata = { ...activeFontMetadata.value }
+    await nextTick()
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 0))
     const content = await (format === 'woff2'
-      ? createWoff2Font(props.glyphs)
+      ? createWoff2Font(glyphs, metadata)
       : format === 'bdf'
-        ? createBdfFont(props.glyphs)
+        ? createBdfFont(glyphs, metadata)
         : format === 'psf'
-          ? createPsfFont(props.glyphs)
-          : createPixelFont(props.glyphs, format))
+          ? createPsfFont(glyphs)
+          : createPixelFont(glyphs, format, metadata))
     const mimeType =
       format === 'woff2'
         ? 'font/woff2'
@@ -879,12 +963,10 @@ const exportFont = async (
                 ? 'application/x-font-bdf'
                 : 'application/x-font-psf'
     const blobContent =
-      typeof content === 'string'
-        ? content
-        : new Uint8Array(Array.from(content)).buffer
+      typeof content === 'string' ? content : content.slice().buffer
     downloadBlob(
       new Blob([blobContent], { type: mimeType }),
-      `unicucumber-pixel-${Date.now()}.${format}`,
+      fontExportFilename(format, metadata),
     )
     notify({
       tone: 'success',
@@ -895,6 +977,8 @@ const exportFont = async (
   } catch (error) {
     console.error(`Unable to export ${format} font.`, error)
     notify({ tone: 'error', message: $t('glyph_manager.export_failed') })
+  } finally {
+    fontExportBusy.value = false
   }
 }
 

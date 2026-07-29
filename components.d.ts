@@ -15,6 +15,7 @@ declare module 'vue' {
     DialogBox: typeof import('./src/components/DialogBox.vue')['default']
     DownloadButtons: typeof import('./src/components/DownloadButtons.vue')['default']
     EditorHeader: typeof import('./src/components/EditorHeader.vue')['default']
+    FontExportOptions: typeof import('./src/components/GlyphManager/FontExportOptions.vue')['default']
     GlyphAdder: typeof import('./src/components/GlyphManager/GlyphAdder.vue')['default']
     GlyphEditor: typeof import('./src/components/GlyphEditor.vue')['default']
     GlyphGrid: typeof import('./src/components/GlyphGrid.vue')['default']

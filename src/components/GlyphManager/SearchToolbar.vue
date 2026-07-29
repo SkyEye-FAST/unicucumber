@@ -12,76 +12,31 @@
       />
     </div>
     <details class="export-menu">
-      <summary class="btn-export" :aria-disabled="!glyphs.length">
+      <summary class="btn-export">
         <i-material-symbols-file-download class="icon" />
         {{ $t('glyph_manager.export') }}
       </summary>
       <div class="export-options">
-        <p class="export-options__group">
-          {{ $t('glyph_manager.export_font_files') }}
-        </p>
-        <button
-          type="button"
-          :disabled="!glyphs.length"
-          @click="$emit('font', 'otf')"
-        >
-          {{ $t('glyph_manager.export_otf') }}
-        </button>
-        <button
-          type="button"
-          :disabled="!glyphs.length"
-          @click="$emit('font', 'ttf')"
-        >
-          {{ $t('glyph_manager.export_ttf') }}
-        </button>
-        <button
-          type="button"
-          :disabled="!glyphs.length"
-          @click="$emit('font', 'woff')"
-        >
-          {{ $t('glyph_manager.export_woff') }}
-        </button>
-        <button
-          type="button"
-          :disabled="!glyphs.length"
-          @click="$emit('font', 'woff2')"
-        >
-          {{ $t('glyph_manager.export_woff2') }}
-        </button>
-        <button
-          type="button"
-          :disabled="!glyphs.length"
-          @click="$emit('font', 'bdf')"
-        >
-          {{ $t('glyph_manager.export_bdf') }}
-        </button>
-        <button
-          type="button"
-          :disabled="!glyphs.length"
-          @click="$emit('font', 'psf')"
-        >
-          {{ $t('glyph_manager.export_psf') }}
-        </button>
+        <FontExportOptions
+          :busy="fontExportBusy"
+          :metadata="fontMetadata"
+          :scope="exportScope"
+          @font="$emit('font', $event)"
+          @reset-metadata="$emit('reset-font-metadata')"
+          @update:metadata="$emit('update:fontMetadata', $event)"
+          @update:scope="$emit('update:exportScope', $event)"
+        />
         <p class="export-options__group export-options__group--data">
           {{ $t('glyph_manager.export_data_files') }}
         </p>
-        <button
-          type="button"
-          :disabled="!glyphs.length"
-          @click="$emit('export')"
-        >
+        <button type="button" @click="$emit('export')">
           {{ $t('glyph_manager.export_hex') }}
         </button>
-        <button
-          type="button"
-          :disabled="!glyphs.length"
-          @click="$emit('backup')"
-        >
+        <button type="button" @click="$emit('backup')">
           {{ $t('glyph_manager.export_backup') }}
         </button>
         <button
           type="button"
-          :disabled="!glyphs.length"
           @click="$emit('sheet', { columns: sheetColumns, scale: sheetScale })"
         >
           {{ $t('glyph_manager.export_sheet') }}
@@ -115,26 +70,28 @@ import { useI18n } from 'vue-i18n'
 import CustomSelect, {
   type CustomSelectOption,
 } from '@/components/CustomSelect.vue'
+import type { FontExportMetadata, FontExportScope } from '@/utils/fontExport'
+
+import FontExportOptions from './FontExportOptions.vue'
 
 const { t: $t } = useI18n()
 
-defineProps({
-  glyphs: {
-    type: Array,
-    required: true,
-  },
-  searchQuery: {
-    type: String,
-    default: '',
-  },
-})
+defineProps<{
+  exportScope: FontExportScope
+  fontExportBusy: boolean
+  fontMetadata: FontExportMetadata
+  searchQuery?: string
+}>()
 
 defineEmits<{
   'update:searchQuery': [value: string]
   export: []
   backup: []
   font: [format: 'otf' | 'ttf' | 'woff' | 'woff2' | 'bdf' | 'psf']
+  'reset-font-metadata': []
   sheet: [options: { columns: number; scale: number }]
+  'update:exportScope': [value: FontExportScope]
+  'update:fontMetadata': [value: FontExportMetadata]
 }>()
 
 const sheetColumns = ref(16)
@@ -217,10 +174,12 @@ const sheetScaleOptions: CustomSelectOption[] = [
 .export-options {
   position: absolute;
   z-index: 5;
-  right: 0;
+  inset-inline-start: auto;
+  inset-inline-end: 0;
   top: calc(100% + 0.25rem);
-  width: min(18.5rem, calc(100vw - 1.5rem));
-  max-height: calc(100dvh - 6rem);
+  box-sizing: border-box;
+  width: min(34rem, calc(100vw - 1.5rem), calc(100cqw - 2rem));
+  max-height: calc(100dvh - 8rem);
   display: grid;
   padding: 0.35rem;
   overflow-y: auto;
@@ -297,7 +256,7 @@ const sheetScaleOptions: CustomSelectOption[] = [
   background: var(--background-hover);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 719px) {
   .toolbar {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: var(--space-2);
@@ -306,11 +265,6 @@ const sheetScaleOptions: CustomSelectOption[] = [
   .btn-export {
     padding-inline: 0.65rem;
     font-size: 0.82rem;
-  }
-
-  .export-options {
-    inset-inline-start: auto;
-    inset-inline-end: 0;
   }
 }
 

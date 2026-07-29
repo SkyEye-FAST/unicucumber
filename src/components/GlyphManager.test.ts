@@ -8,7 +8,9 @@ import type { Glyph } from '@/types/glyph'
 import { flushPromises, mount } from '@vue/test-utils'
 
 import GlyphManager from './GlyphManager.vue'
+import FontExportOptions from './GlyphManager/FontExportOptions.vue'
 import GlyphLibraryToolbar from './GlyphManager/GlyphLibraryToolbar.vue'
+import SearchToolbar from './GlyphManager/SearchToolbar.vue'
 
 const repository = vi.hoisted(() => ({
   listGlyphs: vi.fn(),
@@ -22,6 +24,11 @@ const unifont = vi.hoisted(() => ({
   getGlyph: vi.fn(),
   prefetchCodePoint: vi.fn().mockResolvedValue(undefined),
 }))
+const fontExports = vi.hoisted(() => ({
+  createPixelFont: vi.fn<
+    (glyphs: Glyph[], format: string, metadata: unknown) => Uint8Array
+  >(() => new Uint8Array([0, 1, 2, 3])),
+}))
 
 vi.mock('@/storage/glyphRepository', () => ({
   getGlyphRepository: () => repository,
@@ -30,6 +37,14 @@ vi.mock('@/storage/glyphRepository', () => ({
 vi.mock('@/services/unifontLoader', () => ({
   unifontLoader: unifont,
 }))
+
+vi.mock('@/utils/fontExport', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/utils/fontExport')>()
+  return {
+    ...actual,
+    createPixelFont: fontExports.createPixelFont,
+  }
+})
 
 const glyphs: Glyph[] = [
   { codePoint: '0042', hexValue: '55'.repeat(32) },
@@ -52,6 +67,15 @@ const mockViewport = (matches: boolean): void => {
 
 beforeEach(() => {
   mockViewport(false)
+  fontExports.createPixelFont.mockClear()
+  Object.defineProperty(URL, 'createObjectURL', {
+    configurable: true,
+    value: vi.fn(() => 'blob:font-export'),
+  })
+  Object.defineProperty(URL, 'revokeObjectURL', {
+    configurable: true,
+    value: vi.fn(),
+  })
 })
 
 afterEach(() => {
@@ -157,6 +181,7 @@ describe('GlyphManager full-screen state', () => {
 
     const expand = wrapper.get<HTMLButtonElement>('.glyph-manager-expand')
     await expand.trigger('click')
+    await flushPromises()
     expect(wrapper.find('.glyph-manager').classes()).toContain('is-expanded')
     expect(wrapper.findAll('.glyph-library-cell')).toHaveLength(1)
     expect(wrapper.get('.glyph-library-cell').attributes('aria-selected')).toBe(
@@ -246,6 +271,78 @@ describe('GlyphManager full-screen state', () => {
       { codePoint: '0041', hexValue: 'FF'.repeat(16) },
       glyphs[1]!,
       { codePoint: '0043', hexValue: 'CC'.repeat(16) },
+    ])
+    wrapper.unmount()
+  })
+
+  it('keeps font export available without saved glyphs and uses the complete official profile', async () => {
+    unifont.loadAllGlyphs.mockResolvedValueOnce([
+      { codePoint: '0041', hexValue: 'AA'.repeat(16) },
+      { codePoint: '0042', hexValue: '55'.repeat(32) },
+      { codePoint: '1F600', hexValue: '00'.repeat(32) },
+    ])
+    const wrapper = mountManager({ glyphs: [] })
+    const toolbar = wrapper.findComponent(SearchToolbar)
+    const options = wrapper.findComponent(FontExportOptions)
+
+    expect(
+      wrapper.get('.btn-export').attributes('aria-disabled'),
+    ).toBeUndefined()
+    expect(options.props('scope')).toBe('full')
+    expect(options.props('metadata')).toMatchObject({
+      familyName: 'Unifont',
+      fullName: 'Unifont',
+      vendorId: 'GNU ',
+    })
+
+    await toolbar.vm.$emit('font', 'ttf')
+    await vi.waitFor(() =>
+      expect(fontExports.createPixelFont).toHaveBeenCalledTimes(1),
+    )
+    const [exportedGlyphs, format, metadata] =
+      fontExports.createPixelFont.mock.calls[0]!
+    expect(exportedGlyphs.map((glyph) => glyph.codePoint)).toEqual([
+      '0041',
+      '0042',
+    ])
+    expect(format).toBe('ttf')
+    expect(metadata).toMatchObject({
+      familyName: 'Unifont',
+      version: 'Version 17.0.05',
+    })
+    wrapper.unmount()
+  })
+
+  it('exports only glyphs that differ from bundled Unifont when requested', async () => {
+    unifont.loadAllGlyphs.mockResolvedValueOnce([
+      { codePoint: '0041', hexValue: 'AA'.repeat(16) },
+      { codePoint: '0042', hexValue: '55'.repeat(32) },
+    ])
+    const wrapper = mountManager({
+      glyphs: [
+        { codePoint: '0041', hexValue: 'FF'.repeat(16) },
+        { codePoint: '0042', hexValue: '55'.repeat(32) },
+        { codePoint: '0043', hexValue: 'CC'.repeat(16) },
+      ],
+    })
+    const toolbar = wrapper.findComponent(SearchToolbar)
+    const options = wrapper.findComponent(FontExportOptions)
+    await options.vm.$emit('update:scope', 'modified')
+    await nextTick()
+
+    expect(options.props('scope')).toBe('modified')
+    expect(options.props('metadata')).toMatchObject({
+      familyName: 'UniCucumber Pixel',
+      vendorId: 'UCCU',
+    })
+    await toolbar.vm.$emit('font', 'ttf')
+    await vi.waitFor(() =>
+      expect(fontExports.createPixelFont).toHaveBeenCalledTimes(1),
+    )
+    const [exportedGlyphs] = fontExports.createPixelFont.mock.calls[0]!
+    expect(exportedGlyphs.map((glyph) => glyph.codePoint)).toEqual([
+      '0041',
+      '0043',
     ])
     wrapper.unmount()
   })

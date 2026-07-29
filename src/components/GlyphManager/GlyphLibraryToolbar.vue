@@ -128,82 +128,33 @@
       <details ref="exportMenu" class="library-export-menu">
         <summary
           class="ui-button library-action"
-          :aria-disabled="managedCount === 0"
           :aria-label="$t('glyph_manager.export')"
         >
           <i-material-symbols-download aria-hidden="true" />
           <span>{{ $t('glyph_manager.export') }}</span>
         </summary>
         <div class="library-export-options">
-          <p class="library-export-options__group">
-            {{ $t('glyph_manager.export_font_files') }}
-          </p>
-          <button
-            type="button"
-            :disabled="managedCount === 0"
-            @click="exportFont('otf')"
-          >
-            {{ $t('glyph_manager.export_otf') }}
-          </button>
-          <button
-            type="button"
-            :disabled="managedCount === 0"
-            @click="exportFont('ttf')"
-          >
-            {{ $t('glyph_manager.export_ttf') }}
-          </button>
-          <button
-            type="button"
-            :disabled="managedCount === 0"
-            @click="exportFont('woff')"
-          >
-            {{ $t('glyph_manager.export_woff') }}
-          </button>
-          <button
-            type="button"
-            :disabled="managedCount === 0"
-            @click="exportFont('woff2')"
-          >
-            {{ $t('glyph_manager.export_woff2') }}
-          </button>
-          <button
-            type="button"
-            :disabled="managedCount === 0"
-            @click="exportFont('bdf')"
-          >
-            {{ $t('glyph_manager.export_bdf') }}
-          </button>
-          <button
-            type="button"
-            :disabled="managedCount === 0"
-            @click="exportFont('psf')"
-          >
-            {{ $t('glyph_manager.export_psf') }}
-          </button>
+          <FontExportOptions
+            :busy="fontExportBusy"
+            :metadata="fontMetadata"
+            :scope="exportScope"
+            @font="exportFont"
+            @reset-metadata="$emit('reset-font-metadata')"
+            @update:metadata="$emit('update:fontMetadata', $event)"
+            @update:scope="$emit('update:exportScope', $event)"
+          />
           <p
             class="library-export-options__group library-export-options__group--data"
           >
             {{ $t('glyph_manager.export_data_files') }}
           </p>
-          <button
-            type="button"
-            :disabled="managedCount === 0"
-            @click="exportHex"
-          >
+          <button type="button" @click="exportHex">
             {{ $t('glyph_manager.export_hex') }}
           </button>
-          <button
-            type="button"
-            :disabled="managedCount === 0"
-            @click="exportBackup"
-          >
+          <button type="button" @click="exportBackup">
             {{ $t('glyph_manager.export_backup') }}
           </button>
-          <button
-            type="button"
-            :disabled="managedCount === 0"
-            @click="exportSheet"
-          >
+          <button type="button" @click="exportSheet">
             {{ $t('glyph_manager.export_sheet') }}
           </button>
           <label>
@@ -311,13 +262,18 @@ import type {
   GlyphUnicodeBlockFilter,
   GlyphUnicodePlaneFilter,
 } from '@/types/glyph'
+import type { FontExportMetadata, FontExportScope } from '@/utils/fontExport'
+
+import FontExportOptions from './FontExportOptions.vue'
 
 const { t: $t, locale } = useI18n()
 
 const props = defineProps<{
   density: GlyphLibraryDensity
+  exportScope: FontExportScope
   filteredCount: number
-  managedCount: number
+  fontExportBusy: boolean
+  fontMetadata: FontExportMetadata
   modifiedCount: number
   searchQuery: string
   selectedAddableCount: number
@@ -338,10 +294,13 @@ const emit = defineEmits<{
   'delete-selected': []
   export: []
   font: [format: 'otf' | 'ttf' | 'woff' | 'woff2' | 'bdf' | 'psf']
+  'reset-font-metadata': []
   'select-filtered': []
   sheet: [options: { columns: number; scale: number }]
   'toggle-selection-mode': []
   'update:density': [value: GlyphLibraryDensity]
+  'update:exportScope': [value: FontExportScope]
+  'update:fontMetadata': [value: FontExportMetadata]
   'update:searchQuery': [value: string]
   'update:sourceFilter': [value: GlyphSourceFilter]
   'update:unicodeBlock': [value: GlyphUnicodeBlockFilter]
@@ -745,8 +704,9 @@ const exportSheet = (): void => {
   position: absolute;
   inset-block-start: calc(100% + 0.35rem);
   inset-inline-end: 0;
-  width: min(18.5rem, calc(100vw - 1.5rem));
-  max-height: calc(100dvh - 5rem);
+  box-sizing: border-box;
+  width: min(34rem, calc(100vw - 1.5rem));
+  max-height: calc(100dvh - 12rem);
   display: grid;
   gap: 1px;
   padding: 0.35rem;
@@ -941,6 +901,11 @@ const exportSheet = (): void => {
   .library-tools {
     justify-content: flex-start;
     flex-wrap: wrap;
+  }
+
+  .library-export-options {
+    inset-inline-start: 0;
+    inset-inline-end: auto;
   }
 
   .library-toolbar__buttons {

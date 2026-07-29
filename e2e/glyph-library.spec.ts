@@ -679,11 +679,14 @@ test.describe('full-screen glyph library', () => {
     await expandLibrary(page)
     await page.getByRole('button', { name: 'Tools' }).click()
     await expect(page.locator('.glyph-manager-inspector')).toBeHidden()
-    await page.locator('.library-export-menu summary').click()
+    await page.locator('.library-export-menu > summary').click()
     await expect(
       page.getByRole('button', { name: /Unifont glyphs/ }),
     ).toBeVisible()
     await expect(page.getByText('Font files', { exact: true })).toBeVisible()
+    await expect(
+      page.getByText('Official main font', { exact: true }),
+    ).toBeVisible()
     await expect(
       page.getByRole('button', { name: /OpenType font/ }),
     ).toBeVisible()
@@ -703,7 +706,7 @@ test.describe('full-screen glyph library', () => {
     const downloadPromise = page.waitForEvent('download')
     await page.getByRole('button', { name: /Web Open Font 2/ }).click()
     await expect((await downloadPromise).suggestedFilename()).toMatch(
-      /^unicucumber-pixel-\d+\.woff2$/,
+      /^Unifont-17\.0\.05\.woff2$/,
     )
 
     await page

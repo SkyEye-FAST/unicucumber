@@ -134,6 +134,43 @@
     "export_woff": "Web Open Font (.woff)",
     "export_woff2": "Web Open Font 2 (.woff2)",
     "font_exported": "{format} font exported.",
+    "font_export": {
+      "metadata": {
+        "description": "These values are written to the font's standard name and licensing records. Complete exports start from the official Unifont build metadata.",
+        "fields": {
+          "copyright": "Copyright",
+          "description": "Description",
+          "designer": "Designer",
+          "designerUrl": "Designer URL",
+          "familyName": "Family name",
+          "fullName": "Full name",
+          "license": "License",
+          "licenseUrl": "License URL",
+          "manufacturer": "Manufacturer",
+          "manufacturerUrl": "Manufacturer URL",
+          "postScriptName": "PostScript name",
+          "styleName": "Style name",
+          "trademark": "Trademark",
+          "uniqueId": "Unique ID",
+          "vendorId": "Vendor ID (4 characters)",
+          "version": "Version"
+        },
+        "reset": "Reset metadata for this range",
+        "title": "Edit font metadata"
+      },
+      "preparing": "Preparing font data…",
+      "scope": {
+        "full": {
+          "description": "Official main-font range (U+0000–U+FFFF), with your changes applied.",
+          "title": "Official main font"
+        },
+        "modified": {
+          "description": "Only glyphs whose bitmap differs from the bundled Unifont data.",
+          "title": "Modified glyphs only"
+        }
+      },
+      "scope_label": "Font range"
+    },
     "glyph": {
       "code_point": "Code point:",
       "delete": "Delete",

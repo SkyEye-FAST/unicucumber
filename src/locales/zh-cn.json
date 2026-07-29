@@ -134,6 +134,43 @@
     "export_woff": "Web Open Font（.woff）",
     "export_woff2": "Web Open Font 2（.woff2）",
     "font_exported": "{format}字体文件已导出。",
+    "font_export": {
+      "metadata": {
+        "description": "这些内容会写入字体的标准名称与许可信息。完整导出默认采用官方Unifont构建信息。",
+        "fields": {
+          "copyright": "版权",
+          "description": "说明",
+          "designer": "设计者",
+          "designerUrl": "设计者网址",
+          "familyName": "字体家族名称",
+          "fullName": "字体完整名称",
+          "license": "许可证",
+          "licenseUrl": "许可证网址",
+          "manufacturer": "制造者",
+          "manufacturerUrl": "制造者网址",
+          "postScriptName": "PostScript名称",
+          "styleName": "样式名称",
+          "trademark": "商标",
+          "uniqueId": "唯一标识",
+          "vendorId": "厂商标识（4个字符）",
+          "version": "版本"
+        },
+        "reset": "重置当前范围的字体信息",
+        "title": "编辑字体信息"
+      },
+      "preparing": "正在准备字体数据…",
+      "scope": {
+        "full": {
+          "description": "官方主字体范围（U+0000–U+FFFF），并应用你的修改。",
+          "title": "官方主字体"
+        },
+        "modified": {
+          "description": "仅包含位图数据与内置Unifont不同的字形。",
+          "title": "仅修改字形"
+        }
+      },
+      "scope_label": "字体范围"
+    },
     "glyph": {
       "code_point": "码位：",
       "delete": "删除",
