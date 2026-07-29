@@ -74,8 +74,8 @@
           />
         </label>
         <label class="checkbox-option">
-          <input v-model="transparent" type="checkbox" />
           <span>{{ $t('export.transparent') }}</span>
+          <input v-model="transparent" type="checkbox" />
         </label>
       </div>
     </details>
@@ -380,10 +380,6 @@ const shareImage = async (): Promise<void> => {
 
 .export-options :deep(.custom-select__trigger) {
   min-height: var(--control-height-compact);
-}
-
-.checkbox-option {
-  justify-content: flex-start !important;
 }
 
 .checkbox-option input {
