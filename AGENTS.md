@@ -115,7 +115,7 @@ Keep placeholders and key structure consistent between locales. Preserve the exi
 
 Do not hand-edit generated files under `public/unifont`. Regenerate Unifont data through the documented scripts, normally `pnpm update-unifont`, and review the complete generated diff.
 
-The `package.json` version is the single application-version source. The Unifont data version is independent. Do not bump the application version or edit `CHANGELOG.md` for ordinary implementation work unless a release/version change is explicitly requested.
+For every agent task, perform a version-decision checkpoint before making changes and again before the final handoff. Compare the requested and actual change scope with `docs/versioning.md`, then state explicitly whether an application-version bump is required and why. The `package.json` version is the single application-version source; the Unifont data version is independent. Do not bump the application version or edit `CHANGELOG.md` for ordinary implementation work unless a release/version change is explicitly requested. A version check is required even when the conclusion is that no bump is needed.
 
 For an actual release, follow `docs/versioning.md`: update the SemVer value, add the matching dated changelog entry, run `pnpm check` and `pnpm build`, and use a matching `v<version>` tag.
 
