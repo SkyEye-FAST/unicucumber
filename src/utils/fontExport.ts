@@ -333,7 +333,9 @@ const createTrueTypeName = (familyName: string): Uint8Array => {
   const records = [
     [1, familyName],
     [2, 'Regular'],
+    [3, `${familyName}; 1.000; UCCU`],
     [4, `${familyName} Regular`],
+    [5, 'Version 1.000'],
     [6, familyName.replaceAll(/[^A-Za-z0-9]/g, '') || 'UniCucumberPixel'],
   ] as const
   const stringData = new Writer()
@@ -431,7 +433,10 @@ const createTrueType = (
   maxp.u16(glyphCount)
   maxp.u16(maxContours * 4)
   maxp.u16(maxContours)
-  for (let index = 0; index < 11; index += 1) maxp.u16(0)
+  maxp.u16(0)
+  maxp.u16(0)
+  maxp.u16(1)
+  for (let index = 0; index < 8; index += 1) maxp.u16(0)
   const os2 = new Writer()
   os2.u16(0)
   os2.i16(UNITS_PER_EM)
@@ -440,7 +445,6 @@ const createTrueType = (
   os2.u16(0)
   for (let index = 0; index < 10; index += 1) os2.i16(0)
   os2.i16(0)
-  os2.u8(0)
   for (let index = 0; index < 10; index += 1) os2.u8(0)
   for (let index = 0; index < 4; index += 1) os2.u32(0)
   os2.text('UCCU')
