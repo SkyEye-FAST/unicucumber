@@ -189,6 +189,28 @@ test('resizes the glyph manager freely and keeps its compact heading on one row'
   ).toBeLessThanOrEqual(1)
 })
 
+test('uses an icon-sized tools toggle in the mobile glyph manager', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'interaction check runs once')
+  await seedGlyphs(page)
+  await page.setViewportSize({ width: 600, height: 800 })
+  await openLibrary(page)
+
+  const toolsToggle = page.locator('.compact-tools-toggle')
+  const expandButton = page.locator('.glyph-manager-expand')
+  await expect(toolsToggle.locator('span')).toBeHidden()
+  await expect(
+    toolsToggle.locator('.compact-tools-toggle__indicator'),
+  ).toBeHidden()
+  await expect(toolsToggle).toHaveCSS('padding-left', '0px')
+  await expect(toolsToggle).toHaveCSS('padding-right', '0px')
+  await expect(toolsToggle).toHaveCSS(
+    'width',
+    await expandButton.evaluate((button) => getComputedStyle(button).width),
+  )
+})
+
 test.describe('full-screen glyph library', () => {
   test.beforeEach(async ({ page }) => {
     await seedGlyphs(page)

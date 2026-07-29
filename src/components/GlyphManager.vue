@@ -17,6 +17,7 @@
         <button
           class="ui-button compact-tools-toggle"
           type="button"
+          :aria-label="$t('glyph_manager.library.tools')"
           :aria-expanded="compactToolsOpen"
           :aria-controls="'compact-glyph-tools'"
           @click="compactToolsOpen = !compactToolsOpen"
@@ -25,9 +26,14 @@
           <span>{{ $t('glyph_manager.library.tools') }}</span>
           <i-material-symbols-keyboard-arrow-up
             v-if="compactToolsOpen"
+            class="compact-tools-toggle__indicator"
             aria-hidden="true"
           />
-          <i-material-symbols-keyboard-arrow-down v-else aria-hidden="true" />
+          <i-material-symbols-keyboard-arrow-down
+            v-else
+            class="compact-tools-toggle__indicator"
+            aria-hidden="true"
+          />
         </button>
         <button
           ref="expandButton"
@@ -1666,6 +1672,10 @@ defineExpose({ handleEscape })
   .compact-tools-toggle span {
     display: none;
   }
+
+  .compact-tools-toggle__indicator {
+    display: none;
+  }
 }
 
 .glyph-manager-expand {
@@ -1775,6 +1785,16 @@ defineExpose({ handleEscape })
 
   .compact-tools-toggle span {
     display: none;
+  }
+
+  .compact-tools-toggle__indicator {
+    display: none;
+  }
+
+  .compact-tools-toggle {
+    width: var(--control-height-compact);
+    min-width: var(--control-height-compact);
+    padding-inline: 0;
   }
 
   .is-expanded .glyph-manager-inspector {
