@@ -2,6 +2,12 @@
 
 All notable changes follow the rules in [Versioning](docs/versioning.md).
 
+## [Unreleased]
+
+### Changed
+
+- Require every change to be recorded here with an explicit release recommendation.
+
 ## [1.4.0] - 2026-07-30
 
 ### Added

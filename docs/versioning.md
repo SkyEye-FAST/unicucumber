@@ -13,6 +13,17 @@ identifier and must not be written back to `package.json`, used for release tags
 added as a changelog version. Builds without commit metadata fall back to the plain
 package version.
 
+## Unreleased changes
+
+`CHANGELOG.md` must begin its release entries with `## [Unreleased]`. Every change,
+including application code, dependencies, documentation, scripts, CI, and
+release-process updates, must add a concise entry to that section. Each handoff must
+also state whether the accumulated change should result in an application release;
+when it should, state the recommended SemVer bump and why.
+
+Adding an Unreleased entry does not itself require a version bump. Make the release
+decision from the published application's impact using the criteria below.
+
 ## When to bump
 
 - **Patch** (`x.y.Z`) for bug fixes, dependency security fixes, or documentation-only
@@ -28,8 +39,9 @@ package version.
 1. Choose the SemVer bump and update `package.json` with `pnpm version patch`,
    `pnpm version minor`, or `pnpm version major` (use `--no-git-tag-version` when a
    release commit needs review first).
-2. Add a dated `## [x.y.z]` entry to `CHANGELOG.md` that describes user-visible
-   changes and upgrade considerations.
+2. Move the relevant `Unreleased` entries into a dated `## [x.y.z]` entry in
+   `CHANGELOG.md` that describes user-visible changes and upgrade considerations,
+   then recreate an empty `## [Unreleased]` section above it.
 3. Run `pnpm check` and `pnpm build`.
 4. Merge the release commit, then create an annotated Git tag named exactly
    `v<package.json version>` (for example, `v1.3.0`).
