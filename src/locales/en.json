@@ -443,7 +443,7 @@
     "load_failed": "Some Unifont glyph data could not be loaded.",
     "loading": "Loading glyphs…",
     "missing": "{count} glyph is unavailable. | {count} glyphs are unavailable.",
-    "placeholder": "Type a line of text",
+    "placeholder": "Type one or more lines of text",
     "preview_label": "Unifont text preview: {text}",
     "sample": "南去經三國，東來過五湖。",
     "scale": "Scale",

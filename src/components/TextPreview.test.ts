@@ -19,7 +19,7 @@ const messages = {
       loading: 'Loading glyphs…',
       missing:
         '{count} glyph is unavailable. | {count} glyphs are unavailable.',
-      placeholder: 'Type a line of text',
+      placeholder: 'Type one or more lines of text',
       preview_label: 'Unifont preview: {text}',
       sample: '南去經三國，東來過五湖。',
       scale: 'Scale',
@@ -63,9 +63,9 @@ describe('TextPreview', () => {
     expect(wrapper.get('.text-preview-drawer').attributes('role')).toBe(
       'dialog',
     )
-    expect(wrapper.get<HTMLInputElement>('.preview-input').element.value).toBe(
-      '南去經三國，東來過五湖。',
-    )
+    expect(
+      wrapper.get<HTMLTextAreaElement>('.preview-input').element.value,
+    ).toBe('南去經三國，東來過五湖。')
 
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
     expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
@@ -88,6 +88,27 @@ describe('TextPreview', () => {
     expect(glyphs[1].get('path').attributes('d')).toBe('M1 0h1v1h-1z')
     expect(getGlyph).toHaveBeenCalledOnce()
     expect(getGlyph).toHaveBeenCalledWith(0x42)
+  })
+
+  it('renders a glyph row for every preview line without loading newline characters', async () => {
+    vi.useFakeTimers()
+    const getGlyph = vi
+      .spyOn(unifontLoader, 'getGlyph')
+      .mockResolvedValue(`40${'00'.repeat(15)}`)
+    const wrapper = mountPreview()
+    await wrapper.get('.preview-input').setValue('A\n\nB')
+
+    await vi.advanceTimersByTimeAsync(100)
+    await flushPromises()
+
+    const lines = wrapper.findAll('.glyph-line')
+    expect(lines).toHaveLength(3)
+    expect(lines.map((line) => line.findAll('.preview-glyph').length)).toEqual([
+      1, 0, 1,
+    ])
+    expect(getGlyph).toHaveBeenCalledOnce()
+    expect(getGlyph).toHaveBeenCalledWith(0x42)
+    expect(getGlyph).not.toHaveBeenCalledWith(0x0a)
   })
 
   it('supports supplementary characters and shows a visible missing-glyph mark', async () => {

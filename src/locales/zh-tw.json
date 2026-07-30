@@ -443,7 +443,7 @@
     "load_failed": "部分Unifont字形資料無法載入。",
     "loading": "正在載入字形…",
     "missing": "有{count}個字形無法使用。",
-    "placeholder": "輸入一行文字",
+    "placeholder": "輸入一行或多行文字",
     "preview_label": "Unifont文字預覽：{text}",
     "sample": "南去經三國，東來過五湖。",
     "scale": "縮放",

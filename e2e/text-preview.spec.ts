@@ -36,14 +36,18 @@ test('opens text preview in a separate bottom drawer and restores focus on close
   await expect(page.locator('#app')).not.toHaveAttribute('inert', '')
 })
 
-test('keeps long previews inside the bottom drawer on a phone viewport', async ({
+test('keeps long multi-line previews inside the bottom drawer on a phone viewport', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.getByRole('button', { name: 'Open text preview' }).click()
   const drawer = page.getByRole('dialog', { name: 'Text preview' })
   const input = drawer.getByRole('textbox', { name: 'Preview text' })
-  await input.fill(`${DEFAULT_PREVIEW}${DEFAULT_PREVIEW}${DEFAULT_PREVIEW}`)
+  await input.fill(
+    `${DEFAULT_PREVIEW}${DEFAULT_PREVIEW}\n${DEFAULT_PREVIEW}${DEFAULT_PREVIEW}`,
+  )
+
+  await expect(drawer.locator('.glyph-line')).toHaveCount(2)
 
   await expect
     .poll(() =>

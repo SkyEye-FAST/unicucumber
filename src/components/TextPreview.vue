@@ -59,18 +59,18 @@
               </label>
             </div>
 
-            <input
+            <textarea
               :id="inputId"
               ref="inputRef"
               v-model="previewText"
               class="preview-input"
-              type="text"
+              rows="3"
               maxlength="80"
               autocomplete="off"
               autocapitalize="off"
               spellcheck="false"
               :placeholder="$t('text_preview.placeholder')"
-            />
+            ></textarea>
 
             <div
               class="preview-stage"
@@ -87,41 +87,48 @@
                 {{ $t('text_preview.empty') }}
               </div>
               <div
-                v-else-if="isLoading && previewGlyphs.length === 0"
+                v-else-if="isLoading && previewLines.length === 0"
                 class="preview-empty"
               >
                 {{ $t('text_preview.loading') }}
               </div>
-              <div v-else class="glyph-line" aria-hidden="true">
-                <svg
-                  v-for="glyph in previewGlyphs"
-                  :key="glyph.key"
-                  class="preview-glyph"
-                  :class="{ 'is-missing': glyph.missing }"
-                  :style="{
-                    width: `${glyph.width * scale}px`,
-                    height: `${16 * scale}px`,
-                  }"
-                  :viewBox="`0 0 ${glyph.width} 16`"
-                  preserveAspectRatio="none"
-                  shape-rendering="crispEdges"
+              <div v-else class="glyph-lines" aria-hidden="true">
+                <div
+                  v-for="line in previewLines"
+                  :key="line.key"
+                  class="glyph-line"
+                  :style="{ minHeight: `${16 * scale}px` }"
                 >
-                  <path v-if="glyph.path" :d="glyph.path" />
-                  <g v-else-if="glyph.missing" class="missing-mark">
-                    <rect
-                      x="0.5"
-                      y="0.5"
-                      :width="glyph.width - 1"
-                      height="15"
-                      fill="none"
-                      vector-effect="non-scaling-stroke"
-                    />
-                    <path
-                      :d="`M2 2L${glyph.width - 2} 14M${glyph.width - 2} 2L2 14`"
-                      vector-effect="non-scaling-stroke"
-                    />
-                  </g>
-                </svg>
+                  <svg
+                    v-for="glyph in line.glyphs"
+                    :key="glyph.key"
+                    class="preview-glyph"
+                    :class="{ 'is-missing': glyph.missing }"
+                    :style="{
+                      width: `${glyph.width * scale}px`,
+                      height: `${16 * scale}px`,
+                    }"
+                    :viewBox="`0 0 ${glyph.width} 16`"
+                    preserveAspectRatio="none"
+                    shape-rendering="crispEdges"
+                  >
+                    <path v-if="glyph.path" :d="glyph.path" />
+                    <g v-else-if="glyph.missing" class="missing-mark">
+                      <rect
+                        x="0.5"
+                        y="0.5"
+                        :width="glyph.width - 1"
+                        height="15"
+                        fill="none"
+                        vector-effect="non-scaling-stroke"
+                      />
+                      <path
+                        :d="`M2 2L${glyph.width - 2} 14M${glyph.width - 2} 2L2 14`"
+                        vector-effect="non-scaling-stroke"
+                      />
+                    </g>
+                  </svg>
+                </div>
               </div>
             </div>
 
@@ -166,6 +173,11 @@ interface PreviewGlyph {
   missing: boolean
 }
 
+interface PreviewLine {
+  key: string
+  glyphs: PreviewGlyph[]
+}
+
 const props = defineProps<{
   modelValue: boolean
   glyphs: Glyph[]
@@ -183,10 +195,10 @@ const inputId = `text-preview-input-${instanceId}`
 
 const drawerRef = ref<HTMLElement | null>(null)
 const closeButtonRef = ref<HTMLButtonElement | null>(null)
-const inputRef = ref<HTMLInputElement | null>(null)
+const inputRef = ref<HTMLTextAreaElement | null>(null)
 const previewText = ref($t('text_preview.sample'))
 const scale = ref(3)
-const previewGlyphs = ref<PreviewGlyph[]>([])
+const previewLines = ref<PreviewLine[]>([])
 const isLoading = ref(false)
 const loadFailed = ref(false)
 let requestId = 0
@@ -195,8 +207,12 @@ let overlayLocked = false
 let openSession = false
 let previouslyFocused: HTMLElement | null = null
 
-const missingCount = computed(
-  () => previewGlyphs.value.filter((glyph) => glyph.missing).length,
+const missingCount = computed(() =>
+  previewLines.value.reduce(
+    (count, line) =>
+      count + line.glyphs.filter((glyph) => glyph.missing).length,
+    0,
+  ),
 )
 
 const glyphOverrides = computed(() => {
@@ -218,7 +234,7 @@ const getFocusableElements = (): HTMLElement[] => {
   if (!drawerRef.value) return []
   return Array.from(
     drawerRef.value.querySelectorAll<HTMLElement>(
-      'button:not(:disabled), input:not(:disabled), [tabindex]:not([tabindex="-1"])',
+      'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
     ),
   ).filter((element) => element.offsetParent !== null)
 }
@@ -251,47 +267,66 @@ const handleDocumentKeydown = (event: KeyboardEvent): void => {
 
 const refreshPreview = async (): Promise<void> => {
   const activeRequest = ++requestId
-  const characters = Array.from(previewText.value).slice(0, 80)
+  const characters = Array.from(
+    previewText.value.replace(/\r\n?/g, '\n'),
+  ).slice(0, 80)
   if (characters.length === 0) {
-    previewGlyphs.value = []
+    previewLines.value = []
     isLoading.value = false
     loadFailed.value = false
     return
   }
+
+  const characterLines = characters.reduce<string[][]>(
+    (lines, character) => {
+      if (character === '\n') {
+        lines.push([])
+      } else {
+        lines[lines.length - 1]?.push(character)
+      }
+      return lines
+    },
+    [[]],
+  )
 
   isLoading.value = true
   loadFailed.value = false
   let requestFailed = false
   const glyphRequests = new Map<number, Promise<string | null>>()
 
-  const nextGlyphs = await Promise.all(
-    characters.map(async (character, index): Promise<PreviewGlyph> => {
-      const codePoint = character.codePointAt(0) ?? 0
-      let hexValue = glyphOverrides.value.get(codePoint) ?? null
-      if (hexValue === null) {
-        let request = glyphRequests.get(codePoint)
-        if (!request) {
-          request = unifontLoader.getGlyph(codePoint).catch(() => {
-            requestFailed = true
-            return null
-          })
-          glyphRequests.set(codePoint, request)
-        }
-        hexValue = await request
-      }
+  const nextLines = await Promise.all(
+    characterLines.map(async (line, lineIndex): Promise<PreviewLine> => ({
+      key: `line-${lineIndex}`,
+      glyphs: await Promise.all(
+        line.map(async (character, characterIndex): Promise<PreviewGlyph> => {
+          const codePoint = character.codePointAt(0) ?? 0
+          let hexValue = glyphOverrides.value.get(codePoint) ?? null
+          if (hexValue === null) {
+            let request = glyphRequests.get(codePoint)
+            if (!request) {
+              request = unifontLoader.getGlyph(codePoint).catch(() => {
+                requestFailed = true
+                return null
+              })
+              glyphRequests.set(codePoint, request)
+            }
+            hexValue = await request
+          }
 
-      const width = hexValue ? glyphWidthFromData(hexValue) : 16
-      return {
-        key: `${index}-${formatGlyphCodePoint(codePoint.toString(16))}`,
-        width,
-        path: hexValue ? createGlyphBitmapPath(hexValue, width) : '',
-        missing: hexValue === null,
-      }
-    }),
+          const width = hexValue ? glyphWidthFromData(hexValue) : 16
+          return {
+            key: `${lineIndex}-${characterIndex}-${formatGlyphCodePoint(codePoint.toString(16))}`,
+            width,
+            path: hexValue ? createGlyphBitmapPath(hexValue, width) : '',
+            missing: hexValue === null,
+          }
+        }),
+      ),
+    })),
   )
 
   if (activeRequest !== requestId) return
-  previewGlyphs.value = nextGlyphs
+  previewLines.value = nextLines
   loadFailed.value = requestFailed
   isLoading.value = false
 }
@@ -478,6 +513,7 @@ onBeforeUnmount(() => {
   font-family: var(--normal-font);
   font-size: 0.9rem;
   line-height: 1.2;
+  resize: vertical;
 }
 
 .preview-input:focus {
@@ -492,6 +528,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   overflow-x: auto;
+  overscroll-behavior: contain;
   padding: var(--space-3);
   border: 1px solid var(--glyph-preview-border);
   border-radius: var(--radius-sm);
@@ -504,9 +541,17 @@ onBeforeUnmount(() => {
   cursor: progress;
 }
 
+.glyph-lines {
+  width: max-content;
+  min-width: 100%;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+}
+
 .glyph-line {
   width: max-content;
-  min-width: max-content;
+  min-width: 100%;
   display: flex;
   flex: none;
   align-items: center;
