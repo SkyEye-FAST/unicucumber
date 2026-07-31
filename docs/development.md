@@ -25,10 +25,18 @@ pnpm test:coverage   # run Vitest tests with coverage output
 pnpm test:e2e        # run Chromium, Firefox, WebKit, phone, and tablet projects
 pnpm build           # type-check and create a production build
 pnpm preview         # serve the production build locally
+pnpm profile:glyph-manager # profile Glyph Manager lookup and rendering
+pnpm check:locales   # report unused translation keys without changing files
+pnpm remove-unused-locale-keys # remove unused translation keys intentionally
+pnpm version:check   # validate SemVer, changelog ordering, and release tags
+pnpm chunk-unifont   # rebuild generated Unifont lookup chunks
+pnpm update-unifont  # download and atomically install the latest Unifont data
 ```
 
 `pnpm format` applies Prettier and `pnpm lint:fix` applies ESLint fixes. Use the
-non-mutating `lint` and `format:check` commands in CI.
+non-mutating `lint` and `format:check` commands in CI. Run `check:locales` as a
+non-mutating locale audit before committing. The locale cleanup command and
+generated-data commands change files, so review their diffs before committing.
 
 ## Architecture
 

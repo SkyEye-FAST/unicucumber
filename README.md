@@ -24,30 +24,35 @@ You can try the demo at the following links:
 
 ## Features
 
-- [x] Responsive web design
-- [x] Mouse and touchscreen support
-- [x] Undo and redo actions
-- [x] Pointer Events editing for mouse, touch, pen, pinch zoom, and two-finger pan
-- [x] Pencil, eraser, fill, line, rectangle, selection, transforms, and grid shifting
-- [x] Select, move, nudge, cut, copy, paste preview, duplicate, and delete
-- [x] Crash-safe draft autosave and IndexedDB glyph storage with legacy migration
-- Multiple glyphs support
-  - [x] A screen to list multiple glyphs
-  - [x] Search by code point, character, data, and Unicode name
-  - [x] Previous/next navigation, batch deletion, and conflict-aware import
-- Hexadecimal format support
-  - [x] Export single glyph as hexadecimal string
-  - [x] Import single glyph from hexadecimal string
-  - [x] Save and load multiple glyphs in `.hex` format
-  - [x] Export a versioned JSON backup
-- Image support
-  - [x] Export single glyph as images (PNG, BMP, SVG, etc.)
-  - [x] Import glyphs from image files
-  - [x] Prepare arbitrary photos with fit/crop, threshold, invert, and transparency controls
-  - [x] Generate a sorted 16-column bitmap sheet at integer pixel scale
-- [x] Installable offline PWA with explicit, draft-safe updates
-- ~~Font support~~
-  - [ ] ~~Export multiple glyphs as an OpenType font file~~
+- Editor
+  - [x] Responsive desktop, tablet, and mobile layouts
+  - [x] Pointer Events editing for mouse, touch, and pen, including pinch zoom and two-finger pan
+  - [x] Pencil, eraser, fill, line, rectangle, selection, transforms, and grid shifting tools
+  - [x] Select, move, nudge, cut, copy, paste preview, duplicate, delete, undo, and redo
+  - [x] Keyboard shortcuts, zoom controls, fit-to-screen, and optional cursor previews
+  - [x] Text preview using the current glyphs and the bundled Unifont catalog
+- Glyph library and Unicode
+  - [x] Manage multiple glyphs with search by code point, character, bitmap data, or Unicode name
+  - [x] Filter by source, Unicode plane, and block, with compact/comfortable/large density modes
+  - [x] Add, edit, duplicate, delete, and batch-manage glyphs with conflict-aware import
+  - [x] Lazy-load bundled Unifont ranges with a bounded cache instead of loading the full map
+- Import and export
+  - [x] Export single glyphs as PNG, BMP, SVG, or hexadecimal text with scale and transparency controls
+  - [x] Copy glyph images to the clipboard or share them through supported browser APIs
+  - [x] Import `.hex` files and images through file selection, drag and drop, or image clipboard paste
+  - [x] Prepare images with fit/crop, threshold, invert, and transparency controls
+  - [x] Export multiple glyphs as `.hex`, versioned JSON backups, or configurable PNG bitmap sheets
+  - [x] Export multiple glyphs as OTF, TTF, WOFF, WOFF2, BDF, or PSF files
+  - [x] Choose full or modified glyph scopes and edit/reset font metadata before exporting
+- Draft safety and persistence
+  - [x] Crash-safe draft autosave with restore/discard prompts and lifecycle flushing
+  - [x] IndexedDB glyph storage with validation, legacy migration, and a local-storage fallback
+- [x] Installable offline PWA with offline status and explicit, draft-safe updates
+- Accessibility and personalization
+  - [x] Keyboard-accessible controls, ARIA labels, live status messages, and touch-safe targets
+  - [x] Automatic, light, and dark themes with system preference synchronization
+  - [x] English, Simplified Chinese, and Traditional Chinese translations
+  - [x] Configurable glyph width, preview, library density, import, export, and autosave settings
 
 ## Development
 
