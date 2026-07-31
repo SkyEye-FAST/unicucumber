@@ -36,7 +36,7 @@ test('opens text preview in a separate bottom drawer and restores focus on close
   await expect(page.locator('#app')).not.toHaveAttribute('inert', '')
 })
 
-test('keeps long multi-line previews inside the bottom drawer on a phone viewport', async ({
+test('wraps long multi-line previews inside the bottom drawer on a phone viewport', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 })
@@ -53,12 +53,13 @@ test('keeps long multi-line previews inside the bottom drawer on a phone viewpor
     .poll(() =>
       drawer
         .locator('.preview-stage')
-        .evaluate((stage) => stage.scrollWidth > stage.clientWidth),
+        .evaluate((stage) => stage.scrollWidth <= stage.clientWidth),
     )
     .toBe(true)
 
   const geometry = await drawer.evaluate((element) => {
     const stage = element.querySelector('.preview-stage')
+    const firstLine = element.querySelector('.glyph-line')
     const rect = element.getBoundingClientRect()
     return {
       bottom: Math.round(rect.bottom),
@@ -66,6 +67,7 @@ test('keeps long multi-line previews inside the bottom drawer on a phone viewpor
       right: Math.round(rect.right),
       stageClientWidth: stage?.clientWidth ?? 0,
       stageScrollWidth: stage?.scrollWidth ?? 0,
+      firstLineHeight: firstLine?.getBoundingClientRect().height ?? 0,
       bodyScrollWidth: document.body.scrollWidth,
       viewportWidth: window.innerWidth,
     }
@@ -78,7 +80,10 @@ test('keeps long multi-line previews inside the bottom drawer on a phone viewpor
     bodyScrollWidth: 390,
     viewportWidth: 390,
   })
-  expect(geometry.stageScrollWidth).toBeGreaterThan(geometry.stageClientWidth)
+  expect(geometry.stageScrollWidth).toBeLessThanOrEqual(
+    geometry.stageClientWidth,
+  )
+  expect(geometry.firstLineHeight).toBeGreaterThan(16 * 3)
 
   await page
     .locator('.text-preview-overlay')

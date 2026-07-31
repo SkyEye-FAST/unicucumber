@@ -111,6 +111,24 @@ describe('TextPreview', () => {
     expect(getGlyph).not.toHaveBeenCalledWith(0x0a)
   })
 
+  it('allows longer input while keeping preview rendering bounded', async () => {
+    vi.useFakeTimers()
+    const getGlyph = vi
+      .spyOn(unifontLoader, 'getGlyph')
+      .mockResolvedValue(`40${'00'.repeat(15)}`)
+    const wrapper = mountPreview()
+    const input = wrapper.get<HTMLTextAreaElement>('.preview-input')
+
+    expect(input.attributes('maxlength')).toBe('500')
+    await input.setValue('B'.repeat(501))
+    await vi.advanceTimersByTimeAsync(100)
+    await flushPromises()
+
+    expect(wrapper.findAll('.preview-glyph')).toHaveLength(500)
+    expect(getGlyph).toHaveBeenCalledOnce()
+    expect(getGlyph).toHaveBeenCalledWith(0x42)
+  })
+
   it('supports supplementary characters and shows a visible missing-glyph mark', async () => {
     vi.useFakeTimers()
     const getGlyph = vi.spyOn(unifontLoader, 'getGlyph').mockResolvedValue(null)

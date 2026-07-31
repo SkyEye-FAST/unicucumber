@@ -7,6 +7,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 ### Changed
 
 - Require every change to be recorded here with an explicit release recommendation.
+- Wrap long text preview rows automatically and raise the input limit to 500 characters.
 
 ## [1.4.0] - 2026-07-30
 

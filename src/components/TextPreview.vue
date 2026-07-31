@@ -64,8 +64,8 @@
               ref="inputRef"
               v-model="previewText"
               class="preview-input"
-              rows="3"
-              maxlength="80"
+              rows="5"
+              :maxlength="maxPreviewCharacters"
               autocomplete="off"
               autocapitalize="off"
               spellcheck="false"
@@ -199,6 +199,7 @@ const inputRef = ref<HTMLTextAreaElement | null>(null)
 const previewText = ref($t('text_preview.sample'))
 const scale = ref(3)
 const previewLines = ref<PreviewLine[]>([])
+const maxPreviewCharacters = 500
 const isLoading = ref(false)
 const loadFailed = ref(false)
 let requestId = 0
@@ -269,7 +270,7 @@ const refreshPreview = async (): Promise<void> => {
   const activeRequest = ++requestId
   const characters = Array.from(
     previewText.value.replace(/\r\n?/g, '\n'),
-  ).slice(0, 80)
+  ).slice(0, maxPreviewCharacters)
   if (characters.length === 0) {
     previewLines.value = []
     isLoading.value = false
@@ -527,7 +528,7 @@ onBeforeUnmount(() => {
   min-height: 6rem;
   display: flex;
   align-items: center;
-  overflow-x: auto;
+  overflow-x: hidden;
   overscroll-behavior: contain;
   padding: var(--space-3);
   border: 1px solid var(--glyph-preview-border);
@@ -542,18 +543,17 @@ onBeforeUnmount(() => {
 }
 
 .glyph-lines {
-  width: max-content;
-  min-width: 100%;
+  width: 100%;
+  min-width: 0;
   display: flex;
-  flex: none;
   flex-direction: column;
 }
 
 .glyph-line {
-  width: max-content;
-  min-width: 100%;
+  width: 100%;
+  min-width: 0;
   display: flex;
-  flex: none;
+  flex-wrap: wrap;
   align-items: center;
 }
 
