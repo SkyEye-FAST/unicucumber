@@ -18,7 +18,7 @@ See [_Unifoundry.com_ Unifont Utilities](https://unifoundry.com/unifont/unifont-
 
 You can try the demo at the following links:
 
-- <https://uni.skyeyefast.top>
+- <https://uni.skyeyefast.top/>
 - <https://unicucumber.vercel.app/>
 - <https://uni.lakeus.xyz/>
 
