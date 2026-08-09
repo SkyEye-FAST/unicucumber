@@ -86,6 +86,36 @@ describe('GlyphGrid', () => {
     )
   })
 
+  it('keeps cells readable when the viewport height is constrained', async () => {
+    const wrapper = mount(GlyphGrid, {
+      props: {
+        gridData: createGrid(16),
+        drawMode: 'singleButtonDraw',
+        drawValue: 1,
+        showBorder: true,
+      },
+      global: {
+        plugins: [createI18n({ legacy: false, locale: 'en', messages })],
+      },
+    })
+    const viewport = wrapper.get('.grid-viewport').element as HTMLElement
+    viewport.style.maxHeight = '160px'
+    Object.defineProperties(viewport, {
+      clientWidth: { configurable: true, value: 820 },
+      clientHeight: { configurable: true, value: 160 },
+    })
+    const gridApi = wrapper.vm as unknown as {
+      resetView: () => Promise<void>
+    }
+
+    await gridApi.resetView()
+
+    expect(wrapper.get('.grid-container').attributes('style')).toContain(
+      '--cell-size: 30px',
+    )
+    expect(wrapper.get('.zoom-value').text()).toBe('100%')
+  })
+
   it('only shows the hover preview when the cursor effect is enabled', async () => {
     const wrapper = mountGrid()
     const viewport = wrapper.get('.grid-viewport')

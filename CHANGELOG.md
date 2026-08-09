@@ -10,6 +10,10 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 - Wrap long text preview rows automatically and raise the input limit to 500 characters.
 - Expand the README Features section and development guide to document current editor, library, import/export, PWA, and maintenance capabilities.
 
+### Fixed
+
+- Keep the glyph grid readable on height-constrained desktop and tablet viewports by fitting its zoom to the available width and preserving vertical panning.
+
 ## [1.4.0] - 2026-07-30
 
 ### Added

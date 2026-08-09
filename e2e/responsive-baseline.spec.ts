@@ -135,9 +135,16 @@ test.describe('responsive visual baseline', () => {
         expect(metrics.grid?.top ?? -1).toBeGreaterThanOrEqual(
           metrics.gridViewport?.top ?? 0,
         )
-        expect(metrics.grid?.bottom ?? Infinity).toBeLessThanOrEqual(
-          metrics.gridViewport?.bottom ?? 0,
-        )
+        expect(metrics.cellSize).not.toBeNull()
+        expect(metrics.cellSize?.width).toBe(metrics.cellSize?.height)
+        if (viewport.width < 720) {
+          expect(metrics.grid?.bottom ?? Infinity).toBeLessThanOrEqual(
+            metrics.gridViewport?.bottom ?? 0,
+          )
+          expect(metrics.cellSize?.width ?? 0).toBeGreaterThanOrEqual(17)
+        } else {
+          expect(metrics.cellSize?.width).toBe(30)
+        }
 
         if (viewport.width < 720) {
           const mobileCommandBar = page.locator('.mobile-command-bar')
