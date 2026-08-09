@@ -1,4 +1,4 @@
-import * as opentype from 'opentype.js'
+import type { LocalizedName, Path } from 'opentype.js'
 
 import type { Glyph, GridData } from '@/types/glyph'
 import { hexToGrid } from '@/utils/hexUtils'
@@ -260,7 +260,9 @@ const bitmapRectangles = (grid: GridData): BitmapRectangle[] => {
  * GNU Unifont's `hex2otf` consumes. opentype.js serializes the OpenType
  * tables, avoiding a second, hand-written font container implementation.
  */
-const createOutline = (glyph: Glyph): opentype.Path => {
+type OpenTypeModule = typeof import('opentype.js')
+
+const createOutline = (glyph: Glyph, opentype: OpenTypeModule): Path => {
   const path = new opentype.Path()
   const grid = hexToGrid(glyph.hexValue)
   if (!grid) return path
@@ -277,6 +279,7 @@ const createOutline = (glyph: Glyph): opentype.Path => {
 const createOpenType = (
   sourceGlyphs: Glyph[],
   metadataInput: FontExportMetadataInput,
+  opentype: OpenTypeModule,
 ): ArrayBuffer => {
   const glyphs = validGlyphs(sourceGlyphs)
   if (glyphs.length > MAX_SFNT_SOURCE_GLYPHS) {
@@ -301,7 +304,7 @@ const createOpenType = (
             : `uni${glyph.codePoint.toUpperCase().padStart(4, '0')}`,
         unicode: codePoint,
         advanceWidth: width * PIXEL_UNIT,
-        path: createOutline(glyph),
+        path: createOutline(glyph, opentype),
       })
     }),
   ]
@@ -327,7 +330,7 @@ const createOpenType = (
   })
   const platformNames = font.names as unknown as Record<
     'unicode' | 'macintosh' | 'windows',
-    Record<string, opentype.LocalizedName>
+    Record<string, LocalizedName>
   >
   for (const platform of ['unicode', 'macintosh', 'windows'] as const) {
     platformNames[platform].uniqueID = { en: metadata.uniqueId }
@@ -697,12 +700,15 @@ const createTrueType = (
   return font
 }
 
-export const createPixelFont = (
+export const createPixelFont = async (
   glyphs: Glyph[],
   format: FontExportFormat,
   metadata: FontExportMetadataInput = {},
-): Uint8Array => {
-  if (format === 'otf') return new Uint8Array(createOpenType(glyphs, metadata))
+): Promise<Uint8Array> => {
+  if (format === 'otf') {
+    const opentype = await import('opentype.js')
+    return new Uint8Array(createOpenType(glyphs, metadata, opentype))
+  }
   const ttf = createTrueType(glyphs, metadata)
   return format === 'woff' ? createWoff(ttf) : ttf
 }

@@ -1,8 +1,9 @@
 import type { EditorDocumentSnapshot } from '@/types/editor'
-import type { Glyph } from '@/types/glyph'
+import type { Glyph, GlyphWidth, GridData } from '@/types/glyph'
 import { normalizeCodePointHex } from '@/utils/charUtils'
 import {
   deepCloneGrid,
+  GRID_HEIGHT,
   gridToHex,
   isGlyphWidth,
   normalizeHex,
@@ -108,6 +109,16 @@ export const validateGlyphCollection = (
   }
 }
 
+const isValidGrid = (value: unknown, width: GlyphWidth): value is GridData =>
+  Array.isArray(value) &&
+  value.length === GRID_HEIGHT &&
+  value.every(
+    (row) =>
+      Array.isArray(row) &&
+      row.length === width &&
+      row.every((cell) => cell === 0 || cell === 1),
+  )
+
 const validateSnapshot = (value: unknown): EditorDocumentSnapshot | null => {
   if (value === null || typeof value !== 'object') return null
   const candidate = value as Partial<EditorDocumentSnapshot>
@@ -118,7 +129,7 @@ const validateSnapshot = (value: unknown): EditorDocumentSnapshot | null => {
   if (
     codePoint === null ||
     !isGlyphWidth(candidate.width) ||
-    !Array.isArray(candidate.grid)
+    !isValidGrid(candidate.grid, candidate.width)
   ) {
     return null
   }
@@ -205,7 +216,8 @@ export class IndexedDbGlyphRepository implements GlyphRepository {
   ) {}
 
   private open(): Promise<IDBDatabase> {
-    this.databasePromise ??= new Promise((resolve, reject) => {
+    if (this.databasePromise) return this.databasePromise
+    const request = new Promise<IDBDatabase>((resolve, reject) => {
       const request = this.indexedDb.open(this.databaseName, DATABASE_VERSION)
       request.addEventListener('upgradeneeded', () => {
         const database = request.result
@@ -234,7 +246,12 @@ export class IndexedDbGlyphRepository implements GlyphRepository {
         { once: true },
       )
     })
-    return this.databasePromise
+    const resetOnFailure = request.catch((error: unknown) => {
+      if (this.databasePromise === resetOnFailure) this.databasePromise = null
+      throw error
+    })
+    this.databasePromise = resetOnFailure
+    return resetOnFailure
   }
 
   private async runLegacyMigration(): Promise<MigrationResult> {

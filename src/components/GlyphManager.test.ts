@@ -26,8 +26,8 @@ const unifont = vi.hoisted(() => ({
 }))
 const fontExports = vi.hoisted(() => ({
   createPixelFont: vi.fn<
-    (glyphs: Glyph[], format: string, metadata: unknown) => Uint8Array
-  >(() => new Uint8Array([0, 1, 2, 3])),
+    (glyphs: Glyph[], format: string, metadata: unknown) => Promise<Uint8Array>
+  >(() => Promise.resolve(new Uint8Array([0, 1, 2, 3]))),
 }))
 
 vi.mock('@/storage/glyphRepository', () => ({

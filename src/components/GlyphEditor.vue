@@ -12,7 +12,7 @@
     ]"
   >
     <EditorHeader
-      @open-settings="showSettings = true"
+      @open-settings="openSettings"
       @open-text-preview="openTextPreview"
       @toggle-sidebar="handleToggleSidebar"
     />
@@ -50,16 +50,15 @@
 
     <SettingsSidebar
       v-model="showSettings"
+      :return-focus-target="settingsFocusTarget"
       :settings="settings"
       @update:settings="updateSettings"
     />
     <TextPreview
       v-model="showTextPreview"
       :glyphs="glyphs"
-      :current-glyph="{
-        codePoint: currentCodePoint,
-        hexValue: hexCode,
-      }"
+      :current-glyph="previewCurrentGlyph"
+      :return-focus-target="textPreviewFocusTarget"
     />
 
     <main class="editor-layout">
@@ -233,6 +232,7 @@
           <GlyphManager
             ref="glyphManagerRef"
             v-model:expanded="isGlyphLibraryExpanded"
+            v-model:search-query="glyphManagerSearchQuery"
             :glyphs="glyphs"
             :library-loading="glyphLibraryLoading"
             :library-loaded="glyphLibraryLoaded"
@@ -352,6 +352,10 @@ const gridData = editorDocument.grid
 const width = editorDocument.width
 const activeGlyphId = editorDocument.activeGlyphId
 const hexCode = computed(() => gridToHex(gridData.value))
+const previewCurrentGlyph = computed<Glyph>(() => ({
+  codePoint: editorDocument.codePoint.value,
+  hexValue: hexCode.value,
+}))
 const {
   isSidebarActive,
   isSidebarResizing,
@@ -370,7 +374,10 @@ let cancelUnifontPreload: (() => void) | null = null
 const narrowSidebarQuery = window.matchMedia('(max-width: 719px)')
 const isNarrowSidebar = ref(narrowSidebarQuery.matches)
 const isGlyphLibraryExpanded = ref(false)
+const glyphManagerSearchQuery = ref('')
 const showTextPreview = ref(false)
+const settingsFocusTarget = ref<HTMLElement | null>(null)
+const textPreviewFocusTarget = ref<HTMLElement | null>(null)
 const glyphManagerRef = ref<{ handleEscape: () => boolean } | null>(null)
 
 watch(
@@ -586,9 +593,10 @@ onBeforeUnmount(() => {
 })
 
 const initializeDraftStorage = async (): Promise<void> => {
+  const initialRevision = draftRevision
   try {
     const draft = await glyphRepository.loadDraft()
-    if (draft) {
+    if (draft && draftRevision === initialRevision) {
       editorDocument.load(draft.snapshot, 'restored-draft', false)
       settings.value.glyphWidth = draft.snapshot.width
       if (draft.snapshot.grid.some((row) => row.some((cell) => cell === 1))) {
@@ -605,6 +613,10 @@ const initializeDraftStorage = async (): Promise<void> => {
     notify({ tone: 'error', message: $t('storage.draft_restore_failed') })
   } finally {
     storageReady = true
+    if (draftRevision !== initialRevision) {
+      saveStatus.value = 'unsaved'
+      queueDraftSave()
+    }
   }
 }
 
@@ -664,9 +676,10 @@ const queueDraftSave = (): void => {
 }
 
 const scheduleDraftSave = (): void => {
-  if (!storageReady) return
+  if (!hasUnsavedChanges.value) return
   draftRevision += 1
   saveStatus.value = 'unsaved'
+  if (!storageReady) return
   queueDraftSave()
 }
 
@@ -718,10 +731,24 @@ const discardRestoredDraft = async (): Promise<void> => {
   saveStatus.value = 'saved'
 }
 
-const handleGlyphSaved = (glyph: Glyph): void => {
+const handleGlyphSaved = async (glyph: Glyph): Promise<void> => {
+  if (draftTimer !== null) {
+    window.clearTimeout(draftTimer)
+    draftTimer = null
+  }
+  try {
+    if (draftFlushPromise) await draftFlushPromise
+    await glyphRepository.deleteDraft()
+  } catch (error) {
+    console.error('Unable to clear the saved editor draft.', error)
+    if (saveStatus.value !== 'error') {
+      notify({ tone: 'error', message: $t('storage.draft_save_failed') })
+    }
+    saveStatus.value = 'error'
+    return
+  }
   editorDocument.markSaved(glyph.codePoint)
   pendingRestoredDraft.value = null
-  void glyphRepository.deleteDraft()
   saveStatus.value = 'saved'
   notify({ tone: 'success', message: $t('storage.glyph_saved') })
 }
@@ -871,7 +898,7 @@ const saveCurrentGlyph = async (): Promise<void> => {
           )
 
     await replaceGlyphLibrary(nextGlyphs)
-    handleGlyphSaved(glyph)
+    await handleGlyphSaved(glyph)
   } catch (error) {
     console.error('Unable to save the current glyph.', error)
     saveStatus.value = 'error'
@@ -1013,7 +1040,13 @@ const handleToggleSidebar = (): void => {
   }
 }
 
-const openTextPreview = (): void => {
+const openSettings = (trigger: HTMLElement): void => {
+  settingsFocusTarget.value = trigger
+  showSettings.value = true
+}
+
+const openTextPreview = (trigger: HTMLElement): void => {
+  textPreviewFocusTarget.value = trigger
   if (isSidebarActive.value) handleCloseSidebar()
   showSettings.value = false
   showTextPreview.value = true

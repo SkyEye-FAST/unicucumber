@@ -163,6 +163,7 @@
               v-model="sheetColumns"
               :ariaLabel="$t('glyph_manager.sheet_columns')"
               :options="sheetColumnOptions"
+              mobile-modal
             />
           </label>
           <label>
@@ -171,6 +172,7 @@
               v-model="sheetScale"
               :ariaLabel="$t('glyph_manager.sheet_scale')"
               :options="sheetScaleOptions"
+              mobile-modal
             />
           </label>
         </div>
@@ -452,10 +454,14 @@ const exportSheet = (): void => {
 }
 
 .library-identity h2 {
+  min-width: 0;
+  overflow: hidden;
   margin: 0;
   color: var(--text-color);
   font-size: 1.5rem;
   font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .library-count {
@@ -578,6 +584,22 @@ const exportSheet = (): void => {
   .unicode-range-filters label {
     grid-template-columns: minmax(0, 1fr);
     gap: 0.2rem;
+  }
+}
+
+@media (min-width: 1360px) and (max-width: 1899px) {
+  .library-toolbar__main {
+    grid-template-areas:
+      'identity filters actions'
+      'search search search';
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+}
+
+@media (min-width: 1900px) {
+  .library-toolbar__main {
+    grid-template-areas: 'identity search filters actions';
+    grid-template-columns: auto minmax(10rem, 1fr) auto auto;
   }
 }
 

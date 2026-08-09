@@ -178,10 +178,13 @@ interface PreviewLine {
   glyphs: PreviewGlyph[]
 }
 
+type PreviewGlyphTemplate = Omit<PreviewGlyph, 'key'>
+
 const props = defineProps<{
   modelValue: boolean
   glyphs: Glyph[]
   currentGlyph: Glyph
+  returnFocusTarget?: HTMLElement | null
 }>()
 
 const emit = defineEmits<{
@@ -200,6 +203,8 @@ const previewText = ref($t('text_preview.sample'))
 const scale = ref(3)
 const previewLines = ref<PreviewLine[]>([])
 const maxPreviewCharacters = 500
+const previewLoadBatchSize = 4
+const maxRemoteGlyphCacheEntries = 512
 const isLoading = ref(false)
 const loadFailed = ref(false)
 let requestId = 0
@@ -207,6 +212,7 @@ let refreshTimer: number | null = null
 let overlayLocked = false
 let openSession = false
 let previouslyFocused: HTMLElement | null = null
+const remoteGlyphCache = new Map<number, PreviewGlyphTemplate>()
 
 const missingCount = computed(() =>
   previewLines.value.reduce(
@@ -230,6 +236,41 @@ const glyphOverrides = computed(() => {
 })
 
 const closePreview = (): void => emit('update:modelValue', false)
+
+const createGlyphTemplate = (hexValue: string | null): PreviewGlyphTemplate => {
+  const width = hexValue ? glyphWidthFromData(hexValue) : 16
+  return {
+    width,
+    path: hexValue ? createGlyphBitmapPath(hexValue, width) : '',
+    missing: hexValue === null,
+  }
+}
+
+const cachedRemoteGlyph = (
+  codePoint: number,
+): PreviewGlyphTemplate | undefined => {
+  const cached = remoteGlyphCache.get(codePoint)
+  if (!cached) return undefined
+  remoteGlyphCache.delete(codePoint)
+  remoteGlyphCache.set(codePoint, cached)
+  return cached
+}
+
+const cacheRemoteGlyph = (
+  codePoint: number,
+  glyph: PreviewGlyphTemplate,
+): void => {
+  remoteGlyphCache.delete(codePoint)
+  remoteGlyphCache.set(codePoint, glyph)
+  while (remoteGlyphCache.size > maxRemoteGlyphCacheEntries) {
+    const oldest = remoteGlyphCache.keys().next().value
+    if (oldest === undefined) break
+    remoteGlyphCache.delete(oldest)
+  }
+}
+
+const yieldToBrowser = (): Promise<void> =>
+  new Promise((resolve) => window.requestAnimationFrame(() => resolve()))
 
 const getFocusableElements = (): HTMLElement[] => {
   if (!drawerRef.value) return []
@@ -268,6 +309,7 @@ const handleDocumentKeydown = (event: KeyboardEvent): void => {
 
 const refreshPreview = async (): Promise<void> => {
   const activeRequest = ++requestId
+  const overrides = glyphOverrides.value
   const characters = Array.from(
     previewText.value.replace(/\r\n?/g, '\n'),
   ).slice(0, maxPreviewCharacters)
@@ -293,38 +335,67 @@ const refreshPreview = async (): Promise<void> => {
   isLoading.value = true
   loadFailed.value = false
   let requestFailed = false
-  const glyphRequests = new Map<number, Promise<string | null>>()
-
-  const nextLines = await Promise.all(
-    characterLines.map(async (line, lineIndex): Promise<PreviewLine> => ({
-      key: `line-${lineIndex}`,
-      glyphs: await Promise.all(
-        line.map(async (character, characterIndex): Promise<PreviewGlyph> => {
-          const codePoint = character.codePointAt(0) ?? 0
-          let hexValue = glyphOverrides.value.get(codePoint) ?? null
-          if (hexValue === null) {
-            let request = glyphRequests.get(codePoint)
-            if (!request) {
-              request = unifontLoader.getGlyph(codePoint).catch(() => {
-                requestFailed = true
-                return null
-              })
-              glyphRequests.set(codePoint, request)
-            }
-            hexValue = await request
-          }
-
-          const width = hexValue ? glyphWidthFromData(hexValue) : 16
-          return {
-            key: `${lineIndex}-${characterIndex}-${formatGlyphCodePoint(codePoint.toString(16))}`,
-            width,
-            path: hexValue ? createGlyphBitmapPath(hexValue, width) : '',
-            missing: hexValue === null,
-          }
-        }),
+  const glyphTemplates = new Map<number, PreviewGlyphTemplate>()
+  const codePoints = [
+    ...new Set(
+      characterLines.flatMap((line) =>
+        line.map((character) => character.codePointAt(0) ?? 0),
       ),
-    })),
-  )
+    ),
+  ]
+  const remoteCodePoints: number[] = []
+
+  for (const codePoint of codePoints) {
+    const override = overrides.get(codePoint)
+    if (override !== undefined) {
+      glyphTemplates.set(codePoint, createGlyphTemplate(override))
+      continue
+    }
+    const cached = cachedRemoteGlyph(codePoint)
+    if (cached) glyphTemplates.set(codePoint, cached)
+    else remoteCodePoints.push(codePoint)
+  }
+
+  for (
+    let offset = 0;
+    offset < remoteCodePoints.length;
+    offset += previewLoadBatchSize
+  ) {
+    if (activeRequest !== requestId || !openSession) return
+    const batch = remoteCodePoints.slice(offset, offset + previewLoadBatchSize)
+    const loaded = await Promise.all(
+      batch.map(async (codePoint) => {
+        try {
+          const glyph = createGlyphTemplate(
+            await unifontLoader.getGlyph(codePoint),
+          )
+          cacheRemoteGlyph(codePoint, glyph)
+          return [codePoint, glyph] as const
+        } catch {
+          requestFailed = true
+          return [codePoint, createGlyphTemplate(null)] as const
+        }
+      }),
+    )
+    if (activeRequest !== requestId || !openSession) return
+    for (const [codePoint, glyph] of loaded) {
+      glyphTemplates.set(codePoint, glyph)
+    }
+    if (offset + previewLoadBatchSize < remoteCodePoints.length) {
+      await yieldToBrowser()
+    }
+  }
+
+  const nextLines = characterLines.map((line, lineIndex): PreviewLine => ({
+    key: `line-${lineIndex}`,
+    glyphs: line.map((character, characterIndex): PreviewGlyph => {
+      const codePoint = character.codePointAt(0) ?? 0
+      return {
+        key: `${lineIndex}-${characterIndex}-${formatGlyphCodePoint(codePoint.toString(16))}`,
+        ...(glyphTemplates.get(codePoint) ?? createGlyphTemplate(null)),
+      }
+    }),
+  }))
 
   if (activeRequest !== requestId) return
   previewLines.value = nextLines
@@ -332,17 +403,24 @@ const refreshPreview = async (): Promise<void> => {
   isLoading.value = false
 }
 
-const scheduleRefresh = (): void => {
+const scheduleRefresh = (delay = 100): void => {
   requestId += 1
   if (refreshTimer !== null) window.clearTimeout(refreshTimer)
   refreshTimer = window.setTimeout(() => {
     refreshTimer = null
+    if (!props.modelValue || !openSession) return
     void refreshPreview()
-  }, 100)
+  }, delay)
 }
 
-watch([previewText, glyphOverrides], () => {
+watch(previewText, () => {
   if (props.modelValue) scheduleRefresh()
+})
+
+watch(glyphOverrides, () => {
+  if (props.modelValue) {
+    scheduleRefresh(previewLines.value.length === 0 ? 300 : 100)
+  }
 })
 
 watch(
@@ -350,15 +428,22 @@ watch(
   (open) => {
     if (open && !openSession) {
       openSession = true
-      previouslyFocused = document.activeElement as HTMLElement | null
+      previouslyFocused =
+        props.returnFocusTarget ??
+        (document.activeElement as HTMLElement | null)
       acquireOverlayLock()
       overlayLocked = true
       document.addEventListener('keydown', handleDocumentKeydown)
-      scheduleRefresh()
+      isLoading.value = previewText.value.length > 0
+      scheduleRefresh(300)
       void nextTick(() => inputRef.value?.focus())
     } else if (!open && openSession) {
       openSession = false
       requestId += 1
+      if (refreshTimer !== null) {
+        window.clearTimeout(refreshTimer)
+        refreshTimer = null
+      }
       isLoading.value = false
       document.removeEventListener('keydown', handleDocumentKeydown)
       if (overlayLocked) {
@@ -461,6 +546,7 @@ onBeforeUnmount(() => {
 }
 
 .preview-shell {
+  min-width: 0;
   display: grid;
   gap: var(--space-2);
   padding: var(--space-3) max(var(--space-4), env(safe-area-inset-right))
@@ -525,6 +611,9 @@ onBeforeUnmount(() => {
 
 .preview-stage {
   box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   min-height: 6rem;
   display: flex;
   align-items: center;
@@ -545,6 +634,7 @@ onBeforeUnmount(() => {
 .glyph-lines {
   width: 100%;
   min-width: 0;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -552,6 +642,7 @@ onBeforeUnmount(() => {
 .glyph-line {
   width: 100%;
   min-width: 0;
+  max-width: 100%;
   display: flex;
   flex-wrap: wrap;
   align-items: center;

@@ -488,6 +488,7 @@ import DialogBox from './DialogBox.vue'
 
 const props = defineProps<{
   modelValue: boolean
+  returnFocusTarget?: HTMLElement | null
   settings: EditorSettings
 }>()
 
@@ -726,7 +727,9 @@ watch(
   (open) => {
     if (open && !openSession) {
       openSession = true
-      previouslyFocused = document.activeElement as HTMLElement | null
+      previouslyFocused =
+        props.returnFocusTarget ??
+        (document.activeElement as HTMLElement | null)
       document.addEventListener('keydown', handleDocumentKeydown)
       syncOverlayLock()
       void nextTick(() => closeButtonRef.value?.focus())
@@ -735,8 +738,9 @@ watch(
       document.removeEventListener('keydown', handleDocumentKeydown)
       syncOverlayLock()
       showFontEdit.value = false
-      previouslyFocused?.focus()
+      const focusTarget = previouslyFocused
       previouslyFocused = null
+      void nextTick(() => focusTarget?.focus())
     }
   },
   { immediate: true },
@@ -1025,10 +1029,13 @@ const confirmReset = (): void => {
 
 .appearance-choice input {
   position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
+  z-index: 2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
   opacity: 0;
+  cursor: pointer;
 }
 
 .appearance-option {
@@ -1170,6 +1177,8 @@ const confirmReset = (): void => {
 
 @media (max-width: 719px) {
   .settings-sidebar {
+    inset-inline-start: 0;
+    inset-inline-end: auto;
     width: 100vw;
     border-left: 0;
     box-shadow: none;

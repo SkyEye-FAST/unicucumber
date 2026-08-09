@@ -77,8 +77,8 @@ describe('pixel font export', () => {
     { codePoint: '1F600', hexValue: '0'.repeat(64) },
   ]
 
-  it('creates an OpenType CFF font with the expected required tables', () => {
-    const font = createPixelFont(
+  it('creates an OpenType CFF font with the expected required tables', async () => {
+    const font = await createPixelFont(
       [{ codePoint: '0000', hexValue: '0'.repeat(32) }, ...glyphs],
       'otf',
     )
@@ -92,15 +92,15 @@ describe('pixel font export', () => {
     )
   })
 
-  it('converts the OpenType source to a TrueType font', () => {
-    const font = createPixelFont(glyphs, 'ttf')
+  it('converts the OpenType source to a TrueType font', async () => {
+    const font = await createPixelFont(glyphs, 'ttf')
     expect(readUint32(font, 0)).toBe(0x00010000)
     expect(opentype.parse(font.buffer).charToGlyphIndex('A')).toBe(1)
   })
 
-  it('includes the metadata and limits required by Windows font loading', () => {
+  it('includes the metadata and limits required by Windows font loading', async () => {
     const familyName = 'UniCucumber Test'
-    const font = createPixelFont(glyphs, 'ttf', familyName)
+    const font = await createPixelFont(glyphs, 'ttf', familyName)
     const names = getWindowsNames(font)
 
     expect(names.get(3)).toBe(`${familyName}; 1.000; UCCU`)
@@ -119,7 +119,7 @@ describe('pixel font export', () => {
     expect(readUint16(font, maxp.offset + 14)).toBe(1)
   })
 
-  it('writes editable metadata into TrueType name and vendor records', () => {
+  it('writes editable metadata into TrueType name and vendor records', async () => {
     const metadata = createFontExportMetadata({
       familyName: 'My Pixel Family',
       styleName: 'Book',
@@ -137,7 +137,7 @@ describe('pixel font export', () => {
       licenseUrl: 'https://example.com/license',
       vendorId: 'EX',
     })
-    const font = createPixelFont(glyphs, 'ttf', metadata)
+    const font = await createPixelFont(glyphs, 'ttf', metadata)
     const names = getWindowsNames(font)
 
     expect(names.get(0)).toBe('Copyright Example')
@@ -155,12 +155,12 @@ describe('pixel font export', () => {
     expect(readTag(font, os2.offset + 58)).toBe('EX  ')
   })
 
-  it('provides the official Unifont metadata profile for complete exports', () => {
+  it('provides the official Unifont metadata profile for complete exports', async () => {
     const metadata = createOfficialUnifontMetadata('17.0.05')
-    const font = createPixelFont(glyphs, 'ttf', metadata)
+    const font = await createPixelFont(glyphs, 'ttf', metadata)
     const names = getWindowsNames(font)
     const openType = opentype.parse(
-      createPixelFont(glyphs, 'otf', metadata).buffer,
+      (await createPixelFont(glyphs, 'otf', metadata)).buffer,
     )
     const openTypeNames = openType.names as unknown as {
       windows: Record<string, opentype.LocalizedName>
@@ -187,8 +187,8 @@ describe('pixel font export', () => {
     expect(readTag(font, os2.offset + 58)).toBe('GNU ')
   })
 
-  it('creates a WOFF wrapper with valid declared lengths', () => {
-    const font = createPixelFont(glyphs, 'woff')
+  it('creates a WOFF wrapper with valid declared lengths', async () => {
+    const font = await createPixelFont(glyphs, 'woff')
     expect(readTag(font, 0)).toBe('wOFF')
     expect(readUint32(font, 8)).toBe(font.length)
     expect(readUint32(font, 16)).toBeGreaterThan(0)

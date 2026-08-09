@@ -170,4 +170,31 @@ describe('TextPreview', () => {
       wrapper.findAll('.preview-glyph')[0].get('path').attributes('d'),
     ).toBe('M1 0h1v1h-1z')
   })
+
+  it('stops queuing remote glyph batches after the preview closes', async () => {
+    vi.useFakeTimers()
+    let resolveFirstGlyph: ((value: string | null) => void) | undefined
+    const firstGlyph = new Promise<string | null>((resolve) => {
+      resolveFirstGlyph = resolve
+    })
+    const getGlyph = vi
+      .spyOn(unifontLoader, 'getGlyph')
+      .mockImplementation((codePoint) =>
+        codePoint === 0x42 ? firstGlyph : Promise.resolve('00'.repeat(32)),
+      )
+    const wrapper = mountPreview()
+    await wrapper.get('.preview-input').setValue('ABCDEFGHIJ')
+
+    await vi.advanceTimersByTimeAsync(100)
+    expect(getGlyph).toHaveBeenCalledTimes(4)
+    expect(getGlyph.mock.calls.map(([codePoint]) => codePoint)).toEqual([
+      0x42, 0x43, 0x44, 0x45,
+    ])
+
+    await wrapper.setProps({ modelValue: false })
+    resolveFirstGlyph?.('00'.repeat(32))
+    await flushPromises()
+
+    expect(getGlyph).toHaveBeenCalledTimes(4)
+  })
 })

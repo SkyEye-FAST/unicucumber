@@ -273,11 +273,11 @@ const props = withDefaults(defineProps<GlyphManagerProps>(), {
   onRetryLoad: undefined,
 })
 const isExpanded = defineModel<boolean>('expanded', { default: false })
+const searchQuery = defineModel<string>('searchQuery', { default: '' })
 
 const emit = defineEmits<GlyphManagerEmits>()
 
 const newGlyph = ref<GlyphData>({ codePoint: '', hexValue: '' })
-const searchQuery = ref<string>('')
 const sourceFilter = ref<GlyphSourceFilter>('all')
 const unicodePlane = ref<GlyphUnicodePlaneFilter>('all')
 const unicodeBlock = ref<GlyphUnicodeBlockFilter>('all')
@@ -799,7 +799,7 @@ watch(searchQuery, async (query) => {
         additions[glyph.codePoint] =
           lookup(String.fromCodePoint(parseInt(glyph.codePoint, 16))) || ''
       })
-      unicodeNames.value = { ...unicodeNames.value, ...additions }
+      Object.assign(unicodeNames.value, additions)
       await new Promise<void>((resolve) => window.setTimeout(resolve, 0))
     }
   } catch (error) {

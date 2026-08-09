@@ -8,6 +8,25 @@ import GlyphGrid from './GlyphGrid.vue'
 
 const messages = {
   en: {
+    glyph_editor: {
+      copy_title: 'glyph_editor.copy_title',
+      cut_title: 'glyph_editor.cut_title',
+    },
+    selection: {
+      actions: 'selection.actions',
+      cancel_paste: 'selection.cancel_paste',
+      confirm_paste: 'selection.confirm_paste',
+      copy: 'selection.copy',
+      cut: 'selection.cut',
+      delete: 'selection.delete',
+      deselect: 'selection.deselect',
+      duplicate: 'selection.duplicate',
+      move_down: 'selection.move_down',
+      move_left: 'selection.move_left',
+      move_right: 'selection.move_right',
+      move_up: 'selection.move_up',
+      paste_actions: 'selection.paste_actions',
+    },
     workspace: {
       label: 'Glyph workspace',
       view_controls: 'View controls',
@@ -256,6 +275,49 @@ describe('GlyphGrid', () => {
             { row: 0, col: 2 },
             { row: 0, col: 3 },
           ],
+        },
+      ],
+    ])
+  })
+
+  it('allows touch input after a pen loses pointer capture', async () => {
+    const wrapper = mountGrid()
+    const viewport = wrapper.get('.grid-viewport')
+
+    await viewport.trigger('pointerdown', {
+      button: 0,
+      pointerId: 1,
+      pointerType: 'pen',
+      isPrimary: true,
+      clientX: 15,
+      clientY: 15,
+    })
+    await viewport.trigger('lostpointercapture', {
+      pointerId: 1,
+      pointerType: 'pen',
+      isPrimary: true,
+    })
+    await viewport.trigger('pointerdown', {
+      pointerId: 2,
+      pointerType: 'touch',
+      isPrimary: true,
+      clientX: 15,
+      clientY: 15,
+    })
+    await viewport.trigger('pointerup', {
+      pointerId: 2,
+      pointerType: 'touch',
+      isPrimary: true,
+      clientX: 15,
+      clientY: 15,
+    })
+
+    expect(wrapper.emitted('command')).toEqual([
+      [
+        {
+          type: 'applyStroke',
+          value: 1,
+          points: [{ row: 0, col: 0 }],
         },
       ],
     ])

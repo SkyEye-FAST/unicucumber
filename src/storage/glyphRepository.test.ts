@@ -1,5 +1,5 @@
 import { IDBFactory } from 'fake-indexeddb'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createGrid } from '@/utils/hexUtils'
 
@@ -43,6 +43,35 @@ describe('glyph repository', () => {
 
   it('rejects corrupted drafts and round-trips a valid draft', async () => {
     expect(validateDraft({ schemaVersion: 1 })).toBeNull()
+    const snapshot = {
+      codePoint: '0041',
+      width: 8,
+      grid: createGrid(8),
+      activeGlyphId: null,
+    }
+    const storedDraft = {
+      id: 'current',
+      schemaVersion: 1,
+      updatedAt: 123,
+      snapshot,
+    }
+    expect(
+      validateDraft({
+        ...storedDraft,
+        snapshot: { ...snapshot, grid: [undefined] },
+      }),
+    ).toBeNull()
+    expect(
+      validateDraft({
+        ...storedDraft,
+        snapshot: {
+          ...snapshot,
+          grid: createGrid(8).map((row, index) =>
+            index === 0 ? [2, ...row.slice(1)] : row,
+          ),
+        },
+      }),
+    ).toBeNull()
     const repository = new IndexedDbGlyphRepository(
       new IDBFactory(),
       localStorage,
@@ -63,6 +92,28 @@ describe('glyph repository', () => {
     await expect(repository.loadDraft()).resolves.toEqual(draft)
     await repository.deleteDraft()
     await expect(repository.loadDraft()).resolves.toBeNull()
+  })
+
+  it('retries opening IndexedDB after a transient failure', async () => {
+    const indexedDb = new IDBFactory()
+    const failedRequest = new EventTarget() as unknown as IDBOpenDBRequest
+    Object.defineProperty(failedRequest, 'error', {
+      configurable: true,
+      value: new DOMException('transient failure', 'UnknownError'),
+    })
+    const open = vi.spyOn(indexedDb, 'open').mockImplementationOnce(() => {
+      queueMicrotask(() => failedRequest.dispatchEvent(new Event('error')))
+      return failedRequest
+    })
+    const repository = new IndexedDbGlyphRepository(
+      indexedDb,
+      localStorage,
+      'unicucumber-test-open-retry',
+    )
+
+    await expect(repository.loadDraft()).rejects.toThrow('transient failure')
+    await expect(repository.loadDraft()).resolves.toBeNull()
+    expect(open).toHaveBeenCalledTimes(2)
   })
 
   it('reports quota failures from the local-storage fallback', async () => {

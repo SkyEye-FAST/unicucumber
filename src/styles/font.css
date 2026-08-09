@@ -1,7 +1,5 @@
-/* Noto & Fira Code */
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Noto+Sans+SC:wght@100..900&family=Noto+Sans+TC:wght@100..900&display=swap');
-/* Plangothic P1 and P2 */
-@import url('https://fontsapi.zeoseven.com/150/main/result.css');
+/* Prefer platform fonts so the editor stays responsive and typographically
+   stable while offline, without blocking startup on remote font decoding. */
 
 .icon {
   font-weight: normal;
@@ -18,9 +16,10 @@
 
 :root {
   --normal-font:
-    'Noto Sans', 'Noto Sans SC', 'Sarasa UI SC', 'Sarasa Gothic SC', system-ui,
+    'Noto Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
     sans-serif;
-  --monospace-font: 'Fira Code', 'Sarasa Mono SC', Consolas, monospace;
+  --monospace-font:
+    'Fira Code', 'Cascadia Code', 'SFMono-Regular', Consolas, monospace;
 }
 body {
   font-family: var(--normal-font);
@@ -28,12 +27,12 @@ body {
 
 [lang='zh-cn'] body {
   --normal-font:
-    'Noto Sans SC', 'Noto Sans CJK SC', 'Sarasa UI SC', 'Sarasa Gothic SC',
-    'Source Han Sans SC', sans-serif;
+    'Noto Sans SC', 'Noto Sans CJK SC', 'Microsoft YaHei UI', 'Microsoft YaHei',
+    'PingFang SC', 'Hiragino Sans GB', system-ui, sans-serif;
 }
 
 [lang='zh-tw'] body {
   --normal-font:
-    'Noto Sans TC', 'Noto Sans CJK TC', 'Sarasa UI TC', 'Sarasa Gothic TC',
-    'Source Han Sans TC', sans-serif;
+    'Noto Sans TC', 'Noto Sans CJK TC', 'Microsoft JhengHei UI',
+    'Microsoft JhengHei', 'PingFang TC', system-ui, sans-serif;
 }

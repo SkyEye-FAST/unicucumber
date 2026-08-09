@@ -33,7 +33,7 @@
         class="modal-button ui-icon-button"
         type="button"
         :aria-label="$t('header.open_text_preview')"
-        @click="$emit('openTextPreview')"
+        @click="handleOpenTextPreview"
       >
         <i-material-symbols-text-fields class="icon" />
       </button>
@@ -41,7 +41,7 @@
         class="modal-button ui-icon-button"
         type="button"
         :aria-label="$t('header.open_settings')"
-        @click="$emit('openSettings')"
+        @click="handleOpenSettings"
       >
         <i-material-symbols-settings class="icon" />
       </button>
@@ -63,7 +63,23 @@ import { useTheme } from '@/composables/useTheme'
 
 const { t: $t } = useI18n()
 const { preference, toggleTheme } = useTheme()
-defineEmits(['openSettings', 'openTextPreview', 'toggleSidebar'])
+const emit = defineEmits<{
+  openSettings: [trigger: HTMLElement]
+  openTextPreview: [trigger: HTMLElement]
+  toggleSidebar: []
+}>()
+
+const handleOpenSettings = (event: MouseEvent): void => {
+  if (event.currentTarget instanceof HTMLElement) {
+    emit('openSettings', event.currentTarget)
+  }
+}
+
+const handleOpenTextPreview = (event: MouseEvent): void => {
+  if (event.currentTarget instanceof HTMLElement) {
+    emit('openTextPreview', event.currentTarget)
+  }
+}
 </script>
 
 <style scoped>
@@ -151,13 +167,29 @@ defineEmits(['openSettings', 'openTextPreview', 'toggleSidebar'])
   }
 
   .modal-button {
-    width: 2.25rem;
-    min-width: 2.25rem;
-    min-height: 2.25rem;
+    width: var(--control-height);
+    min-width: var(--control-height);
+    min-height: var(--control-height);
   }
 
   .modal-button .icon {
     font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 439px) {
+  .logo {
+    margin-right: 0;
+  }
+
+  .title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
   }
 }
 </style>

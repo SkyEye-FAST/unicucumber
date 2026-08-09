@@ -992,8 +992,8 @@ const handlePointerCancel = (event: PointerEvent): void => {
 const handleLostPointerCapture = (event: PointerEvent): void => {
   if (pointers.has(event.pointerId)) {
     finishInteraction(event.pointerId, false)
-    pointers.delete(event.pointerId)
   }
+  releasePointer(event)
 }
 
 const cancelInteraction = (): void => {

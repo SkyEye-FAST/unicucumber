@@ -84,6 +84,14 @@ export function useEditorDocument(
     activeGlyphId: activeGlyphId.value,
   })
 
+  const currentFingerprint = (): string =>
+    [
+      activeGlyphId.value ?? '',
+      codePoint.value,
+      width.value,
+      gridToHex(grid.value),
+    ].join('|')
+
   const applySnapshot = (next: EditorDocumentSnapshot): void => {
     codePoint.value = next.codePoint
     width.value = next.width
@@ -189,10 +197,7 @@ export function useEditorDocument(
 
   const restoreSaved = (): boolean => {
     const saved = savedSnapshot.value
-    if (
-      !saved ||
-      snapshotFingerprint(saved) === snapshotFingerprint(snapshot())
-    ) {
+    if (!saved || snapshotFingerprint(saved) === currentFingerprint()) {
       return false
     }
     pushEntry(saved, {
@@ -203,9 +208,7 @@ export function useEditorDocument(
     return true
   }
 
-  const dirty = computed(
-    () => snapshotFingerprint(snapshot()) !== savedFingerprint.value,
-  )
+  const dirty = computed(() => currentFingerprint() !== savedFingerprint.value)
 
   load(initial, 'initial')
 
