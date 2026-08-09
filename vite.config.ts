@@ -18,7 +18,7 @@ import vue from '@vitejs/plugin-vue'
 import {
   getUnifontRuntimeCacheNames,
   parseUnifontManifest,
-} from './src/services/unifontManifest'
+} from './src/services/unifontManifest.ts'
 
 const normalizeCommitSha = (value: string | undefined): string => {
   const normalized = value?.trim().toLowerCase()

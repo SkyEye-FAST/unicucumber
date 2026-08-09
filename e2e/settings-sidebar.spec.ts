@@ -1,6 +1,16 @@
+import { readFileSync } from 'node:fs'
+
 import { expect, test, type Page } from '@playwright/test'
 
 type ColorScheme = 'light' | 'dark'
+
+const { version: packageVersion } = JSON.parse(
+  readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
+) as { version: string }
+const escapedPackageVersion = packageVersion.replace(
+  /[.*+?^${}()|[\]\\]/g,
+  '\\$&',
+)
 
 const loadEditor = async (
   page: Page,
@@ -225,7 +235,9 @@ test('settings shows the application version and update-check control', async ({
   const { drawer } = await openSettings(page)
 
   await expect(drawer.getByText('Updates', { exact: true })).toBeVisible()
-  await expect(drawer.locator('.settings-version')).toHaveText('v1.3.0')
+  await expect(drawer.locator('.settings-version')).toHaveText(
+    new RegExp(`^v${escapedPackageVersion}(?:-[0-9a-f]{7})?$`),
+  )
   await expect(
     drawer.getByRole('button', { name: 'Check for updates' }),
   ).toBeVisible()
@@ -241,6 +253,7 @@ test('settings drawer uses distinct enter and leave motion', async ({
 
   await trigger.click()
   await drawer.waitFor({ state: 'attached' })
+  await expect(drawer).toHaveClass(/settings-drawer-enter-active/)
   expect(
     await drawer.evaluate(
       (element) => getComputedStyle(element).transitionDuration,
@@ -248,12 +261,19 @@ test('settings drawer uses distinct enter and leave motion', async ({
   ).toContain('0.24s')
   await expect(drawer).toHaveCSS('transform', 'none')
 
-  await drawer.getByRole('button', { name: 'Close settings' }).click()
-  expect(
-    await drawer.evaluate(
-      (element) => getComputedStyle(element).transitionDuration,
-    ),
-  ).toContain('0.18s')
+  const leaveDuration = await drawer
+    .getByRole('button', { name: 'Close settings' })
+    .evaluate(
+      (button) =>
+        new Promise<string>((resolve) => {
+          button.click()
+          requestAnimationFrame(() => {
+            const element = document.querySelector('.settings-sidebar')
+            resolve(element ? getComputedStyle(element).transitionDuration : '')
+          })
+        }),
+    )
+  expect(leaveDuration).toContain('0.18s')
   await expect(drawer).toBeHidden()
 })
 

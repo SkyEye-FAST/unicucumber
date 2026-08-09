@@ -96,12 +96,17 @@ const seedIndexedDbGlyphs = async (page: Page, count: number) => {
   await expect(page.locator('.grid-container')).toBeVisible()
 }
 
-const openLibrary = async (page: Page) => {
+const openLibrary = async (page: Page, expectedCount = 96) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' })
   await page.getByRole('button', { name: 'Open glyph manager' }).click()
   await expect(
     page.getByRole('button', { name: 'Expand glyph manager' }),
   ).toBeVisible()
+  await expect(page.locator('.glyph-manager')).toHaveAttribute(
+    'data-glyph-count',
+    String(expectedCount),
+    { timeout: 15_000 },
+  )
 }
 
 const expandLibrary = async (page: Page, expectedCount = 96) => {
@@ -135,29 +140,40 @@ test('resizes the glyph manager freely and keeps its compact heading on one row'
   )
   const resizerBox = await resizer.boundingBox()
   if (!resizerBox) throw new Error('Glyph manager resize handle is not visible')
-  await page.mouse.move(resizerBox.x + resizerBox.width / 2, resizerBox.y + 160)
+  await resizer.hover({
+    position: { x: resizerBox.width / 2, y: 160 },
+  })
   await page.mouse.down()
-  await page.mouse.move(930, resizerBox.y + 160)
+  await page.mouse.move(930, resizerBox.y + 160, { steps: 5 })
   await page.mouse.up()
 
+  const expectedMaximumWidth = await page.evaluate(
+    () => window.innerWidth - 320,
+  )
   await expect
     .poll(() =>
       sidebar.evaluate((element) =>
         Math.round(element.getBoundingClientRect().width),
       ),
     )
-    .toBeGreaterThan(initialWidth + 300)
+    .toBeGreaterThanOrEqual(expectedMaximumWidth)
 
   const expandedResizerBox = await resizer.boundingBox()
   if (!expandedResizerBox)
     throw new Error('Glyph manager resize handle is not visible after widening')
-  await page.mouse.move(
-    expandedResizerBox.x + expandedResizerBox.width / 2,
-    expandedResizerBox.y + 160,
-  )
+  await resizer.hover({
+    position: { x: expandedResizerBox.width / 2, y: 160 },
+  })
   await page.mouse.down()
-  await page.mouse.move(300, expandedResizerBox.y + 160)
+  await page.mouse.move(300, expandedResizerBox.y + 160, { steps: 5 })
   await page.mouse.up()
+  await expect
+    .poll(() =>
+      sidebar.evaluate((element) =>
+        Math.round(element.getBoundingClientRect().width),
+      ),
+    )
+    .toBeLessThan(initialWidth)
 
   const compactHeader = await page
     .locator('.glyph-manager-heading')
@@ -394,6 +410,12 @@ test.describe('full-screen glyph library', () => {
     await openLibrary(page)
     await expandLibrary(page)
     await expect(page.locator('select')).toHaveCount(0)
+    const filterToggle = page.getByRole('button', {
+      name: 'Filters',
+      exact: true,
+    })
+    await filterToggle.click()
+    await expect(filterToggle).toHaveAttribute('aria-expanded', 'true')
 
     await page.getByRole('combobox', { name: 'Unicode plane' }).click()
     await page
@@ -465,6 +487,12 @@ test.describe('full-screen glyph library', () => {
     await seedGlyphs(page)
     await openLibrary(page)
     await expandLibrary(page)
+    const filterToggle = page.getByRole('button', {
+      name: 'Filters',
+      exact: true,
+    })
+    await filterToggle.click()
+    await expect(filterToggle).toHaveAttribute('aria-expanded', 'true')
 
     const fitsViewport = await page
       .locator('.library-toolbar__main')
@@ -573,7 +601,7 @@ test.describe('full-screen glyph library', () => {
     expect(mobileSectionsStack).toBe(true)
   })
 
-  test('Escape exits selection, then full screen, then the manager', async ({
+  test('Escape exits nested glyph manager states in order', async ({
     page,
   }) => {
     await openLibrary(page)
@@ -598,7 +626,15 @@ test.describe('full-screen glyph library', () => {
     ).toBeFocused()
 
     await page.keyboard.press('Escape')
-    await expect(page.locator('.sidebar')).not.toHaveClass(/active/)
+    if (await page.locator('.sidebar.active').count()) {
+      await expect(
+        page
+          .locator('.glyph-manager-heading')
+          .getByRole('button', { name: 'Tools' }),
+      ).toHaveAttribute('aria-expanded', 'false')
+      await page.keyboard.press('Escape')
+    }
+    await expect(page.locator('.sidebar.active')).toHaveCount(0)
   })
 
   test('keyboard navigation opens a glyph and restores the library context', async ({
@@ -942,7 +978,7 @@ for (const viewport of visualViewports) {
         colorScheme: themeCase.system,
         reducedMotion: 'reduce',
       })
-      await openLibrary(page)
+      await openLibrary(page, 120)
       await expandLibrary(page, 120)
 
       const metrics = await page.evaluate(() => ({

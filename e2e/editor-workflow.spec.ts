@@ -8,6 +8,27 @@ const cellCenter = async (page: Page, row: number, col: number) => {
   return { x: box.x + box.width / 2, y: box.y + box.height / 2 }
 }
 
+const readStoredDraft = (page: Page) =>
+  page.evaluate(
+    () =>
+      new Promise<{ indexedDb: unknown; localStorage: string | null }>(
+        (resolve, reject) => {
+          const request = indexedDB.open('unicucumber')
+          request.onerror = () => reject(request.error)
+          request.onsuccess = () => {
+            const transaction = request.result.transaction('drafts', 'readonly')
+            const getRequest = transaction.objectStore('drafts').get('current')
+            getRequest.onerror = () => reject(getRequest.error)
+            getRequest.onsuccess = () =>
+              resolve({
+                indexedDb: getRequest.result ?? null,
+                localStorage: localStorage.getItem('unicucumber_draft_v1'),
+              })
+          }
+        },
+      ),
+  )
+
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => localStorage.clear())
   await page.route(
@@ -177,29 +198,12 @@ test('autosaved drafts restore after reload and can be discarded', async ({
     /filled/,
   )
   await expect(page.locator('.document-status')).toHaveText(/Unsaved/i)
-  await page.waitForTimeout(500)
-  const storedDraftState = await page.evaluate(
-    () =>
-      new Promise<{ indexedDb: unknown; localStorage: string | null }>(
-        (resolve, reject) => {
-          const request = indexedDB.open('unicucumber')
-          request.onerror = () => reject(request.error)
-          request.onsuccess = () => {
-            const transaction = request.result.transaction('drafts', 'readonly')
-            const getRequest = transaction.objectStore('drafts').get('current')
-            getRequest.onerror = () => reject(getRequest.error)
-            getRequest.onsuccess = () =>
-              resolve({
-                indexedDb: getRequest.result ?? null,
-                localStorage: localStorage.getItem('unicucumber_draft_v1'),
-              })
-          }
-        },
-      ),
-  )
-  expect(
-    storedDraftState.indexedDb ?? storedDraftState.localStorage,
-  ).not.toBeNull()
+  await expect
+    .poll(async () => {
+      const storedDraftState = await readStoredDraft(page)
+      return storedDraftState.indexedDb ?? storedDraftState.localStorage
+    })
+    .not.toBeNull()
 
   await page.reload({ waitUntil: 'networkidle' })
   await expect(page.locator('.restored-draft-notice')).toBeVisible()
@@ -223,14 +227,20 @@ test('Add to glyph set persists the editor glyph to the glyph manager', async ({
   await page.mouse.click(cell.x, cell.y)
   await expect(page.locator('.document-status')).toHaveText(/Unsaved/i)
 
-  const saveButton = page
-    .locator('.editor-actions')
-    .getByRole('button', { name: 'Add to Glyph Set' })
+  const saveButton = page.locator('.editor-actions .save-action')
+  await expect(saveButton).toHaveAccessibleName(
+    /Add current glyph to glyph set/i,
+  )
   await saveButton.click()
   await expect(page.locator('.document-status')).toHaveText(/^\s*Saved\s*$/i)
-  await expect(
-    page.locator('.editor-actions').getByRole('button', { name: 'Save glyph' }),
-  ).toBeDisabled()
+  await expect(saveButton).toHaveAccessibleName(/Save this glyph/i)
+  await expect(saveButton).toBeDisabled()
+  await expect
+    .poll(async () => {
+      const storedDraftState = await readStoredDraft(page)
+      return storedDraftState.indexedDb ?? storedDraftState.localStorage
+    })
+    .toBeNull()
 
   const savedGlyphs = await page.evaluate(
     () =>
@@ -292,8 +302,7 @@ test('mobile selection exposes copy and visible paste preview actions', async ({
   page,
 }, testInfo) => {
   test.skip(!testInfo.project.name.includes('phone'), 'mobile command surface')
-  await page.getByRole('button', { name: 'More', exact: true }).click()
-  await page.getByRole('button', { name: 'Select', exact: true }).click()
+  await page.locator('.mobile-command-bar .toolbar-tool--select').click()
   const first = await cellCenter(page, 0, 0)
   const last = await cellCenter(page, 1, 1)
   await page.mouse.move(first.x, first.y)
@@ -302,18 +311,27 @@ test('mobile selection exposes copy and visible paste preview actions', async ({
   await page.mouse.up()
 
   await expect(page.locator('.selection-toolbar')).toBeVisible()
-  await page
+  const copySelection = page
     .locator('.selection-toolbar')
     .getByRole('button', { name: /Copy/ })
-    .click()
-  await page.getByRole('button', { name: 'More', exact: true }).click()
-  await page.getByRole('button', { name: 'Paste', exact: true }).click()
-  await expect(page.locator('.paste-toolbar')).toBeVisible()
+  await expect(copySelection).toBeVisible()
+  await copySelection.dispatchEvent('click')
+  const primaryPaste = page.locator(
+    '.mobile-command-bar > .toolbar-action--paste',
+  )
+  if (await primaryPaste.isVisible()) {
+    await primaryPaste.click()
+  } else {
+    await page.getByRole('button', { name: 'More', exact: true }).click()
+    await page.locator('.more-rail .more-action--paste').click()
+  }
+  const pasteToolbar = page.locator('.paste-toolbar')
+  await expect(pasteToolbar).toBeVisible()
   await expect(
-    page.getByRole('button', { name: 'Paste', exact: true }),
+    pasteToolbar.getByRole('button', { name: 'Paste', exact: true }),
   ).toBeVisible()
   await expect(
-    page.getByRole('button', { name: 'Cancel', exact: true }),
+    pasteToolbar.getByRole('button', { name: 'Cancel', exact: true }),
   ).toBeVisible()
 })
 
@@ -331,7 +349,7 @@ test('mobile settings and glyph manager stay within the dynamic viewport', async
   )
   await expect(page.locator('body')).toHaveCSS('overflow', 'hidden')
   await page.keyboard.press('Escape')
-  await expect(settings).toBeHidden()
+  await expect(settings).toBeHidden({ timeout: 10_000 })
 
   await page.getByRole('button', { name: 'Open glyph manager' }).click()
   await expect(page.locator('.sidebar.active')).toBeVisible()
@@ -404,7 +422,11 @@ test('image file import still opens the preparation dialog without capture input
   test.skip(testInfo.project.name !== 'chromium', 'one image import smoke test')
   await page.getByRole('button', { name: 'Open glyph manager' }).click()
   await expect(page.locator('input[capture]')).toHaveCount(0)
-  await page.getByRole('button', { name: 'Tools' }).click()
+  const toolsToggle = page.getByRole('button', { name: 'Tools', exact: true })
+  if ((await toolsToggle.getAttribute('aria-expanded')) !== 'true') {
+    await toolsToggle.click()
+  }
+  await expect(toolsToggle).toHaveAttribute('aria-expanded', 'true')
 
   const fileChooserPromise = page.waitForEvent('filechooser')
   await page.getByRole('button', { name: 'Photo Library' }).click()

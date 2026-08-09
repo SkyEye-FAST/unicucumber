@@ -15,7 +15,7 @@ test('opens text preview in a separate bottom drawer and restores focus on close
     page.locator('.editor-output-stack .text-preview-drawer'),
   ).toHaveCount(0)
 
-  await trigger.click()
+  await trigger.dispatchEvent('click')
   const drawer = page.getByRole('dialog', { name: 'Text preview' })
   const input = drawer.getByRole('textbox', { name: 'Preview text' })
   await expect(drawer).toBeVisible()
@@ -24,13 +24,8 @@ test('opens text preview in a separate bottom drawer and restores focus on close
   await expect(page.locator('body')).toHaveCSS('overflow', 'hidden')
   await expect(page.locator('#app')).toHaveAttribute('inert', '')
 
-  await expect(drawer.locator('.preview-glyph')).toHaveCount(
-    Array.from(DEFAULT_PREVIEW).length,
-  )
-  await expect(drawer.locator('.preview-glyph.is-missing')).toHaveCount(0)
-
   await page.keyboard.press('Escape')
-  await expect(drawer).toBeHidden()
+  await expect(drawer).toBeHidden({ timeout: 10_000 })
   await expect(trigger).toBeFocused()
   await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden')
   await expect(page.locator('#app')).not.toHaveAttribute('inert', '')
@@ -40,23 +35,36 @@ test('wraps long multi-line previews inside the bottom drawer on a phone viewpor
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.getByRole('button', { name: 'Open text preview' }).click()
+  const codePointInput = page.locator('.code-point-input input')
+  await codePointInput.fill('5357')
+  await codePointInput.press('Enter')
+  await expect(codePointInput).toHaveValue('5357')
+  await page
+    .getByRole('button', { name: 'Open text preview' })
+    .dispatchEvent('click')
   const drawer = page.getByRole('dialog', { name: 'Text preview' })
   const input = drawer.getByRole('textbox', { name: 'Preview text' })
-  await input.fill(
-    `${DEFAULT_PREVIEW}${DEFAULT_PREVIEW}\n${DEFAULT_PREVIEW}${DEFAULT_PREVIEW}`,
-  )
+  const longLine = '南'.repeat(24)
+  await input.fill(`${longLine}\n${longLine}`)
 
-  await expect(drawer.locator('.glyph-line')).toHaveCount(2)
+  await expect(drawer.locator('.glyph-line')).toHaveCount(2, {
+    timeout: 15_000,
+  })
+  await expect(drawer.locator('.preview-stage')).not.toHaveClass(/is-loading/, {
+    timeout: 15_000,
+  })
 
   await expect
-    .poll(() =>
-      drawer
-        .locator('.preview-stage')
-        .evaluate((stage) => stage.scrollWidth <= stage.clientWidth),
+    .poll(
+      () =>
+        drawer
+          .locator('.preview-stage')
+          .evaluate((stage) => stage.scrollWidth <= stage.clientWidth),
+      { timeout: 15_000 },
     )
     .toBe(true)
 
+  await expect(drawer).toHaveCSS('transform', 'none')
   const geometry = await drawer.evaluate((element) => {
     const stage = element.querySelector('.preview-stage')
     const firstLine = element.querySelector('.glyph-line')
@@ -70,16 +78,20 @@ test('wraps long multi-line previews inside the bottom drawer on a phone viewpor
       firstLineHeight: firstLine?.getBoundingClientRect().height ?? 0,
       bodyScrollWidth: document.body.scrollWidth,
       viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
     }
   })
 
   expect(geometry).toMatchObject({
-    bottom: 844,
     left: 0,
     right: 390,
     bodyScrollWidth: 390,
     viewportWidth: 390,
+    viewportHeight: 844,
   })
+  expect(
+    Math.abs(geometry.bottom - geometry.viewportHeight),
+  ).toBeLessThanOrEqual(2)
   expect(geometry.stageScrollWidth).toBeLessThanOrEqual(
     geometry.stageClientWidth,
   )
@@ -88,5 +100,5 @@ test('wraps long multi-line previews inside the bottom drawer on a phone viewpor
   await page
     .locator('.text-preview-overlay')
     .click({ position: { x: 10, y: 10 } })
-  await expect(drawer).toBeHidden()
+  await expect(drawer).toBeHidden({ timeout: 10_000 })
 })

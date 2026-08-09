@@ -103,6 +103,20 @@ test.describe('responsive visual baseline', () => {
         await expect(page).toHaveTitle(/UniCucumber/i)
         await expect(page.locator('#app')).not.toBeEmpty()
         await expect(page.locator('.grid-container')).toBeVisible()
+        const remoteFontResources = await page.evaluate(() =>
+          performance
+            .getEntriesByType('resource')
+            .map((entry) => entry.name)
+            .filter((name) =>
+              /^https:\/\/(?:fonts\.(?:googleapis|gstatic)\.com|fontsapi\.zeoseven\.com)\//.test(
+                name,
+              ),
+            ),
+        )
+        expect(
+          remoteFontResources,
+          'startup must not depend on remote font stylesheets or binaries',
+        ).toEqual([])
 
         const metrics = await getLayoutMetrics(page)
         const screenshotDir = join(
@@ -137,6 +151,16 @@ test.describe('responsive visual baseline', () => {
         )
         expect(metrics.cellSize).not.toBeNull()
         expect(metrics.cellSize?.width).toBe(metrics.cellSize?.height)
+        const themeTransitionDurations = await page
+          .locator('.editor-header')
+          .evaluate((element) =>
+            getComputedStyle(element)
+              .transitionDuration.split(',')
+              .map((duration) => duration.trim()),
+          )
+        expect(
+          themeTransitionDurations.every((duration) => duration === '0s'),
+        ).toBe(true)
         if (viewport.width < 720) {
           expect(metrics.grid?.bottom ?? Infinity).toBeLessThanOrEqual(
             metrics.gridViewport?.bottom ?? 0,
@@ -147,6 +171,19 @@ test.describe('responsive visual baseline', () => {
         }
 
         if (viewport.width < 720) {
+          const headerTargetSizes = await page
+            .locator('.editor-header .modal-button')
+            .evaluateAll((buttons) =>
+              buttons.map((button) => {
+                const bounds = button.getBoundingClientRect()
+                return { width: bounds.width, height: bounds.height }
+              }),
+            )
+          expect(headerTargetSizes).toHaveLength(5)
+          headerTargetSizes.forEach(({ width, height }) => {
+            expect(width).toBeGreaterThanOrEqual(44)
+            expect(height).toBeGreaterThanOrEqual(44)
+          })
           const mobileCommandBar = page.locator('.mobile-command-bar')
           await expect(mobileCommandBar).toBeVisible()
           await expect(page.locator('.tool-buttons')).toBeHidden()
@@ -196,9 +233,9 @@ test.describe('responsive visual baseline', () => {
             mobileCommandBar.locator('.mobile-tool-sheet'),
           ).toHaveCount(0)
           const moreRail = mobileCommandBar.locator('.more-rail')
-          await expect(moreRail.locator('.more-action').first()).toContainText(
-            viewport.width >= 360 ? 'Flood fill' : 'Paste',
-          )
+          await expect(
+            moreRail.locator('.more-action:visible').first(),
+          ).toContainText(viewport.width >= 360 ? 'Flood fill' : 'Paste')
           const toolbarBounds = await mobileCommandBar.boundingBox()
           expect(metrics.grid?.bottom ?? Infinity).toBeLessThanOrEqual(
             toolbarBounds?.y ?? -1,
