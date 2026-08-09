@@ -4,8 +4,12 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-08-10
+
 ### Changed
 
+- Load the OpenType export engine only when an OTF export is requested, batch preview glyph loading, use offline-safe platform fonts, reduce repeated editor fingerprint and Unicode-name work, and honor reduced-motion preferences globally.
+- Preserve glyph-manager searches across sidebar reopen, allow Playwright runs to use an isolated server port, and keep the Vite config compatible with its native loader.
 - Require every change to be recorded here with an explicit release recommendation.
 - Wrap long text preview rows automatically and raise the input limit to 500 characters.
 - Expand the README Features section and development guide to document current editor, library, import/export, PWA, and maintenance capabilities.
@@ -13,6 +17,9 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Fixed
 
+- Recover touch input after interrupted pen interactions, preserve edits made while draft storage opens, restore 44-pixel mobile header targets, reject malformed draft grids safely, and retry IndexedDB after transient open failures.
+- Reflow the full-screen glyph library toolbar across wide desktop sizes and harden its responsive interaction checks.
+- Clear saved drafts reliably, make appearance choices fully clickable, restore drawer focus and mobile anchoring in Safari, keep narrow-screen export selectors reachable, and stabilize asynchronous preview, transition, and version checks.
 - Keep the glyph grid readable on height-constrained desktop and tablet viewports by fitting its zoom to the available width and preserving vertical panning.
 
 ## [1.4.0] - 2026-07-30
