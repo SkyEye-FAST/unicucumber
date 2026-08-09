@@ -613,18 +613,15 @@ const calculateFitCellSize = (): number => {
     1,
     (viewport?.clientWidth ?? window.innerWidth) - 4,
   )
-  const configuredMaxHeight = viewport
-    ? Number.parseFloat(window.getComputedStyle(viewport).maxHeight)
-    : Number.NaN
-  const availableHeight = Number.isFinite(configuredMaxHeight)
-    ? Math.max(1, configuredMaxHeight - 4)
-    : Number.POSITIVE_INFINITY
+  // Short desktop and tablet layouts deliberately keep this viewport shallow
+  // so the controls below it remain reachable. Preserve a usable cell size and
+  // let the existing pan interaction expose vertical overflow instead of
+  // shrinking the complete grid into that height allocation.
   return Math.max(
     MIN_CELL_SIZE,
     Math.min(
       DEFAULT_CELL_SIZE,
       Math.floor(availableWidth / (gridWidth.value + 1)),
-      Math.floor(availableHeight / (props.gridData.length + 1)),
     ),
   )
 }
