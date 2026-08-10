@@ -9,10 +9,18 @@ const viewports = [
   { name: 'large-phone', width: 412, height: 915 },
   { name: 'wide-phone', width: 480, height: 854 },
   { name: 'large-mobile', width: 600, height: 960 },
+  { name: 'tablet-short-wide', width: 720, height: 871 },
+  { name: 'tablet-short', width: 768, height: 871 },
+  { name: 'tablet-short-boundary', width: 899, height: 871 },
   { name: 'tablet-portrait', width: 768, height: 1024 },
   { name: 'tablet-landscape', width: 1024, height: 768 },
   { name: 'desktop-compact', width: 1280, height: 720 },
   { name: 'desktop', width: 1440, height: 900 },
+  { name: 'desktop-tall', width: 1440, height: 1200 },
+  { name: 'desktop-1300-height-871', width: 1300, height: 871 },
+  { name: 'desktop-1000-height-871', width: 1000, height: 871 },
+  { name: 'large-desktop-compact', width: 1560, height: 871 },
+  { name: 'large-desktop-tall', width: 1560, height: 1040 },
 ] as const
 
 const getLayoutMetrics = (page: Page) =>
@@ -149,6 +157,9 @@ test.describe('responsive visual baseline', () => {
         expect(metrics.grid?.top ?? -1).toBeGreaterThanOrEqual(
           metrics.gridViewport?.top ?? 0,
         )
+        expect(metrics.grid?.bottom ?? Infinity).toBeLessThanOrEqual(
+          metrics.gridViewport?.bottom ?? -1,
+        )
         expect(metrics.cellSize).not.toBeNull()
         expect(metrics.cellSize?.width).toBe(metrics.cellSize?.height)
         const themeTransitionDurations = await page
@@ -162,12 +173,16 @@ test.describe('responsive visual baseline', () => {
           themeTransitionDurations.every((duration) => duration === '0s'),
         ).toBe(true)
         if (viewport.width < 720) {
-          expect(metrics.grid?.bottom ?? Infinity).toBeLessThanOrEqual(
-            metrics.gridViewport?.bottom ?? 0,
-          )
           expect(metrics.cellSize?.width ?? 0).toBeGreaterThanOrEqual(17)
         } else {
-          expect(metrics.cellSize?.width).toBe(30)
+          expect(metrics.cellSize?.width ?? 0).toBeGreaterThanOrEqual(9)
+          expect(metrics.cellSize?.width ?? Infinity).toBeLessThanOrEqual(30)
+          if (
+            (viewport.height >= 800 && viewport.height <= 899) ||
+            (viewport.width >= 1200 && viewport.height >= 1000)
+          ) {
+            expect(metrics.cellSize?.width).toBe(30)
+          }
         }
 
         if (viewport.width < 720) {

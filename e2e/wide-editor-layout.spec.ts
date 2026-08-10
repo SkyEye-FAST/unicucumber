@@ -251,6 +251,7 @@ test.describe('wide editor layout', () => {
   for (const viewport of [
     { width: 1280, height: 720 },
     { width: 1440, height: 900 },
+    { width: 1440, height: 1200 },
   ]) {
     test(`keeps the editor chrome inside ${viewport.width}x${viewport.height}`, async ({
       page,
@@ -286,6 +287,29 @@ test.describe('wide editor layout', () => {
         ),
       )
       expect(documentHeight).toBeLessThanOrEqual(viewport.height + 1)
+    })
+  }
+
+  for (const viewport of [
+    { width: 720, height: 871 },
+    { width: 768, height: 871 },
+    { width: 899, height: 871 },
+    { width: 1000, height: 871 },
+    { width: 1300, height: 871 },
+    { width: 1560, height: 1040 },
+  ]) {
+    test(`keeps the grid primary on ${viewport.width}x${viewport.height}`, async ({
+      page,
+    }) => {
+      await loadWideEditor(page, viewport.width, viewport.height)
+
+      const grid = await getBounds(page, '.grid-viewport')
+      const hex = await getBounds(page, '.hex-code-container')
+      const exportPanel = await getBounds(page, '.export-panel')
+
+      expect(hex.top).toBeGreaterThanOrEqual(grid.bottom)
+      expect(exportPanel.top).toBeGreaterThanOrEqual(hex.bottom)
+      expect(exportPanel.right).toBeLessThanOrEqual(viewport.width)
     })
   }
 

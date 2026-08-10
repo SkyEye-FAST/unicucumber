@@ -340,6 +340,7 @@ const gridWidth = computed(() => props.gridData[0]?.length ?? 16)
 
 const DEFAULT_CELL_SIZE = 30
 const MIN_CELL_SIZE = 10
+const MIN_FIT_CELL_SIZE = 9
 const MAX_CELL_SIZE = 64
 const ZOOM_STEP = 2
 const cellSize = ref(DEFAULT_CELL_SIZE)
@@ -613,15 +614,28 @@ const calculateFitCellSize = (): number => {
     1,
     (viewport?.clientWidth ?? window.innerWidth) - 4,
   )
-  // Short desktop and tablet layouts deliberately keep this viewport shallow
-  // so the controls below it remain reachable. Preserve a usable cell size and
-  // let the existing pan interaction expose vertical overflow instead of
-  // shrinking the complete grid into that height allocation.
+  const configuredMaxHeight = viewport
+    ? Number.parseFloat(
+        window.getComputedStyle(viewport).maxHeight || viewport.style.maxHeight,
+      )
+    : Number.NaN
+  // Desktop and tablet layouts cap the viewport height so the controls below
+  // it remain reachable. Fit to that allocation as well as the width; otherwise
+  // the grid is rendered taller than its clipped viewport and the last rows
+  // cannot be seen after a reset. Mobile layouts have no max-height cap, so
+  // width remains the limiting dimension there.
+  const availableHeight = Number.isFinite(configuredMaxHeight)
+    ? Math.max(1, configuredMaxHeight - 4)
+    : Number.POSITIVE_INFINITY
+  const minimumCellSize = Number.isFinite(configuredMaxHeight)
+    ? MIN_FIT_CELL_SIZE
+    : MIN_CELL_SIZE
   return Math.max(
-    MIN_CELL_SIZE,
+    minimumCellSize,
     Math.min(
       DEFAULT_CELL_SIZE,
       Math.floor(availableWidth / (gridWidth.value + 1)),
+      Math.floor(availableHeight / (props.gridData.length + 1)),
     ),
   )
 }
@@ -646,8 +660,9 @@ const applyZoom = (
   const viewport = viewportRef.value
   if (!viewport) return
   const previous = cellSize.value
+  const minimumZoomSize = fitMode.value ? MIN_FIT_CELL_SIZE : MIN_CELL_SIZE
   const next = Math.max(
-    MIN_CELL_SIZE,
+    minimumZoomSize,
     Math.min(MAX_CELL_SIZE, Math.round(nextCellSize)),
   )
   if (next === previous) return
@@ -853,7 +868,7 @@ const handlePointerMove = (event: PointerEvent): void => {
     if (!first || !second || !viewportBounds) return
     const midpoint = pointMidpoint(first, second)
     const nextSize = Math.max(
-      MIN_CELL_SIZE,
+      MIN_FIT_CELL_SIZE,
       Math.min(
         MAX_CELL_SIZE,
         Math.round(
@@ -1219,8 +1234,22 @@ const handleKeyDown = (event: KeyboardEvent): void => {
 }
 
 let resizeObserver: ResizeObserver | null = null
+let fitFrame: number | null = null
+const scheduleFitToScreen = (): void => {
+  if (fitFrame !== null) return
+  const run = (): void => {
+    fitFrame = null
+    void fitToScreen()
+  }
+  if (typeof window.requestAnimationFrame === 'function') {
+    fitFrame = window.requestAnimationFrame(run)
+  } else {
+    run()
+  }
+}
+
 const handleViewportChange = (): void => {
-  if (fitMode.value) void fitToScreen()
+  if (fitMode.value) scheduleFitToScreen()
   else nextTick(clampPan)
 }
 
@@ -1239,6 +1268,8 @@ const handleVisibilityChange = (): void => {
 
 onBeforeUnmount(() => {
   resizeObserver?.disconnect()
+  if (fitFrame !== null) window.cancelAnimationFrame(fitFrame)
+  fitFrame = null
   window.visualViewport?.removeEventListener('resize', handleViewportChange)
   window.removeEventListener('blur', cancelInteraction)
   document.removeEventListener('visibilitychange', handleVisibilityChange)
@@ -1549,6 +1580,26 @@ defineExpose({
        natural grid size exceeds this allocation. */
     min-height: max(160px, min(260px, calc(100dvh - 37.5rem)));
     max-height: max(160px, calc(100dvh - 37.5rem));
+  }
+}
+
+@media (min-width: 1200px) and (min-height: 1000px) {
+  .grid-viewport {
+    /* Taller desktop screens have enough room for the editor chrome and the
+       default-size grid. Use the measured chrome budget instead of the compact
+       viewport reserve so a spacious screen does not show a tiny glyph grid. */
+    min-height: max(260px, min(510px, calc(100dvh - 24rem)));
+    max-height: max(510px, calc(100dvh - 24rem));
+  }
+}
+
+@media (min-width: 720px) and (min-height: 800px) and (max-height: 899px) {
+  .grid-viewport {
+    /* On large desktop windows the grid remains the primary vertical flow.
+       Let fit mode use its natural height so the 16×16 canvas can retain the
+       readable 30px cells; secondary panels may continue below the fold. */
+    min-height: 260px;
+    max-height: none;
   }
 }
 
