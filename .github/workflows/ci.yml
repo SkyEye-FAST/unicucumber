@@ -29,7 +29,35 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Quality checks
         run: pnpm check
-      - name: Test suite
-        run: pnpm test
       - name: Production build
         run: pnpm build
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Resolve pnpm store path
+        id: pnpm-store
+        run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v6
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+      - name: Browser workflows
+        run: pnpm test:e2e
+      - name: Build PWA for offline test
+        run: pnpm build
+      - name: PWA offline workflow
+        run: PWA_E2E=1 pnpm exec playwright test e2e/pwa-offline.spec.ts --project=chromium
