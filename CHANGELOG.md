@@ -4,11 +4,17 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+### Changed
+
+- Replace full-browser parsing of the bundled Unifont map with a compact build-generated catalog index, visible-range bitmap hydration, bounded versioned caches, and chunk-based BMP font export.
+
 ### Fixed
 
 - Fit the glyph grid to both available width and constrained desktop/tablet height so every row remains visible after resetting the view.
 - Preserve the default grid size on tall desktop screens when the surrounding editor has enough vertical room.
 - Avoid shrinking the glyph grid on desktop and tablet windows at least 720px wide around 871px high, while keeping secondary hexadecimal and export controls below it.
+
+- Harden glyph storage fallback and rollback semantics, clear stale drafts after undoing back to a saved document, reject invalid Unicode scalar values before saving, search Unicode names across the expanded catalog, preserve current catalog caches, restore current settings fixtures, and run browser/PWA workflows in CI without duplicating Vitest.
 
 ## [1.5.0] - 2026-08-10
 
