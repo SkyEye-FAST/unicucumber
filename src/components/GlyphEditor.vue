@@ -496,6 +496,7 @@ const prefillData = ref<PrefillData | null>(null)
 const hasUnsavedChanges = editorDocument.dirty
 type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error'
 const saveStatus = ref<SaveStatus>('saved')
+const getSaveStatus = (): SaveStatus => saveStatus.value
 const documentSaveStatus = computed<SaveStatus>(() => {
   if (saveStatus.value === 'error') return 'error'
   if (!hasUnsavedChanges.value) return 'saved'
@@ -715,7 +716,7 @@ const flushDraft = async (
     await flushDraftCleanup()
     return
   }
-  if (force && saveStatus.value !== 'saved') {
+  if (force && getSaveStatus() !== 'saved') {
     if (document.visibilityState === 'visible') {
       return flushDraft(true, hiddenRetryRemaining)
     }
