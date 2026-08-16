@@ -4,9 +4,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createGrid } from '@/utils/hexUtils'
 
 import {
+  FallbackGlyphRepository,
   IndexedDbGlyphRepository,
   LocalStorageGlyphRepository,
   StorageQuotaError,
+  StorageUnavailableError,
   validateDraft,
 } from './glyphRepository'
 
@@ -133,5 +135,56 @@ describe('glyph repository', () => {
         { codePoint: '0041', hexValue: '0'.repeat(32) },
       ]),
     ).rejects.toBeInstanceOf(StorageQuotaError)
+  })
+
+  it('selects the fallback once when the primary backend cannot initialize', async () => {
+    const primary = {
+      persistent: true,
+      migrateLegacyGlyphs: vi
+        .fn()
+        .mockRejectedValue(new StorageUnavailableError('blocked')),
+      listGlyphs: vi.fn(),
+      replaceGlyphs: vi.fn(),
+      saveDraft: vi.fn(),
+      loadDraft: vi.fn(),
+      deleteDraft: vi.fn(),
+    }
+    const fallback = {
+      persistent: false,
+      migrateLegacyGlyphs: vi.fn().mockResolvedValue({
+        migrated: 0,
+        rejected: 0,
+        alreadyComplete: true,
+      }),
+      listGlyphs: vi
+        .fn()
+        .mockResolvedValue([{ codePoint: '0041', hexValue: '0'.repeat(32) }]),
+      replaceGlyphs: vi.fn().mockResolvedValue(undefined),
+      saveDraft: vi.fn().mockResolvedValue(undefined),
+      loadDraft: vi.fn().mockResolvedValue(null),
+      deleteDraft: vi.fn().mockResolvedValue(undefined),
+    }
+    const repository = new FallbackGlyphRepository(primary, fallback)
+
+    await expect(repository.listGlyphs()).resolves.toHaveLength(1)
+    expect(repository.persistent).toBe(false)
+    await repository.replaceGlyphs([
+      { codePoint: '0042', hexValue: '0'.repeat(32) },
+    ])
+    expect(primary.replaceGlyphs).not.toHaveBeenCalled()
+    expect(fallback.replaceGlyphs).toHaveBeenCalledTimes(1)
+    expect(primary.migrateLegacyGlyphs).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not silently accept writes when local storage is unavailable', async () => {
+    const repository = new LocalStorageGlyphRepository(null)
+    await expect(repository.listGlyphs()).rejects.toBeInstanceOf(
+      StorageUnavailableError,
+    )
+    await expect(
+      repository.replaceGlyphs([
+        { codePoint: '0041', hexValue: '0'.repeat(32) },
+      ]),
+    ).rejects.toBeInstanceOf(StorageUnavailableError)
   })
 })

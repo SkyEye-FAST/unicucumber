@@ -390,27 +390,42 @@ export class LocalStorageGlyphRepository implements GlyphRepository {
 
   constructor(private readonly storage: Storage | null) {}
 
+  private requireStorage(): Storage {
+    if (!this.storage) {
+      throw new StorageUnavailableError('Local storage is unavailable.')
+    }
+    return this.storage
+  }
+
   async migrateLegacyGlyphs(): Promise<MigrationResult> {
-    const raw = this.storage?.getItem(LEGACY_GLYPHS_KEY)
-    if (!raw) return { migrated: 0, rejected: 0, alreadyComplete: true }
     try {
+      const raw = this.requireStorage().getItem(LEGACY_GLYPHS_KEY)
+      if (!raw) return { migrated: 0, rejected: 0, alreadyComplete: true }
       const result = validateGlyphCollection(JSON.parse(raw))
       return {
         migrated: result.glyphs.length,
         rejected: result.rejected,
         alreadyComplete: true,
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof StorageUnavailableError) throw error
+      if (error instanceof DOMException) {
+        throw toStorageError(error, 'reading saved glyphs')
+      }
       return { migrated: 0, rejected: 1, alreadyComplete: true }
     }
   }
 
   async listGlyphs(): Promise<Glyph[]> {
-    const raw = this.storage?.getItem(LEGACY_GLYPHS_KEY)
-    if (!raw) return []
     try {
+      const raw = this.requireStorage().getItem(LEGACY_GLYPHS_KEY)
+      if (!raw) return []
       return validateGlyphCollection(JSON.parse(raw)).glyphs
-    } catch {
+    } catch (error) {
+      if (error instanceof StorageUnavailableError) throw error
+      if (error instanceof DOMException) {
+        throw toStorageError(error, 'loading saved glyphs')
+      }
       return []
     }
   }
@@ -421,7 +436,10 @@ export class LocalStorageGlyphRepository implements GlyphRepository {
       throw new TypeError('Refusing to store an invalid glyph collection.')
     }
     try {
-      this.storage?.setItem(LEGACY_GLYPHS_KEY, JSON.stringify(validated.glyphs))
+      this.requireStorage().setItem(
+        LEGACY_GLYPHS_KEY,
+        JSON.stringify(validated.glyphs),
+      )
     } catch (error) {
       throw toStorageError(error, 'saving glyphs')
     }
@@ -432,35 +450,136 @@ export class LocalStorageGlyphRepository implements GlyphRepository {
     if (validated === null)
       throw new TypeError('Refusing to store an invalid draft.')
     try {
-      this.storage?.setItem(FALLBACK_DRAFT_KEY, JSON.stringify(validated))
+      this.requireStorage().setItem(
+        FALLBACK_DRAFT_KEY,
+        JSON.stringify(validated),
+      )
     } catch (error) {
       throw toStorageError(error, 'saving the current draft')
     }
   }
 
   async loadDraft(): Promise<StoredDraft | null> {
-    const raw = this.storage?.getItem(FALLBACK_DRAFT_KEY)
-    if (!raw) return null
     try {
+      const raw = this.requireStorage().getItem(FALLBACK_DRAFT_KEY)
+      if (!raw) return null
       return validateDraft(JSON.parse(raw))
-    } catch {
+    } catch (error) {
+      if (error instanceof StorageUnavailableError) throw error
+      if (error instanceof DOMException) {
+        throw toStorageError(error, 'loading the current draft')
+      }
       return null
     }
   }
 
   async deleteDraft(): Promise<void> {
-    this.storage?.removeItem(FALLBACK_DRAFT_KEY)
+    try {
+      this.requireStorage().removeItem(FALLBACK_DRAFT_KEY)
+    } catch (error) {
+      throw toStorageError(error, 'deleting the current draft')
+    }
+  }
+}
+
+export class FallbackGlyphRepository implements GlyphRepository {
+  private selected: GlyphRepository | null = null
+  private selectionPromise: Promise<GlyphRepository> | null = null
+  private migrationResult: MigrationResult | null = null
+
+  constructor(
+    private readonly primary: GlyphRepository,
+    private readonly fallback: GlyphRepository,
+  ) {}
+
+  get persistent(): boolean {
+    return this.selected?.persistent ?? this.primary.persistent
+  }
+
+  private selectRepository(): Promise<GlyphRepository> {
+    if (this.selected) return Promise.resolve(this.selected)
+    if (this.selectionPromise) return this.selectionPromise
+
+    const request = this.primary
+      .migrateLegacyGlyphs()
+      .then((result) => {
+        this.selected = this.primary
+        this.migrationResult = result
+        return this.primary
+      })
+      .catch(async (primaryError: unknown) => {
+        try {
+          const result = await this.fallback.migrateLegacyGlyphs()
+          this.selected = this.fallback
+          this.migrationResult = result
+          return this.fallback
+        } catch (fallbackError) {
+          throw new StorageUnavailableError(
+            'Primary and fallback glyph storage are unavailable.',
+            {
+              cause: new AggregateError(
+                [primaryError, fallbackError],
+                'Unable to select a glyph storage backend.',
+              ),
+            },
+          )
+        }
+      })
+      .finally(() => {
+        if (this.selectionPromise === request) this.selectionPromise = null
+      })
+
+    this.selectionPromise = request
+    return request
+  }
+
+  async migrateLegacyGlyphs(): Promise<MigrationResult> {
+    const repository = await this.selectRepository()
+    return this.migrationResult ?? repository.migrateLegacyGlyphs()
+  }
+
+  async listGlyphs(): Promise<Glyph[]> {
+    return (await this.selectRepository()).listGlyphs()
+  }
+
+  async replaceGlyphs(glyphs: readonly Glyph[]): Promise<void> {
+    return (await this.selectRepository()).replaceGlyphs(glyphs)
+  }
+
+  async saveDraft(draft: StoredDraft): Promise<void> {
+    return (await this.selectRepository()).saveDraft(draft)
+  }
+
+  async loadDraft(): Promise<StoredDraft | null> {
+    return (await this.selectRepository()).loadDraft()
+  }
+
+  async deleteDraft(): Promise<void> {
+    return (await this.selectRepository()).deleteDraft()
   }
 }
 
 let repository: GlyphRepository | null = null
 
+const getLocalStorage = (): Storage | null => {
+  if (typeof window === 'undefined') return null
+  try {
+    return window.localStorage
+  } catch {
+    return null
+  }
+}
+
 export const getGlyphRepository = (): GlyphRepository => {
   if (repository) return repository
-  const storage = typeof window === 'undefined' ? null : window.localStorage
+  const storage = getLocalStorage()
+  const fallback = new LocalStorageGlyphRepository(storage)
   repository =
     typeof indexedDB === 'undefined'
-      ? new LocalStorageGlyphRepository(storage)
-      : new IndexedDbGlyphRepository(indexedDB, storage)
+      ? fallback
+      : new FallbackGlyphRepository(
+          new IndexedDbGlyphRepository(indexedDB, storage),
+          fallback,
+        )
   return repository
 }
