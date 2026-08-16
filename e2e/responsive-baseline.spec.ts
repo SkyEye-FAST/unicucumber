@@ -91,9 +91,19 @@ test.describe('responsive visual baseline', () => {
           'the exact viewport matrix runs once; device projects cover configured profiles',
         )
         const messages: string[] = []
+        const remoteFontRequests: string[] = []
         page.on('console', (message) => {
           if (message.type() === 'error' || message.type() === 'warning') {
             messages.push(`${message.type()}: ${message.text()}`)
+          }
+        })
+        page.on('request', (request) => {
+          if (
+            /^https:\/\/(?:fonts\.googleapis\.com|fontsapi\.zeoseven\.com)\//.test(
+              request.url(),
+            )
+          ) {
+            remoteFontRequests.push(request.url())
           }
         })
         page.on('pageerror', (error) =>
@@ -111,20 +121,15 @@ test.describe('responsive visual baseline', () => {
         await expect(page).toHaveTitle(/UniCucumber/i)
         await expect(page.locator('#app')).not.toBeEmpty()
         await expect(page.locator('.grid-container')).toBeVisible()
-        const remoteFontResources = await page.evaluate(() =>
-          performance
-            .getEntriesByType('resource')
-            .map((entry) => entry.name)
-            .filter((name) =>
-              /^https:\/\/(?:fonts\.(?:googleapis|gstatic)\.com|fontsapi\.zeoseven\.com)\//.test(
-                name,
-              ),
-            ),
-        )
         expect(
-          remoteFontResources,
-          'startup must not depend on remote font stylesheets or binaries',
-        ).toEqual([])
+          remoteFontRequests,
+          'startup should request the preferred web font stylesheets',
+        ).toEqual(
+          expect.arrayContaining([
+            expect.stringMatching(/^https:\/\/fonts\.googleapis\.com\//),
+            expect.stringMatching(/^https:\/\/fontsapi\.zeoseven\.com\//),
+          ]),
+        )
 
         const metrics = await getLayoutMetrics(page)
         const screenshotDir = join(
