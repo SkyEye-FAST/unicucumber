@@ -8,6 +8,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 - Replace full-browser parsing of the bundled Unifont map with a compact build-generated catalog index, visible-range bitmap hydration, bounded versioned caches, and chunk-based BMP font export.
 - Restore preferred Google Fonts and ZeoSeven web-font stylesheets while retaining platform fallbacks for offline and blocked-network startup.
+- Update Vue to 3.5.41 and the development toolchain dependencies to their current patched releases.
 
 ### Fixed
 
