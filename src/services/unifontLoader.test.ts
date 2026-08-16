@@ -44,29 +44,53 @@ describe('UnifontLoader', () => {
     expect(fetcher).toHaveBeenCalledTimes(1)
   })
 
-  it('loads the complete catalog as normalized glyph records only once', async () => {
-    const fetcher = vi.fn().mockResolvedValue(
-      jsonResponse({
-        meta: { version: '17.0.03', source: 'unifont_all' },
-        glyphs: {
-          '65': 'aa'.repeat(16),
-          '19968': 'BB'.repeat(32),
-          invalid: '00',
-        },
-      }),
-    )
+  it('loads a lightweight sorted catalog index that matches the manifest version', async () => {
+    const fetcher = vi.fn().mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input)
+      return Promise.resolve(
+        url.endsWith('/index.json')
+          ? jsonResponse({
+              version: '17.0.03',
+              source: 'unifont_all',
+              chunkSize: 4096,
+              chunkCount: 272,
+            })
+          : jsonResponse({
+              version: '17.0.03',
+              ranges: [
+                [0x41, 0x41],
+                [0x4e00, 0x4e00],
+              ],
+            }),
+      )
+    })
     const loader = new UnifontLoader(fetcher)
     const [first, second] = await Promise.all([
-      loader.loadAllGlyphs(),
-      loader.loadAllGlyphs(),
+      loader.loadCatalogCodePoints(),
+      loader.loadCatalogCodePoints(),
     ])
-    expect(first).toEqual([
-      { codePoint: '0041', hexValue: 'AA'.repeat(16) },
-      { codePoint: '4E00', hexValue: 'BB'.repeat(32) },
-    ])
+    expect(first).toEqual([0x41, 0x4e00])
     expect(second).toBe(first)
-    expect(fetcher).toHaveBeenCalledWith('/unifont-map.json')
-    expect(fetcher).toHaveBeenCalledTimes(1)
+    expect(fetcher).toHaveBeenCalledTimes(2)
+  })
+
+  it('loads only the chunks needed for an explicit Unicode range', async () => {
+    const fetcher = vi.fn().mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url.endsWith('/000.json')) {
+        return Promise.resolve(jsonResponse({ '65': 'AA'.repeat(16) }))
+      }
+      if (url.endsWith('/001.json')) {
+        return Promise.resolve(jsonResponse({ '4096': 'BB'.repeat(32) }))
+      }
+      return Promise.resolve(jsonResponse({}))
+    })
+    const loader = new UnifontLoader(fetcher)
+    await expect(loader.loadGlyphsInRange(0x41, 0x1000)).resolves.toEqual([
+      { codePoint: '0041', hexValue: 'AA'.repeat(16) },
+      { codePoint: '1000', hexValue: 'BB'.repeat(32) },
+    ])
+    expect(fetcher).toHaveBeenCalledTimes(2)
   })
 
   it('deduplicates speculative and explicit requests for the same chunk', async () => {
@@ -102,6 +126,16 @@ describe('UnifontLoader', () => {
     await expect(loader.getGlyph(0x41)).rejects.toThrow('500')
     await expect(loader.getGlyph(0x41)).resolves.toBeNull()
     expect(fetcher).toHaveBeenCalledTimes(2)
+  })
+
+  it('rejects malformed chunk entries before caching them', async () => {
+    const loader = new UnifontLoader(
+      vi.fn().mockResolvedValue(jsonResponse({ '65': 'not-hex' })),
+    )
+    await expect(loader.getGlyph(0x41)).rejects.toThrow(
+      'Invalid Unifont chunk 000',
+    )
+    expect(loader.cachedChunkIds).toEqual([])
   })
 
   it('keeps background prefetch failures silent', async () => {

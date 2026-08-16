@@ -60,6 +60,29 @@ describe('GlyphLibraryGrid', () => {
     wrapper.unmount()
   })
 
+  it('hydrates visible bitmap data without mutating catalog records', async () => {
+    const source = [
+      { codePoint: '0041', hexValue: '' },
+      { codePoint: '0042', hexValue: '' },
+    ]
+    const wrapper = mountGrid('pixelOnly', { glyphs: source })
+    expect(wrapper.emitted('visible-code-points')?.[0]).toEqual([
+      ['0041', '0042'],
+    ])
+    expect(
+      wrapper.get('[data-code-point="0041"] svg').attributes('viewBox'),
+    ).toBe('0 0 16 16')
+
+    await wrapper.setProps({
+      resolvedHexValues: { '0041': `80${'00'.repeat(15)}` },
+    })
+    expect(
+      wrapper.get('[data-code-point="0041"] svg').attributes('viewBox'),
+    ).toBe('0 0 8 16')
+    expect(source[0]?.hexValue).toBe('')
+    wrapper.unmount()
+  })
+
   it.each([
     ['pixelOnly', 2, 0, 0],
     ['browserOnly', 0, 0, 2],

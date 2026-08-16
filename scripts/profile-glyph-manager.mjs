@@ -201,7 +201,11 @@ try {
       })
       localStorage.setItem(
         'unicucumber_settings',
-        JSON.stringify({ version: 2, glyphPreviewMode: 'both' }),
+        JSON.stringify({
+          version: 1,
+          baseline: '2026-07-settings-reset',
+          glyphPreviewMode: 'both',
+        }),
       )
     })
     await page.route(

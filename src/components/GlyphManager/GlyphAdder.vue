@@ -94,8 +94,10 @@ import { computed, watch } from 'vue'
 
 import { useI18n } from 'vue-i18n'
 
-import PixelPreview from './PixelPreview.vue'
+import { normalizeCodePointHex } from '@/utils/charUtils'
 import { getGlyphWidthFromHex, normalizeHex } from '@/utils/hexUtils'
+
+import PixelPreview from './PixelPreview.vue'
 
 interface GlyphData {
   codePoint: string
@@ -156,13 +158,11 @@ const updateCodePoint = (event: Event) => {
 
   let character = ''
   const hexDigits = extractHexDigits(normalizedCodePoint)
-  if (hexDigits && /^[0-9A-Fa-f]{1,6}$/.test(hexDigits)) {
-    try {
-      const cp = parseInt(hexDigits, 16)
-      if (cp >= 0 && cp <= 0x10ffff) {
-        character = String.fromCodePoint(cp)
-      }
-    } catch {}
+  const normalizedHexCodePoint = normalizeCodePointHex(hexDigits)
+  if (normalizedHexCodePoint !== null) {
+    character = String.fromCodePoint(
+      Number.parseInt(normalizedHexCodePoint, 16),
+    )
   }
 
   emit('update:modelValue', {
@@ -201,7 +201,7 @@ const updateCharacter = (event: Event) => {
 
 const isValidInput = computed(() => {
   const hexDigits = extractHexDigits(props.modelValue.codePoint)
-  const isValidCodePoint = /^[0-9A-Fa-f]{1,6}$/.test(hexDigits)
+  const isValidCodePoint = normalizeCodePointHex(hexDigits) !== null
   const hasValidHex =
     (props.prefillData && props.prefillData.hexValue) ||
     normalizeHex(props.modelValue.hexValue) !== null
@@ -212,7 +212,7 @@ const getAddButtonTitle = computed(() => {
   if (!props.modelValue.codePoint)
     return $t('glyph_manager.validation.enter_code_point')
   const hexDigits = extractHexDigits(props.modelValue.codePoint)
-  if (!/^[0-9A-Fa-f]{1,6}$/.test(hexDigits))
+  if (normalizeCodePointHex(hexDigits) === null)
     return $t('glyph_manager.validation.invalid_code_point')
   if (!props.prefillData && normalizeHex(props.modelValue.hexValue) === null) {
     return $t('glyph_manager.validation.invalid_hex')

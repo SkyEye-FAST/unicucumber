@@ -3,12 +3,13 @@ import {
   type UnifontManifest,
 } from '@/services/unifontManifest'
 import type { Glyph } from '@/types/glyph'
+import { isUnicodeScalarValue } from '@/utils/charUtils'
 import { normalizeHex } from '@/utils/hexUtils'
 
 export type UnifontChunk = Record<string, string>
 
 export const getUnifontChunkId = (codePoint: number): string => {
-  if (!Number.isInteger(codePoint) || codePoint < 0 || codePoint > 0x10ffff) {
+  if (!isUnicodeScalarValue(codePoint)) {
     throw new RangeError('Invalid Unicode code point.')
   }
   return Math.floor(codePoint / 0x1000)
@@ -32,7 +33,7 @@ export class UnifontLoader {
   private readonly resolvedChunks = new Map<string, UnifontChunk>()
   private readonly activeChunks = new Map<string, Promise<UnifontChunk>>()
   private manifestPromise: Promise<UnifontManifest> | null = null
-  private allGlyphsPromise: Promise<Glyph[]> | null = null
+  private catalogPromise: Promise<number[]> | null = null
 
   constructor(
     private readonly fetcher: typeof fetch = (input, init) =>
@@ -60,44 +61,101 @@ export class UnifontLoader {
     return request
   }
 
-  loadAllGlyphs(): Promise<Glyph[]> {
-    if (this.allGlyphsPromise) return this.allGlyphsPromise
-    const request = this.fetcher('/unifont-map.json')
-      .then(async (response) => {
+  loadCatalogCodePoints(): Promise<number[]> {
+    if (this.catalogPromise) return this.catalogPromise
+    const request = Promise.all([
+      this.loadManifest(),
+      this.fetcher(`${this.basePath}/catalog.json`),
+    ])
+      .then(async ([manifest, response]) => {
         if (!response.ok) {
-          throw new Error(`Unifont glyph catalog: ${response.status}`)
+          throw new Error(`Unifont catalog index: ${response.status}`)
         }
         const value = (await response.json()) as {
-          glyphs?: Record<string, unknown>
+          version?: unknown
+          ranges?: unknown
         }
-        if (!value?.glyphs || typeof value.glyphs !== 'object') {
-          throw new TypeError('Invalid Unifont glyph catalog.')
+        if (
+          value?.version !== manifest.version ||
+          !Array.isArray(value.ranges)
+        ) {
+          throw new TypeError('Invalid Unifont catalog index.')
         }
-        return Object.entries(value.glyphs).flatMap(([decimal, hexValue]) => {
-          const codePoint = Number.parseInt(decimal, 10)
+
+        const codePoints: number[] = []
+        let previous = -1
+        for (const range of value.ranges) {
           if (
-            !Number.isInteger(codePoint) ||
-            codePoint < 0 ||
-            codePoint > 0x10ffff ||
-            typeof hexValue !== 'string' ||
-            normalizeHex(hexValue) === null
+            !Array.isArray(range) ||
+            range.length !== 2 ||
+            typeof range[0] !== 'number' ||
+            typeof range[1] !== 'number' ||
+            !isUnicodeScalarValue(range[0]) ||
+            !isUnicodeScalarValue(range[1]) ||
+            range[0] > range[1] ||
+            range[0] <= previous ||
+            (range[0] <= 0xdfff && range[1] >= 0xd800)
           ) {
-            return []
+            throw new TypeError('Invalid Unifont catalog range.')
           }
-          return [
-            {
-              codePoint: codePoint.toString(16).toUpperCase().padStart(4, '0'),
-              hexValue: hexValue.toUpperCase(),
-            },
-          ]
-        })
+          for (
+            let codePoint = range[0];
+            codePoint <= range[1];
+            codePoint += 1
+          ) {
+            codePoints.push(codePoint)
+          }
+          previous = range[1]
+        }
+        return codePoints
       })
       .catch((error) => {
-        if (this.allGlyphsPromise === request) this.allGlyphsPromise = null
+        if (this.catalogPromise === request) this.catalogPromise = null
         throw error
       })
-    this.allGlyphsPromise = request
+    this.catalogPromise = request
     return request
+  }
+
+  async loadGlyphsInRange(start: number, end: number): Promise<Glyph[]> {
+    if (
+      !isUnicodeScalarValue(start) ||
+      !isUnicodeScalarValue(end) ||
+      start > end
+    ) {
+      throw new RangeError('Invalid Unicode code point range.')
+    }
+
+    const firstChunk = Number.parseInt(getUnifontChunkId(start), 16)
+    const lastChunk = Number.parseInt(getUnifontChunkId(end), 16)
+    const chunks = await Promise.all(
+      Array.from({ length: lastChunk - firstChunk + 1 }, (_, offset) =>
+        this.loadChunk(
+          (firstChunk + offset).toString(16).toUpperCase().padStart(3, '0'),
+        ),
+      ),
+    )
+
+    return chunks.flatMap((chunk) =>
+      Object.entries(chunk).flatMap(([decimal, hexValue]) => {
+        const codePoint = Number.parseInt(decimal, 10)
+        const normalizedHex = normalizeHex(hexValue)
+        if (
+          !isUnicodeScalarValue(codePoint) ||
+          codePoint < start ||
+          codePoint > end ||
+          normalizedHex === null
+        ) {
+          return []
+        }
+        return [
+          {
+            codePoint: codePoint.toString(16).toUpperCase().padStart(4, '0'),
+            hexValue: normalizedHex.toUpperCase(),
+          },
+        ]
+      }),
+    )
   }
 
   loadChunkForCodePoint(codePoint: number): Promise<UnifontChunk> {
@@ -131,7 +189,22 @@ export class UnifontLoader {
         ) {
           throw new TypeError(`Invalid Unifont chunk ${normalized}.`)
         }
-        const chunk = value as UnifontChunk
+        const chunk: UnifontChunk = {}
+        for (const [decimal, hexValue] of Object.entries(value)) {
+          const codePoint = /^\d+$/.test(decimal)
+            ? Number.parseInt(decimal, 10)
+            : Number.NaN
+          const normalizedHex =
+            typeof hexValue === 'string' ? normalizeHex(hexValue) : null
+          if (
+            !isUnicodeScalarValue(codePoint) ||
+            getUnifontChunkId(codePoint) !== normalized ||
+            normalizedHex === null
+          ) {
+            throw new TypeError(`Invalid Unifont chunk ${normalized}.`)
+          }
+          chunk[String(codePoint)] = normalizedHex.toUpperCase()
+        }
         this.resolvedChunks.set(normalized, chunk)
         while (this.resolvedChunks.size > this.maxChunks) {
           const oldest = this.resolvedChunks.keys().next().value

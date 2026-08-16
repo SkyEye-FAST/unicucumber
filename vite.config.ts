@@ -7,7 +7,7 @@ import AutoImport from 'unplugin-auto-import/vite'
 import IconsResolver from 'unplugin-icons/resolver'
 import Icons from 'unplugin-icons/vite'
 import Components from 'unplugin-vue-components/vite'
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import { VitePWA } from 'vite-plugin-pwa'
 import vueDevTools from 'vite-plugin-vue-devtools'
@@ -62,7 +62,74 @@ const getUnifontVersion = (): string => {
   return ''
 }
 
+const getUnifontCatalog = (version: string): string => {
+  const value = JSON.parse(
+    readFileSync(
+      new URL('./public/unifont-map.json', import.meta.url),
+      'utf-8',
+    ),
+  ) as {
+    meta?: { version?: unknown }
+    glyphs?: Record<string, unknown>
+  }
+  if (
+    !version ||
+    value.meta?.version !== version ||
+    value.glyphs === null ||
+    typeof value.glyphs !== 'object'
+  ) {
+    throw new TypeError('Invalid Unifont source map for catalog generation.')
+  }
+
+  const codePoints = Object.keys(value.glyphs)
+    .map((decimal) =>
+      /^\d+$/.test(decimal) ? Number.parseInt(decimal, 10) : Number.NaN,
+    )
+    .sort((left, right) => left - right)
+  if (codePoints.length === 0) {
+    throw new TypeError('Unifont source map contains no glyphs.')
+  }
+  const ranges: Array<[number, number]> = []
+  let previous = -1
+  for (const codePoint of codePoints) {
+    if (
+      !Number.isInteger(codePoint) ||
+      codePoint < 0 ||
+      codePoint > 0x10ffff ||
+      (codePoint >= 0xd800 && codePoint <= 0xdfff) ||
+      codePoint <= previous
+    ) {
+      throw new TypeError('Invalid Unifont code point in source map.')
+    }
+    const range = ranges[ranges.length - 1]
+    if (range && codePoint === range[1] + 1) range[1] = codePoint
+    else ranges.push([codePoint, codePoint])
+    previous = codePoint
+  }
+  return JSON.stringify({ version, ranges })
+}
+
+const createUnifontCatalogPlugin = (catalog: string): Plugin => ({
+  name: 'unicucumber-unifont-catalog',
+  configureServer(server) {
+    server.middlewares.use('/unifont/catalog.json', (_request, response) => {
+      response.statusCode = 200
+      response.setHeader('Content-Type', 'application/json; charset=utf-8')
+      response.setHeader('Cache-Control', 'no-store')
+      response.end(catalog)
+    })
+  },
+  generateBundle() {
+    this.emitFile({
+      type: 'asset',
+      fileName: 'unifont/catalog.json',
+      source: catalog,
+    })
+  },
+})
+
 const unifontVersion = getUnifontVersion()
+const unifontCatalog = getUnifontCatalog(unifontVersion)
 const unifontCaches = getUnifontRuntimeCacheNames(unifontVersion)
 const packageVersion = JSON.parse(
   readFileSync(new URL('./package.json', import.meta.url), 'utf-8'),
@@ -78,6 +145,7 @@ export default defineConfig(({ command }) => ({
     'import.meta.env.VITE_UNIFONT_VERSION': JSON.stringify(unifontVersion),
   },
   plugins: [
+    createUnifontCatalogPlugin(unifontCatalog),
     vue({
       script: {
         // Vite 8 runs the SFC compiler through Rolldown, where Vue cannot
@@ -143,10 +211,10 @@ export default defineConfig(({ command }) => ({
             },
           },
           {
-            urlPattern: /\/unifont-map\.json$/,
+            urlPattern: /\/unifont\/catalog\.json$/,
             handler: 'CacheFirst',
             options: {
-              cacheName: `${unifontCaches.chunks}-catalog`,
+              cacheName: unifontCaches.catalog,
               cacheableResponse: { statuses: [200] },
               expiration: {
                 maxEntries: 1,

@@ -47,6 +47,22 @@ test('production shell reloads offline after service-worker installation', async
   })
   await expect
     .poll(() =>
+      page.evaluate(async () => (await fetch('/unifont/catalog.json')).ok),
+    )
+    .toBe(true)
+  await expect
+    .poll(() =>
+      page.evaluate(
+        async (version) =>
+          (await caches.keys()).some((name) =>
+            name.startsWith(`unicucumber-unifont-catalog-${version}`),
+          ),
+        unifontVersion,
+      ),
+    )
+    .toBe(true)
+  await expect
+    .poll(() =>
       page.evaluate(async () => {
         const response = await fetch('/unifont/000.json')
         return response.ok
@@ -79,6 +95,11 @@ test('production shell reloads offline after service-worker installation', async
     await expect(page.locator('.offline-indicator')).toBeVisible()
     expect(
       await page.evaluate(async () => (await fetch('/unifont/000.json')).ok),
+    ).toBe(true)
+    expect(
+      await page.evaluate(
+        async () => (await fetch('/unifont/catalog.json')).ok,
+      ),
     ).toBe(true)
     expect(failures).toEqual([])
   } finally {

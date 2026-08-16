@@ -35,12 +35,17 @@ describe('Unifont manifest schema', () => {
         .mockResolvedValue([
           'unicucumber-unifont-chunks-16.0.01',
           'unicucumber-unifont-chunks-17.0.03',
+          'unicucumber-unifont-chunks-17.0.03-catalog',
+          'unicucumber-unifont-catalog-17.0.03',
           'unrelated-cache',
         ]),
       delete: remove,
     })
     await cleanupStaleUnifontCaches('17.0.03')
-    expect(remove).toHaveBeenCalledOnce()
+    expect(remove).toHaveBeenCalledTimes(2)
     expect(remove).toHaveBeenCalledWith('unicucumber-unifont-chunks-16.0.01')
+    expect(remove).toHaveBeenCalledWith(
+      'unicucumber-unifont-chunks-17.0.03-catalog',
+    )
   })
 })

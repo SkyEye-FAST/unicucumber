@@ -37,6 +37,7 @@ export const getUnifontRuntimeCacheNames = (version: string) => {
   return {
     manifest: `unicucumber-unifont-manifest-${suffix}`,
     chunks: `unicucumber-unifont-chunks-${suffix}`,
+    catalog: `unicucumber-unifont-catalog-${suffix}`,
   }
 }
 

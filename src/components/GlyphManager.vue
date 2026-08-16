@@ -160,12 +160,14 @@
       :initial-scroll-top="matrixScrollTop"
       :preview-mode="settings.glyphPreviewMode"
       :modified-code-points="modifiedCodePoints"
+      :resolved-hex-values="catalogHexValues"
       :selected-code-points="selectedCodePoints"
       :selection-mode="selectionMode"
       @open="handleLibraryOpen"
       @scroll-position="matrixScrollTop = $event"
       @set-selection="setGlyphSelection"
       @toggle-selection="toggleGlyphSelection"
+      @visible-code-points="hydrateCatalogGlyphs"
     />
 
     <p class="visually-hidden" aria-live="polite" aria-atomic="true">
@@ -221,7 +223,7 @@ import { useI18n } from 'vue-i18n'
 import { useNotifications } from '@/composables/useNotifications'
 import { useSettings } from '@/composables/useSettings'
 import { UNICODE_BLOCKS } from '@/data/unicodeBlocks'
-import { unifontLoader } from '@/services/unifontLoader'
+import { getUnifontChunkId, unifontLoader } from '@/services/unifontLoader'
 import type {
   DialogConfig,
   Glyph,
@@ -234,6 +236,7 @@ import type {
   GridData,
   ImageWithDimensions,
 } from '@/types/glyph'
+import { normalizeCodePointHex } from '@/utils/charUtils'
 import { canvasToBlob } from '@/utils/exportUtils'
 import {
   createBdfFont,
@@ -284,12 +287,15 @@ const unicodeBlock = ref<GlyphUnicodeBlockFilter>('all')
 const editMode = ref<boolean>(false)
 const duplicateGlyph = ref<Glyph | null>(null)
 const pendingImageFile = ref<File | null>(null)
-const unicodeNames = ref<Record<string, string>>({})
+const unicodeNameMatches = shallowRef<ReadonlySet<string>>(new Set())
+const catalogHexMatches = shallowRef<ReadonlySet<string>>(new Set())
 const selectedCodePoints = ref<string[]>([])
 const selectionMode = ref(false)
 const compactToolsOpen = ref(false)
 const matrixScrollTop = ref(0)
-const unifontGlyphs = shallowRef<Glyph[]>([])
+const unifontCatalogGlyphs = shallowRef<Glyph[]>([])
+const catalogHexValues = shallowRef<Record<string, string>>({})
+const unifontBaselineHex = shallowRef<Record<string, string | null>>({})
 const catalogLoading = ref(false)
 const catalogError = shallowRef<Error | null>(null)
 const fontExportBusy = ref(false)
@@ -317,6 +323,12 @@ let nameLookupRequest = 0
 let unifontPrefetchTimer = 0
 let narrowViewportQuery: MediaQueryList | null = null
 let catalogLoadPromise: Promise<void> | null = null
+let baselineLookupRequest = 0
+let hexLookupRequest = 0
+let catalogHydrationQueue: Promise<void> = Promise.resolve()
+const hydratedCatalogChunkKeys = new Map<string, string[]>()
+const hydratedCatalogChunkOrder: string[] = []
+const MAX_HYDRATED_CATALOG_CHUNKS = 8
 
 const { settings } = useSettings()
 
@@ -343,11 +355,11 @@ const selectedUnicodeBlock = computed(() =>
 )
 
 const catalogGlyphs = computed<Glyph[]>(() => {
-  if (!unifontGlyphs.value.length) return props.glyphs
+  if (!unifontCatalogGlyphs.value.length) return props.glyphs
   const overrides = new Map(
     props.glyphs.map((glyph) => [formatGlyphCodePoint(glyph.codePoint), glyph]),
   )
-  const merged = unifontGlyphs.value.map((glyph) => {
+  const merged = unifontCatalogGlyphs.value.map((glyph) => {
     const codePoint = formatGlyphCodePoint(glyph.codePoint)
     const override = overrides.get(codePoint)
     if (!override) return glyph
@@ -360,22 +372,13 @@ const managedCodePointSet = computed(
   () =>
     new Set(props.glyphs.map((glyph) => formatGlyphCodePoint(glyph.codePoint))),
 )
-const unifontGlyphByCodePoint = computed(
-  () =>
-    new Map(
-      unifontGlyphs.value.map((glyph) => [
-        formatGlyphCodePoint(glyph.codePoint),
-        glyph.hexValue.toUpperCase(),
-      ]),
-    ),
-)
 const modifiedCodePoints = computed(() => {
-  if (!unifontGlyphs.value.length) return []
   return props.glyphs
     .filter((glyph) => {
       const codePoint = formatGlyphCodePoint(glyph.codePoint)
-      const original = unifontGlyphByCodePoint.value.get(codePoint)
-      return !original || original !== glyph.hexValue.toUpperCase()
+      if (!(codePoint in unifontBaselineHex.value)) return false
+      const original = unifontBaselineHex.value[codePoint]
+      return original === null || original !== glyph.hexValue.toUpperCase()
     })
     .map((glyph) => formatGlyphCodePoint(glyph.codePoint))
 })
@@ -391,15 +394,107 @@ const selectedAddableCodePoints = computed(() =>
   ),
 )
 
+const loadGlyphBaselines = async (
+  glyphs: readonly Glyph[],
+  tolerateErrors = true,
+): Promise<Record<string, string | null>> => {
+  const baselines: Record<string, string | null> = {}
+  for (let index = 0; index < glyphs.length; index += 50) {
+    const batch = glyphs.slice(index, index + 50)
+    const results = await Promise.all(
+      batch.map(async (glyph) => {
+        const codePoint = formatGlyphCodePoint(glyph.codePoint)
+        try {
+          const hexValue = await unifontLoader.getGlyph(
+            Number.parseInt(codePoint, 16),
+          )
+          return [codePoint, hexValue?.toUpperCase() ?? null] as const
+        } catch (error) {
+          if (!tolerateErrors) throw error
+          return [codePoint, undefined] as const
+        }
+      }),
+    )
+    for (const [codePoint, hexValue] of results) {
+      if (hexValue !== undefined) baselines[codePoint] = hexValue
+    }
+  }
+  return baselines
+}
+
+const refreshManagedBaselines = async (): Promise<void> => {
+  const request = ++baselineLookupRequest
+  const baselines = await loadGlyphBaselines(props.glyphs)
+  if (request === baselineLookupRequest) {
+    unifontBaselineHex.value = baselines
+  }
+}
+
+const hydrateCatalogGlyphs = (codePoints: string[]): void => {
+  const chunkIds = Array.from(
+    new Set(
+      codePoints.map((codePoint) =>
+        getUnifontChunkId(Number.parseInt(codePoint, 16)),
+      ),
+    ),
+  )
+  if (chunkIds.length === 0) return
+
+  catalogHydrationQueue = catalogHydrationQueue
+    .catch(() => undefined)
+    .then(async () => {
+      const chunks = await Promise.all(
+        chunkIds.map(async (chunkId) => ({
+          chunkId,
+          chunk: await unifontLoader.loadChunk(chunkId),
+        })),
+      )
+      const next = { ...catalogHexValues.value }
+      for (const { chunkId, chunk } of chunks) {
+        const keys: string[] = []
+        for (const [decimal, hexValue] of Object.entries(chunk)) {
+          const codePoint = Number.parseInt(decimal, 10)
+          const normalizedHex = normalizeHex(hexValue)
+          if (!Number.isInteger(codePoint) || normalizedHex === null) continue
+          const key = formatGlyphCodePoint(codePoint.toString(16))
+          next[key] = normalizedHex.toUpperCase()
+          keys.push(key)
+        }
+        hydratedCatalogChunkKeys.set(chunkId, keys)
+        const existingIndex = hydratedCatalogChunkOrder.indexOf(chunkId)
+        if (existingIndex >= 0)
+          hydratedCatalogChunkOrder.splice(existingIndex, 1)
+        hydratedCatalogChunkOrder.push(chunkId)
+      }
+
+      while (hydratedCatalogChunkOrder.length > MAX_HYDRATED_CATALOG_CHUNKS) {
+        const evicted = hydratedCatalogChunkOrder.shift()
+        if (!evicted) break
+        for (const key of hydratedCatalogChunkKeys.get(evicted) ?? []) {
+          delete next[key]
+        }
+        hydratedCatalogChunkKeys.delete(evicted)
+      }
+      catalogHexValues.value = next
+    })
+    .catch((error) => {
+      console.error('Unable to hydrate visible Unifont glyphs.', error)
+    })
+}
+
 const loadUnifontCatalog = (): Promise<void> => {
-  if (unifontGlyphs.value.length) return Promise.resolve()
+  if (unifontCatalogGlyphs.value.length) return Promise.resolve()
   if (catalogLoadPromise) return catalogLoadPromise
   catalogLoading.value = true
   catalogError.value = null
   const request = unifontLoader
-    .loadAllGlyphs()
-    .then((glyphs) => {
-      unifontGlyphs.value = glyphs
+    .loadCatalogCodePoints()
+    .then((codePoints) => {
+      unifontCatalogGlyphs.value = codePoints.map((codePoint) => ({
+        codePoint: formatGlyphCodePoint(codePoint.toString(16)),
+        hexValue: '',
+      }))
+      void refreshManagedBaselines()
     })
     .catch((error) => {
       catalogError.value =
@@ -515,11 +610,19 @@ const handleEscape = (): boolean => {
 watch(isExpanded, (expanded, wasExpanded) => {
   if (expanded) {
     libraryAnnouncement.value = $t('glyph_manager.library.entered_fullscreen')
+    void refreshManagedBaselines()
   } else if (wasExpanded) {
     libraryAnnouncement.value = $t('glyph_manager.library.exited_fullscreen')
     nextTick(() => expandButton.value?.focus())
   }
 })
+
+watch(
+  () => props.glyphs,
+  () => {
+    if (isExpanded.value) void refreshManagedBaselines()
+  },
+)
 
 watch(catalogGlyphs, (glyphs) => {
   const validCodePoints = new Set(
@@ -547,13 +650,8 @@ const normalizeCodePoint = (input: string): string => {
   return normalized
 }
 
-const normalizeCodePointForStorage = (input: string): string => {
-  const normalized = normalizeCodePoint(input)
-  if (normalized.length < 4) {
-    return normalized.padStart(4, '0')
-  }
-  return normalized
-}
+const normalizeCodePointForStorage = (input: string): string | null =>
+  normalizeCodePointHex(normalizeCodePoint(input))
 
 const normalizeCodePointForExport = (codePoint: string): string => {
   if (codePoint.length < 4) {
@@ -607,15 +705,19 @@ const addGlyphsToManager = async (
 
 const addSelectedGlyphsToManager = async (): Promise<void> => {
   const selected = new Set(selectedAddableCodePoints.value)
-  const additions = catalogGlyphs.value.filter((glyph) =>
-    selected.has(formatGlyphCodePoint(glyph.codePoint)),
-  )
+  const additions = (
+    await Promise.all(
+      catalogGlyphs.value
+        .filter((glyph) => selected.has(formatGlyphCodePoint(glyph.codePoint)))
+        .map((glyph) => resolveCatalogGlyph(glyph)),
+    )
+  ).filter((glyph): glyph is Glyph => glyph !== null)
   if ((await addGlyphsToManager(additions)).length > 0) clearSelection()
 }
 
 const isValidInput = computed(() => {
-  const normalizedCodePoint = normalizeCodePoint(newGlyph.value.codePoint)
-  const isValidCodePoint = /^[0-9A-Fa-f]{1,6}$/.test(normalizedCodePoint)
+  const isValidCodePoint =
+    normalizeCodePointForStorage(newGlyph.value.codePoint) !== null
   const hasValidHex =
     (props.prefillData && props.prefillData.hexValue) ||
     normalizeHex(newGlyph.value.hexValue) !== null
@@ -629,6 +731,7 @@ const addGlyph = (): void => {
     ? props.prefillData.hexValue.toUpperCase()
     : newGlyph.value.hexValue.toUpperCase()
   const codePoint = normalizeCodePointForStorage(newGlyph.value.codePoint)
+  if (codePoint === null) return
   const updatedGlyphs = [
     ...props.glyphs,
     {
@@ -680,6 +783,7 @@ const updateExistingGlyph = (): void => {
     ? props.prefillData.hexValue.toUpperCase()
     : newGlyph.value.hexValue.toUpperCase()
   const codePoint = normalizeCodePointForStorage(newGlyph.value.codePoint)
+  if (codePoint === null) return
   const updatedGlyphs = props.glyphs.map((g) =>
     normalizeCodePoint(g.codePoint) ===
     normalizeCodePoint(newGlyph.value.codePoint)
@@ -772,36 +876,90 @@ const filteredGlyphs = computed<Glyph[]>(() => {
       return false
     }
     if (!query) return true
+    const searchableHex =
+      glyph.hexValue || catalogHexValues.value[codePoint] || ''
     const character = String.fromCodePoint(
       parseInt(glyph.codePoint, 16),
     ).toLowerCase()
     return (
       glyph.codePoint.toLowerCase().includes(query) ||
-      glyph.hexValue.toLowerCase().includes(query) ||
+      searchableHex.toLowerCase().includes(query) ||
       character.includes(query) ||
-      (unicodeNames.value[glyph.codePoint] || '').toLowerCase().includes(query)
+      unicodeNameMatches.value.has(glyph.codePoint) ||
+      catalogHexMatches.value.has(glyph.codePoint)
     )
   })
 })
 
-watch(searchQuery, async (query) => {
+watch([searchQuery, isExpanded], async ([query, expanded]) => {
+  const request = ++hexLookupRequest
+  catalogHexMatches.value = new Set()
+  const normalizedQuery = query.trim().toUpperCase()
+  if (
+    !expanded ||
+    normalizedQuery.length <= 6 ||
+    !/^[0-9A-F]+$/.test(normalizedQuery)
+  ) {
+    return
+  }
+
+  try {
+    const manifest = await unifontLoader.loadManifest()
+    const matches = new Set<string>()
+    const batchSize = 8
+    for (let start = 0; start < manifest.chunkCount; start += batchSize) {
+      if (request !== hexLookupRequest) return
+      const chunks = await Promise.all(
+        Array.from(
+          { length: Math.min(batchSize, manifest.chunkCount - start) },
+          (_, offset) =>
+            unifontLoader.loadChunk(
+              (start + offset).toString(16).toUpperCase().padStart(3, '0'),
+            ),
+        ),
+      )
+      for (const chunk of chunks) {
+        for (const [decimal, hexValue] of Object.entries(chunk)) {
+          if (hexValue.includes(normalizedQuery)) {
+            matches.add(
+              formatGlyphCodePoint(Number.parseInt(decimal, 10).toString(16)),
+            )
+          }
+        }
+      }
+      if (start + batchSize < manifest.chunkCount) {
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 0))
+      }
+    }
+    if (request === hexLookupRequest) catalogHexMatches.value = matches
+  } catch (error) {
+    console.error('Unable to search the Unifont bitmap catalog.', error)
+  }
+})
+
+watch([searchQuery, isExpanded, catalogGlyphs], async ([query]) => {
   const request = ++nameLookupRequest
-  if (query.trim().length < 2 || !/[g-z\s-]/i.test(query)) return
+  unicodeNameMatches.value = new Set()
+  const normalizedQuery = query.trim().toLowerCase()
+  if (normalizedQuery.length < 2 || !/[g-z\s-]/i.test(normalizedQuery)) return
   try {
     const module = await import('unicode-name')
     const lookup = module.unicodeName ?? module.default?.unicodeName
     if (!lookup) return
-    for (let index = 0; index < props.glyphs.length; index += 50) {
+    const source = isExpanded.value ? catalogGlyphs.value : props.glyphs
+    const matches = new Set<string>()
+    for (let index = 0; index < source.length; index += 500) {
       if (request !== nameLookupRequest) return
-      const additions: Record<string, string> = {}
-      props.glyphs.slice(index, index + 50).forEach((glyph) => {
-        if (unicodeNames.value[glyph.codePoint] !== undefined) return
-        additions[glyph.codePoint] =
+      source.slice(index, index + 500).forEach((glyph) => {
+        const name =
           lookup(String.fromCodePoint(parseInt(glyph.codePoint, 16))) || ''
+        if (name.toLowerCase().includes(normalizedQuery)) {
+          matches.add(glyph.codePoint)
+        }
       })
-      Object.assign(unicodeNames.value, additions)
       await new Promise<void>((resolve) => window.setTimeout(resolve, 0))
     }
+    if (request === nameLookupRequest) unicodeNameMatches.value = matches
   } catch (error) {
     console.error($t('glyph_manager.error.loading_unicode_names'), error)
     notify({
@@ -824,19 +982,37 @@ const editGlyph = (glyph: Glyph): void => {
   compactToolsOpen.value = true
 }
 
-const handleEditInGrid = (glyph: Glyph): void => {
-  emit('edit-in-grid', glyph.hexValue, glyph)
+const resolveCatalogGlyph = async (glyph: Glyph): Promise<Glyph | null> => {
+  if (glyph.hexValue) return glyph
+  const codePoint = formatGlyphCodePoint(glyph.codePoint)
+  const cachedHexValue = catalogHexValues.value[codePoint]
+  if (cachedHexValue) return { codePoint, hexValue: cachedHexValue }
+  try {
+    const hexValue = await unifontLoader.getGlyph(
+      Number.parseInt(codePoint, 16),
+    )
+    return hexValue ? { codePoint, hexValue: hexValue.toUpperCase() } : null
+  } catch {
+    return null
+  }
+}
+
+const handleEditInGrid = async (glyph: Glyph): Promise<void> => {
+  const resolved = await resolveCatalogGlyph(glyph)
+  if (resolved) emit('edit-in-grid', resolved.hexValue, resolved)
 }
 
 const handleLibraryOpen = async (glyph: Glyph): Promise<void> => {
-  const additions = await addGlyphsToManager([glyph])
+  const resolved = await resolveCatalogGlyph(glyph)
+  if (!resolved) return
+  const additions = await addGlyphsToManager([resolved])
   if (
-    !managedCodePointSet.value.has(formatGlyphCodePoint(glyph.codePoint)) &&
+    !managedCodePointSet.value.has(formatGlyphCodePoint(resolved.codePoint)) &&
     additions.length === 0
   ) {
     return
   }
-  handleEditInGrid(glyph)
+  await handleEditInGrid(resolved)
 }
 
 const exportToHex = (): void => {
@@ -900,20 +1076,30 @@ const exportBackup = (): void => {
 }
 
 const resolveFontExportGlyphs = async (): Promise<Glyph[]> => {
-  await loadUnifontCatalog()
-  if (catalogError.value || unifontGlyphs.value.length === 0) {
-    throw (
-      catalogError.value ?? new Error('The bundled Unifont catalog is empty.')
-    )
-  }
   if (fontExportScope.value === 'modified') {
-    return props.glyphs.filter((glyph) =>
-      modifiedSet.value.has(formatGlyphCodePoint(glyph.codePoint)),
-    )
+    const baselines = await loadGlyphBaselines(props.glyphs, false)
+    unifontBaselineHex.value = baselines
+    return props.glyphs.filter((glyph) => {
+      const codePoint = formatGlyphCodePoint(glyph.codePoint)
+      if (!(codePoint in baselines)) return false
+      const original = baselines[codePoint]
+      return original === null || original !== glyph.hexValue.toUpperCase()
+    })
   }
-  return catalogGlyphs.value.filter(
-    (glyph) => Number.parseInt(glyph.codePoint, 16) <= 0xffff,
+  const officialGlyphs = await unifontLoader.loadGlyphsInRange(0, 0xffff)
+  const overrides = new Map(
+    props.glyphs
+      .filter((glyph) => Number.parseInt(glyph.codePoint, 16) <= 0xffff)
+      .map((glyph) => [formatGlyphCodePoint(glyph.codePoint), glyph]),
   )
+  const merged = officialGlyphs.map((glyph) => {
+    const codePoint = formatGlyphCodePoint(glyph.codePoint)
+    const override = overrides.get(codePoint)
+    if (!override) return glyph
+    overrides.delete(codePoint)
+    return { ...override, codePoint }
+  })
+  return sortGlyphsByCodePoint([...merged, ...overrides.values()])
 }
 
 const fontExportFilename = (
@@ -1204,11 +1390,7 @@ const processImageFile = async (
   const nameMatch = file.name?.match(/^([^.]+)/) || ['']
   const fileName = nameMatch[0]
   const normalizedCodePoint = normalizeCodePoint(fileName)
-  let useCodePoint = ''
-
-  if (/^[0-9A-F]{1,6}$/.test(normalizedCodePoint)) {
-    useCodePoint = normalizeCodePointForStorage(fileName)
-  }
+  const useCodePoint = normalizeCodePointHex(normalizedCodePoint) ?? ''
 
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')
@@ -1400,9 +1582,7 @@ const handlePreparedImage = (grid: GridData): void => {
   pendingImageFile.value = null
   const fileName = file.name.match(/^([^.]+)/)?.[0] || ''
   const normalizedCodePoint = normalizeCodePoint(fileName)
-  const codePoint = /^[0-9A-F]{1,6}$/.test(normalizedCodePoint)
-    ? normalizeCodePointForStorage(fileName)
-    : ''
+  const codePoint = normalizeCodePointHex(normalizedCodePoint) ?? ''
   const glyph: Glyph = { codePoint, hexValue: gridToHex(grid) }
 
   if (!codePoint) {

@@ -16,14 +16,64 @@ const repository = vi.hoisted(() => ({
   listGlyphs: vi.fn(),
   replaceGlyphs: vi.fn().mockResolvedValue(undefined),
 }))
-const unifont = vi.hoisted(() => ({
-  loadAllGlyphs: vi.fn().mockResolvedValue([
+const unifont = vi.hoisted(() => {
+  let records: Array<{ codePoint: string; hexValue: string }> = [
     { codePoint: '0041', hexValue: 'AA'.repeat(16) },
     { codePoint: '0042', hexValue: '55'.repeat(32) },
-  ]),
-  getGlyph: vi.fn(),
-  prefetchCodePoint: vi.fn().mockResolvedValue(undefined),
-}))
+  ]
+  const setGlyphs = (
+    next: Array<{ codePoint: string; hexValue: string }>,
+  ): void => {
+    records = next
+  }
+  return {
+    setGlyphs,
+    loadManifest: vi.fn().mockResolvedValue({
+      version: '17.0.05',
+      source: 'unifont_all',
+      chunkSize: 4096,
+      chunkCount: 1,
+    }),
+    loadCatalogCodePoints: vi.fn(() =>
+      Promise.resolve(
+        records.map((glyph) => Number.parseInt(glyph.codePoint, 16)),
+      ),
+    ),
+    loadChunk: vi.fn((chunkId: string) => {
+      const start = Number.parseInt(chunkId, 16) * 0x1000
+      const end = start + 0xfff
+      return Promise.resolve(
+        Object.fromEntries(
+          records
+            .filter((glyph) => {
+              const codePoint = Number.parseInt(glyph.codePoint, 16)
+              return codePoint >= start && codePoint <= end
+            })
+            .map((glyph) => [
+              String(Number.parseInt(glyph.codePoint, 16)),
+              glyph.hexValue,
+            ]),
+        ),
+      )
+    }),
+    loadGlyphsInRange: vi.fn((start: number, end: number) =>
+      Promise.resolve(
+        records.filter((glyph) => {
+          const codePoint = Number.parseInt(glyph.codePoint, 16)
+          return codePoint >= start && codePoint <= end
+        }),
+      ),
+    ),
+    getGlyph: vi.fn((codePoint: number) =>
+      Promise.resolve(
+        records.find(
+          (glyph) => Number.parseInt(glyph.codePoint, 16) === codePoint,
+        )?.hexValue ?? null,
+      ),
+    ),
+    prefetchCodePoint: vi.fn().mockResolvedValue(undefined),
+  }
+})
 const fontExports = vi.hoisted(() => ({
   createPixelFont: vi.fn<
     (glyphs: Glyph[], format: string, metadata: unknown) => Promise<Uint8Array>
@@ -67,6 +117,15 @@ const mockViewport = (matches: boolean): void => {
 
 beforeEach(() => {
   mockViewport(false)
+  unifont.setGlyphs([
+    { codePoint: '0041', hexValue: 'AA'.repeat(16) },
+    { codePoint: '0042', hexValue: '55'.repeat(32) },
+  ])
+  unifont.loadManifest.mockClear()
+  unifont.loadCatalogCodePoints.mockClear()
+  unifont.loadChunk.mockClear()
+  unifont.loadGlyphsInRange.mockClear()
+  unifont.getGlyph.mockClear()
   fontExports.createPixelFont.mockClear()
   Object.defineProperty(URL, 'createObjectURL', {
     configurable: true,
@@ -130,6 +189,25 @@ describe('GlyphManager full-screen state', () => {
     await toggle.trigger('click')
     expect(toggle.attributes('aria-expanded')).toBe('true')
     expect(wrapper.get('#compact-glyph-tools').isVisible()).toBe(true)
+    wrapper.unmount()
+  })
+
+  it('keeps the add action disabled for non-scalar Unicode code points', async () => {
+    const wrapper = mountManager({ glyphs: [] })
+    await flushPromises()
+    const codePoint = wrapper.get<HTMLInputElement>('.codepoint-input')
+    const hexValue = wrapper.get<HTMLInputElement>(
+      '.add-glyph .input-group > input.input',
+    )
+    const addButton = wrapper.get<HTMLButtonElement>('.btn-add')
+    await hexValue.setValue('00'.repeat(16))
+
+    await codePoint.setValue('D800')
+    expect(addButton.attributes('disabled')).toBeDefined()
+    await codePoint.setValue('110000')
+    expect(addButton.attributes('disabled')).toBeDefined()
+    await codePoint.setValue('0041')
+    expect(addButton.attributes('disabled')).toBeUndefined()
     wrapper.unmount()
   })
 
@@ -210,7 +288,7 @@ describe('GlyphManager full-screen state', () => {
   })
 
   it('merges the Unifont catalog and filters it by Unicode plane and block', async () => {
-    unifont.loadAllGlyphs.mockResolvedValueOnce([
+    unifont.setGlyphs([
       { codePoint: '0041', hexValue: '00'.repeat(16) },
       { codePoint: '3400', hexValue: '11'.repeat(32) },
       { codePoint: '4E00', hexValue: '22'.repeat(32) },
@@ -239,9 +317,30 @@ describe('GlyphManager full-screen state', () => {
     wrapper.unmount()
   })
 
+  it('scans chunk data only for explicit bitmap searches in the expanded catalog', async () => {
+    unifont.setGlyphs([
+      { codePoint: '0041', hexValue: 'AA'.repeat(16) },
+      { codePoint: '0042', hexValue: '55'.repeat(32) },
+    ])
+    const wrapper = mountManager({ glyphs: [] })
+    await wrapper.get('.glyph-manager-expand').trigger('click')
+    await flushPromises()
+
+    await wrapper.get('.library-search input').setValue('AAAAAAAA')
+    await vi.waitFor(() =>
+      expect(wrapper.findAll('.glyph-library-cell')).toHaveLength(1),
+    )
+    expect(
+      wrapper.get('.glyph-library-cell').attributes('data-code-point'),
+    ).toBe('0041')
+    expect(unifont.loadManifest).toHaveBeenCalledTimes(1)
+    expect(unifont.loadChunk).toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
   it('marks only changed Unifont data and adds selected library glyphs to the manager', async () => {
     const onGlyphChange = vi.fn().mockResolvedValue(undefined)
-    unifont.loadAllGlyphs.mockResolvedValueOnce([
+    unifont.setGlyphs([
       { codePoint: '0041', hexValue: 'AA'.repeat(16) },
       { codePoint: '0042', hexValue: '55'.repeat(32) },
       { codePoint: '0043', hexValue: 'CC'.repeat(16) },
@@ -276,7 +375,7 @@ describe('GlyphManager full-screen state', () => {
   })
 
   it('keeps font export available without saved glyphs and uses the complete official profile', async () => {
-    unifont.loadAllGlyphs.mockResolvedValueOnce([
+    unifont.setGlyphs([
       { codePoint: '0041', hexValue: 'AA'.repeat(16) },
       { codePoint: '0042', hexValue: '55'.repeat(32) },
       { codePoint: '1F600', hexValue: '00'.repeat(32) },
@@ -314,7 +413,7 @@ describe('GlyphManager full-screen state', () => {
   })
 
   it('exports only glyphs that differ from bundled Unifont when requested', async () => {
-    unifont.loadAllGlyphs.mockResolvedValueOnce([
+    unifont.setGlyphs([
       { codePoint: '0041', hexValue: 'AA'.repeat(16) },
       { codePoint: '0042', hexValue: '55'.repeat(32) },
     ])

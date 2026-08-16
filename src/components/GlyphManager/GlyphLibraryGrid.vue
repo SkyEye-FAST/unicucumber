@@ -177,6 +177,7 @@ const props = withDefaults(
     initialScrollTop?: number
     modifiedCodePoints?: string[]
     previewMode: GlyphPreviewMode
+    resolvedHexValues?: Readonly<Record<string, string>>
     selectedCodePoints: string[]
     selectionMode: boolean
   }>(),
@@ -184,6 +185,7 @@ const props = withDefaults(
     activeCodePoint: '',
     initialScrollTop: 0,
     modifiedCodePoints: () => [],
+    resolvedHexValues: () => ({}),
   },
 )
 
@@ -192,6 +194,7 @@ const emit = defineEmits<{
   'scroll-position': [position: number]
   'set-selection': [codePoint: string, selected: boolean]
   'toggle-selection': [codePoint: string]
+  'visible-code-points': [codePoints: string[]]
 }>()
 
 const scrollContainer = ref<HTMLElement | null>(null)
@@ -257,10 +260,24 @@ const virtualWindow = computed(() => {
 const visibleGlyphs = computed(() =>
   baseGlyphs.value
     .slice(virtualWindow.value.startIndex, virtualWindow.value.endIndex)
-    .map((glyph, offset) => ({
-      glyph: prepareGlyphPreview(glyph),
-      index: virtualWindow.value.startIndex + offset,
-    })),
+    .map((glyph, offset) => {
+      const resolvedHexValue = glyph.hexValue
+        ? undefined
+        : props.resolvedHexValues[glyph.codePoint]
+      return {
+        glyph: prepareGlyphPreview(
+          resolvedHexValue === undefined
+            ? glyph
+            : { ...glyph, hexValue: resolvedHexValue },
+        ),
+        index: virtualWindow.value.startIndex + offset,
+      }
+    }),
+)
+const visibleCodePoints = computed(() =>
+  baseGlyphs.value
+    .slice(virtualWindow.value.startIndex, virtualWindow.value.endIndex)
+    .map((glyph) => glyph.codePoint),
 )
 const topSpacerHeight = computed(() => {
   if (!usesVirtualization.value || !columnsMeasured.value) return 0
@@ -302,6 +319,14 @@ const scrollbarThumbStyle = computed(() => ({
   height: `${scrollbarThumbSize.value}px`,
   transform: `translateY(${scrollbarThumbOffset.value}px)`,
 }))
+
+watch(
+  visibleCodePoints,
+  (codePoints) => {
+    if (codePoints.length > 0) emit('visible-code-points', codePoints)
+  },
+  { immediate: true },
+)
 
 const normalizeCodePoint = (value: string): string =>
   value.trim() ? value.trim().toUpperCase().padStart(4, '0') : ''

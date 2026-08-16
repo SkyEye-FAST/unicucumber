@@ -1,8 +1,17 @@
 import { expect, test, type Page } from '@playwright/test'
 
+import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 type ThemePreference = 'auto' | 'light' | 'dark'
+const UNIFONT_TEST_VERSION = (
+  JSON.parse(
+    readFileSync(
+      new URL('../public/unifont/index.json', import.meta.url),
+      'utf-8',
+    ),
+  ) as { version: string }
+).version
 
 const makeGlyphs = (count: number) =>
   Array.from({ length: count }, (_, index) => {
@@ -27,6 +36,14 @@ const seedGlyphs = async (
   themePreference: ThemePreference = 'auto',
 ) => {
   const glyphs = makeGlyphs(count)
+  const ranges: Array<[number, number]> = []
+  for (const codePoint of glyphs
+    .map((glyph) => Number.parseInt(glyph.codePoint, 16))
+    .sort((left, right) => left - right)) {
+    const range = ranges[ranges.length - 1]
+    if (range && codePoint === range[1] + 1) range[1] = codePoint
+    else ranges.push([codePoint, codePoint])
+  }
   await page.addInitScript(
     ({ items, theme }) => {
       localStorage.clear()
@@ -35,7 +52,8 @@ const seedGlyphs = async (
       localStorage.setItem(
         'unicucumber_settings',
         JSON.stringify({
-          version: 2,
+          version: 1,
+          baseline: '2026-07-settings-reset',
           glyphPreviewMode: 'both',
           glyphLibraryDensity: 'comfortable',
         }),
@@ -47,20 +65,36 @@ const seedGlyphs = async (
     /^https:\/\/(fonts\.googleapis|fontsapi\.zeoseven)\.com\//,
     (route) => route.fulfill({ contentType: 'text/css', body: '' }),
   )
-  await page.route('**/unifont-map.json', (route) =>
+  await page.route('**/unifont/catalog.json', (route) =>
     route.fulfill({
       contentType: 'application/json',
-      body: JSON.stringify({
-        meta: { version: 'test', source: 'e2e' },
-        glyphs: Object.fromEntries(
-          glyphs.map((glyph) => [
-            Number.parseInt(glyph.codePoint, 16),
-            glyph.hexValue,
-          ]),
-        ),
-      }),
+      body: JSON.stringify({ version: UNIFONT_TEST_VERSION, ranges }),
     }),
   )
+  await page.route(/\/unifont\/[0-9A-Fa-f]{3}\.json$/, (route) => {
+    const chunkId = route
+      .request()
+      .url()
+      .match(/\/([0-9A-Fa-f]{3})\.json$/)?.[1]
+    const chunkStart = Number.parseInt(chunkId ?? '', 16) * 0x1000
+    const chunkEnd = chunkStart + 0xfff
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify(
+        Object.fromEntries(
+          glyphs
+            .filter((glyph) => {
+              const codePoint = Number.parseInt(glyph.codePoint, 16)
+              return codePoint >= chunkStart && codePoint <= chunkEnd
+            })
+            .map((glyph) => [
+              String(Number.parseInt(glyph.codePoint, 16)),
+              glyph.hexValue,
+            ]),
+        ),
+      ),
+    })
+  })
 }
 
 const seedIndexedDbGlyphs = async (page: Page, count: number) => {
@@ -741,8 +775,8 @@ test.describe('full-screen glyph library', () => {
     }
     const downloadPromise = page.waitForEvent('download')
     await page.getByRole('button', { name: /Web Open Font 2/ }).click()
-    await expect((await downloadPromise).suggestedFilename()).toMatch(
-      /^Unifont-17\.0\.05\.woff2$/,
+    expect((await downloadPromise).suggestedFilename()).toBe(
+      `Unifont-${UNIFONT_TEST_VERSION}.woff2`,
     )
 
     await page

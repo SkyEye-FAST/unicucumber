@@ -53,9 +53,12 @@ generated-data commands change files, so review their diffs before committing.
   depend on optional clipboard, sharing, or camera APIs.
 - `src/utils` contains pure glyph conversion, image preparation, selection, import,
   and verified export helpers.
-- `public/unifont/*.json` contains generated 4,096-code-point lookup ranges. The
-  glyph manager fetches only the required range and keeps a bounded eight-range
-  cache instead of parsing the legacy 9.6 MB map.
+- `public/unifont/*.json` contains generated 4,096-code-point lookup ranges. Vite
+  derives a compact range index from `public/unifont-map.json` for development and
+  production builds; the full-screen catalog loads that index and hydrates only
+  visible bitmap chunks with a bounded cache. Full BMP font exports also assemble
+  their data from the required chunks instead of parsing the complete map in the
+  browser.
 
 ## Updating Unifont data
 
