@@ -89,4 +89,32 @@ describe('shared glyph library', () => {
     expect(useGlyphLibrary().glyphs.value).toEqual([added])
     expect(repository.replaceGlyphs).toHaveBeenCalledWith([added])
   })
+
+  it('rolls back to the last persisted collection when a write fails', async () => {
+    const original = { codePoint: '0041', hexValue: '00'.repeat(16) }
+    const replacement = { codePoint: '0042', hexValue: 'AA'.repeat(16) }
+    repository.listGlyphs.mockResolvedValue([original])
+    repository.replaceGlyphs.mockRejectedValueOnce(new Error('quota'))
+
+    await loadGlyphLibrary()
+    await expect(replaceGlyphLibrary([replacement])).rejects.toThrow('quota')
+
+    expect(useGlyphLibrary().glyphs.value).toEqual([original])
+  })
+
+  it('rolls back to the latest successful write after a later write fails', async () => {
+    const original = { codePoint: '0041', hexValue: '00'.repeat(16) }
+    const first = { codePoint: '0042', hexValue: 'AA'.repeat(16) }
+    const second = { codePoint: '0043', hexValue: '55'.repeat(16) }
+    repository.listGlyphs.mockResolvedValue([original])
+    repository.replaceGlyphs
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error('quota'))
+
+    await loadGlyphLibrary()
+    await replaceGlyphLibrary([first])
+    await expect(replaceGlyphLibrary([second])).rejects.toThrow('quota')
+
+    expect(useGlyphLibrary().glyphs.value).toEqual([first])
+  })
 })

@@ -509,6 +509,8 @@ const pendingRestoredDraft = ref<StoredDraft | null>(null)
 let draftTimer: number | null = null
 let storageReady = false
 let draftFlushPromise: Promise<void> | null = null
+let draftCleanupPromise: Promise<void> | null = null
+let draftCleanupPending = false
 let draftRevision = 0
 let unregisterDraftFlusher: (() => void) | null = null
 const showDialog = ref<boolean>(false)
@@ -599,10 +601,13 @@ const initializeDraftStorage = async (): Promise<void> => {
     if (draft && draftRevision === initialRevision) {
       editorDocument.load(draft.snapshot, 'restored-draft', false)
       settings.value.glyphWidth = draft.snapshot.width
-      if (draft.snapshot.grid.some((row) => row.some((cell) => cell === 1))) {
+      if (hasUnsavedChanges.value) {
         pendingRestoredDraft.value = draft
+        saveStatus.value = 'unsaved'
+      } else {
+        draftCleanupPending = true
+        saveStatus.value = 'saving'
       }
-      saveStatus.value = 'unsaved'
     }
     if (!glyphRepository.persistent) {
       notify({ tone: 'warning', message: $t('storage.fallback_warning') })
@@ -614,17 +619,51 @@ const initializeDraftStorage = async (): Promise<void> => {
   } finally {
     storageReady = true
     if (draftRevision !== initialRevision) {
-      saveStatus.value = 'unsaved'
-      queueDraftSave()
+      if (hasUnsavedChanges.value) {
+        saveStatus.value = 'unsaved'
+        queueDraftSave()
+      } else {
+        draftCleanupPending = true
+        saveStatus.value = 'saving'
+      }
+    }
+    if (draftCleanupPending && !hasUnsavedChanges.value) {
+      void flushDraftCleanup().catch(() => undefined)
     }
   }
 }
 
-const flushDraft = async (force = false): Promise<void> => {
+const flushDraft = async (
+  force = false,
+  hiddenRetryRemaining = force ? 1 : 0,
+): Promise<void> => {
   if (!storageReady) return
+  if (draftFlushPromise) {
+    await draftFlushPromise
+    if (draftCleanupPending && !hasUnsavedChanges.value) {
+      await flushDraftCleanup()
+      return
+    }
+    if (force && saveStatus.value !== 'saved') {
+      if (document.visibilityState === 'visible') {
+        return flushDraft(true, hiddenRetryRemaining)
+      }
+      if (hiddenRetryRemaining > 0) {
+        return flushDraft(true, hiddenRetryRemaining - 1)
+      }
+    }
+    return
+  }
+  if (draftCleanupPending && !hasUnsavedChanges.value) {
+    await flushDraftCleanup()
+    return
+  }
   if (saveStatus.value === 'saved') return
   if (!settings.value.autoSaveEnabled && !force) return
-  if (draftFlushPromise) return draftFlushPromise
+  if (draftCleanupPromise) {
+    await draftCleanupPromise.catch(() => undefined)
+    if (!hasUnsavedChanges.value) return
+  }
   if (draftTimer !== null) {
     window.clearTimeout(draftTimer)
     draftTimer = null
@@ -641,9 +680,12 @@ const flushDraft = async (force = false): Promise<void> => {
     .then(() => {
       if (draftRevision === revision) {
         saveStatus.value = 'saved'
-      } else {
+      } else if (hasUnsavedChanges.value) {
         saveStatus.value = 'unsaved'
         queueDraftSave()
+      } else {
+        draftCleanupPending = true
+        saveStatus.value = 'saving'
       }
     })
     .catch((error: unknown) => {
@@ -662,8 +704,59 @@ const flushDraft = async (force = false): Promise<void> => {
     })
     .finally(() => {
       draftFlushPromise = null
+      if (draftCleanupPending && !hasUnsavedChanges.value) {
+        void flushDraftCleanup().catch(() => undefined)
+      }
     })
-  return draftFlushPromise
+  const activeFlush = draftFlushPromise
+  if (!force) return activeFlush
+  await activeFlush
+  if (draftCleanupPending && !hasUnsavedChanges.value) {
+    await flushDraftCleanup()
+    return
+  }
+  if (force && saveStatus.value !== 'saved') {
+    if (document.visibilityState === 'visible') {
+      return flushDraft(true, hiddenRetryRemaining)
+    }
+    if (hiddenRetryRemaining > 0) {
+      return flushDraft(true, hiddenRetryRemaining - 1)
+    }
+  }
+}
+
+const flushDraftCleanup = async (): Promise<void> => {
+  if (
+    !storageReady ||
+    !draftCleanupPending ||
+    hasUnsavedChanges.value ||
+    draftFlushPromise
+  ) {
+    return
+  }
+  if (draftCleanupPromise) return draftCleanupPromise
+
+  const revision = draftRevision
+  draftCleanupPromise = glyphRepository
+    .deleteDraft()
+    .then(() => {
+      if (draftRevision === revision && !hasUnsavedChanges.value) {
+        draftCleanupPending = false
+        saveStatus.value = 'saved'
+      }
+    })
+    .catch((error: unknown) => {
+      if (draftRevision === revision && !hasUnsavedChanges.value) {
+        saveStatus.value = 'error'
+        console.error('Unable to clear the clean editor draft.', error)
+        notify({ tone: 'error', message: $t('storage.draft_save_failed') })
+      }
+      throw error
+    })
+    .finally(() => {
+      draftCleanupPromise = null
+    })
+  return draftCleanupPromise
 }
 
 const queueDraftSave = (): void => {
@@ -678,6 +771,7 @@ const queueDraftSave = (): void => {
 const scheduleDraftSave = (): void => {
   if (!hasUnsavedChanges.value) return
   draftRevision += 1
+  draftCleanupPending = false
   saveStatus.value = 'unsaved'
   if (!storageReady) return
   queueDraftSave()
@@ -687,6 +781,20 @@ watch(
   [gridData, editorDocument.codePoint, editorDocument.activeGlyphId],
   scheduleDraftSave,
 )
+
+watch(hasUnsavedChanges, (dirty, wasDirty) => {
+  if (dirty || !wasDirty) return
+  draftRevision += 1
+  draftCleanupPending = true
+  if (draftTimer !== null) {
+    window.clearTimeout(draftTimer)
+    draftTimer = null
+  }
+  saveStatus.value = 'saving'
+  if (storageReady && !draftFlushPromise) {
+    void flushDraftCleanup().catch(() => undefined)
+  }
+})
 
 watch(
   () => [settings.value.autoSaveEnabled, settings.value.autoSaveInterval],
@@ -738,6 +846,8 @@ const handleGlyphSaved = async (glyph: Glyph): Promise<void> => {
   }
   try {
     if (draftFlushPromise) await draftFlushPromise
+    if (draftCleanupPromise) await draftCleanupPromise
+    draftCleanupPending = false
     await glyphRepository.deleteDraft()
   } catch (error) {
     console.error('Unable to clear the saved editor draft.', error)

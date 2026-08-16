@@ -220,6 +220,39 @@ test('autosaved drafts restore after reload and can be discarded', async ({
   )
 })
 
+test('undoing back to the saved document removes the stale autosaved draft', async ({
+  page,
+}) => {
+  const cell = await cellCenter(page, 4, 4)
+  await page.mouse.click(cell.x, cell.y)
+  await expect(page.locator('[data-row="4"][data-col="4"]')).toHaveClass(
+    /filled/,
+  )
+  await expect
+    .poll(async () => {
+      const storedDraftState = await readStoredDraft(page)
+      return storedDraftState.indexedDb ?? storedDraftState.localStorage
+    })
+    .not.toBeNull()
+
+  await page.getByRole('button', { name: /Undo/i }).last().click()
+  await expect(page.locator('[data-row="4"][data-col="4"]')).not.toHaveClass(
+    /filled/,
+  )
+  await expect
+    .poll(async () => {
+      const storedDraftState = await readStoredDraft(page)
+      return storedDraftState.indexedDb ?? storedDraftState.localStorage
+    })
+    .toBeNull()
+
+  await page.reload({ waitUntil: 'networkidle' })
+  await expect(page.locator('.restored-draft-notice')).toBeHidden()
+  await expect(page.locator('[data-row="4"][data-col="4"]')).not.toHaveClass(
+    /filled/,
+  )
+})
+
 test('Add to glyph set persists the editor glyph to the glyph manager', async ({
   page,
 }) => {

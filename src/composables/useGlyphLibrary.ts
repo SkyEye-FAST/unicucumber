@@ -17,6 +17,7 @@ let loadPromise: Promise<Glyph[]> | null = null
 let revision = 0
 let writeQueue: Promise<void> = Promise.resolve()
 let repositoryOverride: GlyphRepository | null = null
+let persistedGlyphs: Glyph[] | null = null
 
 const repository = (): GlyphRepository =>
   repositoryOverride ?? getGlyphRepository()
@@ -36,6 +37,7 @@ export const loadGlyphLibrary = (force = false): Promise<Glyph[]> => {
     .then((storedGlyphs) => {
       if (revision === startedAtRevision) {
         glyphs.value = storedGlyphs
+        persistedGlyphs = storedGlyphs
         loaded.value = true
       }
       return glyphs.value
@@ -74,7 +76,8 @@ export const replaceGlyphLibrary = (
     )
   }
 
-  revision += 1
+  const writeRevision = ++revision
+  const rollbackGlyphs = persistedGlyphs ?? glyphs.value
   glyphs.value = validated.glyphs
   loaded.value = true
   loadError.value = null
@@ -83,6 +86,15 @@ export const replaceGlyphLibrary = (
   const write = writeQueue
     .catch(() => undefined)
     .then(() => repository().replaceGlyphs(snapshot))
+    .then(() => {
+      persistedGlyphs = snapshot
+    })
+    .catch((error: unknown) => {
+      if (revision === writeRevision) {
+        glyphs.value = persistedGlyphs ?? rollbackGlyphs
+      }
+      throw error
+    })
   writeQueue = write
   return write
 }
@@ -109,4 +121,5 @@ export const __resetGlyphLibraryForTests = (
   revision = 0
   writeQueue = Promise.resolve()
   repositoryOverride = nextRepository
+  persistedGlyphs = null
 }
