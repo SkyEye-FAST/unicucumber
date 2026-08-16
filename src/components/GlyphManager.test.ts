@@ -56,6 +56,12 @@ const unifont = vi.hoisted(() => {
         ),
       )
     }),
+    getUnifontChunkId: vi.fn((codePoint: number) =>
+      Math.floor(codePoint / 0x1000)
+        .toString(16)
+        .toUpperCase()
+        .padStart(3, '0'),
+    ),
     loadGlyphsInRange: vi.fn((start: number, end: number) =>
       Promise.resolve(
         records.filter((glyph) => {
@@ -86,6 +92,7 @@ vi.mock('@/storage/glyphRepository', () => ({
 
 vi.mock('@/services/unifontLoader', () => ({
   unifontLoader: unifont,
+  getUnifontChunkId: unifont.getUnifontChunkId,
 }))
 
 vi.mock('@/utils/fontExport', async (importOriginal) => {
@@ -124,6 +131,7 @@ beforeEach(() => {
   unifont.loadManifest.mockClear()
   unifont.loadCatalogCodePoints.mockClear()
   unifont.loadChunk.mockClear()
+  unifont.getUnifontChunkId.mockClear()
   unifont.loadGlyphsInRange.mockClear()
   unifont.getGlyph.mockClear()
   fontExports.createPixelFont.mockClear()

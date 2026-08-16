@@ -15,6 +15,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 - Avoid shrinking the glyph grid on desktop and tablet windows at least 720px wide around 871px high, while keeping secondary hexadecimal and export controls below it.
 
 - Harden glyph storage fallback and rollback semantics, clear stale drafts after undoing back to a saved document, reject invalid Unicode scalar values before saving, search Unicode names across the expanded catalog, preserve current catalog caches, restore current settings fixtures, and run browser/PWA workflows in CI without duplicating Vitest.
+- Keep Glyph Manager catalog test fixtures aligned with the chunk lookup helper.
 
 ## [1.5.0] - 2026-08-10
 
