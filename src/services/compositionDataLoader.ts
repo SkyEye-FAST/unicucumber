@@ -1,5 +1,7 @@
 import {
+  cleanupStaleCompositionCaches,
   getCompositionIdsChunkId,
+  getCompositionRuntimeCacheNames,
   parseCompositionCatalog,
   parseCompositionComponentChunk,
   parseCompositionIdsChunk,
@@ -11,6 +13,24 @@ import type {
   CompositionDataManifest,
   CompositionIdsChunk,
 } from '@/types/composition'
+
+interface CompositionRuntimeCache {
+  match: (request: RequestInfo | URL) => Promise<Response | undefined>
+  put: (request: RequestInfo | URL, response: Response) => Promise<void>
+}
+
+interface CompositionRuntimeCacheStorage {
+  open: (name: string) => Promise<CompositionRuntimeCache>
+  keys: () => Promise<string[]>
+  delete: (name: string) => Promise<boolean>
+}
+
+const getRuntimeCacheStorage = (): CompositionRuntimeCacheStorage | null =>
+  (
+    globalThis as typeof globalThis & {
+      caches?: CompositionRuntimeCacheStorage
+    }
+  ).caches ?? null
 
 const sameSummary = (
   left: CompositionComponentSummary,
@@ -66,6 +86,7 @@ export class CompositionDataLoader {
       fetch(input, init),
     private readonly maxChunks = 8,
     private readonly basePath = '/composition',
+    private readonly cacheStorage: CompositionRuntimeCacheStorage | null = getRuntimeCacheStorage(),
   ) {
     if (!Number.isInteger(maxChunks) || maxChunks <= 0) {
       throw new RangeError('Composition cache size must be a positive integer.')
@@ -83,6 +104,10 @@ export class CompositionDataLoader {
         if (manifest === null) {
           throw new TypeError('Invalid composition manifest.')
         }
+        await cleanupStaleCompositionCaches(
+          manifest.dataVersion,
+          this.cacheStorage,
+        ).catch(() => undefined)
         return Object.freeze(manifest)
       })
       .catch((error) => {
@@ -95,14 +120,13 @@ export class CompositionDataLoader {
 
   loadCatalog(): Promise<CompositionComponentSummary[]> {
     if (this.catalogPromise) return this.catalogPromise
-    const request = Promise.all([
-      this.loadManifest(),
-      this.fetcher(`${this.basePath}/catalog.json`),
-    ])
-      .then(async ([manifest, response]) => {
-        if (!response.ok) {
-          throw new Error(`Composition catalog: ${response.status}`)
-        }
+    const request = this.loadManifest()
+      .then(async (manifest) => {
+        const response = await this.fetchRuntimeResponse(
+          `${this.basePath}/catalog.json`,
+          getCompositionRuntimeCacheNames(manifest.dataVersion).catalog,
+          'Composition catalog',
+        )
         const catalog = parseCompositionCatalog(await response.json())
         if (catalog === null || catalog.length !== manifest.componentCount) {
           throw new TypeError('Invalid composition catalog.')
@@ -184,6 +208,43 @@ export class CompositionDataLoader {
     return [...(chunk[String(codePoint)] ?? [])]
   }
 
+  private async fetchRuntimeResponse(
+    url: string,
+    cacheName: string,
+    label: string,
+  ): Promise<Response> {
+    let networkFailure: unknown
+    try {
+      const response = await this.fetcher(url, { cache: 'no-store' })
+      if (response.ok) {
+        if (this.cacheStorage) {
+          try {
+            const cache = await this.cacheStorage.open(cacheName)
+            await cache.put(url, response.clone())
+          } catch {
+            // Cache Storage is optional. A valid network response still wins.
+          }
+        }
+        return response
+      }
+      networkFailure = new Error(`${label}: ${response.status}`)
+    } catch (error) {
+      networkFailure = error
+    }
+
+    if (this.cacheStorage) {
+      try {
+        const cache = await this.cacheStorage.open(cacheName)
+        const cached = await cache.match(url)
+        if (cached) return cached
+      } catch {
+        // Preserve the network failure if Cache Storage also fails.
+      }
+    }
+
+    throw networkFailure
+  }
+
   private loadComponentChunk(
     chunk: string,
   ): Promise<CompositionComponentRecord[]> {
@@ -198,15 +259,13 @@ export class CompositionDataLoader {
     const active = this.activeComponentChunks.get(normalized)
     if (active) return active
 
-    const request = this.fetcher(
-      `${this.basePath}/components/${normalized}.json`,
-    )
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error(
-            `Composition component chunk ${normalized}: ${response.status}`,
-          )
-        }
+    const request = this.loadManifest()
+      .then(async (manifest) => {
+        const response = await this.fetchRuntimeResponse(
+          `${this.basePath}/components/${normalized}.json`,
+          getCompositionRuntimeCacheNames(manifest.dataVersion).components,
+          `Composition component chunk ${normalized}`,
+        )
         const records = parseCompositionComponentChunk(
           normalized,
           await response.json(),
@@ -251,13 +310,13 @@ export class CompositionDataLoader {
     const active = this.activeIdsChunks.get(normalized)
     if (active) return active
 
-    const request = this.fetcher(`${this.basePath}/ids/${normalized}.json`)
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error(
-            `Composition IDS chunk ${normalized}: ${response.status}`,
-          )
-        }
+    const request = this.loadManifest()
+      .then(async (manifest) => {
+        const response = await this.fetchRuntimeResponse(
+          `${this.basePath}/ids/${normalized}.json`,
+          getCompositionRuntimeCacheNames(manifest.dataVersion).ids,
+          `Composition IDS chunk ${normalized}`,
+        )
         const ids = parseCompositionIdsChunk(normalized, await response.json())
         if (ids === null) {
           throw new TypeError(`Invalid composition IDS chunk ${normalized}.`)

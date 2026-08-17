@@ -62,6 +62,27 @@ const getUnifontVersion = (): string => {
   return ''
 }
 
+const getCompositionDataVersion = (): string => {
+  try {
+    const value: unknown = JSON.parse(
+      readFileSync(
+        new URL('./public/composition/index.json', import.meta.url),
+        'utf-8',
+      ),
+    )
+    if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+      return ''
+    }
+    const { schemaVersion, dataVersion } = value as Record<string, unknown>
+    return schemaVersion === 1 &&
+      typeof dataVersion === 'string' &&
+      dataVersion.trim()
+      ? dataVersion
+      : ''
+  } catch {}
+  return ''
+}
+
 const getUnifontCatalog = (version: string): string => {
   const value = JSON.parse(
     readFileSync(
@@ -129,6 +150,7 @@ const createUnifontCatalogPlugin = (catalog: string): Plugin => ({
 })
 
 const unifontVersion = getUnifontVersion()
+const compositionDataVersion = getCompositionDataVersion()
 const unifontCatalog = getUnifontCatalog(unifontVersion)
 const unifontCaches = getUnifontRuntimeCacheNames(unifontVersion)
 const packageVersion = JSON.parse(
@@ -142,6 +164,9 @@ const applicationVersion = commitSha
 export default defineConfig(({ command }) => ({
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(applicationVersion),
+    'import.meta.env.VITE_COMPOSITION_DATA_VERSION': JSON.stringify(
+      compositionDataVersion,
+    ),
     'import.meta.env.VITE_UNIFONT_VERSION': JSON.stringify(unifontVersion),
   },
   plugins: [
@@ -198,6 +223,24 @@ export default defineConfig(({ command }) => ({
         ],
         maximumFileSizeToCacheInBytes: 3_000_000,
         runtimeCaching: [
+          {
+            urlPattern: /\/composition\/index\.json$/,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'unicucumber-composition-index',
+              networkTimeoutSeconds: 4,
+              cacheableResponse: { statuses: [0, 200] },
+              expiration: {
+                maxEntries: 1,
+                purgeOnQuotaError: true,
+              },
+            },
+          },
+          {
+            urlPattern:
+              /\/composition\/(?:catalog\.json|components\/[0-9A-F]{2}\.json|ids\/[0-9A-F]{3}\.json)$/,
+            handler: 'NetworkOnly',
+          },
           {
             urlPattern: /\/unifont\/index\.json$/,
             handler: 'StaleWhileRevalidate',

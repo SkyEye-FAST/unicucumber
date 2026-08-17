@@ -341,7 +341,9 @@ describe('GlyphComposer', () => {
 
   it('keeps in-memory composition usable when draft autosave fails', async () => {
     vi.useFakeTimers()
-    draftRepositoryMocks.saveDraft.mockRejectedValue(new Error('storage failed'))
+    draftRepositoryMocks.saveDraft.mockRejectedValue(
+      new Error('storage failed'),
+    )
     const wrapper = mountComposer(pixelGrid(0, 0))
     await flushPromises()
 

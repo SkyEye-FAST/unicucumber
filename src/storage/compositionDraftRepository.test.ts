@@ -11,10 +11,7 @@ import {
   type StoredCompositionDraft,
   validateCompositionDraft,
 } from './compositionDraftRepository'
-import {
-  StorageQuotaError,
-  StorageUnavailableError,
-} from './glyphRepository'
+import { StorageQuotaError, StorageUnavailableError } from './glyphRepository'
 
 const makeDocument = (codePoint: string): CompositionDocument => ({
   schemaVersion: 1,
@@ -35,7 +32,10 @@ const makeDocument = (codePoint: string): CompositionDocument => ({
   ],
 })
 
-const makeDraft = (codePoint: string, updatedAt = 123): StoredCompositionDraft => ({
+const makeDraft = (
+  codePoint: string,
+  updatedAt = 123,
+): StoredCompositionDraft => ({
   id: codePoint,
   schemaVersion: 1,
   updatedAt,
@@ -132,7 +132,9 @@ describe('composition draft repository', () => {
     }
     const repository = new FallbackCompositionDraftRepository(primary, fallback)
 
-    await expect(repository.loadDraft('0041')).resolves.toEqual(makeDraft('0041'))
+    await expect(repository.loadDraft('0041')).resolves.toEqual(
+      makeDraft('0041'),
+    )
     expect(repository.persistent).toBe(false)
     await repository.saveDraft(makeDraft('0041'))
     expect(primary.saveDraft).not.toHaveBeenCalled()
@@ -152,8 +154,8 @@ describe('composition draft repository', () => {
     } satisfies Storage
     const repository = new LocalStorageCompositionDraftRepository(quotaStorage)
 
-    await expect(repository.saveDraft(makeDraft('0041'))).rejects.toBeInstanceOf(
-      StorageQuotaError,
-    )
+    await expect(
+      repository.saveDraft(makeDraft('0041')),
+    ).rejects.toBeInstanceOf(StorageQuotaError)
   })
 })

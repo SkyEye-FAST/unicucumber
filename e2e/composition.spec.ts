@@ -1,0 +1,179 @@
+import { expect, test, type Page } from '@playwright/test'
+
+const COMPONENT_ID = 'AA00000000000000'
+const COMPONENT_HEX = `8${'0'.repeat(63)}`
+
+const installCompositionFixture = async (page: Page): Promise<void> => {
+  await page.route('**/composition/index.json', (route) =>
+    route.fulfill({
+      json: {
+        schemaVersion: 1,
+        dataVersion: 'e2e-v1',
+        componentCount: 1,
+        idsCount: 0,
+        componentChunkFormat: 1,
+        idsChunkFormat: 1,
+      },
+    }),
+  )
+  await page.route('**/composition/catalog.json', (route) =>
+    route.fulfill({
+      json: [
+        {
+          id: COMPONENT_ID,
+          characters: ['木'],
+          bounds: [0, 0, 1, 1],
+          chunk: 'AA',
+        },
+      ],
+    }),
+  )
+  await page.route('**/composition/components/AA.json', (route) =>
+    route.fulfill({
+      json: [
+        {
+          id: COMPONENT_ID,
+          characters: ['木'],
+          bounds: [0, 0, 1, 1],
+          chunk: 'AA',
+          hex: COMPONENT_HEX,
+        },
+      ],
+    }),
+  )
+  await page.route('**/composition/ids/000.json', (route) =>
+    route.fulfill({ json: {} }),
+  )
+}
+
+const openComposition = async (page: Page): Promise<void> => {
+  await page.getByTestId('composition-open').click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+}
+
+const searchAndAddFixtureComponent = async (page: Page): Promise<void> => {
+  const search = page.locator('.component-search input')
+  await search.fill('木')
+  await search.dispatchEvent('input')
+  await page.getByTestId(`composition-component-${COMPONENT_ID}`).click()
+}
+
+const compositionDraftLayerCount = (page: Page): Promise<number> =>
+  page.evaluate(async () => {
+    const databases = await indexedDB.databases()
+    if (!databases.some(({ name }) => name === 'unicucumber-composition')) {
+      return 0
+    }
+    return new Promise<number>((resolve, reject) => {
+      const request = indexedDB.open('unicucumber-composition')
+      request.onerror = () => reject(request.error)
+      request.onsuccess = () => {
+        if (!request.result.objectStoreNames.contains('drafts')) {
+          resolve(0)
+          return
+        }
+        const transaction = request.result.transaction('drafts', 'readonly')
+        const getRequest = transaction.objectStore('drafts').get('0000')
+        getRequest.onerror = () => reject(getRequest.error)
+        getRequest.onsuccess = () =>
+          resolve(getRequest.result?.document?.layers?.length ?? 0)
+      }
+    })
+  })
+
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.clear())
+  await page.route(
+    /^https:\/\/(fonts\.googleapis|fontsapi\.zeoseven)\.com\//,
+    (route) => route.fulfill({ contentType: 'text/css', body: '' }),
+  )
+})
+
+test('applies the composed bitmap as one undoable main-editor edit', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'desktop workflow runs once')
+  await installCompositionFixture(page)
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
+  await openComposition(page)
+
+  await searchAndAddFixtureComponent(page)
+  await page.getByTestId('composition-canvas').focus()
+  await page.keyboard.press('ArrowRight')
+
+  await searchAndAddFixtureComponent(page)
+  await page
+    .getByTestId(`composition-layer-component-${COMPONENT_ID}-2-operation`)
+    .selectOption('subtract')
+
+  await page.getByTestId('composition-apply').click()
+  await page.keyboard.press('Escape')
+
+  await expect(page.locator('[data-row="0"][data-col="1"]')).toHaveClass(
+    /filled/,
+  )
+  await expect(page.locator('[data-row="0"][data-col="0"]')).not.toHaveClass(
+    /filled/,
+  )
+
+  await page.getByRole('button', { name: /Undo/i }).last().click()
+  await expect(page.locator('.cell.filled')).toHaveCount(0)
+})
+
+test('restores an unfinished composition draft after reload', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'draft workflow runs once')
+  await installCompositionFixture(page)
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
+  await openComposition(page)
+  await searchAndAddFixtureComponent(page)
+
+  await expect.poll(() => compositionDraftLayerCount(page)).toBe(1)
+
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await openComposition(page)
+  await expect(
+    page.getByTestId(`composition-layer-component-${COMPONENT_ID}-1-select`),
+  ).toBeVisible()
+})
+
+test('uses mobile tabs without overflowing the viewport', async ({
+  page,
+}, testInfo) => {
+  test.skip(!testInfo.project.name.includes('phone'), 'phone workflow')
+  await installCompositionFixture(page)
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
+  await openComposition(page)
+
+  const tabs = page.locator('.composition-mobile-tabs')
+  await expect(tabs).toBeVisible()
+  await tabs.getByRole('button', { name: 'Components' }).click()
+  await expect(page.locator('.component-browser')).toBeVisible()
+  await tabs.getByRole('button', { name: 'Layers' }).click()
+  await expect(page.locator('.composition-layers')).toBeVisible()
+
+  const metrics = await page.evaluate(() => ({
+    width: document.documentElement.scrollWidth,
+    viewport: document.documentElement.clientWidth,
+    bodyOverflow: document.body.style.overflow,
+  }))
+  expect(metrics.width).toBeLessThanOrEqual(metrics.viewport)
+  expect(metrics.bodyOverflow).toBe('hidden')
+})
+
+test('does not request composition data before the workspace is opened', async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== 'chromium',
+    'network smoke test runs once',
+  )
+  const requests: string[] = []
+  page.on('request', (request) => {
+    if (request.url().includes('/composition/')) requests.push(request.url())
+  })
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
+  await expect(page.locator('.grid-container')).toBeVisible()
+  expect(requests).toEqual([])
+})

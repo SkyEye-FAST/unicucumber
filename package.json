@@ -30,6 +30,7 @@
     "remove-unused-locale-keys": "node scripts/remove-unused-locale-keys.mjs",
     "check": "run-p type-check lint format:check test version:check",
     "chunk-unifont": "node scripts/chunk-unifont.js",
+    "update-composition-data": "node scripts/composition/build-component-data.mjs",
     "update-unifont": "node scripts/update-unifont.js",
     "version:check": "node scripts/check-version.mjs"
   },

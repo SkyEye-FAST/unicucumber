@@ -7,3 +7,4 @@ components.d.ts
 pnpm-lock.yaml
 public/unifont-map.json
 public/unifont/
+public/composition/

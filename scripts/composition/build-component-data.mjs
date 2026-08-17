@@ -1,29 +1,23 @@
 import { createHash } from 'node:crypto'
-import {
-  mkdir,
-  rename,
-  rm,
-  writeFile,
-} from 'node:fs/promises'
+import { mkdir, rename, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { validateComponentSource } from './validate-component-source.mjs'
 
-const jsonText = (value) => `${JSON.stringify(value, null, 2)}\n`
+const jsonText = (value) => `${JSON.stringify(value)}\n`
 
 const componentBounds = (hex) => {
-  const bits = [...hex]
-    .flatMap((digit) =>
-      Number.parseInt(digit, 16).toString(2).padStart(4, '0').split(''),
-    )
   let left = 16
   let top = 16
   let right = -1
   let bottom = -1
   for (let row = 0; row < 16; row += 1) {
     for (let col = 0; col < 16; col += 1) {
-      if (bits[row * 16 + col] !== '1') continue
+      const bitIndex = row * 16 + col
+      const nibble = Number.parseInt(hex[bitIndex >> 2], 16)
+      const bit = (nibble >> (3 - (bitIndex & 3))) & 1
+      if (bit === 0) continue
       left = Math.min(left, col)
       top = Math.min(top, row)
       right = Math.max(right, col)
@@ -31,32 +25,78 @@ const componentBounds = (hex) => {
     }
   }
   if (right < left || bottom < top) {
-    throw new TypeError('Composition components must contain at least one set pixel.')
+    throw new TypeError('Composition components must contain a set pixel.')
   }
   return [left, top, right + 1, bottom + 1]
 }
 
-const componentId = (hex) =>
-  createHash('sha256').update(hex, 'ascii').digest('hex').toUpperCase()
+const semanticKey = (characters, hex) => JSON.stringify({ characters, hex })
 
-const idsEntries = (ids) =>
+const componentId = (characters, hex) =>
+  createHash('sha256')
+    .update(semanticKey(characters, hex), 'utf8')
+    .digest('hex')
+    .toUpperCase()
+    .slice(0, 32)
+
+const normalizeComponents = (components) => {
+  const unique = new Map()
+  for (const component of components) {
+    const characters = [...new Set(component.characters)].sort(
+      (left, right) => left.codePointAt(0) - right.codePointAt(0),
+    )
+    const hex = component.hex.toUpperCase()
+    if (
+      characters.length === 0 ||
+      !/^[0-9A-F]{64}$/u.test(hex) ||
+      /^0{64}$/u.test(hex)
+    ) {
+      continue
+    }
+    const key = semanticKey(characters, hex)
+    if (!unique.has(key)) unique.set(key, { characters, hex })
+  }
+
+  const ids = new Map()
+  return [...unique.values()]
+    .map(({ characters, hex }) => {
+      const id = componentId(characters, hex)
+      const prior = ids.get(id)
+      const key = semanticKey(characters, hex)
+      if (prior !== undefined && prior !== key) {
+        throw new TypeError(`Composition component digest collision: ${id}`)
+      }
+      ids.set(id, key)
+      return {
+        id,
+        characters,
+        bounds: componentBounds(hex),
+        chunk: id.slice(0, 2),
+        hex,
+      }
+    })
+    .sort((left, right) => left.id.localeCompare(right.id, 'en'))
+}
+
+const sortedIdsEntries = (ids) =>
   [...ids.entries()]
     .map(([codePoint, expressions]) => [
       codePoint,
-      [...expressions].sort((left, right) => left.localeCompare(right, 'en')),
+      [...new Set(expressions)].sort((left, right) =>
+        left.localeCompare(right, 'en'),
+      ),
     ])
     .sort(([left], [right]) => left - right)
 
-const dataVersionFor = (components, ids) => {
-  const canonical = JSON.stringify({
-    components: components.map(({ id, characters, hex }) => ({
-      id,
-      characters,
-      hex,
-    })),
-    ids: idsEntries(ids),
-  })
-  return `uge-${createHash('sha256').update(canonical, 'utf8').digest('hex').slice(0, 16)}`
+const validateDataVersion = (dataVersion) => {
+  if (
+    typeof dataVersion !== 'string' ||
+    !dataVersion.trim() ||
+    dataVersion !== dataVersion.trim()
+  ) {
+    throw new TypeError('Composition data version must be a non-empty string.')
+  }
+  return dataVersion
 }
 
 const writeJson = (file, value) => writeFile(file, jsonText(value), 'utf8')
@@ -83,25 +123,20 @@ const replaceDirectory = async (staging, output) => {
   }
 }
 
-export const buildCompositionData = async (sourceDirectory, outputDirectory) => {
+export const buildCompositionData = async (
+  sourceDirectory,
+  outputDirectory,
+  dataVersion,
+) => {
+  const normalizedVersion = validateDataVersion(dataVersion)
   const decoded = await validateComponentSource(sourceDirectory)
   const output = path.resolve(outputDirectory)
   const staging = `${output}.tmp-${process.pid}`
+  const components = normalizeComponents(decoded.components)
+  if (components.length === 0) {
+    throw new TypeError('Composition source produced no runtime components.')
+  }
 
-  const components = decoded.components
-    .map(({ hex, characters }) => {
-      const id = componentId(hex)
-      return {
-        id,
-        characters,
-        bounds: componentBounds(hex),
-        chunk: id.slice(0, 2),
-        hex,
-      }
-    })
-    .sort((left, right) => left.id.localeCompare(right.id, 'en'))
-
-  const dataVersion = dataVersionFor(components, decoded.ids)
   const catalog = components.map(({ id, characters, bounds, chunk }) => ({
     id,
     characters,
@@ -116,7 +151,7 @@ export const buildCompositionData = async (sourceDirectory, outputDirectory) => 
   }
 
   const idsChunks = new Map()
-  for (const [codePoint, expressions] of idsEntries(decoded.ids)) {
+  for (const [codePoint, expressions] of sortedIdsEntries(decoded.ids)) {
     const chunk = Math.floor(codePoint / 0x1000)
       .toString(16)
       .toUpperCase()
@@ -128,7 +163,7 @@ export const buildCompositionData = async (sourceDirectory, outputDirectory) => 
 
   const manifest = {
     schemaVersion: 1,
-    dataVersion,
+    dataVersion: normalizedVersion,
     componentCount: components.length,
     idsCount: decoded.ids.size,
     componentChunkFormat: 1,
@@ -139,14 +174,18 @@ export const buildCompositionData = async (sourceDirectory, outputDirectory) => 
   await mkdir(path.join(staging, 'components'), { recursive: true })
   await mkdir(path.join(staging, 'ids'), { recursive: true })
   try {
-    await writeJson(path.join(staging, 'index.json'), manifest)
     await writeJson(path.join(staging, 'catalog.json'), catalog)
     for (const [chunk, records] of [...componentChunks.entries()].sort()) {
-      await writeJson(path.join(staging, 'components', `${chunk}.json`), records)
+      await writeJson(
+        path.join(staging, 'components', `${chunk}.json`),
+        records,
+      )
     }
     for (const [chunk, records] of [...idsChunks.entries()].sort()) {
       await writeJson(path.join(staging, 'ids', `${chunk}.json`), records)
     }
+    // Emit the manifest only after every referenced payload has been written.
+    await writeJson(path.join(staging, 'index.json'), manifest)
     await replaceDirectory(staging, output)
   } catch (error) {
     await rm(staging, { recursive: true, force: true })
@@ -154,9 +193,10 @@ export const buildCompositionData = async (sourceDirectory, outputDirectory) => 
   }
 
   return {
-    dataVersion,
+    dataVersion: normalizedVersion,
     componentCount: components.length,
     idsCount: decoded.ids.size,
+    droppedIdsRecords: decoded.droppedIdsRecords,
     componentChunks: componentChunks.size,
     idsChunks: idsChunks.size,
   }
@@ -167,18 +207,21 @@ const isMainModule =
   path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 
 if (isMainModule) {
-  const source = process.argv[2]
-  const output = process.argv[3] ?? path.resolve('public/composition')
-  if (!source) {
+  const args = process.argv.slice(2)
+  if (args[0] === '--') args.shift()
+  const source = args[0]
+  const dataVersion = args[1]
+  const output = args[2] ?? path.resolve('public/composition')
+  if (!source || !dataVersion) {
     console.error(
-      'Usage: node build-component-data.mjs <extracted-uge-directory> [output-directory]',
+      'Usage: node build-component-data.mjs <extracted-uge-directory> <data-version> [output-directory]',
     )
     process.exitCode = 2
   } else {
     try {
-      const result = await buildCompositionData(source, output)
+      const result = await buildCompositionData(source, output, dataVersion)
       console.log(
-        `Built ${result.componentCount} components and ${result.idsCount} IDS records (${result.dataVersion}).`,
+        `Built ${result.componentCount} components and ${result.idsCount} IDS records in ${result.componentChunks + result.idsChunks} chunks (${result.dataVersion}); omitted ${result.droppedIdsRecords} non-standard IDS records.`,
       )
     } catch (error) {
       console.error(error instanceof Error ? error.message : String(error))

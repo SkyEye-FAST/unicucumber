@@ -42,8 +42,7 @@ const nextDuplicateId = (
 const isAllEnabledMask = (mask: GridData): boolean =>
   mask.length === COMPOSITION_SIZE &&
   mask.every(
-    (row) =>
-      row.length === COMPOSITION_SIZE && row.every((cell) => cell === 1),
+    (row) => row.length === COMPOSITION_SIZE && row.every((cell) => cell === 1),
   )
 
 export const combineCell = (
@@ -63,7 +62,10 @@ export const combineCell = (
 
 export const translateLayerBitmap = (layer: CompositionLayer): GridData => {
   const translated = createGrid(COMPOSITION_SIZE)
-  if (!Number.isSafeInteger(layer.offsetX) || !Number.isSafeInteger(layer.offsetY)) {
+  if (
+    !Number.isSafeInteger(layer.offsetX) ||
+    !Number.isSafeInteger(layer.offsetY)
+  ) {
     return translated
   }
 
@@ -115,7 +117,8 @@ export const createCompositionDocument = (
   codePoint: string,
   initialGrid?: GridData,
 ): CompositionDocument => {
-  const hasInitialPixels = initialGrid?.some((row) => row.some(Boolean)) ?? false
+  const hasInitialPixels =
+    initialGrid?.some((row) => row.some(Boolean)) ?? false
 
   return {
     schemaVersion: 1,
@@ -145,8 +148,12 @@ export const applyCompositionCommand = (
   command: CompositionCommand,
 ): CompositionDocument => {
   if (command.type === 'addLayer') {
-    if (document.layers.some(({ id }) => id === command.layer.id)) return document
-    return { ...document, layers: [...document.layers, cloneLayer(command.layer)] }
+    if (document.layers.some(({ id }) => id === command.layer.id))
+      return document
+    return {
+      ...document,
+      layers: [...document.layers, cloneLayer(command.layer)],
+    }
   }
 
   const index = document.layers.findIndex(({ id }) => id === command.layerId)
@@ -158,7 +165,9 @@ export const applyCompositionCommand = (
       if (layer.locked) return document
       return {
         ...document,
-        layers: document.layers.filter((_, currentIndex) => currentIndex !== index),
+        layers: document.layers.filter(
+          (_, currentIndex) => currentIndex !== index,
+        ),
       }
 
     case 'duplicateLayer': {
@@ -196,7 +205,8 @@ export const applyCompositionCommand = (
     }
 
     case 'reorderLayer': {
-      if (layer.locked || !Number.isInteger(command.targetIndex)) return document
+      if (layer.locked || !Number.isInteger(command.targetIndex))
+        return document
       const targetIndex = Math.max(
         0,
         Math.min(document.layers.length - 1, command.targetIndex),
@@ -217,7 +227,10 @@ export const applyCompositionCommand = (
 
     case 'setVisibility':
       if (layer.visible === command.visible) return document
-      return replaceLayer(document, index, { ...layer, visible: command.visible })
+      return replaceLayer(document, index, {
+        ...layer,
+        visible: command.visible,
+      })
 
     case 'setLocked':
       if (layer.locked === command.locked) return document

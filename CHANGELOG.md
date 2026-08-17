@@ -6,7 +6,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Added
 
-- Design a source-neutral visual 16×16 glyph composition workspace with layered bitmap operations, IDS-assisted component discovery, safe drafts, and offline-aware data loading.
+- Add a source-neutral visual 16×16 glyph composition workspace with layered bitmap operations, IDS-assisted component discovery, safe drafts, generated component data, and versioned offline caches.
 
 ### Fixed
 

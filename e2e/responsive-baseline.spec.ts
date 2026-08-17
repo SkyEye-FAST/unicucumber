@@ -199,7 +199,7 @@ test.describe('responsive visual baseline', () => {
                 return { width: bounds.width, height: bounds.height }
               }),
             )
-          expect(headerTargetSizes).toHaveLength(5)
+          expect(headerTargetSizes).toHaveLength(6)
           headerTargetSizes.forEach(({ width, height }) => {
             expect(width).toBeGreaterThanOrEqual(44)
             expect(height).toBeGreaterThanOrEqual(44)

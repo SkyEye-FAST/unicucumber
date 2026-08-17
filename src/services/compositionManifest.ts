@@ -207,25 +207,35 @@ export const getCompositionRuntimeCacheNames = (dataVersion: string) => {
 
 export const cleanupStaleCompositionCaches = async (
   dataVersion: string,
-): Promise<void> => {
-  const cacheStorage = (
+  cacheStorage: {
+    keys: () => Promise<string[]>
+    delete: (name: string) => Promise<boolean>
+  } | null = (
     globalThis as typeof globalThis & {
       caches?: {
         keys: () => Promise<string[]>
         delete: (name: string) => Promise<boolean>
       }
     }
-  ).caches
+  ).caches ?? null,
+): Promise<void> => {
   if (!dataVersion.trim() || !cacheStorage) return
   const current = new Set(
     Object.values(getCompositionRuntimeCacheNames(dataVersion)),
   )
+  const managedPrefixes = [
+    'unicucumber-composition-manifest-',
+    'unicucumber-composition-catalog-',
+    'unicucumber-composition-components-',
+    'unicucumber-composition-ids-',
+  ]
   const names = await cacheStorage.keys()
   await Promise.all(
     names
       .filter(
         (name) =>
-          name.startsWith('unicucumber-composition-') && !current.has(name),
+          managedPrefixes.some((prefix) => name.startsWith(prefix)) &&
+          !current.has(name),
       )
       .map((name) => cacheStorage.delete(name)),
   )

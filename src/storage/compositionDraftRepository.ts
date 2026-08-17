@@ -129,7 +129,8 @@ export const validateCompositionDraft = (
   value: unknown,
 ): StoredCompositionDraft | null => {
   if (!isRecord(value)) return null
-  const id = typeof value.id === 'string' ? normalizeCodePointHex(value.id) : null
+  const id =
+    typeof value.id === 'string' ? normalizeCodePointHex(value.id) : null
   const document = validateDocument(value.document)
   if (
     id === null ||
@@ -204,9 +205,7 @@ const toStorageError = (error: unknown, operation: string): Error => {
 const normalizeLookup = (codePoint: string): string | null =>
   normalizeCodePointHex(codePoint)
 
-export class IndexedDbCompositionDraftRepository
-  implements CompositionDraftRepository
-{
+export class IndexedDbCompositionDraftRepository implements CompositionDraftRepository {
   readonly persistent = true
   private databasePromise: Promise<IDBDatabase> | null = null
 
@@ -218,16 +217,23 @@ export class IndexedDbCompositionDraftRepository
   private open(): Promise<IDBDatabase> {
     if (this.databasePromise) return this.databasePromise
     const request = new Promise<IDBDatabase>((resolve, reject) => {
-      const openRequest = this.indexedDb.open(this.databaseName, DATABASE_VERSION)
+      const openRequest = this.indexedDb.open(
+        this.databaseName,
+        DATABASE_VERSION,
+      )
       openRequest.addEventListener('upgradeneeded', () => {
         const database = openRequest.result
         if (!database.objectStoreNames.contains(DRAFT_STORE)) {
           database.createObjectStore(DRAFT_STORE, { keyPath: 'id' })
         }
       })
-      openRequest.addEventListener('success', () => resolve(openRequest.result), {
-        once: true,
-      })
+      openRequest.addEventListener(
+        'success',
+        () => resolve(openRequest.result),
+        {
+          once: true,
+        },
+      )
       openRequest.addEventListener(
         'error',
         () =>
@@ -303,9 +309,7 @@ const parseFallbackCollection = (
   return result
 }
 
-export class LocalStorageCompositionDraftRepository
-  implements CompositionDraftRepository
-{
+export class LocalStorageCompositionDraftRepository implements CompositionDraftRepository {
   readonly persistent = false
 
   constructor(private readonly storage: Storage | null) {}
@@ -369,9 +373,7 @@ export class LocalStorageCompositionDraftRepository
 const canFallback = (error: unknown): boolean =>
   error instanceof StorageUnavailableError || error instanceof StorageQuotaError
 
-export class FallbackCompositionDraftRepository
-  implements CompositionDraftRepository
-{
+export class FallbackCompositionDraftRepository implements CompositionDraftRepository {
   private selected: CompositionDraftRepository | null = null
 
   constructor(

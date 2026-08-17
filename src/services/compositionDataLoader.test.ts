@@ -2,6 +2,30 @@ import { describe, expect, it } from 'vitest'
 
 import { CompositionDataLoader } from './compositionDataLoader'
 
+class MemoryCacheStorage {
+  private readonly stores = new Map<string, Map<string, Response>>()
+
+  async open(name: string) {
+    const store = this.stores.get(name) ?? new Map<string, Response>()
+    this.stores.set(name, store)
+    return {
+      match: async (request: RequestInfo | URL) =>
+        store.get(String(request))?.clone(),
+      put: async (request: RequestInfo | URL, response: Response) => {
+        store.set(String(request), response.clone())
+      },
+    }
+  }
+
+  async keys(): Promise<string[]> {
+    return [...this.stores.keys()]
+  }
+
+  async delete(name: string): Promise<boolean> {
+    return this.stores.delete(name)
+  }
+}
+
 interface FixtureResponse {
   status?: number
   body: unknown
@@ -167,6 +191,86 @@ describe('CompositionDataLoader', () => {
 
     await expect(loader.hydrateComponents([summary.id])).rejects.toThrow(
       /Invalid composition component chunk/,
+    )
+  })
+
+  it('uses only same-version runtime caches when the network is unavailable', async () => {
+    const summary = makeSummary('00', '木')
+    const cacheStorage = new MemoryCacheStorage()
+    const online = fixtureFetcher({
+      '/composition/index.json': { body: manifest(1) },
+      '/composition/catalog.json': { body: [summary] },
+      '/composition/components/00.json': {
+        body: [{ ...summary, hex: componentHex('F') }],
+      },
+    })
+    const first = new CompositionDataLoader(
+      online.fetcher,
+      8,
+      '/composition',
+      cacheStorage,
+    )
+    await first.hydrateComponents([summary.id])
+
+    const offlineCalls: string[] = []
+    const offline: typeof fetch = async (input) => {
+      const url = String(input)
+      offlineCalls.push(url)
+      if (url.endsWith('/index.json')) {
+        return new Response(JSON.stringify(manifest(1)), { status: 200 })
+      }
+      throw new TypeError('offline')
+    }
+    const second = new CompositionDataLoader(
+      offline,
+      8,
+      '/composition',
+      cacheStorage,
+    )
+
+    await expect(second.hydrateComponents([summary.id])).resolves.toEqual([
+      expect.objectContaining({ id: summary.id, hex: componentHex('F') }),
+    ])
+    expect(offlineCalls).toContain('/composition/catalog.json')
+    expect(offlineCalls).toContain('/composition/components/00.json')
+  })
+
+  it('does not reuse stale runtime data after the manifest version changes', async () => {
+    const summary = makeSummary('00', '木')
+    const cacheStorage = new MemoryCacheStorage()
+    const v1Manifest = manifest(1)
+    const online = fixtureFetcher({
+      '/composition/index.json': { body: v1Manifest },
+      '/composition/catalog.json': { body: [summary] },
+      '/composition/components/00.json': {
+        body: [{ ...summary, hex: componentHex('F') }],
+      },
+    })
+    const first = new CompositionDataLoader(
+      online.fetcher,
+      8,
+      '/composition',
+      cacheStorage,
+    )
+    await first.hydrateComponents([summary.id])
+
+    const v2Manifest = { ...v1Manifest, dataVersion: 'fixture-v2' }
+    const mixedNetwork: typeof fetch = async (input) => {
+      if (String(input).endsWith('/index.json')) {
+        return new Response(JSON.stringify(v2Manifest), { status: 200 })
+      }
+      throw new TypeError('offline')
+    }
+    const second = new CompositionDataLoader(
+      mixedNetwork,
+      8,
+      '/composition',
+      cacheStorage,
+    )
+
+    await expect(second.loadCatalog()).rejects.toThrow(/offline/)
+    expect(await cacheStorage.keys()).not.toContain(
+      'unicucumber-composition-catalog-fixture-v1',
     )
   })
 })

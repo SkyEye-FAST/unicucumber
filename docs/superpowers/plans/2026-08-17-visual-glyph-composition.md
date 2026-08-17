@@ -27,12 +27,14 @@
 ### Task 1: Composition domain and command model
 
 **Files:**
+
 - Create: `src/types/composition.ts`
 - Create: `src/domain/composition.ts`
 - Create: `src/domain/composition.test.ts`
 - Modify: `src/types/editor.ts`
 
 **Interfaces:**
+
 - Produces `CompositionOperation`, `CompositionLayer`, `CompositionDocument`, `CompositionCommand`.
 - Produces `createCompositionDocument(codePoint, initialGrid?)`, `applyCompositionCommand(document, command)`, `translateLayerBitmap(layer)`, `composeLayers(layers)`.
 - Extends editor `replaceGrid.reason` with `'composition'`.
@@ -70,13 +72,17 @@ Use 16 rows/columns, deep-clone only when a command changes content, enforce loc
 Core composition loop:
 
 ```ts
-export const composeLayers = (layers: readonly CompositionLayer[]): GridData => {
+export const composeLayers = (
+  layers: readonly CompositionLayer[],
+): GridData => {
   let result = createGrid(16)
   for (const layer of layers) {
     if (!layer.visible) continue
     const effective = translateLayerBitmap(layer)
     result = result.map((row, y) =>
-      row.map((cell, x) => combineCell(cell, effective[y]![x]!, layer.operation)),
+      row.map((cell, x) =>
+        combineCell(cell, effective[y]![x]!, layer.operation),
+      ),
     ) as GridData
   }
   return result
@@ -95,10 +101,12 @@ Expected: PASS.
 ### Task 2: Composition controller and bounded history
 
 **Files:**
+
 - Create: `src/composables/useGlyphComposer.ts`
 - Create: `src/composables/useGlyphComposer.test.ts`
 
 **Interfaces:**
+
 - Consumes Task 1 document/commands.
 - Produces `useGlyphComposer(initial, historyLimit = 100)` with `document`, `resultGrid`, `dirty`, `canUndo`, `canRedo`, `selectedLayerId`, `execute`, `undo`, `redo`, `reset`, `markSaved`.
 
@@ -140,6 +148,7 @@ Mirror `useEditorDocument`’s bounded snapshot approach, but fingerprint only c
 ### Task 3: Minimal visual workspace, layers and Apply vertical slice
 
 **Files:**
+
 - Create: `src/components/GlyphComposer/GlyphComposer.vue`
 - Create: `src/components/GlyphComposer/CompositionCanvas.vue`
 - Create: `src/components/GlyphComposer/CompositionLayerPanel.vue`
@@ -153,6 +162,7 @@ Mirror `useEditorDocument`’s bounded snapshot approach, but fingerprint only c
 - Modify: `src/locales/zh-tw.json`
 
 **Interfaces:**
+
 - `GlyphComposer` props: `modelValue`, `codePoint`, `grid`, `returnFocusTarget?`.
 - Emits: `update:modelValue(boolean)`, `apply(GridData)`.
 - Header emits `openComposition(trigger: HTMLElement)`.
@@ -164,7 +174,9 @@ Cover disabled header button at non-16 width through parent integration, current
 ```ts
 it('emits one final grid without mutating the input grid', async () => {
   const grid = createGrid(16)
-  const wrapper = mount(GlyphComposer, { props: { modelValue: true, codePoint: '660E', grid } })
+  const wrapper = mount(GlyphComposer, {
+    props: { modelValue: true, codePoint: '660E', grid },
+  })
   await wrapper.get('[data-testid="composition-add-blank"]').trigger('click')
   await wrapper.get('[data-testid="composition-apply"]').trigger('click')
   expect(wrapper.emitted('apply')).toHaveLength(1)
@@ -201,6 +213,7 @@ Do not write glyph storage from the modal.
 ### Task 4: Composition manifest and lazy component loader
 
 **Files:**
+
 - Create: `src/services/compositionManifest.ts`
 - Create: `src/services/compositionManifest.test.ts`
 - Create: `src/services/compositionDataLoader.ts`
@@ -208,6 +221,7 @@ Do not write glyph storage from the modal.
 - Add small deterministic test fixtures under `public/composition/` only if required by E2E; unit tests should inject fetch.
 
 **Interfaces:**
+
 - Produces strict parsers for manifest/catalog/component chunks.
 - Produces `CompositionDataLoader` with `loadManifest`, `loadCatalog`, `searchComponents`, `hydrateComponents`, `loadIdsForCodePoint`.
 
@@ -218,7 +232,9 @@ it('searches catalog metadata without fetching component chunks', async () => {
   const fetcher = fixtureFetcher()
   const loader = new CompositionDataLoader(fetcher)
   await loader.searchComponents('木')
-  expect(fetcher.calls.filter((url) => url.includes('/components/'))).toHaveLength(0)
+  expect(
+    fetcher.calls.filter((url) => url.includes('/components/')),
+  ).toHaveLength(0)
 })
 ```
 
@@ -243,6 +259,7 @@ Same Vitest command; expected PASS.
 ### Task 5: Component browser and IDS guidance
 
 **Files:**
+
 - Create: `src/utils/ids.ts`
 - Create: `src/utils/ids.test.ts`
 - Create: `src/components/GlyphComposer/ComponentBrowser.vue`
@@ -252,6 +269,7 @@ Same Vitest command; expected PASS.
 - Modify: locale files.
 
 **Interfaces:**
+
 - `parseIds(expression): IdsNode | null`.
 - `ComponentBrowser` emits `addComponent(record)` after hydrating the selected candidate only.
 
@@ -259,7 +277,9 @@ Same Vitest command; expected PASS.
 
 ```ts
 expect(parseIds('⿰日月')).toEqual({
-  type: 'operator', operator: '⿰', children: [
+  type: 'operator',
+  operator: '⿰',
+  children: [
     { type: 'character', value: '日' },
     { type: 'character', value: '月' },
   ],
@@ -291,12 +311,14 @@ Convert record hex with existing `hexToGrid`; preserve source bitmap position an
 ### Task 6: Composition draft persistence
 
 **Files:**
+
 - Create: `src/storage/compositionDraftRepository.ts`
 - Create: `src/storage/compositionDraftRepository.test.ts`
 - Modify: `src/components/GlyphComposer/GlyphComposer.vue`
 - Modify: `src/platform/draftFlush.ts` only if a small generalization is required.
 
 **Interfaces:**
+
 - `StoredCompositionDraft` keyed by normalized code point.
 - Repository: `saveDraft`, `loadDraft(codePoint)`, `deleteDraft(codePoint)`, `persistent`.
 - IndexedDB database `unicucumber-composition`, version 1, store `drafts`.
@@ -329,6 +351,7 @@ Only document content triggers saves. Apply does not delete the draft. Explicit 
 ### Task 7: Generated component-data pipeline
 
 **Files:**
+
 - Create: `scripts/composition/validate-component-source.mjs`
 - Create: `scripts/composition/build-component-data.mjs`
 - Create: matching Vitest tests under `scripts/composition/`.
@@ -336,6 +359,7 @@ Only document content triggers saves. Apply does not delete the draft. Explicit 
 - Generate: `public/composition/**` from an extracted source directory when source data is available in the execution workspace.
 
 **Interfaces:**
+
 - Command: `pnpm update-composition-data -- <source-directory> <data-version>`.
 - Output manifest/catalog/chunks exactly matching Task 4 validators.
 
@@ -366,12 +390,14 @@ Run: `pnpm update-composition-data -- <extracted-source> <version>` then review 
 ### Task 8: PWA caching, E2E, docs and quality gate
 
 **Files:**
+
 - Modify: `vite.config.ts`
 - Add/modify: `e2e/editor-workflow.spec.ts` or focused `e2e/composition.spec.ts`
 - Modify: `CHANGELOG.md`
 - Modify README only if user-facing usage documentation belongs there.
 
 **Interfaces:**
+
 - Define `VITE_COMPOSITION_DATA_VERSION` from generated manifest when present.
 - Workbox caches manifest/catalog/components/IDS with bounded versioned caches and `purgeOnQuotaError`.
 
