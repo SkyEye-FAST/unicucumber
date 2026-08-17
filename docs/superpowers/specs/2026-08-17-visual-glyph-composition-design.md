@@ -29,7 +29,7 @@ The initial component dataset is converted at build/update time into UniCucumber
 
 ## Product entry and lifecycle
 
-Add a Composition button to `EditorHeader.vue`, alongside Glyph Manager and Text Preview. The button remains visible for discoverability but is disabled when the current glyph width is not 16; the accessible description explains that visual composition currently supports 16×16 glyphs.
+Add a Composition button to `EditorHeader.vue`, alongside Glyph Manager and Text Preview. The button uses the outlined Material Symbols layers icon to communicate that Composition combines multiple component layers rather than drawing directly. It remains visible for discoverability but is disabled when the current glyph width is not 16; the accessible description explains that visual composition currently supports 16×16 glyphs.
 
 Opening Composition presents an independent modal workspace teleported to `body`. It uses the existing overlay-stack lock so it does not conflict with Settings or Text Preview. The main application becomes inert while the workspace is open, body scrolling is locked, Escape closes the top-level workspace when no nested editor is active, and focus returns to the invoking button.
 
@@ -372,25 +372,33 @@ The main editor grid, dirty state, draft, and undo/redo history are unchanged by
 
 ## Desktop and tablet UI
 
-For viewports with enough horizontal space, use a full-height modal workspace with a compact top header and three columns:
+For viewports with enough horizontal space, use a canvas-first, full-height modal workspace with a compact top header and three columns:
 
 ```text
 ┌───────────────────────────────────────────────────────────────────┐
-│ Composition · U+XXXX      Undo Redo                 Cancel Save  │
+│ Composition · U+XXXX                                      Close │
 ├────────────────┬─────────────────────────────┬────────────────────┤
 │ Components/IDS │       16×16 canvas          │ Layers             │
 │ search         │                             │ top layer          │
 │ IDS tree       │   selected layer overlay    │ ...                │
 │ candidates     │   final-result preview      │ bottom layer       │
 │                │                             │ layer properties   │
-└────────────────┴─────────────────────────────┴────────────────────┘
+├────────────────┴─────────────────────────────┴────────────────────┤
+│ Add layer · Discard                  Undo · Redo · Save to library │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
-Left column: search field, IDS section for the active target character, candidate cards. Search accepts a literal character and normalized `U+XXXX`/hex code point; v1 does not add fuzzy transliteration or name search.
+The top bar keeps the title and code-point control on one compact horizontal line and reserves the opposite edge for the close control. Undo, redo and document actions live in the bottom toolbar so the header does not compete with the workspace content.
 
-Center: crisp SVG or CSS-grid 16×16 stage. Final composition is rendered as a neutral base. The selected layer has a distinct non-color-only outline/handle treatment. Direct drag moves only the selected unlocked layer. Clicking overlapping pixels selects the topmost visible layer whose effective bitmap has a pixel at the hit cell; repeated clicks may cycle through overlapping candidates only if straightforward to implement, otherwise the layer panel remains the deterministic selector.
+Left column: search field, IDS section for the active target character, candidate cards. Search accepts a literal character and normalized `U+XXXX`/hex code point; v1 does not add fuzzy transliteration or name search. Loading, empty and failure states occupy only the results region and provide a concrete next action instead of leaving a blank panel.
 
-Right column: top visual row represents the last-executed layer. Each item exposes visibility, lock, name and operation. Desktop supports pointer reordering; keyboard and all platforms expose explicit move-up/move-down actions. Locked layers cannot reorder.
+Center: crisp SVG or CSS-grid 16×16 stage. It is the dominant visual area and is centered within a quiet, bounded stage rather than surrounded by unused modal space. Final composition is rendered as a neutral base. The selected layer has a distinct non-color-only outline/handle treatment. Direct drag moves only the selected unlocked layer. Clicking overlapping pixels selects the topmost visible layer whose effective bitmap has a pixel at the hit cell; repeated clicks may cycle through overlapping candidates only if straightforward to implement, otherwise the layer panel remains the deterministic selector.
+
+Right column: top visual row represents the last-executed layer. Use compact layer rows rather than tall cards. The first row contains the layer name, offset, visibility, lock and delete controls; the operation selector occupies a dedicated second row. Selection uses border, background and `aria-pressed`, not color alone. Desktop supports pointer reordering; keyboard and all platforms expose explicit move-up/move-down actions. Locked layers cannot reorder or be deleted.
+
+Deleting an unlocked layer executes the existing `removeLayer` document command and creates one composition-history entry. It does not show a confirmation dialog because Undo is the immediate recovery path. If the deleted layer was selected, selection moves to the nearest surviving layer in visual order; deleting the final layer clears selection. The empty layer panel explains that the composition has no layers and offers Add blank layer. Whole-draft Discard remains a separate destructive workspace action and must not be presented as layer deletion.
+
+The bottom toolbar has two spatial groups: Add blank layer and Discard on the left; Undo, Redo and the single primary Save to Glyph Library action on the right. The destructive draft action is visually separated from Save. Existing semantic theme, spacing, control-height, focus and modal tokens define the visual system; the redesign adds no new dependency or second icon family.
 
 Layer properties use localized labels “Add”, “Subtract”, “Intersect”; source command names are never shown.
 
@@ -402,7 +410,7 @@ At narrow widths the modal becomes a full-screen workspace with one primary pane
 - Canvas
 - Layers
 
-Canvas is the default after adding a component. A sticky bottom action bar provides Cancel and Save. Undo/redo remain globally available. Layer reordering uses explicit up/down buttons rather than touch drag to avoid scroll conflicts.
+Canvas is the default after adding a component. A sticky bottom action bar provides Discard, Undo, Redo and Save without covering scrollable panel content, and includes the bottom safe-area inset. Less frequent actions may wrap into a second row, but Save remains visually primary. Layer reordering uses explicit up/down buttons rather than touch drag to avoid scroll conflicts. Every icon-only action has at least a 44×44 CSS-pixel target and a localized accessible name.
 
 Mask editing switches the Canvas into a clearly labelled mode with Keep/Hide controls and a Done action. Mobile never requires hover.
 
@@ -454,7 +462,9 @@ A new composition data version changes cache names. Startup or idle maintenance 
 
 - Modal has `role="dialog"`, `aria-modal="true"`, a labelled heading and focus restoration.
 - All icon-only controls have localized accessible names.
+- Composition entry and workspace controls use the same Material Symbols icon family and consistent outlined weight.
 - Layer selection, visibility, lock, operation and order are keyboard operable.
+- Delete is disabled for locked layers; unlocked deletion is recoverable with Undo and moves selection predictably.
 - Reorder controls announce the new position via a polite live region.
 - Canvas is not the only way to move a layer; arrows and layer-panel controls provide keyboard alternatives.
 - Selected, locked, hidden and subtract/intersect states are not represented by color alone.
@@ -519,6 +529,8 @@ Component tests:
 - add candidate → layer → canvas result
 - operation selection
 - visibility/locking
+- unlocked layer deletion, selection fallback and Undo restoration
+- locked layer deletion remains disabled and produces no document change
 - mask mode
 - Save emits the final grid and selected code point while retaining composition state
 - mobile panel switching
@@ -531,6 +543,7 @@ Playwright workflows:
 4. Verify phone layout can add, move, reorder and save without horizontal overflow.
 5. Production-preview PWA test: cache a component/IDS chunk, go offline, reopen and reuse cached data.
 6. Ensure opening/loading the normal Glyph Library does not request composition data.
+7. Verify the desktop canvas-first hierarchy, layer delete control and replacement header icon; verify the phone tabs and sticky action bar without horizontal overflow.
 
 ## Internationalization
 
