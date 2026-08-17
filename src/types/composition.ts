@@ -22,6 +22,28 @@ export interface CompositionDocument {
   layers: CompositionLayer[]
 }
 
+export interface CompositionDataManifest {
+  schemaVersion: 1
+  dataVersion: string
+  componentCount: number
+  idsCount: number
+  componentChunkFormat: 1
+  idsChunkFormat: 1
+}
+
+export interface CompositionComponentSummary {
+  id: string
+  characters: string[]
+  bounds: [left: number, top: number, right: number, bottom: number]
+  chunk: string
+}
+
+export interface CompositionComponentRecord extends CompositionComponentSummary {
+  hex: string
+}
+
+export type CompositionIdsChunk = Record<string, string[]>
+
 export type CompositionCommand =
   | { type: 'addLayer'; layer: CompositionLayer }
   | { type: 'removeLayer'; layerId: string }
