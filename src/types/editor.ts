@@ -43,7 +43,13 @@ export type EditorCommand =
   | {
       type: 'replaceGrid'
       grid: GridData
-      reason: 'hex' | 'import' | 'restore' | 'load' | 'width-change'
+      reason:
+        | 'hex'
+        | 'import'
+        | 'restore'
+        | 'load'
+        | 'width-change'
+        | 'composition'
     }
   | { type: 'clearGrid' }
   | {
