@@ -4,6 +4,10 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+### Added
+
+- Import TTF, OTF, WOFF, or WOFF2 files as a browser-local preview font that is persisted separately and always takes priority over the existing preview fallback stack.
+
 ### Changed
 
 - Replace full-browser parsing of the bundled Unifont map with a compact build-generated catalog index, visible-range bitmap hydration, bounded versioned caches, and chunk-based BMP font export.

@@ -133,7 +133,6 @@
     "export_ttf": "TrueType字体（.ttf）",
     "export_woff": "Web Open Font（.woff）",
     "export_woff2": "Web Open Font 2（.woff2）",
-    "font_exported": "{format}字体文件已导出。",
     "font_export": {
       "metadata": {
         "description": "这些内容会写入字体的标准名称与许可信息。完整导出默认采用官方Unifont构建信息。",
@@ -171,6 +170,7 @@
       },
       "scope_label": "字体范围"
     },
+    "font_exported": "{format}字体文件已导出。",
     "glyph": {
       "code_point": "码位：",
       "delete": "删除",
@@ -214,8 +214,8 @@
       "no_matches_hint": "请清除搜索，或尝试其他字符或码位。",
       "remove_from_manager": "从字形管理器移除（{count}）",
       "retry": "重试",
-      "search_label": "搜索字形库",
       "scrollbar_label": "滚动字形库",
+      "search_label": "搜索字形库",
       "select_filtered": "选择筛选出的字形",
       "selected_count": "已选择{count}项",
       "selection_mode": "选择添加",
@@ -363,7 +363,7 @@
       "500ms": "0.5秒",
       "5s": "5秒"
     },
-    "browser_preview_font": "字形预览字体",
+    "browser_preview_font": "预览字体后备列表",
     "close_sidebar": "关闭设置",
     "confirm_clear": "清空时确认",
     "draw_mode": {
@@ -400,6 +400,18 @@
     "image_import_transparent_white": "将透明像素视为白色",
     "language": {
       "label": "语言"
+    },
+    "local_font": {
+      "active": "本地字体：{name}",
+      "import": "导入本地字体",
+      "import_failed": "无法加载该字体文件。请选择有效的 TTF、OTF、WOFF 或 WOFF2 字体。",
+      "priority_hint": "该本地字体始终最优先；下方列表继续作为后备字体栈。",
+      "remove": "移除",
+      "remove_failed": "无法移除已保存的本地字体。",
+      "replace": "替换本地字体",
+      "restore_failed": "无法恢复已保存的本地预览字体。",
+      "session_only": "字体已在本次会话中启用，但无法保存到此浏览器。",
+      "supported": "支持导入 TTF、OTF、WOFF 和 WOFF2。导入的字体仅保存在此浏览器中。"
     },
     "reset": "重置为默认值",
     "sections": {

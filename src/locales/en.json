@@ -133,7 +133,6 @@
     "export_ttf": "TrueType font (.ttf)",
     "export_woff": "Web Open Font (.woff)",
     "export_woff2": "Web Open Font 2 (.woff2)",
-    "font_exported": "{format} font exported.",
     "font_export": {
       "metadata": {
         "description": "These values are written to the font's standard name and licensing records. Complete exports start from the official Unifont build metadata.",
@@ -171,6 +170,7 @@
       },
       "scope_label": "Font range"
     },
+    "font_exported": "{format} font exported.",
     "glyph": {
       "code_point": "Code point:",
       "delete": "Delete",
@@ -214,8 +214,8 @@
       "no_matches_hint": "Clear the search or try another character or code point.",
       "remove_from_manager": "Remove from manager ({count})",
       "retry": "Retry",
-      "search_label": "Search glyph library",
       "scrollbar_label": "Scroll glyph library",
+      "search_label": "Search glyph library",
       "select_filtered": "Select filtered glyphs",
       "selected_count": "{count} selected",
       "selection_mode": "Select to add",
@@ -363,7 +363,7 @@
       "500ms": "0.5 seconds",
       "5s": "5 seconds"
     },
-    "browser_preview_font": "Glyph preview font",
+    "browser_preview_font": "Preview font fallback list",
     "close_sidebar": "Close settings",
     "confirm_clear": "Confirm before clearing",
     "draw_mode": {
@@ -400,6 +400,18 @@
     "image_import_transparent_white": "Treat transparent pixels as white",
     "language": {
       "label": "Language"
+    },
+    "local_font": {
+      "active": "Local font: {name}",
+      "import": "Import local font",
+      "import_failed": "Unable to load this font file. Use a valid TTF, OTF, WOFF, or WOFF2 font.",
+      "priority_hint": "This local font is used first; the list below remains the fallback stack.",
+      "remove": "Remove",
+      "remove_failed": "Unable to remove the saved local font.",
+      "replace": "Replace local font",
+      "restore_failed": "The saved local preview font could not be restored.",
+      "session_only": "The font is active for this session but could not be saved in this browser.",
+      "supported": "Import TTF, OTF, WOFF, or WOFF2. Imported fonts are stored only in this browser."
     },
     "reset": "Reset to defaults",
     "sections": {

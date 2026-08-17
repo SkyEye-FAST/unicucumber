@@ -142,7 +142,7 @@
       v-else-if="!isExpanded"
       :glyphs="filteredGlyphs"
       :selected-code-points="selectedCodePoints"
-      :settings="settings"
+      :settings="glyphListSettings"
       @edit="editGlyph"
       @remove="removeGlyph"
       @edit-in-grid="handleEditInGrid"
@@ -154,7 +154,7 @@
     <GlyphLibraryGrid
       v-else
       :active-code-point="props.activeCodePoint"
-      :browser-preview-font="settings.browserPreviewFont"
+      :browser-preview-font="browserPreviewFont"
       :density="settings.glyphLibraryDensity"
       :glyphs="filteredGlyphs"
       :initial-scroll-top="matrixScrollTop"
@@ -220,6 +220,7 @@ import {
 
 import { useI18n } from 'vue-i18n'
 
+import { useLocalPreviewFont } from '@/composables/useLocalPreviewFont'
 import { useNotifications } from '@/composables/useNotifications'
 import { useSettings } from '@/composables/useSettings'
 import { UNICODE_BLOCKS } from '@/data/unicodeBlocks'
@@ -331,6 +332,14 @@ const hydratedCatalogChunkOrder: string[] = []
 const MAX_HYDRATED_CATALOG_CHUNKS = 8
 
 const { settings } = useSettings()
+const { effectivePreviewFont } = useLocalPreviewFont()
+const browserPreviewFont = effectivePreviewFont(
+  () => settings.value.browserPreviewFont,
+)
+const glyphListSettings = computed(() => ({
+  glyphPreviewMode: settings.value.glyphPreviewMode,
+  browserPreviewFont: browserPreviewFont.value,
+}))
 
 const savedLibraryPending = computed(
   () => props.libraryLoading || (!props.libraryLoaded && !props.libraryError),

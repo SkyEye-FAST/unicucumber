@@ -343,6 +343,66 @@
               <span id="browser-font-label" class="settings-field-label">
                 {{ $t('settings.browser_preview_font') }}
               </span>
+              <input
+                ref="localFontInputRef"
+                class="visually-hidden"
+                type="file"
+                :accept="LOCAL_PREVIEW_FONT_ACCEPT"
+                @change="handleLocalFontImport"
+              />
+              <div class="local-font-controls">
+                <div class="local-font-actions">
+                  <button
+                    class="ui-button"
+                    type="button"
+                    :disabled="localPreviewFontLoading"
+                    @click="openLocalFontPicker"
+                  >
+                    <i-material-symbols-upload-file-outline
+                      class="settings-icon"
+                    />
+                    {{
+                      localPreviewFontName
+                        ? $t('settings.local_font.replace')
+                        : $t('settings.local_font.import')
+                    }}
+                  </button>
+                  <button
+                    v-if="localPreviewFontActive"
+                    class="ui-button ui-button--quiet"
+                    type="button"
+                    :disabled="localPreviewFontLoading"
+                    @click="clearLocalFont"
+                  >
+                    {{ $t('settings.local_font.remove') }}
+                  </button>
+                </div>
+                <div
+                  v-if="localPreviewFontName"
+                  class="local-font-status"
+                  role="status"
+                >
+                  <strong class="local-font-name">{{
+                    $t('settings.local_font.active', {
+                      name: localPreviewFontName,
+                    })
+                  }}</strong>
+                  <span>{{ $t('settings.local_font.priority_hint') }}</span>
+                  <span v-if="!localPreviewFontPersisted">
+                    {{ $t('settings.local_font.session_only') }}
+                  </span>
+                </div>
+                <p v-else class="settings-hint">
+                  {{ $t('settings.local_font.supported') }}
+                </p>
+                <p
+                  v-if="localFontErrorMessage"
+                  class="local-font-error"
+                  role="alert"
+                >
+                  {{ localFontErrorMessage }}
+                </p>
+              </div>
               <button
                 class="ui-button font-button"
                 type="button"
@@ -474,6 +534,10 @@ import { useI18n } from 'vue-i18n'
 import CustomSelect, {
   type CustomSelectOption,
 } from '@/components/CustomSelect.vue'
+import {
+  LOCAL_PREVIEW_FONT_ACCEPT,
+  useLocalPreviewFont,
+} from '@/composables/useLocalPreviewFont'
 import { useSettings } from '@/composables/useSettings'
 import { useTheme } from '@/composables/useTheme'
 import {
@@ -506,10 +570,28 @@ const applicationVersion =
 const sidebarRef = ref<HTMLElement | null>(null)
 const closeButtonRef = ref<HTMLButtonElement | null>(null)
 const fontInputRef = ref<HTMLTextAreaElement | null>(null)
+const localFontInputRef = ref<HTMLInputElement | null>(null)
 const isModalMode = ref(false)
 const showFontEdit = ref(false)
 const tempFont = ref('')
+const localFontActionError = ref('')
 const showResetDialog = ref(false)
+const {
+  localPreviewFontName,
+  localPreviewFontActive,
+  localPreviewFontLoading,
+  localPreviewFontPersisted,
+  localPreviewFontError,
+  importLocalPreviewFont,
+  removeLocalPreviewFont,
+} = useLocalPreviewFont()
+const localFontErrorMessage = computed(() => {
+  if (localFontActionError.value) return localFontActionError.value
+  if (localPreviewFontError.value && !localPreviewFontActive.value) {
+    return $t('settings.local_font.restore_failed')
+  }
+  return ''
+})
 const drawModeOptions = computed<CustomSelectOption[]>(() => [
   {
     value: 'doubleButtonDraw',
@@ -648,6 +730,33 @@ const updateBoolean = (
   updateSettings({ [key]: (event.target as HTMLInputElement).checked })
 }
 
+const openLocalFontPicker = (): void => {
+  localFontActionError.value = ''
+  localFontInputRef.value?.click()
+}
+
+const handleLocalFontImport = async (event: Event): Promise<void> => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+  localFontActionError.value = ''
+  try {
+    await importLocalPreviewFont(file)
+  } catch {
+    localFontActionError.value = $t('settings.local_font.import_failed')
+  }
+}
+
+const clearLocalFont = async (): Promise<void> => {
+  localFontActionError.value = ''
+  try {
+    await removeLocalPreviewFont()
+  } catch {
+    localFontActionError.value = $t('settings.local_font.remove_failed')
+  }
+}
+
 const toggleFontEdit = (): void => {
   if (showFontEdit.value) {
     cancelFontEdit()
@@ -766,6 +875,8 @@ const showResetConfirm = (): void => {
 const confirmReset = (): void => {
   emit('update:settings', { ...defaultSettings })
   setPreference('auto')
+  localFontActionError.value = ''
+  void removeLocalPreviewFont().catch(() => undefined)
   showResetDialog.value = false
 }
 </script>
@@ -1115,6 +1226,45 @@ const confirmReset = (): void => {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
+}
+
+.local-font-controls {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.local-font-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.local-font-actions .ui-button {
+  min-width: 0;
+}
+
+.local-font-status {
+  display: grid;
+  gap: 0.2rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--background-color);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.local-font-name {
+  overflow-wrap: anywhere;
+  color: var(--text-color);
+}
+
+.local-font-error {
+  margin: 0;
+  color: var(--danger-color);
+  font-size: 0.78rem;
+  line-height: 1.4;
 }
 
 .settings-footer {

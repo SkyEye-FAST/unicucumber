@@ -85,7 +85,7 @@
               v-model="currentCodePoint"
               :hex-value="hexCode"
               :width="settings.glyphWidth"
-              :browser-preview-font="settings.browserPreviewFont"
+              :browser-preview-font="browserPreviewFont"
               :save-status="documentSaveStatus"
               :save-status-label="saveStatusLabel"
             />
@@ -300,6 +300,7 @@ import { useI18n } from 'vue-i18n'
 
 import { useEditorDocument } from '@/composables/useEditorDocument'
 import { useGlyphLibrary } from '@/composables/useGlyphLibrary'
+import { useLocalPreviewFont } from '@/composables/useLocalPreviewFont'
 import { useNotifications } from '@/composables/useNotifications'
 import { useSettings } from '@/composables/useSettings'
 import { useSidebar } from '@/composables/useSidebar'
@@ -337,6 +338,10 @@ const { t: $t } = useI18n()
 const { notify } = useNotifications()
 
 const { settings, showSettings } = useSettings()
+const { effectivePreviewFont } = useLocalPreviewFont()
+const browserPreviewFont = effectivePreviewFont(
+  () => settings.value.browserPreviewFont,
+)
 const editorDocument = useEditorDocument({ width: settings.value.glyphWidth })
 const glyphRepository = getGlyphRepository()
 const {

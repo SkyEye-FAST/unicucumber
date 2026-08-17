@@ -151,6 +151,80 @@ test('appearance preference persists across reloads', async ({ page }) => {
   ).toBeChecked()
 })
 
+test('local preview font is prepended to the fallback stack and persists', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    class LocalFontFaceMock {
+      constructor(
+        readonly family: string,
+        readonly source: string | BufferSource,
+      ) {}
+
+      async load(): Promise<LocalFontFaceMock> {
+        return this
+      }
+    }
+
+    Object.defineProperty(window, 'FontFace', {
+      configurable: true,
+      value: LocalFontFaceMock,
+    })
+    Object.defineProperty(document, 'fonts', {
+      configurable: true,
+      value: {
+        add: () => undefined,
+        delete: () => true,
+      },
+    })
+  })
+  await loadEditor(page)
+  let settings = await openSettings(page)
+  const fontInput = settings.drawer.locator(
+    'input[type="file"][accept*=".ttf"]',
+  )
+  await fontInput.setInputFiles({
+    name: 'priority-preview.ttf',
+    mimeType: 'font/ttf',
+    buffer: Buffer.from([0, 1, 2, 3]),
+  })
+  await expect(
+    settings.drawer.getByText('Local font: priority-preview.ttf'),
+  ).toBeVisible()
+
+  const previewFont = await page
+    .locator('.unicode-char')
+    .evaluate((element) => (element as HTMLElement).style.fontFamily)
+  expect(previewFont).toMatch(/^"?UniCucumber Local Preview"?,/)
+  expect(previewFont).toContain('Noto Sans')
+
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await expect(page.locator('.grid-container')).toBeVisible()
+  settings = await openSettings(page)
+  await expect(
+    settings.drawer.getByText('Local font: priority-preview.ttf'),
+  ).toBeVisible()
+  await expect
+    .poll(() =>
+      page
+        .locator('.unicode-char')
+        .evaluate((element) => (element as HTMLElement).style.fontFamily),
+    )
+    .toMatch(/^"?UniCucumber Local Preview"?,/)
+
+  await settings.drawer.getByRole('button', { name: 'Remove' }).click()
+  await expect(
+    settings.drawer.getByText('Local font: priority-preview.ttf'),
+  ).toBeHidden()
+  await expect
+    .poll(() =>
+      page
+        .locator('.unicode-char')
+        .evaluate((element) => (element as HTMLElement).style.fontFamily),
+    )
+    .not.toContain('UniCucumber Local Preview')
+})
+
 test('boolean settings render as animated keyboard-operable switches', async ({
   page,
 }) => {

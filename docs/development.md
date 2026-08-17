@@ -48,7 +48,9 @@ generated-data commands change files, so review their diffs before committing.
 - `src/components/GlyphGrid.vue` is the explicit Pointer Events state machine;
   viewport zoom and pan are separate from document history.
 - `src/storage` provides versioned IndexedDB persistence, validation, one-time
-  `unicucumber_glyphs` migration, and a local-storage fallback.
+  `unicucumber_glyphs` migration, and a local-storage fallback. Imported preview
+  font binaries use a separate IndexedDB database so large font files never enter
+  the settings local-storage payload.
 - `src/platform` contains optional browser and PWA adapters. Core editing does not
   depend on optional clipboard, sharing, or camera APIs.
 - `src/utils` contains pure glyph conversion, image preparation, selection, import,
