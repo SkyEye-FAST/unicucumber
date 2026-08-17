@@ -4,6 +4,10 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+### Added
+
+- Design a source-neutral visual 16×16 glyph composition workspace with layered bitmap operations, IDS-assisted component discovery, safe drafts, and offline-aware data loading.
+
 ### Fixed
 
 - Replace the glyph library export menu's native `details/summary` toggle with explicit Vue state so export actions are stable in WebKit CI runs.
