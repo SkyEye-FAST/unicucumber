@@ -749,7 +749,7 @@ test.describe('full-screen glyph library', () => {
     await expandLibrary(page)
     await page.getByRole('button', { name: 'Tools' }).click()
     await expect(page.locator('.glyph-manager-inspector')).toBeHidden()
-    await page.locator('.library-export-menu > summary').click()
+    await page.getByRole('button', { name: 'Export Glyphs' }).click()
     await expect(
       page.getByRole('button', { name: /Unifont glyphs/ }),
     ).toBeVisible()

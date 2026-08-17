@@ -4,6 +4,10 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+### Fixed
+
+- Replace the glyph library export menu's native `details/summary` toggle with explicit Vue state so export actions are stable in WebKit CI runs.
+
 ## [1.6.0] - 2026-08-17
 
 ### Added

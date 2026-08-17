@@ -124,16 +124,24 @@
       </div>
     </div>
 
-    <div v-show="toolsOpen" id="glyph-library-tools" class="library-tools">
-      <details ref="exportMenu" class="library-export-menu">
-        <summary
-          class="ui-button library-action"
-          :aria-label="$t('glyph_manager.export')"
-        >
+      <div v-show="toolsOpen" id="glyph-library-tools" class="library-tools">
+        <div class="library-export-menu">
+          <button
+            class="ui-button library-action library-export-trigger"
+            type="button"
+            :aria-label="$t('glyph_manager.export')"
+            :aria-expanded="exportMenuOpen"
+            aria-controls="glyph-library-export-options"
+            @click="exportMenuOpen = !exportMenuOpen"
+          >
           <i-material-symbols-download aria-hidden="true" />
           <span>{{ $t('glyph_manager.export') }}</span>
-        </summary>
-        <div class="library-export-options">
+        </button>
+        <div
+          v-show="exportMenuOpen"
+          id="glyph-library-export-options"
+          class="library-export-options"
+        >
           <FontExportOptions
             :busy="fontExportBusy"
             :metadata="fontMetadata"
@@ -176,7 +184,8 @@
             />
           </label>
         </div>
-      </details>
+        </div>
+      </div>
 
       <fieldset class="density-control">
         <legend class="visually-hidden">
@@ -314,7 +323,7 @@ const densityOptions: GlyphLibraryDensity[] = [
   'comfortable',
   'large',
 ]
-const exportMenu = ref<HTMLDetailsElement | null>(null)
+const exportMenuOpen = ref(false)
 const filtersOpen = ref(false)
 const toolsOpen = ref(false)
 const sheetColumns = ref(16)
@@ -399,7 +408,7 @@ const updateUnicodeBlock = (value: string | number): void => {
 }
 
 const closeExportMenu = (): void => {
-  if (exportMenu.value) exportMenu.value.open = false
+  exportMenuOpen.value = false
 }
 const exportHex = (): void => {
   emit('export')
@@ -712,14 +721,6 @@ const exportSheet = (): void => {
 
 .library-export-menu {
   position: relative;
-}
-
-.library-export-menu summary {
-  list-style: none;
-}
-
-.library-export-menu summary::-webkit-details-marker {
-  display: none;
 }
 
 .library-export-options {
