@@ -4,6 +4,8 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-08-17
+
 ### Added
 
 - Import TTF, OTF, WOFF, or WOFF2 files as a browser-local preview font that is persisted separately and always takes priority over the existing preview fallback stack.
