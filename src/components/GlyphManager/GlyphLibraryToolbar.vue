@@ -185,7 +185,6 @@
           </label>
         </div>
         </div>
-      </div>
 
       <fieldset class="density-control">
         <legend class="visually-hidden">
