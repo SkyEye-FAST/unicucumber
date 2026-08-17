@@ -40,13 +40,13 @@
         </nav>
 
         <div class="composition-body">
-          <section
+          <ComponentBrowser
+            :key="codePoint"
             class="composition-components"
             :class="{ 'mobile-hidden': activeTab !== 'components' }"
-          >
-            <h3>{{ $t('composition.components') }}</h3>
-            <p>{{ $t('composition.components_placeholder') }}</p>
-          </section>
+            :code-point="codePoint"
+            @add-component="addComponentLayer"
+          />
 
           <div
             class="composition-canvas-panel"
@@ -90,11 +90,15 @@ import { useI18n } from 'vue-i18n'
 
 import { useGlyphComposer } from '@/composables/useGlyphComposer'
 import { createCompositionDocument } from '@/domain/composition'
-import type { CompositionOperation } from '@/types/composition'
+import type {
+  CompositionComponentRecord,
+  CompositionOperation,
+} from '@/types/composition'
 import type { GridData } from '@/types/glyph'
-import { createGrid, deepCloneGrid } from '@/utils/hexUtils'
+import { createGrid, deepCloneGrid, hexToGrid } from '@/utils/hexUtils'
 import { acquireOverlayLock, releaseOverlayLock } from '@/utils/overlayStack'
 
+import ComponentBrowser from './ComponentBrowser.vue'
 import CompositionCanvas from './CompositionCanvas.vue'
 import CompositionLayerPanel from './CompositionLayerPanel.vue'
 import CompositionToolbar from './CompositionToolbar.vue'
@@ -125,6 +129,7 @@ const closeButtonRef = ref<HTMLButtonElement | null>(null)
 const activeTab = ref<'components' | 'canvas' | 'layers'>('canvas')
 const tabs = ['components', 'canvas', 'layers'] as const
 const nextLayerNumber = ref(1)
+const nextComponentNumber = ref(1)
 let overlayLocked = false
 let previouslyFocused: HTMLElement | null = null
 let hasOpened = false
@@ -153,6 +158,34 @@ const addBlankLayer = (): void => {
     })
   ) {
     nextLayerNumber.value += 1
+    selectLayer(id)
+  }
+}
+
+const addComponentLayer = (record: CompositionComponentRecord): void => {
+  const bitmap = hexToGrid(record.hex)
+  if (bitmap === null || bitmap[0]?.length !== 16) return
+
+  const number = nextComponentNumber.value
+  const id = `component-${record.id}-${number}`
+  if (
+    composer.execute({
+      type: 'addLayer',
+      layer: {
+        id,
+        name: record.characters.join(' / '),
+        bitmap,
+        offsetX: 0,
+        offsetY: 0,
+        mask: null,
+        operation: 'add',
+        visible: true,
+        locked: false,
+        componentId: record.id,
+      },
+    })
+  ) {
+    nextComponentNumber.value += 1
     selectLayer(id)
   }
 }
@@ -230,6 +263,7 @@ watch(
     composer.reset(buildInitialDocument())
     activeTab.value = 'canvas'
     nextLayerNumber.value = 1
+    nextComponentNumber.value = 1
   },
 )
 
@@ -269,8 +303,7 @@ onUnmounted(unregisterOverlay)
   padding-bottom: var(--space-3);
 }
 
-.composition-header h2,
-.composition-components h3 {
+.composition-header h2 {
   margin: 0;
 }
 
@@ -296,16 +329,6 @@ onUnmounted(unregisterOverlay)
 .composition-canvas-panel {
   min-width: 0;
   min-height: 0;
-}
-
-.composition-components {
-  padding: var(--space-3);
-  border: 1px dashed var(--border-color);
-  border-radius: var(--radius-md);
-}
-
-.composition-components p {
-  color: var(--text-secondary);
 }
 
 .composition-mobile-tabs {

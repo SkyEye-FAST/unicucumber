@@ -1,10 +1,24 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 
-import { mount, type VueWrapper } from '@vue/test-utils'
+import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 
+import type {
+  CompositionComponentRecord,
+  CompositionComponentSummary,
+} from '@/types/composition'
 import type { GridData } from '@/types/glyph'
 import { createGrid } from '@/utils/hexUtils'
+
+const loaderMocks = vi.hoisted(() => ({
+  searchComponents: vi.fn(),
+  hydrateComponents: vi.fn(),
+  loadIdsForCodePoint: vi.fn(),
+}))
+
+vi.mock('@/services/compositionDataLoader', () => ({
+  compositionDataLoader: loaderMocks,
+}))
 
 import EditorHeader from '../EditorHeader.vue'
 import GlyphComposer from './GlyphComposer.vue'
@@ -17,7 +31,15 @@ const messages = {
       canvas: 'Composition canvas',
       close: 'Close composition workspace',
       components: 'Components',
-      components_placeholder: 'Component browser will appear here.',
+      component_add: 'Add {characters}',
+      component_bounds: 'Bounds {bounds}',
+      component_load_error: 'Unable to load this component.',
+      component_loading: 'Loading component',
+      component_no_results: 'No matching components.',
+      component_search: 'Search components',
+      component_search_error: 'Unable to load components.',
+      component_search_placeholder: 'Character or code point',
+      component_retry: 'Retry',
       current_glyph: 'Current glyph',
       hide: 'Hide',
       hide_layer: 'Hide {name}',
@@ -29,6 +51,10 @@ const messages = {
       operation_add: 'Add',
       operation_intersect: 'Intersect',
       operation_subtract: 'Subtract',
+      ids: 'IDS guidance',
+      ids_error: 'Unable to load IDS guidance.',
+      ids_leaf: 'Search for {character}',
+      ids_retry: 'Retry IDS',
       redo: 'Redo composition action',
       redo_short: 'Redo',
       select_layer: 'Select {name}',
@@ -72,6 +98,12 @@ const mountComposer = (grid = pixelGrid(0, 0), modelValue = true) => {
   })
   return activeWrapper
 }
+
+beforeEach(() => {
+  loaderMocks.searchComponents.mockReset().mockResolvedValue([])
+  loaderMocks.hydrateComponents.mockReset().mockResolvedValue([])
+  loaderMocks.loadIdsForCodePoint.mockReset().mockResolvedValue([])
+})
 
 afterEach(() => {
   activeWrapper?.unmount()
@@ -152,6 +184,50 @@ describe('GlyphComposer', () => {
         .get('[data-testid="composition-layer-current-glyph-select"]')
         .attributes('aria-pressed'),
     ).toBe('true')
+  })
+
+  it('hydrates only the selected component and adds it as an independent layer', async () => {
+    const summary: CompositionComponentSummary = {
+      id: '00AABBCCDDEEFF00',
+      characters: ['木'],
+      bounds: [0, 0, 16, 16],
+      chunk: '00',
+    }
+    const record: CompositionComponentRecord = {
+      ...summary,
+      hex: `8${'0'.repeat(63)}`,
+    }
+    loaderMocks.searchComponents.mockResolvedValue([summary])
+    loaderMocks.hydrateComponents.mockResolvedValue([record])
+
+    const wrapper = mountComposer(createGrid(16))
+    await flushPromises()
+
+    expect(loaderMocks.hydrateComponents).not.toHaveBeenCalled()
+    await wrapper
+      .get(`[data-testid="composition-component-${summary.id}"]`)
+      .trigger('click')
+    await flushPromises()
+
+    expect(loaderMocks.hydrateComponents).toHaveBeenCalledTimes(1)
+    expect(loaderMocks.hydrateComponents).toHaveBeenCalledWith([summary.id])
+    await wrapper.get('[data-testid="composition-apply"]').trigger('click')
+    const applied = wrapper.emitted<[GridData]>('apply')?.[0]?.[0]
+    expect(applied?.[0]?.[0]).toBe(1)
+  })
+
+  it('uses IDS leaves to drive metadata-only component search', async () => {
+    loaderMocks.loadIdsForCodePoint.mockResolvedValue(['⿰日月'])
+    const wrapper = mountComposer()
+    await flushPromises()
+
+    await wrapper
+      .get('[data-testid="composition-ids-leaf-日"]')
+      .trigger('click')
+    await flushPromises()
+
+    expect(loaderMocks.searchComponents).toHaveBeenLastCalledWith('日')
+    expect(loaderMocks.hydrateComponents).not.toHaveBeenCalled()
   })
 
   it('disables the composition entry when the parent marks it unavailable', () => {

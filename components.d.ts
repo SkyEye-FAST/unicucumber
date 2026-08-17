@@ -11,6 +11,8 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    ComponentBrowser: typeof import('./src/components/GlyphComposer/ComponentBrowser.vue')['default']
+    ComponentCard: typeof import('./src/components/GlyphComposer/ComponentCard.vue')['default']
     CompositionCanvas: typeof import('./src/components/GlyphComposer/CompositionCanvas.vue')['default']
     CompositionLayerItem: typeof import('./src/components/GlyphComposer/CompositionLayerItem.vue')['default']
     CompositionLayerPanel: typeof import('./src/components/GlyphComposer/CompositionLayerPanel.vue')['default']
@@ -30,6 +32,7 @@ declare module 'vue' {
     GlyphList: typeof import('./src/components/GlyphManager/GlyphList.vue')['default']
     GlyphManager: typeof import('./src/components/GlyphManager.vue')['default']
     HexCodeInput: typeof import('./src/components/HexCodeInput.vue')['default']
+    IdsTree: typeof import('./src/components/GlyphComposer/IdsTree.vue')['default']
     IFa6BrandsGithub: typeof import('~icons/fa6-brands/github')['default']
     ImageImportDialog: typeof import('./src/components/ImageImportDialog.vue')['default']
     IMaterialSymbolsAddBoxOutline: typeof import('~icons/material-symbols/add-box-outline')['default']
