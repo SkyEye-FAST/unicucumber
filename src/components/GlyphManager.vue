@@ -431,18 +431,31 @@ const refreshManagedBaselines = async (): Promise<void> => {
 }
 
 const hydrateCatalogGlyphs = (codePoints: string[]): void => {
-  const chunkIds = Array.from(
+  const requestedChunkIds = Array.from(
     new Set(
       codePoints.map((codePoint) =>
         getUnifontChunkId(Number.parseInt(codePoint, 16)),
       ),
     ),
   )
-  if (chunkIds.length === 0) return
+  if (
+    requestedChunkIds.length === 0 ||
+    requestedChunkIds.every((chunkId) => hydratedCatalogChunkKeys.has(chunkId))
+  ) {
+    return
+  }
 
   catalogHydrationQueue = catalogHydrationQueue
     .catch(() => undefined)
     .then(async () => {
+      // A previous queued hydration may have resolved these chunks while this
+      // request was waiting. Re-check here so repeated visible-range events are
+      // idempotent and do not publish a fresh cache object unnecessarily.
+      const chunkIds = requestedChunkIds.filter(
+        (chunkId) => !hydratedCatalogChunkKeys.has(chunkId),
+      )
+      if (chunkIds.length === 0) return
+
       const chunks = await Promise.all(
         chunkIds.map(async (chunkId) => ({
           chunkId,
@@ -876,14 +889,12 @@ const filteredGlyphs = computed<Glyph[]>(() => {
       return false
     }
     if (!query) return true
-    const searchableHex =
-      glyph.hexValue || catalogHexValues.value[codePoint] || ''
     const character = String.fromCodePoint(
       parseInt(glyph.codePoint, 16),
     ).toLowerCase()
     return (
       glyph.codePoint.toLowerCase().includes(query) ||
-      searchableHex.toLowerCase().includes(query) ||
+      glyph.hexValue.toLowerCase().includes(query) ||
       character.includes(query) ||
       unicodeNameMatches.value.has(glyph.codePoint) ||
       catalogHexMatches.value.has(glyph.codePoint)

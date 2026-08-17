@@ -346,6 +346,28 @@ describe('GlyphManager full-screen state', () => {
     wrapper.unmount()
   })
 
+  it('keeps catalog hydration stable while a code-point search is active', async () => {
+    unifont.setGlyphs([
+      { codePoint: '0041', hexValue: 'AA'.repeat(16) },
+      { codePoint: '0042', hexValue: '55'.repeat(32) },
+      { codePoint: '0043', hexValue: 'CC'.repeat(16) },
+    ])
+    const wrapper = mountManager()
+    await wrapper.get('.glyph-manager-expand').trigger('click')
+    await flushPromises()
+
+    const hydratedCalls = unifont.loadChunk.mock.calls.length
+    expect(hydratedCalls).toBeGreaterThan(0)
+
+    await wrapper.get('.library-search input').setValue('0041')
+    await flushPromises()
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 20))
+
+    expect(wrapper.findAll('.glyph-library-cell')).toHaveLength(1)
+    expect(unifont.loadChunk).toHaveBeenCalledTimes(hydratedCalls)
+    wrapper.unmount()
+  })
+
   it('marks only changed Unifont data and adds selected library glyphs to the manager', async () => {
     const onGlyphChange = vi.fn().mockResolvedValue(undefined)
     unifont.setGlyphs([

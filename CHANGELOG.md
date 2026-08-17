@@ -12,6 +12,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Fixed
 
+- Prevent Glyph Library searches from entering a reactive bitmap-hydration loop when the full Unifont catalog contains unloaded glyph previews.
 - Fit the glyph grid to both available width and constrained desktop/tablet height so every row remains visible after resetting the view.
 - Preserve the default grid size on tall desktop screens when the surrounding editor has enough vertical room.
 - Avoid shrinking the glyph grid on desktop and tablet windows at least 720px wide around 871px high, while keeping secondary hexadecimal and export controls below it.

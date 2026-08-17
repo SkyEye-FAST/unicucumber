@@ -900,6 +900,41 @@ test('large synthetic library remains responsive while searching and scrolling',
   expect(Date.now() - searchStarted).toBeLessThan(3_000)
 })
 
+test('real Unifont catalog stays responsive during code-point search', async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== 'chromium',
+    'full catalog search regression runs once',
+  )
+  await page.route(
+    /^https:\/\/(fonts\.googleapis|fontsapi\.zeoseven)\.com\//,
+    (route) => route.fulfill({ contentType: 'text/css', body: '' }),
+  )
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
+  await expect(page.locator('.grid-container')).toBeVisible()
+  await page.getByRole('button', { name: 'Open glyph manager' }).click()
+  await page.getByRole('button', { name: 'Expand glyph manager' }).click()
+
+  const grid = page.locator('.glyph-library-grid')
+  await expect
+    .poll(
+      async () => Number((await grid.getAttribute('data-total-count')) ?? 0),
+      { timeout: 30_000 },
+    )
+    .toBeGreaterThan(100_000)
+
+  const searchStarted = Date.now()
+  await page.locator('.library-search input').fill('0041')
+  await expect
+    .poll(async () => {
+      const count = Number((await grid.getAttribute('data-total-count')) ?? 0)
+      return count > 0 && count < 100
+    })
+    .toBe(true)
+  expect(Date.now() - searchStarted).toBeLessThan(3_000)
+})
+
 test('compact manager preloads once, windows rows, and preserves state on reopen', async ({
   page,
 }, testInfo) => {
