@@ -44,7 +44,16 @@ test('allows page wheel scrolling while the pointer is over the editor viewport'
 }, testInfo) => {
   test.skip(testInfo.project.name !== 'chromium', 'wheel regression runs once')
   await page.setViewportSize({ width: 1440, height: 700 })
-  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.evaluate(() => {
+    const spacer = document.createElement('div')
+    spacer.setAttribute('aria-hidden', 'true')
+    spacer.style.height = '1000px'
+    document.body.append(spacer)
+    window.scrollTo(0, 0)
+  })
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.scrollHeight))
+    .toBeGreaterThan(await page.evaluate(() => window.innerHeight))
 
   const viewport = page.locator('.grid-viewport')
   const box = await viewport.boundingBox()
