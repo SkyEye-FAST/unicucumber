@@ -46,6 +46,7 @@ const messages = {
   en: {
     composition: {
       add_blank: 'Add blank layer',
+      add_first_layer: 'Add blank layer',
       code_point: 'Composition code point',
       code_point_invalid: 'Enter a CJK Unicode code point.',
       save: 'Save to glyph manager',
@@ -63,11 +64,14 @@ const messages = {
       component_retry: 'Retry',
       current_glyph: 'Current glyph',
       discard: 'Discard draft',
+      delete_layer: 'Delete {name}',
       draft_fallback_warning: 'Composition drafts are using fallback storage.',
       draft_storage_warning: 'Unable to save composition draft.',
       hide: 'Hide',
       hide_layer: 'Hide {name}',
+      empty_layers: 'No layers yet.',
       layers: 'Layers',
+      layer_stack: 'Layer stack',
       lock: 'Lock',
       lock_layer: 'Lock {name}',
       new_layer: 'Layer {number}',
@@ -218,6 +222,57 @@ describe('GlyphComposer', () => {
         .get('[data-testid="composition-layer-current-glyph-select"]')
         .attributes('aria-pressed'),
     ).toBe('true')
+  })
+
+  it('selects the nearest surviving layer after deleting the selection', async () => {
+    const wrapper = mountComposer()
+    await wrapper.get('[data-testid="composition-add-blank"]').trigger('click')
+    await wrapper.get('[data-testid="composition-add-blank"]').trigger('click')
+
+    await wrapper
+      .get('[data-testid="composition-layer-blank-2-delete"]')
+      .trigger('click')
+
+    expect(
+      wrapper.find('[data-testid="composition-layer-blank-2-select"]').exists(),
+    ).toBe(false)
+    expect(
+      wrapper
+        .get('[data-testid="composition-layer-blank-1-select"]')
+        .attributes('aria-pressed'),
+    ).toBe('true')
+  })
+
+  it('restores a deleted layer with composition Undo', async () => {
+    const wrapper = mountComposer()
+    await wrapper.get('[data-testid="composition-add-blank"]').trigger('click')
+    await wrapper
+      .get('[data-testid="composition-layer-blank-1-delete"]')
+      .trigger('click')
+
+    await wrapper.get('[data-testid="composition-undo"]').trigger('click')
+
+    expect(
+      wrapper.find('[data-testid="composition-layer-blank-1-select"]').exists(),
+    ).toBe(true)
+  })
+
+  it('disables deletion for locked layers', async () => {
+    const wrapper = mountComposer()
+    await wrapper
+      .get('[data-testid="composition-layer-current-glyph-lock"]')
+      .trigger('click')
+
+    const deleteButton = wrapper.get<HTMLButtonElement>(
+      '[data-testid="composition-layer-current-glyph-delete"]',
+    )
+    expect(deleteButton.element.disabled).toBe(true)
+    await deleteButton.trigger('click')
+    expect(
+      wrapper
+        .find('[data-testid="composition-layer-current-glyph-select"]')
+        .exists(),
+    ).toBe(true)
   })
 
   it('hydrates only the selected component and adds it as an independent layer', async () => {

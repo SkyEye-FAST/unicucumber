@@ -24,6 +24,7 @@
     <button
       type="button"
       class="ui-button ui-button--quiet"
+      data-testid="composition-undo"
       :disabled="!canUndo"
       :aria-label="$t('composition.undo')"
       @click="$emit('undo')"
@@ -33,6 +34,7 @@
     <button
       type="button"
       class="ui-button ui-button--quiet"
+      data-testid="composition-redo"
       :disabled="!canRedo"
       :aria-label="$t('composition.redo')"
       @click="$emit('redo')"

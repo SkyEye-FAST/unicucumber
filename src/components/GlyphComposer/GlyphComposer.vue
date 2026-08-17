@@ -102,6 +102,8 @@
             @set-operation="setOperation"
             @set-visibility="setVisibility"
             @set-locked="setLocked"
+            @remove="removeLayer"
+            @add-blank="addBlankLayer"
           />
         </div>
 
@@ -410,6 +412,20 @@ const setVisibility = (layerId: string, visible: boolean): void => {
 
 const setLocked = (layerId: string, locked: boolean): void => {
   composer.execute({ type: 'setLocked', layerId, locked })
+}
+
+const removeLayer = (layerId: string): void => {
+  const layers = composer.document.value.layers
+  const removedIndex = layers.findIndex((layer) => layer.id === layerId)
+  if (removedIndex === -1) return
+
+  const wasSelected = composer.selectedLayerId.value === layerId
+  if (!composer.execute({ type: 'removeLayer', layerId })) return
+  if (!wasSelected) return
+
+  const remaining = composer.document.value.layers
+  composer.selectedLayerId.value =
+    remaining[Math.min(removedIndex, remaining.length - 1)]?.id ?? null
 }
 
 const resetForCompositionCodePoint = (codePoint: string): void => {

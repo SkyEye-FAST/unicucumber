@@ -1,16 +1,79 @@
 <template>
-  <article class="composition-layer" :class="{ selected }">
-    <button
-      type="button"
-      class="layer-select"
-      :data-testid="`composition-layer-${layer.id}-select`"
-      :aria-label="$t('composition.select_layer', { name: layer.name })"
-      :aria-pressed="selected"
-      @click="$emit('select')"
-    >
-      <span class="layer-name">{{ layer.name }}</span>
-      <span class="layer-offset">{{ layer.offsetX }}, {{ layer.offsetY }}</span>
-    </button>
+  <article
+    class="composition-layer"
+    :class="{ selected, 'layer-hidden': !layer.visible }"
+  >
+    <div class="layer-heading">
+      <button
+        type="button"
+        class="layer-select"
+        :data-testid="`composition-layer-${layer.id}-select`"
+        :aria-label="$t('composition.select_layer', { name: layer.name })"
+        :aria-pressed="selected"
+        @click="$emit('select')"
+      >
+        <span class="layer-name">{{ layer.name }}</span>
+        <span class="layer-offset">
+          {{ layer.offsetX }}, {{ layer.offsetY }}
+        </span>
+      </button>
+
+      <div class="layer-actions">
+        <button
+          type="button"
+          class="ui-icon-button layer-action"
+          :data-testid="`composition-layer-${layer.id}-visibility`"
+          :aria-label="
+            $t(
+              layer.visible
+                ? 'composition.hide_layer'
+                : 'composition.show_layer',
+              { name: layer.name },
+            )
+          "
+          @click="$emit('setVisibility', !layer.visible)"
+        >
+          <i-material-symbols-visibility-outline
+            v-if="layer.visible"
+            aria-hidden="true"
+          />
+          <i-material-symbols-visibility-off-outline
+            v-else
+            aria-hidden="true"
+          />
+        </button>
+        <button
+          type="button"
+          class="ui-icon-button layer-action"
+          :data-testid="`composition-layer-${layer.id}-lock`"
+          :aria-label="
+            $t(
+              layer.locked
+                ? 'composition.unlock_layer'
+                : 'composition.lock_layer',
+              { name: layer.name },
+            )
+          "
+          @click="$emit('setLocked', !layer.locked)"
+        >
+          <i-material-symbols-lock-outline
+            v-if="layer.locked"
+            aria-hidden="true"
+          />
+          <i-material-symbols-lock-open-outline v-else aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          class="ui-icon-button layer-action layer-delete"
+          :data-testid="`composition-layer-${layer.id}-delete`"
+          :aria-label="$t('composition.delete_layer', { name: layer.name })"
+          :disabled="layer.locked"
+          @click="$emit('remove')"
+        >
+          <i-material-symbols-delete-outline aria-hidden="true" />
+        </button>
+      </div>
+    </div>
 
     <label class="layer-operation">
       <span>{{ $t('composition.operation') }}</span>
@@ -29,40 +92,6 @@
         </option>
       </select>
     </label>
-
-    <div class="layer-actions">
-      <button
-        type="button"
-        class="ui-button ui-button--quiet"
-        :data-testid="`composition-layer-${layer.id}-visibility`"
-        :aria-label="
-          $t(
-            layer.visible ? 'composition.hide_layer' : 'composition.show_layer',
-            { name: layer.name },
-          )
-        "
-        @click="$emit('setVisibility', !layer.visible)"
-      >
-        {{ layer.visible ? $t('composition.hide') : $t('composition.show') }}
-      </button>
-      <button
-        type="button"
-        class="ui-button ui-button--quiet"
-        :aria-label="
-          $t(
-            layer.locked
-              ? 'composition.unlock_layer'
-              : 'composition.lock_layer',
-            {
-              name: layer.name,
-            },
-          )
-        "
-        @click="$emit('setLocked', !layer.locked)"
-      >
-        {{ layer.locked ? $t('composition.unlock') : $t('composition.lock') }}
-      </button>
-    </div>
   </article>
 </template>
 
@@ -84,6 +113,7 @@ const emit = defineEmits<{
   setOperation: [operation: CompositionOperation]
   setVisibility: [visible: boolean]
   setLocked: [locked: boolean]
+  remove: []
 }>()
 
 const { t: $t } = useI18n()
@@ -99,22 +129,35 @@ const handleOperationChange = (event: Event): void => {
 .composition-layer {
   display: grid;
   gap: var(--space-2);
-  padding: var(--space-3);
+  padding: var(--space-2);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  background: var(--background-light);
+  border-radius: var(--radius-sm);
+  background: var(--background-color);
 }
 
 .composition-layer.selected {
   border-color: var(--primary-color);
+  background: var(--background-hover);
+  box-shadow: inset 0.2rem 0 0 var(--primary-color);
+}
+
+.composition-layer.layer-hidden .layer-name {
+  color: var(--text-secondary);
+}
+
+.layer-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
 }
 
 .layer-select {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-2);
-  width: 100%;
-  padding: 0;
+  display: grid;
+  flex: 1;
+  gap: 0.2rem;
+  min-width: 0;
+  padding: var(--space-1);
   color: inherit;
   text-align: left;
   background: none;
@@ -131,6 +174,7 @@ const handleOperationChange = (event: Event): void => {
 
 .layer-offset {
   color: var(--text-secondary);
+  font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
 }
 
@@ -142,11 +186,30 @@ const handleOperationChange = (event: Event): void => {
 }
 
 .layer-operation select {
-  min-height: var(--control-height);
+  min-height: var(--control-height-compact);
 }
 
 .layer-actions {
   display: flex;
-  gap: var(--space-2);
+  flex: none;
+  gap: var(--space-1);
+}
+
+.layer-action {
+  width: var(--control-height-compact);
+  min-width: var(--control-height-compact);
+  min-height: var(--control-height-compact);
+  color: var(--text-secondary);
+  background: transparent;
+}
+
+.layer-action:hover:not(:disabled),
+.layer-action:focus-visible {
+  color: var(--text-color);
+}
+
+.layer-delete:hover:not(:disabled),
+.layer-delete:focus-visible {
+  color: var(--danger-color);
 }
 </style>

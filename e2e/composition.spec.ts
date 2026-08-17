@@ -159,8 +159,18 @@ test('uses mobile tabs without overflowing the viewport', async ({
   await expect(tabs).toBeVisible()
   await tabs.getByRole('button', { name: 'Components' }).click()
   await expect(page.locator('.component-browser')).toBeVisible()
+  await page.getByTestId('composition-add-blank').click()
   await tabs.getByRole('button', { name: 'Layers' }).click()
   await expect(page.locator('.composition-layers')).toBeVisible()
+
+  const deleteButton = page.getByTestId('composition-layer-blank-1-delete')
+  await expect(deleteButton).toBeVisible()
+  await expect(deleteButton).toBeEnabled()
+  await deleteButton.click()
+  await expect(
+    page.getByTestId('composition-layer-blank-1-select'),
+  ).toHaveCount(0)
+  await expect(page.getByTestId('composition-save')).toBeInViewport()
 
   const metrics = await page.evaluate(() => ({
     width: document.documentElement.scrollWidth,
