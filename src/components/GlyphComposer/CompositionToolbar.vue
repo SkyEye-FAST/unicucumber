@@ -12,6 +12,14 @@
     >
       {{ $t('composition.add_blank') }}
     </button>
+    <button
+      type="button"
+      class="ui-button ui-button--quiet"
+      data-testid="composition-discard"
+      @click="$emit('discard')"
+    >
+      {{ $t('composition.discard') }}
+    </button>
     <span class="toolbar-spacer" />
     <button
       type="button"
@@ -52,6 +60,7 @@ defineProps<{
 
 defineEmits<{
   addBlank: []
+  discard: []
   undo: []
   redo: []
   apply: []

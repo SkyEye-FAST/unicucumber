@@ -23,6 +23,15 @@
           </button>
         </header>
 
+        <p
+          v-if="storageWarning"
+          class="composition-storage-warning"
+          data-testid="composition-storage-warning"
+          role="status"
+        >
+          {{ storageWarning }}
+        </p>
+
         <nav
           class="composition-mobile-tabs"
           :aria-label="$t('composition.title')"
@@ -75,6 +84,7 @@
           :can-undo="composer.canUndo.value"
           :can-redo="composer.canRedo.value"
           @add-blank="addBlankLayer"
+          @discard="discardDraft"
           @undo="composer.undo"
           @redo="composer.redo"
           @apply="apply"
@@ -85,11 +95,16 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onUnmounted, ref, watch } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useGlyphComposer } from '@/composables/useGlyphComposer'
 import { createCompositionDocument } from '@/domain/composition'
+import { registerDraftFlusher } from '@/platform/draftFlush'
+import {
+  getCompositionDraftRepository,
+  type StoredCompositionDraft,
+} from '@/storage/compositionDraftRepository'
 import type {
   CompositionComponentRecord,
   CompositionOperation,
@@ -116,6 +131,8 @@ const emit = defineEmits<{
 }>()
 
 const { t: $t } = useI18n()
+const draftRepository = getCompositionDraftRepository()
+const AUTOSAVE_DELAY_MS = 500
 
 const buildInitialDocument = () => {
   const document = createCompositionDocument(props.codePoint, props.grid)
@@ -130,9 +147,136 @@ const activeTab = ref<'components' | 'canvas' | 'layers'>('canvas')
 const tabs = ['components', 'canvas', 'layers'] as const
 const nextLayerNumber = ref(1)
 const nextComponentNumber = ref(1)
+const storageWarning = ref<string | null>(null)
 let overlayLocked = false
 let previouslyFocused: HTMLElement | null = null
 let hasOpened = false
+let autosaveReady = false
+let draftPending = false
+let draftTimer: ReturnType<typeof setTimeout> | null = null
+let draftSavePromise: Promise<void> | null = null
+let restoreGeneration = 0
+let unregisterDraftFlusher: (() => void) | null = null
+
+const documentFingerprint = (): string =>
+  JSON.stringify(composer.document.value)
+
+const clearDraftTimer = (): void => {
+  if (draftTimer === null) return
+  clearTimeout(draftTimer)
+  draftTimer = null
+}
+
+const updateStorageModeWarning = (): void => {
+  if (!draftRepository.persistent && storageWarning.value === null) {
+    storageWarning.value = $t('composition.draft_fallback_warning')
+  }
+}
+
+const flushDraft = async (): Promise<void> => {
+  clearDraftTimer()
+  if (!autosaveReady || !draftPending) return
+  if (draftSavePromise) {
+    await draftSavePromise
+    if (draftPending) await flushDraft()
+    return
+  }
+
+  const fingerprint = documentFingerprint()
+  const document = composer.document.value
+  const draft: StoredCompositionDraft = {
+    id: document.codePoint,
+    schemaVersion: 1,
+    updatedAt: Date.now(),
+    document,
+  }
+  draftPending = false
+  const request = draftRepository
+    .saveDraft(draft)
+    .then(() => {
+      updateStorageModeWarning()
+      if (documentFingerprint() === fingerprint) composer.markSaved()
+    })
+    .catch((error: unknown) => {
+      draftPending = true
+      storageWarning.value = $t('composition.draft_storage_warning')
+      throw error
+    })
+    .finally(() => {
+      if (draftSavePromise === request) draftSavePromise = null
+    })
+  draftSavePromise = request
+  await request
+}
+
+const queueDraftSave = (): void => {
+  if (!autosaveReady) return
+  draftPending = true
+  clearDraftTimer()
+  draftTimer = setTimeout(() => {
+    draftTimer = null
+    void flushDraft().catch(() => undefined)
+  }, AUTOSAVE_DELAY_MS)
+}
+
+const restoreDraft = async (): Promise<void> => {
+  const generation = ++restoreGeneration
+  const baseline = documentFingerprint()
+  let restored = false
+  autosaveReady = false
+  clearDraftTimer()
+  draftPending = false
+  try {
+    const draft = await draftRepository.loadDraft(
+      composer.document.value.codePoint,
+    )
+    if (generation !== restoreGeneration) return
+    if (draft !== null && documentFingerprint() === baseline) {
+      composer.reset(draft.document)
+      restored = true
+    }
+    updateStorageModeWarning()
+  } catch {
+    if (generation === restoreGeneration) {
+      storageWarning.value = $t('composition.draft_storage_warning')
+    }
+  } finally {
+    if (generation !== restoreGeneration) return
+    autosaveReady = true
+    if (!restored && documentFingerprint() !== baseline) queueDraftSave()
+  }
+}
+
+const discardDraft = async (): Promise<void> => {
+  const codePoint = composer.document.value.codePoint
+  const fingerprint = documentFingerprint()
+  const wasPending = draftPending
+  autosaveReady = false
+  clearDraftTimer()
+  try {
+    if (draftSavePromise) await draftSavePromise.catch(() => undefined)
+    await draftRepository.deleteDraft(codePoint)
+    updateStorageModeWarning()
+    if (
+      composer.document.value.codePoint === codePoint &&
+      documentFingerprint() === fingerprint
+    ) {
+      draftPending = false
+      composer.reset(buildInitialDocument())
+      activeTab.value = 'canvas'
+      nextLayerNumber.value = 1
+      nextComponentNumber.value = 1
+    } else {
+      draftPending = true
+    }
+  } catch {
+    draftPending = wasPending || composer.dirty.value
+    storageWarning.value = $t('composition.draft_storage_warning')
+  } finally {
+    autosaveReady = true
+    if (draftPending) queueDraftSave()
+  }
+}
 
 const selectLayer = (layerId: string): void => {
   composer.selectedLayerId.value = layerId
@@ -230,6 +374,7 @@ const registerOverlay = (): void => {
   if (!hasOpened) {
     composer.reset(buildInitialDocument())
     hasOpened = true
+    void restoreDraft()
   }
   overlayLocked = true
   previouslyFocused =
@@ -249,6 +394,11 @@ const unregisterOverlay = (): void => {
 }
 
 watch(
+  () => composer.document.value,
+  () => queueDraftSave(),
+)
+
+watch(
   () => props.modelValue,
   (open) => {
     if (open) registerOverlay()
@@ -260,14 +410,36 @@ watch(
 watch(
   () => props.codePoint,
   () => {
+    restoreGeneration += 1
+    clearDraftTimer()
+    if (autosaveReady && draftPending) {
+      void flushDraft().catch(() => undefined)
+    }
+    autosaveReady = false
+    draftPending = false
     composer.reset(buildInitialDocument())
     activeTab.value = 'canvas'
     nextLayerNumber.value = 1
     nextComponentNumber.value = 1
+    hasOpened = false
+    storageWarning.value = null
+    if (props.modelValue) {
+      hasOpened = true
+      void restoreDraft()
+    }
   },
 )
 
-onUnmounted(unregisterOverlay)
+onMounted(() => {
+  unregisterDraftFlusher = registerDraftFlusher(() => flushDraft())
+})
+
+onUnmounted(() => {
+  clearDraftTimer()
+  unregisterDraftFlusher?.()
+  unregisterDraftFlusher = null
+  unregisterOverlay()
+})
 </script>
 
 <style scoped>
@@ -284,7 +456,7 @@ onUnmounted(unregisterOverlay)
 .composition-workspace {
   box-sizing: border-box;
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
   width: min(96vw, 78rem);
   height: min(92vh, 52rem);
   padding: var(--space-4);
@@ -311,6 +483,15 @@ onUnmounted(unregisterOverlay)
   color: var(--text-secondary);
   font-family: var(--normal-font);
   font-variant-numeric: tabular-nums;
+}
+
+.composition-storage-warning {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  color: var(--text-color);
+  background: var(--background-light);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
 }
 
 .composition-body {

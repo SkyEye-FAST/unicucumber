@@ -6,6 +6,7 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import type {
   CompositionComponentRecord,
   CompositionComponentSummary,
+  CompositionDocument,
 } from '@/types/composition'
 import type { GridData } from '@/types/glyph'
 import { createGrid } from '@/utils/hexUtils'
@@ -16,8 +17,26 @@ const loaderMocks = vi.hoisted(() => ({
   loadIdsForCodePoint: vi.fn(),
 }))
 
+const draftRepositoryMocks = vi.hoisted(() => ({
+  state: { persistent: true },
+  loadDraft: vi.fn(),
+  saveDraft: vi.fn(),
+  deleteDraft: vi.fn(),
+}))
+
 vi.mock('@/services/compositionDataLoader', () => ({
   compositionDataLoader: loaderMocks,
+}))
+
+vi.mock('@/storage/compositionDraftRepository', () => ({
+  getCompositionDraftRepository: () => ({
+    get persistent() {
+      return draftRepositoryMocks.state.persistent
+    },
+    loadDraft: draftRepositoryMocks.loadDraft,
+    saveDraft: draftRepositoryMocks.saveDraft,
+    deleteDraft: draftRepositoryMocks.deleteDraft,
+  }),
 }))
 
 import EditorHeader from '../EditorHeader.vue'
@@ -41,6 +60,9 @@ const messages = {
       component_search_placeholder: 'Character or code point',
       component_retry: 'Retry',
       current_glyph: 'Current glyph',
+      discard: 'Discard draft',
+      draft_fallback_warning: 'Composition drafts are using fallback storage.',
+      draft_storage_warning: 'Unable to save composition draft.',
       hide: 'Hide',
       hide_layer: 'Hide {name}',
       layers: 'Layers',
@@ -103,11 +125,16 @@ beforeEach(() => {
   loaderMocks.searchComponents.mockReset().mockResolvedValue([])
   loaderMocks.hydrateComponents.mockReset().mockResolvedValue([])
   loaderMocks.loadIdsForCodePoint.mockReset().mockResolvedValue([])
+  draftRepositoryMocks.state.persistent = true
+  draftRepositoryMocks.loadDraft.mockReset().mockResolvedValue(null)
+  draftRepositoryMocks.saveDraft.mockReset().mockResolvedValue(undefined)
+  draftRepositoryMocks.deleteDraft.mockReset().mockResolvedValue(undefined)
 })
 
 afterEach(() => {
   activeWrapper?.unmount()
   activeWrapper = null
+  vi.useRealTimers()
 })
 
 describe('GlyphComposer', () => {
@@ -228,6 +255,111 @@ describe('GlyphComposer', () => {
 
     expect(loaderMocks.searchComponents).toHaveBeenLastCalledWith('日')
     expect(loaderMocks.hydrateComponents).not.toHaveBeenCalled()
+  })
+
+  it('restores the saved composition draft for the active code point', async () => {
+    const document: CompositionDocument = {
+      schemaVersion: 1,
+      codePoint: '660E',
+      width: 16,
+      layers: [
+        {
+          id: 'restored',
+          name: 'Restored',
+          bitmap: pixelGrid(4, 5),
+          offsetX: 0,
+          offsetY: 0,
+          mask: null,
+          operation: 'add',
+          visible: true,
+          locked: false,
+        },
+      ],
+    }
+    draftRepositoryMocks.loadDraft.mockResolvedValue({
+      id: '660E',
+      schemaVersion: 1,
+      updatedAt: 123,
+      document,
+    })
+    const wrapper = mountComposer(pixelGrid(0, 0))
+    await flushPromises()
+
+    expect(draftRepositoryMocks.loadDraft).toHaveBeenCalledWith('660E')
+    await wrapper.get('[data-testid="composition-apply"]').trigger('click')
+    const applied = wrapper.emitted<[GridData]>('apply')?.[0]?.[0]
+    expect(applied?.[0]?.[0]).toBe(0)
+    expect(applied?.[4]?.[5]).toBe(1)
+  })
+
+  it('autosaves only composition content changes after a bounded debounce', async () => {
+    vi.useFakeTimers()
+    const wrapper = mountComposer()
+    await flushPromises()
+
+    await wrapper
+      .get('[data-testid="composition-layer-current-glyph-select"]')
+      .trigger('click')
+    await vi.advanceTimersByTimeAsync(600)
+    expect(draftRepositoryMocks.saveDraft).not.toHaveBeenCalled()
+
+    await wrapper.get('[data-testid="composition-add-blank"]').trigger('click')
+    await vi.advanceTimersByTimeAsync(499)
+    expect(draftRepositoryMocks.saveDraft).not.toHaveBeenCalled()
+    await vi.advanceTimersByTimeAsync(1)
+    await flushPromises()
+
+    expect(draftRepositoryMocks.saveDraft).toHaveBeenCalledTimes(1)
+    expect(draftRepositoryMocks.saveDraft).toHaveBeenCalledWith(
+      expect.objectContaining({ id: '660E', schemaVersion: 1 }),
+    )
+  })
+
+  it('keeps the composition draft after Apply', async () => {
+    const wrapper = mountComposer()
+    await flushPromises()
+
+    await wrapper.get('[data-testid="composition-apply"]').trigger('click')
+
+    expect(draftRepositoryMocks.deleteDraft).not.toHaveBeenCalled()
+  })
+
+  it('discards only the active draft and resets to the latest editor grid', async () => {
+    const input = pixelGrid(2, 3)
+    const wrapper = mountComposer(input)
+    await flushPromises()
+    await wrapper.get('[data-testid="composition-add-blank"]').trigger('click')
+
+    await wrapper.get('[data-testid="composition-discard"]').trigger('click')
+    await flushPromises()
+
+    expect(draftRepositoryMocks.deleteDraft).toHaveBeenCalledWith('660E')
+    await wrapper.get('[data-testid="composition-apply"]').trigger('click')
+    const applied = wrapper.emitted<[GridData]>('apply')?.[0]?.[0]
+    expect(applied).toEqual(input)
+  })
+
+  it('keeps in-memory composition usable when draft autosave fails', async () => {
+    vi.useFakeTimers()
+    draftRepositoryMocks.saveDraft.mockRejectedValue(new Error('storage failed'))
+    const wrapper = mountComposer(pixelGrid(0, 0))
+    await flushPromises()
+
+    await wrapper
+      .get('[data-testid="composition-layer-current-glyph-select"]')
+      .trigger('click')
+    await wrapper
+      .get('[data-testid="composition-canvas"]')
+      .trigger('keydown', { key: 'ArrowRight' })
+    await vi.advanceTimersByTimeAsync(500)
+    await flushPromises()
+
+    expect(
+      wrapper.get('[data-testid="composition-storage-warning"]').text(),
+    ).toContain('Unable to save composition draft.')
+    await wrapper.get('[data-testid="composition-apply"]').trigger('click')
+    const applied = wrapper.emitted<[GridData]>('apply')?.[0]?.[0]
+    expect(applied?.[0]?.[1]).toBe(1)
   })
 
   it('disables the composition entry when the parent marks it unavailable', () => {
