@@ -11,12 +11,17 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    CompositionCanvas: typeof import('./src/components/GlyphComposer/CompositionCanvas.vue')['default']
+    CompositionLayerItem: typeof import('./src/components/GlyphComposer/CompositionLayerItem.vue')['default']
+    CompositionLayerPanel: typeof import('./src/components/GlyphComposer/CompositionLayerPanel.vue')['default']
+    CompositionToolbar: typeof import('./src/components/GlyphComposer/CompositionToolbar.vue')['default']
     CustomSelect: typeof import('./src/components/CustomSelect.vue')['default']
     DialogBox: typeof import('./src/components/DialogBox.vue')['default']
     DownloadButtons: typeof import('./src/components/DownloadButtons.vue')['default']
     EditorHeader: typeof import('./src/components/EditorHeader.vue')['default']
     FontExportOptions: typeof import('./src/components/GlyphManager/FontExportOptions.vue')['default']
     GlyphAdder: typeof import('./src/components/GlyphManager/GlyphAdder.vue')['default']
+    GlyphComposer: typeof import('./src/components/GlyphComposer/GlyphComposer.vue')['default']
     GlyphEditor: typeof import('./src/components/GlyphEditor.vue')['default']
     GlyphGrid: typeof import('./src/components/GlyphGrid.vue')['default']
     GlyphInfo: typeof import('./src/components/GlyphInfo.vue')['default']

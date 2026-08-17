@@ -32,6 +32,22 @@
       <button
         class="modal-button ui-icon-button"
         type="button"
+        data-testid="composition-open"
+        :disabled="!compositionEnabled"
+        :aria-label="
+          $t(
+            compositionEnabled
+              ? 'header.open_composition'
+              : 'header.open_composition_16_only',
+          )
+        "
+        @click="handleOpenComposition"
+      >
+        <i-material-symbols-draw-outline class="icon" />
+      </button>
+      <button
+        class="modal-button ui-icon-button"
+        type="button"
         :aria-label="$t('header.open_text_preview')"
         @click="handleOpenTextPreview"
       >
@@ -63,11 +79,21 @@ import { useTheme } from '@/composables/useTheme'
 
 const { t: $t } = useI18n()
 const { preference, toggleTheme } = useTheme()
+const { compositionEnabled } = defineProps<{
+  compositionEnabled: boolean
+}>()
 const emit = defineEmits<{
+  openComposition: [trigger: HTMLElement]
   openSettings: [trigger: HTMLElement]
   openTextPreview: [trigger: HTMLElement]
   toggleSidebar: []
 }>()
+
+const handleOpenComposition = (event: MouseEvent): void => {
+  if (event.currentTarget instanceof HTMLElement && compositionEnabled) {
+    emit('openComposition', event.currentTarget)
+  }
+}
 
 const handleOpenSettings = (event: MouseEvent): void => {
   if (event.currentTarget instanceof HTMLElement) {

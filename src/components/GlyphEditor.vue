@@ -12,6 +12,8 @@
     ]"
   >
     <EditorHeader
+      :composition-enabled="width === 16"
+      @open-composition="openComposition"
       @open-settings="openSettings"
       @open-text-preview="openTextPreview"
       @toggle-sidebar="handleToggleSidebar"
@@ -59,6 +61,13 @@
       :glyphs="glyphs"
       :current-glyph="previewCurrentGlyph"
       :return-focus-target="textPreviewFocusTarget"
+    />
+    <GlyphComposer
+      v-model="showComposition"
+      :code-point="currentCodePoint"
+      :grid="gridData"
+      :return-focus-target="compositionFocusTarget"
+      @apply="handleCompositionApply"
     />
 
     <main class="editor-layout">
@@ -309,13 +318,20 @@ import { shouldPrefetchUnifont, unifontLoader } from '@/services/unifontLoader'
 import { cleanupStaleUnifontCaches } from '@/services/unifontManifest'
 import { getGlyphRepository, type StoredDraft } from '@/storage/glyphRepository'
 import type { EditorCommand, MobileAction } from '@/types/editor'
-import type { EditorTool, Glyph, GridCell, PrefillData } from '@/types/glyph'
+import type {
+  EditorTool,
+  Glyph,
+  GridCell,
+  GridData,
+  PrefillData,
+} from '@/types/glyph'
 import { getGlyphWidthFromHex, gridToHex, hexToGrid } from '@/utils/hexUtils'
 import { scheduleIdleTask } from '@/utils/idleTask'
 
 import DialogBox from './DialogBox.vue'
 import DownloadButtons from './DownloadButtons.vue'
 import EditorHeader from './EditorHeader.vue'
+import GlyphComposer from './GlyphComposer/GlyphComposer.vue'
 import GlyphGrid from './GlyphGrid.vue'
 import GlyphInfo from './GlyphInfo.vue'
 import GlyphManager from './GlyphManager.vue'
@@ -380,7 +396,9 @@ const narrowSidebarQuery = window.matchMedia('(max-width: 719px)')
 const isNarrowSidebar = ref(narrowSidebarQuery.matches)
 const isGlyphLibraryExpanded = ref(false)
 const glyphManagerSearchQuery = ref('')
+const showComposition = ref(false)
 const showTextPreview = ref(false)
+const compositionFocusTarget = ref<HTMLElement | null>(null)
 const settingsFocusTarget = ref<HTMLElement | null>(null)
 const textPreviewFocusTarget = ref<HTMLElement | null>(null)
 const glyphManagerRef = ref<{ handleEscape: () => boolean } | null>(null)
@@ -1161,6 +1179,15 @@ const openSettings = (trigger: HTMLElement): void => {
   showSettings.value = true
 }
 
+const openComposition = (trigger: HTMLElement): void => {
+  if (width.value !== 16) return
+  compositionFocusTarget.value = trigger
+  if (isSidebarActive.value) handleCloseSidebar()
+  showSettings.value = false
+  showTextPreview.value = false
+  showComposition.value = true
+}
+
 const openTextPreview = (trigger: HTMLElement): void => {
   textPreviewFocusTarget.value = trigger
   if (isSidebarActive.value) handleCloseSidebar()
@@ -1174,6 +1201,10 @@ const updateSettings = (newSettings: typeof settings.value): void => {
 
 const handleGridCommand = (command: EditorCommand): void => {
   editorDocument.execute(command)
+}
+
+const handleCompositionApply = (grid: GridData): void => {
+  editorDocument.execute({ type: 'replaceGrid', grid, reason: 'composition' })
 }
 
 const selectTool = (tool: EditorTool): void => {
