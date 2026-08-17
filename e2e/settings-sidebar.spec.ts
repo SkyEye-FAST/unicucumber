@@ -105,7 +105,17 @@ test('header appearance toggle cycles through all preferences and syncs with set
   ])
 
   const themeToggle = page.getByRole('button', { name: 'Toggle color theme' })
-  await themeToggle.click()
+  const usesCompactHeader = (page.viewportSize()?.width ?? 1280) < 480
+  const compactSettings = usesCompactHeader
+    ? await openSettings(page)
+    : undefined
+
+  if (compactSettings) {
+    await expect(themeToggle).toBeHidden()
+    await compactSettings.drawer.getByRole('radio', { name: 'Light' }).check()
+  } else {
+    await themeToggle.click()
+  }
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
   await expect
     .poll(() =>
@@ -116,7 +126,11 @@ test('header appearance toggle cycles through all preferences and syncs with set
   const lightTitleColor = await title.evaluate(
     (element) => getComputedStyle(element).color,
   )
-  await themeToggle.click()
+  if (compactSettings) {
+    await compactSettings.drawer.getByRole('radio', { name: 'Dark' }).check()
+  } else {
+    await themeToggle.click()
+  }
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
   await expect(title).not.toHaveCSS('color', lightTitleColor)
   await expect
@@ -125,7 +139,11 @@ test('header appearance toggle cycles through all preferences and syncs with set
     )
     .toBe('dark')
 
-  await themeToggle.click()
+  if (compactSettings) {
+    await compactSettings.drawer.getByRole('radio', { name: 'Auto' }).check()
+  } else {
+    await themeToggle.click()
+  }
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
   await expect
     .poll(() =>
@@ -133,24 +151,30 @@ test('header appearance toggle cycles through all preferences and syncs with set
     )
     .toBe('auto')
 
-  const { drawer } = await openSettings(page)
+  const { drawer } = compactSettings ?? (await openSettings(page))
   await expect(drawer.getByRole('radio', { name: 'Auto' })).toBeChecked()
 })
 
-test('appearance preference persists across reloads', async ({ page }) => {
-  await loadEditor(page, 'light')
-  let settings = await openSettings(page)
-  await settings.drawer.getByRole('radio', { name: 'Dark' }).check()
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+test(
+  'appearance preference persists across reloads',
+  {
+    tag: '@cross-browser',
+  },
+  async ({ page }) => {
+    await loadEditor(page, 'light')
+    let settings = await openSettings(page)
+    await settings.drawer.getByRole('radio', { name: 'Dark' }).check()
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
 
-  await page.reload({ waitUntil: 'domcontentloaded' })
-  await expect(page.locator('.grid-container')).toBeVisible()
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
-  settings = await openSettings(page)
-  await expect(
-    settings.drawer.getByRole('radio', { name: 'Dark' }),
-  ).toBeChecked()
-})
+    await page.reload({ waitUntil: 'domcontentloaded' })
+    await expect(page.locator('.grid-container')).toBeVisible()
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    settings = await openSettings(page)
+    await expect(
+      settings.drawer.getByRole('radio', { name: 'Dark' }),
+    ).toBeChecked()
+  },
+)
 
 test('local preview font is prepended to the fallback stack and persists', async ({
   page,
@@ -352,51 +376,76 @@ test('settings drawer uses distinct enter and leave motion', async ({
   await expect(drawer).toBeHidden()
 })
 
-test('tablet overlay closes outside, stays open inside, and locks the page', async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 768, height: 1024 })
-  await loadEditor(page)
-  let settings = await openSettings(page)
-  await expect(settings.drawer).toHaveAttribute('aria-modal', 'true')
-  await expect(page.locator('body')).toHaveCSS('overflow', 'hidden')
+test(
+  'tablet overlay closes outside, stays open inside, and locks the page',
+  {
+    tag: '@tablet',
+  },
+  async ({ page }) => {
+    await page.setViewportSize({ width: 768, height: 1024 })
+    await loadEditor(page)
+    let settings = await openSettings(page)
+    await expect(settings.drawer).toHaveAttribute('aria-modal', 'true')
+    await expect(page.locator('body')).toHaveCSS('overflow', 'hidden')
 
-  await settings.drawer.getByText('Canvas & tools', { exact: true }).click()
-  await expect(settings.drawer).toBeVisible()
-  await page.locator('.settings-overlay').click({ position: { x: 20, y: 120 } })
-  await expect(settings.drawer).toBeHidden()
-  await expect(settings.trigger).toBeFocused()
+    await settings.drawer.getByText('Canvas & tools', { exact: true }).click()
+    await expect(settings.drawer).toBeVisible()
+    await page
+      .locator('.settings-overlay')
+      .click({ position: { x: 20, y: 120 } })
+    await expect(settings.drawer).toBeHidden()
+    await expect(settings.trigger).toBeFocused()
 
-  settings = await openSettings(page)
-  await page.keyboard.press('Escape')
-  await expect(settings.drawer).toBeHidden()
-})
+    settings = await openSettings(page)
+    await page.keyboard.press('Escape')
+    await expect(settings.drawer).toBeHidden()
+  },
+)
 
-test('mobile drawer fills the viewport and keeps its content scrollable', async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 390, height: 844 })
-  await loadEditor(page, 'dark')
-  const { drawer } = await openSettings(page)
-  const bounds = await drawer.boundingBox()
+test(
+  'mobile drawer fills the viewport and keeps its content scrollable',
+  {
+    tag: '@phone',
+  },
+  async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await loadEditor(page, 'dark')
+    const { drawer } = await openSettings(page)
+    const bounds = await drawer.boundingBox()
 
-  expect(bounds?.x).toBe(0)
-  expect(bounds?.width).toBe(390)
-  expect(bounds?.height).toBeLessThanOrEqual(844)
-  await expect(drawer).toHaveAttribute('aria-modal', 'true')
-  await expect(drawer.getByRole('radio', { name: 'Auto' })).toBeChecked()
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    expect(bounds?.x).toBe(0)
+    expect(bounds?.width).toBe(390)
+    expect(bounds?.height).toBeLessThanOrEqual(844)
+    await expect(drawer).toHaveAttribute('aria-modal', 'true')
+    await expect(drawer.getByRole('radio', { name: 'Auto' })).toBeChecked()
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    await expect(
+      page.getByRole('button', { name: 'Toggle color theme' }),
+    ).toBeHidden()
+    await expect(
+      page.getByRole('link', {
+        name: 'Open the UniCucumber repository on GitHub',
+      }),
+    ).toHaveCount(1)
+    await expect(
+      drawer.getByRole('link', {
+        name: 'Open the UniCucumber repository on GitHub',
+      }),
+    ).toBeVisible()
 
-  const scrollMetrics = await drawer
-    .locator('.settings-content')
-    .evaluate((element) => ({
-      clientHeight: element.clientHeight,
-      scrollHeight: element.scrollHeight,
-    }))
-  expect(scrollMetrics.scrollHeight).toBeGreaterThan(scrollMetrics.clientHeight)
-  await expect(page.locator('body')).toHaveCSS('overflow', 'hidden')
-  await expect(page.locator('html')).not.toHaveCSS('overflow-x', 'auto')
-})
+    const scrollMetrics = await drawer
+      .locator('.settings-content')
+      .evaluate((element) => ({
+        clientHeight: element.clientHeight,
+        scrollHeight: element.scrollHeight,
+      }))
+    expect(scrollMetrics.scrollHeight).toBeGreaterThan(
+      scrollMetrics.clientHeight,
+    )
+    await expect(page.locator('body')).toHaveCSS('overflow', 'hidden')
+    await expect(page.locator('html')).not.toHaveCSS('overflow-x', 'auto')
+  },
+)
 
 test('legacy manual theme values migrate into the new preference', async ({
   page,

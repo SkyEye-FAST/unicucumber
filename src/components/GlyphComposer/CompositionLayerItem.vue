@@ -212,4 +212,12 @@ const handleOperationChange = (event: Event): void => {
 .layer-delete:focus-visible {
   color: var(--danger-color);
 }
+
+@media (max-width: 719px) {
+  .layer-action {
+    width: var(--control-height);
+    min-width: var(--control-height);
+    min-height: var(--control-height);
+  }
+}
 </style>

@@ -170,7 +170,7 @@ const cancelPointerMove = (): void => {
   color: var(--text-color);
   background: var(--background-color);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   touch-action: none;
 }
 
@@ -189,8 +189,7 @@ const cancelPointerMove = (): void => {
 
 .canvas-grid {
   fill: none;
-  stroke: var(--border-color);
-  stroke-width: 0.035;
-  vector-effect: non-scaling-stroke;
+  stroke: var(--border-hover);
+  stroke-width: 0.04;
 }
 </style>

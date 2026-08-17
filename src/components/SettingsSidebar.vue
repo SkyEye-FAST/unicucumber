@@ -502,8 +502,16 @@
           </section>
 
           <footer class="settings-footer">
+            <a
+              class="ui-button ui-button--quiet settings-footer-action repository-link"
+              href="https://github.com/SkyEye-FAST/unicucumber"
+              :aria-label="$t('header.github')"
+            >
+              <i-fa6-brands-github class="settings-icon" aria-hidden="true" />
+              {{ $t('header.github') }}
+            </a>
             <button
-              class="ui-button ui-button--quiet reset-button"
+              class="ui-button ui-button--quiet settings-footer-action reset-button"
               type="button"
               @click="showResetConfirm"
             >
@@ -783,7 +791,7 @@ const getFocusableElements = (): HTMLElement[] => {
   if (!sidebarRef.value) return []
   return Array.from(
     sidebarRef.value.querySelectorAll<HTMLElement>(
-      'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+      'a[href], button:not(:disabled), input:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
     ),
   ).filter((element) => element.offsetParent !== null)
 }
@@ -1268,17 +1276,21 @@ const confirmReset = (): void => {
 }
 
 .settings-footer {
+  display: grid;
+  gap: var(--space-2);
   padding: var(--space-3) 0 0;
 }
 
-.reset-button {
+.settings-footer-action {
   width: 100%;
   justify-content: flex-start;
   border-color: transparent;
   color: var(--text-color);
+  text-align: left;
+  text-decoration: none;
 }
 
-.reset-button .settings-icon {
+.settings-footer-action .settings-icon {
   color: var(--primary-color);
 }
 

@@ -6,7 +6,7 @@
     </div>
     <div class="modal-buttons">
       <button
-        class="modal-button ui-icon-button"
+        class="modal-button ui-icon-button header-theme-action"
         type="button"
         :aria-label="$t('header.toggle_theme')"
         @click="toggleTheme"
@@ -43,7 +43,7 @@
         "
         @click="handleOpenComposition"
       >
-        <i-material-symbols-draw-outline class="icon" />
+        <i-material-symbols-layers-outline class="icon" aria-hidden="true" />
       </button>
       <button
         class="modal-button ui-icon-button"
@@ -62,7 +62,7 @@
         <i-material-symbols-settings class="icon" />
       </button>
       <a
-        class="modal-button ui-icon-button"
+        class="modal-button ui-icon-button header-github-action"
         href="https://github.com/SkyEye-FAST/unicucumber"
         :aria-label="$t('header.github')"
       >
@@ -200,6 +200,18 @@ const handleOpenTextPreview = (event: MouseEvent): void => {
 
   .modal-button .icon {
     font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 599px) {
+  .header-github-action {
+    display: none;
+  }
+}
+
+@media (max-width: 479px) {
+  .header-theme-action {
+    display: none;
   }
 }
 

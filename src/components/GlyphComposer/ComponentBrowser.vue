@@ -12,32 +12,6 @@
       />
     </label>
 
-    <div v-if="idsLoaded || idsError" class="ids-section">
-      <h4>{{ $t('composition.ids') }}</h4>
-      <p v-if="idsError" class="browser-error" role="status">
-        {{ $t('composition.ids_error') }}
-        <button
-          type="button"
-          class="ui-button ui-button--quiet"
-          @click="loadIds"
-        >
-          {{ $t('composition.ids_retry') }}
-        </button>
-      </p>
-      <p v-else-if="idsNodes.length === 0" class="browser-status" role="status">
-        {{ $t('composition.ids_empty') }}
-      </p>
-      <div v-else class="ids-list">
-        <div
-          v-for="item in idsNodes"
-          :key="item.expression"
-          class="ids-expression"
-        >
-          <IdsTree :node="item.node" @select-character="searchCharacter" />
-        </div>
-      </div>
-    </div>
-
     <p v-if="searchError" class="browser-error" role="status">
       {{ $t('composition.component_search_error') }}
       <button
@@ -60,14 +34,9 @@
         v-for="component in results"
         :key="component.id"
         :component="component"
-        :loading="loadingComponentId === component.id"
         @select="addComponent(component)"
       />
     </div>
-
-    <p v-if="componentError" class="browser-error" role="status">
-      {{ $t('composition.component_load_error') }}
-    </p>
   </section>
 </template>
 
@@ -76,14 +45,9 @@ import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { compositionDataLoader } from '@/services/compositionDataLoader'
-import type {
-  CompositionComponentRecord,
-  CompositionComponentSummary,
-} from '@/types/composition'
-import { parseIds, type IdsNode } from '@/utils/ids'
+import type { CompositionComponentRecord } from '@/types/composition'
 
 import ComponentCard from './ComponentCard.vue'
-import IdsTree from './IdsTree.vue'
 
 const MAX_VISIBLE_RESULTS = 40
 
@@ -97,39 +61,27 @@ const emit = defineEmits<{
 
 const { t: $t } = useI18n()
 const query = ref('')
-const results = ref<CompositionComponentSummary[]>([])
-const idsNodes = ref<Array<{ expression: string; node: IdsNode }>>([])
-const idsLoaded = ref(false)
+const results = ref<CompositionComponentRecord[]>([])
 const loadingSearch = ref(false)
-const loadingComponentId = ref<string | null>(null)
 const searchError = ref(false)
-const idsError = ref(false)
-const componentError = ref(false)
 let searchGeneration = 0
-
-const currentCodePoint = (): number | null => {
-  const value = Number.parseInt(props.codePoint, 16)
-  return Number.isInteger(value) && value >= 0 && value <= 0x10ffff
-    ? value
-    : null
-}
-
-const currentCharacter = (): string => {
-  const codePoint = currentCodePoint()
-  if (codePoint === null || (codePoint >= 0xd800 && codePoint <= 0xdfff))
-    return ''
-  return String.fromCodePoint(codePoint)
-}
 
 const runSearch = async (): Promise<void> => {
   const generation = ++searchGeneration
   loadingSearch.value = true
   searchError.value = false
-  componentError.value = false
   try {
     const matches = await compositionDataLoader.searchComponents(query.value)
     if (generation !== searchGeneration) return
-    results.value = matches.slice(0, MAX_VISIBLE_RESULTS)
+    const visibleMatches = matches.slice(0, MAX_VISIBLE_RESULTS)
+    const hydrated =
+      visibleMatches.length === 0
+        ? []
+        : await compositionDataLoader.hydrateComponents(
+            visibleMatches.map(({ id }) => id),
+          )
+    if (generation !== searchGeneration) return
+    results.value = hydrated
   } catch {
     if (generation !== searchGeneration) return
     results.value = []
@@ -139,54 +91,21 @@ const runSearch = async (): Promise<void> => {
   }
 }
 
-const loadIds = async (): Promise<void> => {
-  const codePoint = currentCodePoint()
-  idsNodes.value = []
-  idsError.value = false
-  idsLoaded.value = false
-  if (codePoint === null) {
-    idsLoaded.value = true
-    return
-  }
-  try {
-    const expressions =
-      await compositionDataLoader.loadIdsForCodePoint(codePoint)
-    idsNodes.value = expressions.flatMap((expression) => {
-      const node = parseIds(expression)
-      return node === null ? [] : [{ expression, node }]
-    })
-    idsLoaded.value = true
-  } catch {
-    idsError.value = true
-  }
-}
-
 const searchCharacter = (character: string): void => {
   query.value = character
   void runSearch()
 }
 
-const addComponent = async (
-  summary: CompositionComponentSummary,
-): Promise<void> => {
-  if (loadingComponentId.value !== null) return
-  loadingComponentId.value = summary.id
-  componentError.value = false
-  try {
-    const [record] = await compositionDataLoader.hydrateComponents([summary.id])
-    if (record) emit('addComponent', record)
-  } catch {
-    componentError.value = true
-  } finally {
-    loadingComponentId.value = null
-  }
+const addComponent = (record: CompositionComponentRecord): void => {
+  emit('addComponent', record)
 }
 
 const initialize = (): void => {
-  query.value = currentCharacter()
+  query.value = ''
   void runSearch()
-  void loadIds()
 }
+
+defineExpose({ searchCharacter })
 
 onMounted(initialize)
 watch(() => props.codePoint, initialize)
@@ -194,18 +113,19 @@ watch(() => props.codePoint, initialize)
 
 <style scoped>
 .component-browser {
+  box-sizing: border-box;
   display: grid;
   align-content: start;
   gap: var(--space-3);
+  width: 100%;
+  height: 100%;
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
   padding: var(--space-3);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
 }
 
 .component-browser h3,
-.component-browser h4,
 .component-browser p {
   margin: 0;
 }
@@ -221,22 +141,21 @@ watch(() => props.codePoint, initialize)
   box-sizing: border-box;
   width: 100%;
   min-height: var(--control-height);
+  padding: 0.55rem 0.7rem;
+  color: var(--text-color);
+  background: var(--input-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
 }
 
-.ids-section,
-.ids-list {
-  display: grid;
-  gap: var(--space-2);
+.component-search input:focus {
+  border-color: var(--border-hover);
+  outline: 2px solid color-mix(in srgb, var(--primary-color) 35%, transparent);
+  outline-offset: 1px;
 }
 
-.ids-list,
 .component-results {
   overflow: auto;
-}
-
-.ids-expression {
-  overflow-x: auto;
-  padding-bottom: 0.15rem;
 }
 
 .component-results {

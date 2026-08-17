@@ -1,124 +1,205 @@
 <template>
   <Teleport to="body">
-    <div v-if="modelValue" class="composition-overlay" @mousedown.self="close">
-      <section
-        class="composition-workspace"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="composition-title"
+    <Transition name="composition-modal" appear>
+      <div
+        v-if="modelValue"
+        class="composition-overlay"
+        :class="{ 'is-expanded': workspaceExpanded }"
+        @mousedown.self="close"
       >
-        <header class="composition-header">
-          <div>
-            <h2 id="composition-title">{{ $t('composition.title') }}</h2>
-            <div class="composition-code-point-control">
-              <label class="composition-code-point-field">
-                <span>{{ $t('composition.code_point') }}</span>
-                <input
-                  v-model="compositionCodePointInput"
-                  data-testid="composition-code-point"
-                  type="text"
-                  inputmode="text"
-                  maxlength="6"
-                  autocomplete="off"
-                  spellcheck="false"
-                  :disabled="props.saving"
-                  @keydown.enter.prevent="commitCompositionCodePoint"
-                />
-              </label>
-              <span class="composition-code-point" aria-live="polite">
-                U+{{ compositionCodePoint }}
-              </span>
+        <section
+          class="composition-workspace"
+          :class="{ 'is-expanded': workspaceExpanded }"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="composition-title"
+        >
+          <header class="composition-header">
+            <div class="composition-heading-block">
+              <div class="composition-heading">
+                <h2 id="composition-title">{{ $t('composition.title') }}</h2>
+                <div class="composition-code-point-cluster">
+                  <div class="composition-code-point-row">
+                    <label class="composition-code-point-field">
+                      <span>{{ $t('composition.code_point') }}</span>
+                      <span class="composition-code-point-input">
+                        <span
+                          class="composition-code-point-prefix"
+                          aria-hidden="true"
+                        >
+                          U+
+                        </span>
+                        <input
+                          v-model="compositionCodePointInput"
+                          data-testid="composition-code-point"
+                          type="text"
+                          inputmode="text"
+                          maxlength="6"
+                          autocomplete="off"
+                          spellcheck="false"
+                          :disabled="props.saving"
+                          :aria-invalid="compositionCodePointError !== null"
+                          :aria-describedby="
+                            compositionCodePointError
+                              ? 'composition-code-point-error'
+                              : undefined
+                          "
+                          @input="handleCompositionCodePointInput"
+                          @blur="commitCompositionCodePoint"
+                          @keydown.enter.prevent="commitCompositionCodePoint"
+                          @keydown.escape.stop.prevent="
+                            revertCompositionCodePoint
+                          "
+                        />
+                      </span>
+                    </label>
+                    <button
+                      type="button"
+                      class="ui-button ui-button--primary composition-code-point-confirm"
+                      data-testid="composition-code-point-confirm"
+                      :disabled="props.saving"
+                      @click="commitCompositionCodePoint"
+                    >
+                      <i-material-symbols-check aria-hidden="true" />
+                      <span>{{ $t('composition.apply_code_point') }}</span>
+                    </button>
+                  </div>
+                  <CompositionIdsGuide
+                    :code-point="compositionCodePoint"
+                    @select-character="searchComponentCharacter"
+                  />
+                </div>
+              </div>
+              <p
+                v-if="compositionCodePointError"
+                id="composition-code-point-error"
+                class="composition-code-point-error"
+                role="alert"
+              >
+                {{ compositionCodePointError }}
+              </p>
             </div>
-            <p
-              v-if="compositionCodePointError"
-              class="composition-code-point-error"
-              role="alert"
+            <div class="composition-header-actions">
+              <button
+                type="button"
+                class="ui-icon-button composition-expand"
+                data-testid="composition-expand"
+                :aria-label="
+                  $t(
+                    workspaceExpanded
+                      ? 'composition.exit_fullscreen'
+                      : 'composition.expand',
+                  )
+                "
+                :title="
+                  $t(
+                    workspaceExpanded
+                      ? 'composition.exit_fullscreen'
+                      : 'composition.expand',
+                  )
+                "
+                :aria-pressed="workspaceExpanded"
+                @click="workspaceExpanded = !workspaceExpanded"
+              >
+                <i-material-symbols-fullscreen-exit
+                  v-if="workspaceExpanded"
+                  aria-hidden="true"
+                />
+                <i-material-symbols-fullscreen v-else aria-hidden="true" />
+              </button>
+              <button
+                ref="closeButtonRef"
+                type="button"
+                class="ui-icon-button"
+                :aria-label="$t('composition.close')"
+                @click="close"
+              >
+                <i-material-symbols-close aria-hidden="true" />
+              </button>
+            </div>
+          </header>
+
+          <p
+            v-if="storageWarning"
+            class="composition-storage-warning"
+            data-testid="composition-storage-warning"
+            role="status"
+          >
+            {{ storageWarning }}
+          </p>
+
+          <nav
+            class="composition-mobile-tabs"
+            :aria-label="$t('composition.title')"
+          >
+            <button
+              v-for="tab in tabs"
+              :key="tab"
+              type="button"
+              :class="{ active: activeTab === tab }"
+              :aria-pressed="activeTab === tab"
+              @click="activeTab = tab"
             >
-              {{ compositionCodePointError }}
-            </p>
-          </div>
-          <button
-            ref="closeButtonRef"
-            type="button"
-            class="ui-icon-button"
-            :aria-label="$t('composition.close')"
-            @click="close"
-          >
-            ×
-          </button>
-        </header>
+              {{ $t(`composition.${tab}`) }}
+            </button>
+          </nav>
 
-        <p
-          v-if="storageWarning"
-          class="composition-storage-warning"
-          data-testid="composition-storage-warning"
-          role="status"
-        >
-          {{ storageWarning }}
-        </p>
+          <div class="composition-body">
+            <ComponentBrowser
+              ref="componentBrowserRef"
+              :key="compositionCodePoint"
+              class="composition-components"
+              :class="{ 'mobile-hidden': activeTab !== 'components' }"
+              :code-point="compositionCodePoint"
+              @add-component="addComponentLayer"
+            />
 
-        <nav
-          class="composition-mobile-tabs"
-          :aria-label="$t('composition.title')"
-        >
-          <button
-            v-for="tab in tabs"
-            :key="tab"
-            type="button"
-            :class="{ active: activeTab === tab }"
-            :aria-pressed="activeTab === tab"
-            @click="activeTab = tab"
-          >
-            {{ $t(`composition.${tab}`) }}
-          </button>
-        </nav>
+            <div
+              class="composition-canvas-panel"
+              :class="{ 'mobile-hidden': activeTab !== 'canvas' }"
+            >
+              <div class="canvas-panel-heading" aria-hidden="true">
+                <span>{{ $t('composition.canvas') }}</span>
+                <span class="canvas-dimensions">
+                  {{ $t('composition.canvas_dimensions') }}
+                </span>
+              </div>
+              <div class="canvas-stage">
+                <CompositionCanvas
+                  :layers="composer.document.value.layers"
+                  :selected-layer-id="composer.selectedLayerId.value"
+                  @move="moveSelectedLayer"
+                />
+              </div>
+            </div>
 
-        <div class="composition-body">
-          <ComponentBrowser
-            :key="compositionCodePoint"
-            class="composition-components"
-            :class="{ 'mobile-hidden': activeTab !== 'components' }"
-            :code-point="compositionCodePoint"
-            @add-component="addComponentLayer"
-          />
-
-          <div
-            class="composition-canvas-panel"
-            :class="{ 'mobile-hidden': activeTab !== 'canvas' }"
-          >
-            <CompositionCanvas
+            <CompositionLayerPanel
+              class="composition-layers"
+              :class="{ 'mobile-hidden': activeTab !== 'layers' }"
               :layers="composer.document.value.layers"
               :selected-layer-id="composer.selectedLayerId.value"
-              @move="moveSelectedLayer"
+              @select="selectLayer"
+              @set-operation="setOperation"
+              @set-visibility="setVisibility"
+              @set-locked="setLocked"
+              @remove="removeLayer"
+              @add-blank="addBlankLayer"
             />
           </div>
 
-          <CompositionLayerPanel
-            class="composition-layers"
-            :class="{ 'mobile-hidden': activeTab !== 'layers' }"
-            :layers="composer.document.value.layers"
-            :selected-layer-id="composer.selectedLayerId.value"
-            @select="selectLayer"
-            @set-operation="setOperation"
-            @set-visibility="setVisibility"
-            @set-locked="setLocked"
-            @remove="removeLayer"
+          <CompositionToolbar
+            :can-undo="composer.canUndo.value"
+            :can-redo="composer.canRedo.value"
+            :saving="props.saving"
             @add-blank="addBlankLayer"
+            @discard="discardDraft"
+            @undo="composer.undo"
+            @redo="composer.redo"
+            @save="save"
           />
-        </div>
-
-        <CompositionToolbar
-          :can-undo="composer.canUndo.value"
-          :can-redo="composer.canRedo.value"
-          :saving="props.saving"
-          @add-blank="addBlankLayer"
-          @discard="discardDraft"
-          @undo="composer.undo"
-          @redo="composer.redo"
-          @save="save"
-        />
-      </section>
-    </div>
+        </section>
+      </div>
+    </Transition>
   </Teleport>
 </template>
 
@@ -145,6 +226,7 @@ import { acquireOverlayLock, releaseOverlayLock } from '@/utils/overlayStack'
 
 import ComponentBrowser from './ComponentBrowser.vue'
 import CompositionCanvas from './CompositionCanvas.vue'
+import CompositionIdsGuide from './CompositionIdsGuide.vue'
 import CompositionLayerPanel from './CompositionLayerPanel.vue'
 import CompositionToolbar from './CompositionToolbar.vue'
 
@@ -202,6 +284,10 @@ const buildInitialDocument = (
 
 const composer = useGlyphComposer(buildInitialDocument())
 const closeButtonRef = ref<HTMLButtonElement | null>(null)
+const componentBrowserRef = ref<InstanceType<typeof ComponentBrowser> | null>(
+  null,
+)
+const workspaceExpanded = ref(false)
 const activeTab = ref<'components' | 'canvas' | 'layers'>('canvas')
 const tabs = ['components', 'canvas', 'layers'] as const
 const nextLayerNumber = ref(1)
@@ -393,6 +479,11 @@ const addComponentLayer = (record: CompositionComponentRecord): void => {
   }
 }
 
+const searchComponentCharacter = (character: string): void => {
+  activeTab.value = 'components'
+  void nextTick(() => componentBrowserRef.value?.searchCharacter(character))
+}
+
 const moveSelectedLayer = (dx: number, dy: number): void => {
   const layerId = composer.selectedLayerId.value
   if (layerId === null) return
@@ -465,6 +556,23 @@ const commitCompositionCodePoint = async (): Promise<void> => {
   resetForCompositionCodePoint(normalized)
 }
 
+const handleCompositionCodePointInput = (event: Event): void => {
+  const input = event.target as HTMLInputElement
+  const value = input.value.toUpperCase().slice(0, 6)
+  compositionCodePointInput.value = value
+  input.value = value
+  compositionCodePointError.value =
+    value === compositionCodePoint.value ||
+    normalizeCompositionCodePoint(value) !== null
+      ? null
+      : $t('composition.code_point_invalid')
+}
+
+const revertCompositionCodePoint = (): void => {
+  compositionCodePointInput.value = compositionCodePoint.value
+  compositionCodePointError.value = null
+}
+
 const save = (): void => {
   emit(
     'save',
@@ -474,12 +582,17 @@ const save = (): void => {
 }
 
 const close = (): void => {
+  workspaceExpanded.value = false
   emit('update:modelValue', false)
 }
 
 const handleDocumentKeydown = (event: KeyboardEvent): void => {
   if (event.key !== 'Escape') return
   event.preventDefault()
+  if (workspaceExpanded.value) {
+    workspaceExpanded.value = false
+    return
+  }
   close()
 }
 
@@ -508,6 +621,7 @@ const registerOverlay = (): void => {
 
 const unregisterOverlay = (): void => {
   if (!overlayLocked) return
+  workspaceExpanded.value = false
   overlayLocked = false
   releaseOverlayLock()
   document.removeEventListener('keydown', handleDocumentKeydown)
@@ -556,9 +670,9 @@ onUnmounted(() => {
   box-sizing: border-box;
   display: grid;
   grid-template-rows: auto auto auto minmax(0, 1fr) auto;
-  width: min(96vw, 78rem);
+  width: min(96vw, 96rem);
   height: min(92vh, 52rem);
-  padding: var(--space-4);
+  overflow: hidden;
   color: var(--text-color);
   background: var(--modal-background);
   border: 1px solid var(--modal-border);
@@ -566,50 +680,148 @@ onUnmounted(() => {
   box-shadow: 0 1.2rem 3rem var(--modal-shadow);
 }
 
+.composition-overlay.is-expanded {
+  padding: 0;
+}
+
+.composition-workspace.is-expanded {
+  width: 100vw;
+  height: 100dvh;
+  border: 0;
+  border-radius: 0;
+}
+
+.composition-modal-enter-active,
+.composition-modal-leave-active {
+  transition: opacity 180ms ease;
+}
+
+.composition-modal-enter-active .composition-workspace {
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.composition-modal-leave-active .composition-workspace {
+  transition: transform 160ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.composition-modal-enter-from,
+.composition-modal-leave-to {
+  opacity: 0;
+}
+
+.composition-modal-enter-from .composition-workspace,
+.composition-modal-leave-to .composition-workspace {
+  transform: translateY(0.75rem) scale(0.985);
+}
+
 .composition-header {
+  grid-row: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
-  padding-bottom: var(--space-3);
+  gap: var(--space-4);
+  min-height: 4rem;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-color);
 }
 
-.composition-header > div:first-child {
+.composition-heading-block {
+  flex: 1;
   min-width: 0;
 }
 
-.composition-header h2 {
-  margin: 0;
+.composition-header-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
 }
 
-.composition-code-point-control {
+.composition-heading {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(var(--space-4), 4vw, 3rem);
+  min-width: 0;
+}
+
+.composition-code-point-cluster {
+  display: grid;
+  grid-template-columns: max-content minmax(30rem, 1fr);
+  align-items: end;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.composition-code-point-row {
   display: flex;
+  flex: none;
   align-items: end;
   gap: var(--space-2);
-  margin-top: var(--space-1);
+}
+
+.composition-code-point-confirm {
+  display: none;
+}
+
+.composition-header h2 {
+  flex: none;
+  margin: 0;
+  font-size: clamp(1.2rem, 2vw, 1.55rem);
+  letter-spacing: -0.025em;
 }
 
 .composition-code-point-field {
   display: grid;
-  gap: 0.2rem;
+  gap: 0.25rem;
   color: var(--text-secondary);
-  font-size: 0.8rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.composition-code-point-input {
+  display: flex;
+  align-items: center;
+  min-height: var(--control-height-compact);
+  overflow: hidden;
+  font-family: var(--monospace-font);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--input-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.composition-code-point-input:focus-within {
+  border-color: var(--border-hover);
+  outline: 2px solid color-mix(in srgb, var(--primary-color) 35%, transparent);
+  outline-offset: 1px;
+}
+
+.composition-code-point-prefix {
+  padding-left: 0.65rem;
+  font: inherit;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
 }
 
 .composition-code-point-field input {
   box-sizing: border-box;
-  width: 8rem;
+  width: 5.35rem;
   min-height: var(--control-height-compact);
-  padding-inline: 0.55rem;
-  font-family: var(--normal-font);
+  padding: 0 0.65rem 0 0.25rem;
+  font: inherit;
   font-variant-numeric: tabular-nums;
   text-transform: uppercase;
-}
-
-.composition-code-point {
-  color: var(--text-secondary);
-  font-family: var(--normal-font);
-  font-variant-numeric: tabular-nums;
+  color: var(--text-color);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+  box-shadow: none;
 }
 
 .composition-code-point-error {
@@ -619,7 +831,8 @@ onUnmounted(() => {
 }
 
 .composition-storage-warning {
-  margin: 0;
+  grid-row: 2;
+  margin: var(--space-2) var(--space-4) 0;
   padding: var(--space-2) var(--space-3);
   color: var(--text-color);
   background: var(--background-light);
@@ -628,14 +841,15 @@ onUnmounted(() => {
 }
 
 .composition-body {
+  grid-row: 4;
   display: grid;
-  grid-template-columns: minmax(12rem, 0.8fr) minmax(20rem, 1.6fr) minmax(
-      14rem,
-      1fr
+  grid-template-columns: minmax(15rem, 17rem) minmax(20rem, 1fr) minmax(
+      17rem,
+      19rem
     );
-  gap: var(--space-4);
+  gap: 0;
   min-height: 0;
-  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .composition-components,
@@ -645,8 +859,165 @@ onUnmounted(() => {
   min-height: 0;
 }
 
+.composition-components,
+.composition-layers {
+  background: var(--background-light);
+}
+
+.composition-components {
+  border-right: 1px solid var(--border-color);
+}
+
+.composition-layers {
+  border-left: 1px solid var(--border-color);
+}
+
+.composition-canvas-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--background-color);
+}
+
+.canvas-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.canvas-dimensions {
+  padding: 0.3rem 0.5rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  background: var(--background-light);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+}
+
+.canvas-stage {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+  padding: clamp(var(--space-2), 2vw, var(--space-4));
+}
+
 .composition-mobile-tabs {
+  grid-row: 3;
   display: none;
+}
+
+.composition-toolbar {
+  grid-row: 5;
+}
+
+@media (max-width: 959px) {
+  .composition-code-point-cluster {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .composition-mobile-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    padding: 0 var(--space-3);
+    background: var(--background-light);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .composition-mobile-tabs button {
+    position: relative;
+    min-height: 3rem;
+    padding: 0 var(--space-2);
+    color: var(--text-secondary);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .composition-mobile-tabs button.active {
+    color: var(--primary-color);
+    background: transparent;
+  }
+
+  .composition-mobile-tabs button.active::after {
+    position: absolute;
+    right: var(--space-3);
+    bottom: -1px;
+    left: var(--space-3);
+    height: 2px;
+    content: '';
+    background: currentColor;
+  }
+
+  .composition-mobile-tabs button:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: -3px;
+  }
+
+  .composition-body {
+    display: block;
+    overflow: hidden;
+  }
+
+  .composition-body > * {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+  }
+
+  .composition-body > :not(.mobile-hidden) {
+    animation: composition-panel-enter 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .composition-components,
+  .composition-layers {
+    border-inline: 0;
+  }
+
+  .mobile-hidden {
+    display: none;
+  }
+}
+
+@media (min-width: 960px) and (max-width: 1439px) {
+  .composition-header {
+    align-items: flex-start;
+  }
+
+  .composition-code-point-cluster {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@keyframes composition-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .composition-modal-enter-active,
+  .composition-modal-leave-active,
+  .composition-modal-enter-active .composition-workspace,
+  .composition-modal-leave-active .composition-workspace {
+    transition: none;
+  }
+
+  .composition-body > :not(.mobile-hidden) {
+    animation: none;
+  }
 }
 
 @media (max-width: 719px) {
@@ -661,28 +1032,54 @@ onUnmounted(() => {
     border-radius: 0;
   }
 
-  .composition-mobile-tabs {
+  .composition-header {
+    align-items: flex-start;
+    min-height: auto;
+    padding: var(--space-3);
+  }
+
+  .composition-expand {
+    display: none;
+  }
+
+  .composition-heading {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
     gap: var(--space-2);
   }
 
-  .composition-mobile-tabs button {
-    min-height: var(--control-height);
+  .composition-code-point-cluster {
+    display: grid;
+    gap: var(--space-2);
   }
 
-  .composition-mobile-tabs button.active {
-    color: var(--primary-color);
-    border-color: var(--primary-color);
+  .composition-code-point-row {
+    width: 100%;
   }
 
-  .composition-body {
-    display: block;
-    overflow: auto;
+  .composition-code-point-field {
+    flex: 1;
   }
 
-  .mobile-hidden {
-    display: none;
+  .composition-code-point-input {
+    width: 100%;
+  }
+
+  .composition-code-point-field input {
+    flex: 1;
+    width: 0;
+  }
+
+  .composition-code-point-confirm {
+    display: inline-flex;
+    min-height: var(--control-height-compact);
+  }
+
+  .composition-storage-warning {
+    margin-inline: var(--space-3);
+  }
+
+  .composition-canvas-panel {
+    padding: var(--space-3);
   }
 }
 </style>

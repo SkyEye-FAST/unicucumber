@@ -47,21 +47,24 @@ const messages = {
     composition: {
       add_blank: 'Add blank layer',
       add_first_layer: 'Add blank layer',
+      apply_code_point: 'Apply',
       code_point: 'Composition code point',
       code_point_invalid: 'Enter a CJK Unicode code point.',
       save: 'Save to glyph manager',
       canvas: 'Composition canvas',
+      canvas_dimensions: '16 × 16',
       close: 'Close composition workspace',
       components: 'Components',
       component_add: 'Add {characters}',
       component_bounds: 'Bounds {bounds}',
-      component_load_error: 'Unable to load this component.',
       component_loading: 'Loading component',
       component_no_results: 'No matching components.',
       component_search: 'Search components',
       component_search_error: 'Unable to load components.',
       component_search_placeholder: 'Character or code point',
       component_retry: 'Retry',
+      expand: 'Expand composition workspace',
+      exit_fullscreen: 'Exit full-screen composition workspace',
       current_glyph: 'Current glyph',
       discard: 'Discard draft',
       delete_layer: 'Delete {name}',
@@ -224,6 +227,17 @@ describe('GlyphComposer', () => {
     ).toBe('true')
   })
 
+  it('opens component search without pre-filling the target character', async () => {
+    const wrapper = mountComposer()
+    await flushPromises()
+
+    expect(
+      wrapper.get<HTMLInputElement>('.component-search input').element.value,
+    ).toBe('')
+    expect(loaderMocks.searchComponents).toHaveBeenLastCalledWith('')
+    expect(loaderMocks.loadIdsForCodePoint).toHaveBeenLastCalledWith(0x660e)
+  })
+
   it('selects the nearest surviving layer after deleting the selection', async () => {
     const wrapper = mountComposer()
     await wrapper.get('[data-testid="composition-add-blank"]').trigger('click')
@@ -275,7 +289,7 @@ describe('GlyphComposer', () => {
     ).toBe(true)
   })
 
-  it('hydrates only the selected component and adds it as an independent layer', async () => {
+  it('renders hydrated component previews and adds a displayed component as an independent layer', async () => {
     const summary: CompositionComponentSummary = {
       id: '00AABBCCDDEEFF00',
       characters: ['木'],
@@ -292,22 +306,42 @@ describe('GlyphComposer', () => {
     const wrapper = mountComposer(createGrid(16))
     await flushPromises()
 
-    expect(loaderMocks.hydrateComponents).not.toHaveBeenCalled()
+    expect(loaderMocks.hydrateComponents).toHaveBeenCalledWith([summary.id])
+    expect(
+      wrapper
+        .get(`[data-testid="composition-component-${summary.id}-preview"]`)
+        .findAll('.component-preview-pixel'),
+    ).toHaveLength(1)
+    expect(
+      wrapper.get(`[data-testid="composition-component-${summary.id}"]`).text(),
+    ).toContain('木')
     await wrapper
       .get(`[data-testid="composition-component-${summary.id}"]`)
       .trigger('click')
     await flushPromises()
 
-    expect(loaderMocks.hydrateComponents).toHaveBeenCalledTimes(1)
-    expect(loaderMocks.hydrateComponents).toHaveBeenCalledWith([summary.id])
     await wrapper.get('[data-testid="composition-save"]').trigger('click')
     const saved = wrapper.emitted<[string, GridData]>('save')?.[0]
     expect(saved?.[0]).toBe('660E')
     expect(saved?.[1]?.[0]?.[0]).toBe(1)
   })
 
-  it('uses IDS leaves to drive metadata-only component search', async () => {
+  it('uses IDS leaves to drive component search and preview hydration', async () => {
+    const summary: CompositionComponentSummary = {
+      id: '0011223344556677',
+      characters: ['日'],
+      bounds: [0, 0, 16, 16],
+      chunk: '00',
+    }
+    const record: CompositionComponentRecord = {
+      ...summary,
+      hex: `8${'0'.repeat(63)}`,
+    }
     loaderMocks.loadIdsForCodePoint.mockResolvedValue(['⿰日月'])
+    loaderMocks.searchComponents.mockImplementation(async (query: string) =>
+      query === '日' ? [summary] : [],
+    )
+    loaderMocks.hydrateComponents.mockResolvedValue([record])
     const wrapper = mountComposer()
     await flushPromises()
 
@@ -317,16 +351,41 @@ describe('GlyphComposer', () => {
     await flushPromises()
 
     expect(loaderMocks.searchComponents).toHaveBeenLastCalledWith('日')
-    expect(loaderMocks.hydrateComponents).not.toHaveBeenCalled()
+    expect(loaderMocks.hydrateComponents).toHaveBeenCalledWith([summary.id])
+    expect(
+      wrapper
+        .find(`[data-testid="composition-component-${summary.id}"]`)
+        .exists(),
+    ).toBe(true)
+  })
+
+  it('expands and restores the desktop composition workspace', async () => {
+    const wrapper = mountComposer()
+
+    const expand = wrapper.get('[data-testid="composition-expand"]')
+    expect(expand.attributes('aria-pressed')).toBe('false')
+    await expand.trigger('click')
+
+    expect(wrapper.get('.composition-workspace').classes()).toContain(
+      'is-expanded',
+    )
+    expect(
+      wrapper
+        .get('[data-testid="composition-expand"]')
+        .attributes('aria-pressed'),
+    ).toBe('true')
+
+    await expand.trigger('click')
+    expect(wrapper.get('.composition-workspace').classes()).not.toContain(
+      'is-expanded',
+    )
   })
 
   it('shows a neutral state when IDS guidance is unavailable', async () => {
     const wrapper = mountComposer()
     await flushPromises()
 
-    expect(wrapper.get('[aria-label="Components"] h4').text()).toBe(
-      'IDS guidance',
-    )
+    expect(wrapper.get('.composition-ids-guide h4').text()).toBe('IDS guidance')
     expect(wrapper.text()).toContain(
       'No IDS guidance is available for this code point.',
     )
@@ -342,10 +401,15 @@ describe('GlyphComposer', () => {
     )
     expect(codePoint.element.value).toBe('660E')
 
-    await codePoint.setValue('4E00')
-    await codePoint.trigger('keydown', { key: 'Enter' })
+    await codePoint.setValue('4e00')
+    expect(codePoint.element.value).toBe('4E00')
+    await codePoint.trigger('blur')
     await flushPromises()
     expect(loaderMocks.loadIdsForCodePoint).toHaveBeenLastCalledWith(0x4e00)
+
+    await codePoint.setValue('4E01')
+    await codePoint.trigger('keydown', { key: 'Escape' })
+    expect(codePoint.element.value).toBe('4E00')
 
     await wrapper.get('[data-testid="composition-save"]').trigger('click')
     expect(wrapper.emitted<[string, GridData]>('save')?.[0]?.[0]).toBe('4E00')

@@ -99,35 +99,61 @@ test.beforeEach(async ({ page }) => {
   )
 })
 
-test('saves the composed bitmap to the glyph manager without changing the editor', async ({
-  page,
-}, testInfo) => {
-  test.skip(testInfo.project.name !== 'chromium', 'desktop workflow runs once')
-  await installCompositionFixture(page)
-  await page.goto('/', { waitUntil: 'domcontentloaded' })
-  await openComposition(page)
+test(
+  'saves the composed bitmap to the glyph manager without changing the editor',
+  {
+    tag: '@cross-browser',
+  },
+  async ({ page }) => {
+    await installCompositionFixture(page)
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+    await openComposition(page)
 
-  await searchAndAddFixtureComponent(page)
-  await page.getByTestId('composition-canvas').focus()
-  await page.keyboard.press('ArrowRight')
+    const preview = page.getByTestId(
+      `composition-component-${COMPONENT_ID}-preview`,
+    )
+    await expect(preview).toBeVisible()
+    await expect(preview.locator('.component-preview-pixel')).toHaveCount(1)
 
-  await searchAndAddFixtureComponent(page)
-  await page
-    .getByTestId(`composition-layer-component-${COMPONENT_ID}-2-operation`)
-    .selectOption('subtract')
+    await page.getByTestId('composition-expand').click()
+    const workspaceBounds = await page
+      .locator('.composition-workspace')
+      .boundingBox()
+    const viewport = page.viewportSize()
+    expect(workspaceBounds).not.toBeNull()
+    expect(viewport).not.toBeNull()
+    expect(workspaceBounds?.width).toBe(viewport?.width)
+    expect(workspaceBounds?.height).toBe(viewport?.height)
 
-  await page.getByTestId('composition-save').click()
-  await expect(page.getByRole('dialog')).toBeHidden()
+    const grid = page.locator('.canvas-grid')
+    await expect(grid).toHaveCSS('vector-effect', 'none')
+    await expect(page.getByTestId('composition-canvas')).toHaveCSS(
+      'border-radius',
+      '0px',
+    )
 
-  await expect(page.locator('.cell.filled')).toHaveCount(0)
-  await expect(page.locator('.code-point-input input')).toHaveValue('660E')
+    await searchAndAddFixtureComponent(page)
+    await page.getByTestId('composition-canvas').focus()
+    await page.keyboard.press('ArrowRight')
 
-  await page.getByRole('button', { name: 'Open glyph manager' }).click()
-  await expect(page.locator('.glyph-manager')).toHaveAttribute(
-    'data-glyph-count',
-    '1',
-  )
-})
+    await searchAndAddFixtureComponent(page)
+    await page
+      .getByTestId(`composition-layer-component-${COMPONENT_ID}-2-operation`)
+      .selectOption('subtract')
+
+    await page.getByTestId('composition-save').click()
+    await expect(page.getByRole('dialog')).toBeHidden()
+
+    await expect(page.locator('.cell.filled')).toHaveCount(0)
+    await expect(page.locator('.code-point-input input')).toHaveValue('660E')
+
+    await page.getByRole('button', { name: 'Open glyph manager' }).click()
+    await expect(page.locator('.glyph-manager')).toHaveAttribute(
+      'data-glyph-count',
+      '1',
+    )
+  },
+)
 
 test('restores an unfinished composition draft after reload', async ({
   page,
@@ -147,39 +173,75 @@ test('restores an unfinished composition draft after reload', async ({
   ).toBeVisible()
 })
 
-test('uses mobile tabs without overflowing the viewport', async ({
-  page,
-}, testInfo) => {
-  test.skip(!testInfo.project.name.includes('phone'), 'phone workflow')
-  await installCompositionFixture(page)
-  await page.goto('/', { waitUntil: 'domcontentloaded' })
-  await openComposition(page)
+test(
+  'uses mobile tabs without overflowing the viewport',
+  { tag: '@phone' },
+  async ({ page }, testInfo) => {
+    test.skip(!testInfo.project.name.includes('phone'), 'phone workflow')
+    await installCompositionFixture(page)
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+    await openComposition(page)
 
-  const tabs = page.locator('.composition-mobile-tabs')
-  await expect(tabs).toBeVisible()
-  await tabs.getByRole('button', { name: 'Components' }).click()
-  await expect(page.locator('.component-browser')).toBeVisible()
-  await page.getByTestId('composition-add-blank').click()
-  await tabs.getByRole('button', { name: 'Layers' }).click()
-  await expect(page.locator('.composition-layers')).toBeVisible()
+    const tabs = page.locator('.composition-mobile-tabs')
+    await expect(tabs).toBeVisible()
+    const confirmCodePoint = page.getByTestId('composition-code-point-confirm')
+    await expect(confirmCodePoint).toBeVisible()
+    const codePointFontSize = await page
+      .getByTestId('composition-code-point')
+      .evaluate((input) => Number.parseFloat(getComputedStyle(input).fontSize))
+    expect(codePointFontSize).toBeGreaterThanOrEqual(16)
+    await page.getByTestId('composition-code-point').fill('4e00')
+    await expect(page.getByTestId('composition-code-point')).toHaveValue('4E00')
+    await confirmCodePoint.click()
+    await expect(page.getByTestId('composition-code-point')).toHaveValue('4E00')
+    await tabs.getByRole('button', { name: 'Components' }).click()
+    await expect(page.locator('.component-browser')).toBeVisible()
+    await page.getByTestId('composition-add-blank').click()
+    await tabs.getByRole('button', { name: 'Layers' }).click()
+    await expect(page.locator('.composition-layers')).toBeVisible()
 
-  const deleteButton = page.getByTestId('composition-layer-blank-1-delete')
-  await expect(deleteButton).toBeVisible()
-  await expect(deleteButton).toBeEnabled()
-  await deleteButton.click()
-  await expect(
-    page.getByTestId('composition-layer-blank-1-select'),
-  ).toHaveCount(0)
-  await expect(page.getByTestId('composition-save')).toBeInViewport()
+    const deleteButton = page.getByTestId('composition-layer-blank-1-delete')
+    await expect(deleteButton).toBeVisible()
+    await expect(deleteButton).toBeEnabled()
+    await deleteButton.click()
+    await expect(
+      page.getByTestId('composition-layer-blank-1-select'),
+    ).toHaveCount(0)
+    await expect(page.getByTestId('composition-save')).toBeInViewport()
 
-  const metrics = await page.evaluate(() => ({
-    width: document.documentElement.scrollWidth,
-    viewport: document.documentElement.clientWidth,
-    bodyOverflow: document.body.style.overflow,
-  }))
-  expect(metrics.width).toBeLessThanOrEqual(metrics.viewport)
-  expect(metrics.bodyOverflow).toBe('hidden')
-})
+    const toolbarButtons = page.locator('.composition-toolbar .ui-button')
+    await expect(toolbarButtons).toHaveCount(5)
+    const toolbarButtonBoxes = await toolbarButtons.evaluateAll((buttons) =>
+      buttons.map((button) => {
+        const box = button.getBoundingClientRect()
+        return {
+          width: Math.round(box.width),
+          height: Math.round(box.height),
+          top: Math.round(box.top),
+        }
+      }),
+    )
+    expect(new Set(toolbarButtonBoxes.map(({ top }) => top)).size).toBe(2)
+    expect(
+      new Set(toolbarButtonBoxes.slice(0, 2).map(({ width }) => width)).size,
+    ).toBe(1)
+    expect(toolbarButtonBoxes[2]?.width).toBe(toolbarButtonBoxes[3]?.width)
+    expect(toolbarButtonBoxes[4]?.width).toBeGreaterThan(
+      toolbarButtonBoxes[3]?.width ?? 0,
+    )
+    expect(
+      Math.min(...toolbarButtonBoxes.map(({ height }) => height)),
+    ).toBeGreaterThanOrEqual(60)
+
+    const metrics = await page.evaluate(() => ({
+      width: document.documentElement.scrollWidth,
+      viewport: document.documentElement.clientWidth,
+      bodyOverflow: document.body.style.overflow,
+    }))
+    expect(metrics.width).toBeLessThanOrEqual(metrics.viewport)
+    expect(metrics.bodyOverflow).toBe('hidden')
+  },
+)
 
 test('does not request composition data before the workspace is opened', async ({
   page,
@@ -195,6 +257,53 @@ test('does not request composition data before the workspace is opened', async (
   await page.goto('/', { waitUntil: 'domcontentloaded' })
   await expect(page.locator('.grid-container')).toBeVisible()
   expect(requests).toEqual([])
+})
+
+test('uses real IDS leaves to filter component candidates', async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== 'chromium',
+    'real-data workflow runs once',
+  )
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
+  await openComposition(page)
+
+  const codePoint = page.getByTestId('composition-code-point')
+  await codePoint.fill('30ede')
+  await codePoint.blur()
+
+  const idsGuide = page.getByTestId('composition-ids-guide')
+  await expect(idsGuide.locator('.ids-list')).toBeVisible()
+  const complexIdsLayout = await idsGuide.evaluate((guide) => {
+    const list = guide.querySelector<HTMLElement>('.ids-list')
+    const leaves = [...guide.querySelectorAll<HTMLElement>('.ids-leaf')]
+    const centers = leaves.map((leaf) => {
+      const bounds = leaf.getBoundingClientRect()
+      return bounds.top + bounds.height / 2
+    })
+    return {
+      clientWidth: list?.clientWidth ?? 0,
+      scrollWidth: list?.scrollWidth ?? 0,
+      centerDelta:
+        centers.length === 0 ? 0 : Math.max(...centers) - Math.min(...centers),
+    }
+  })
+  expect(complexIdsLayout.clientWidth).toBeGreaterThanOrEqual(760)
+  expect(complexIdsLayout.scrollWidth).toBeLessThanOrEqual(
+    complexIdsLayout.clientWidth,
+  )
+  expect(complexIdsLayout.centerDelta).toBeLessThanOrEqual(1)
+
+  await codePoint.fill('660e')
+  await expect(codePoint).toHaveValue('660E')
+  await codePoint.blur()
+
+  const sunLeaf = page.getByTestId('composition-ids-leaf-日')
+  await expect(sunLeaf).toBeVisible()
+  await sunLeaf.click()
+  await expect(page.locator('.component-search input')).toHaveValue('日')
+  await expect(page.locator('.component-card').first()).toBeVisible()
 })
 
 test('keeps composition code point independent from a non-CJK editor glyph', async ({

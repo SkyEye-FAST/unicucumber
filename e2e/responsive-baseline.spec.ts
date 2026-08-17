@@ -192,14 +192,16 @@ test.describe('responsive visual baseline', () => {
 
         if (viewport.width < 720) {
           const headerTargetSizes = await page
-            .locator('.editor-header .modal-button')
+            .locator('.editor-header .modal-button:visible')
             .evaluateAll((buttons) =>
               buttons.map((button) => {
                 const bounds = button.getBoundingClientRect()
                 return { width: bounds.width, height: bounds.height }
               }),
             )
-          expect(headerTargetSizes).toHaveLength(6)
+          expect(headerTargetSizes).toHaveLength(
+            viewport.width >= 600 ? 6 : viewport.width >= 480 ? 5 : 4,
+          )
           headerTargetSizes.forEach(({ width, height }) => {
             expect(width).toBeGreaterThanOrEqual(44)
             expect(height).toBeGreaterThanOrEqual(44)

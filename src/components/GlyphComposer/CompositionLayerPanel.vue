@@ -28,8 +28,13 @@
     <div v-else class="layer-empty">
       <i-material-symbols-layers-outline aria-hidden="true" />
       <p>{{ $t('composition.empty_layers') }}</p>
-      <button type="button" class="ui-button" @click="$emit('addBlank')">
-        {{ $t('composition.add_first_layer') }}
+      <button
+        type="button"
+        class="ui-button ui-button--primary layer-empty-action"
+        @click="$emit('addBlank')"
+      >
+        <i-material-symbols-add aria-hidden="true" />
+        <span>{{ $t('composition.add_first_layer') }}</span>
       </button>
     </div>
   </section>
@@ -66,10 +71,17 @@ const displayLayers = computed(() => [...props.layers].reverse())
 
 <style scoped>
 .composition-layer-panel {
+  box-sizing: border-box;
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   align-content: start;
   gap: var(--space-3);
+  width: 100%;
+  height: 100%;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: var(--space-3);
 }
 
 .composition-layer-panel h3 {
@@ -106,12 +118,15 @@ const displayLayers = computed(() => [...props.layers].reverse())
 
 .layer-list {
   display: grid;
+  grid-auto-rows: max-content;
+  align-content: start;
   gap: var(--space-2);
   overflow: auto;
 }
 
 .layer-empty {
   display: grid;
+  align-content: center;
   justify-items: center;
   gap: var(--space-3);
   padding: var(--space-6) var(--space-3);
@@ -130,5 +145,22 @@ const displayLayers = computed(() => [...props.layers].reverse())
   margin: 0;
   font-size: 0.875rem;
   line-height: 1.5;
+}
+
+.layer-empty-action {
+  width: max-content;
+  max-width: 100%;
+}
+
+@media (max-width: 719px) {
+  .layer-empty {
+    align-self: center;
+    padding: var(--space-5) var(--space-3);
+    border: 0;
+  }
+
+  .layer-empty .ui-button {
+    display: none;
+  }
 }
 </style>
