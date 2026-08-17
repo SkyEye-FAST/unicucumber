@@ -124,16 +124,16 @@
       </div>
     </div>
 
-      <div v-show="toolsOpen" id="glyph-library-tools" class="library-tools">
-        <div class="library-export-menu">
-          <button
-            class="ui-button library-action library-export-trigger"
-            type="button"
-            :aria-label="$t('glyph_manager.export')"
-            :aria-expanded="exportMenuOpen"
-            aria-controls="glyph-library-export-options"
-            @click="exportMenuOpen = !exportMenuOpen"
-          >
+    <div v-show="toolsOpen" id="glyph-library-tools" class="library-tools">
+      <div class="library-export-menu">
+        <button
+          class="ui-button library-action library-export-trigger"
+          type="button"
+          :aria-label="$t('glyph_manager.export')"
+          :aria-expanded="exportMenuOpen"
+          aria-controls="glyph-library-export-options"
+          @click="exportMenuOpen = !exportMenuOpen"
+        >
           <i-material-symbols-download aria-hidden="true" />
           <span>{{ $t('glyph_manager.export') }}</span>
         </button>
@@ -184,7 +184,7 @@
             />
           </label>
         </div>
-        </div>
+      </div>
 
       <fieldset class="density-control">
         <legend class="visually-hidden">
