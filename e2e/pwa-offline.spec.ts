@@ -153,6 +153,9 @@ test('production shell reloads offline after service-worker installation', async
       ),
     ).toBe(true)
 
+    await page.locator('.code-point-input input').fill('660E')
+    await page.locator('.code-point-input input').press('Enter')
+    await expect(page.getByTestId('composition-open')).toBeEnabled()
     await page.getByTestId('composition-open').click()
     await expect(page.getByRole('dialog')).toBeVisible()
     const offlineSearch = page.locator('.component-search input')

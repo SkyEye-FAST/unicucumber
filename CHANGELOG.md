@@ -11,6 +11,8 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 ### Fixed
 
 - Replace the glyph library export menu's native `details/summary` toggle with explicit Vue state so export actions are stable in WebKit CI runs.
+- Treat missing IDS chunks as empty guidance, keep the composition workspace independent from the main editor, and save composed glyphs to the glyph manager.
+- Allow the generated composition consistency check enough time under parallel quality gates.
 
 ## [1.6.0] - 2026-08-17
 

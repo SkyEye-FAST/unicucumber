@@ -42,10 +42,11 @@
     <button
       type="button"
       class="ui-button ui-button--primary"
-      data-testid="composition-apply"
-      @click="$emit('apply')"
+      data-testid="composition-save"
+      :disabled="saving"
+      @click="$emit('save')"
     >
-      {{ $t('composition.apply') }}
+      {{ $t('composition.save') }}
     </button>
   </div>
 </template>
@@ -56,6 +57,7 @@ import { useI18n } from 'vue-i18n'
 defineProps<{
   canUndo: boolean
   canRedo: boolean
+  saving?: boolean
 }>()
 
 defineEmits<{
@@ -63,7 +65,7 @@ defineEmits<{
   discard: []
   undo: []
   redo: []
-  apply: []
+  save: []
 }>()
 
 const { t: $t } = useI18n()

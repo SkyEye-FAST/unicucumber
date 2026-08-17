@@ -10,7 +10,32 @@
         <header class="composition-header">
           <div>
             <h2 id="composition-title">{{ $t('composition.title') }}</h2>
-            <span class="composition-code-point">U+{{ codePoint }}</span>
+            <div class="composition-code-point-control">
+              <label class="composition-code-point-field">
+                <span>{{ $t('composition.code_point') }}</span>
+                <input
+                  v-model="compositionCodePointInput"
+                  data-testid="composition-code-point"
+                  type="text"
+                  inputmode="text"
+                  maxlength="6"
+                  autocomplete="off"
+                  spellcheck="false"
+                  :disabled="props.saving"
+                  @keydown.enter.prevent="commitCompositionCodePoint"
+                />
+              </label>
+              <span class="composition-code-point" aria-live="polite">
+                U+{{ compositionCodePoint }}
+              </span>
+            </div>
+            <p
+              v-if="compositionCodePointError"
+              class="composition-code-point-error"
+              role="alert"
+            >
+              {{ compositionCodePointError }}
+            </p>
           </div>
           <button
             ref="closeButtonRef"
@@ -50,10 +75,10 @@
 
         <div class="composition-body">
           <ComponentBrowser
-            :key="codePoint"
+            :key="compositionCodePoint"
             class="composition-components"
             :class="{ 'mobile-hidden': activeTab !== 'components' }"
-            :code-point="codePoint"
+            :code-point="compositionCodePoint"
             @add-component="addComponentLayer"
           />
 
@@ -83,11 +108,12 @@
         <CompositionToolbar
           :can-undo="composer.canUndo.value"
           :can-redo="composer.canRedo.value"
+          :saving="props.saving"
           @add-blank="addBlankLayer"
           @discard="discardDraft"
           @undo="composer.undo"
           @redo="composer.redo"
-          @apply="apply"
+          @save="save"
         />
       </section>
     </div>
@@ -107,9 +133,11 @@ import {
 } from '@/storage/compositionDraftRepository'
 import type {
   CompositionComponentRecord,
+  CompositionDocument,
   CompositionOperation,
 } from '@/types/composition'
 import type { GridData } from '@/types/glyph'
+import { isCJKCodePoint, normalizeCodePointHex } from '@/utils/charUtils'
 import { createGrid, deepCloneGrid, hexToGrid } from '@/utils/hexUtils'
 import { acquireOverlayLock, releaseOverlayLock } from '@/utils/overlayStack'
 
@@ -123,19 +151,48 @@ const props = defineProps<{
   codePoint: string
   grid: GridData
   returnFocusTarget?: HTMLElement | null
+  saving?: boolean
 }>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  apply: [grid: GridData]
+  save: [codePoint: string, grid: GridData]
 }>()
 
 const { t: $t } = useI18n()
 const draftRepository = getCompositionDraftRepository()
 const AUTOSAVE_DELAY_MS = 500
+const DEFAULT_COMPOSITION_CODE_POINT = '4E00'
 
-const buildInitialDocument = () => {
-  const document = createCompositionDocument(props.codePoint, props.grid)
+const compositionCodePoint = ref(DEFAULT_COMPOSITION_CODE_POINT)
+const compositionCodePointInput = ref(DEFAULT_COMPOSITION_CODE_POINT)
+const compositionCodePointError = ref<string | null>(null)
+const initialGrids = new Map<string, GridData>()
+
+const normalizeCompositionCodePoint = (value: string): string | null => {
+  const normalized = normalizeCodePointHex(value)
+  if (normalized === null) return null
+  return isCJKCodePoint(Number.parseInt(normalized, 16)) ? normalized : null
+}
+
+const initialCodePointFromEditor = (): {
+  codePoint: string
+  grid: GridData
+} => {
+  const normalized = normalizeCodePointHex(props.codePoint)
+  if (normalized !== null && isCJKCodePoint(Number.parseInt(normalized, 16))) {
+    return { codePoint: normalized, grid: deepCloneGrid(props.grid) }
+  }
+  return { codePoint: DEFAULT_COMPOSITION_CODE_POINT, grid: createGrid(16) }
+}
+
+const buildInitialDocument = (
+  codePoint = compositionCodePoint.value,
+): CompositionDocument => {
+  const document = createCompositionDocument(
+    codePoint,
+    initialGrids.get(codePoint) ?? createGrid(16),
+  )
   const currentGlyph = document.layers.find(({ id }) => id === 'current-glyph')
   if (currentGlyph) currentGlyph.name = $t('composition.current_glyph')
   return document
@@ -355,8 +412,49 @@ const setLocked = (layerId: string, locked: boolean): void => {
   composer.execute({ type: 'setLocked', layerId, locked })
 }
 
-const apply = (): void => {
-  emit('apply', deepCloneGrid(composer.resultGrid.value))
+const resetForCompositionCodePoint = (codePoint: string): void => {
+  restoreGeneration += 1
+  clearDraftTimer()
+  autosaveReady = false
+  draftPending = false
+  composer.reset(buildInitialDocument(codePoint))
+  activeTab.value = 'canvas'
+  nextLayerNumber.value = 1
+  nextComponentNumber.value = 1
+  storageWarning.value = null
+  void restoreDraft()
+}
+
+const commitCompositionCodePoint = async (): Promise<void> => {
+  const normalized = normalizeCompositionCodePoint(
+    compositionCodePointInput.value,
+  )
+  if (normalized === null) {
+    compositionCodePointError.value = $t('composition.code_point_invalid')
+    return
+  }
+  compositionCodePointError.value = null
+  if (normalized === compositionCodePoint.value) {
+    compositionCodePointInput.value = normalized
+    return
+  }
+
+  try {
+    await flushDraft()
+  } catch {
+    return
+  }
+  compositionCodePoint.value = normalized
+  compositionCodePointInput.value = normalized
+  resetForCompositionCodePoint(normalized)
+}
+
+const save = (): void => {
+  emit(
+    'save',
+    compositionCodePoint.value,
+    deepCloneGrid(composer.resultGrid.value),
+  )
 }
 
 const close = (): void => {
@@ -372,9 +470,17 @@ const handleDocumentKeydown = (event: KeyboardEvent): void => {
 const registerOverlay = (): void => {
   if (overlayLocked) return
   if (!hasOpened) {
-    composer.reset(buildInitialDocument())
+    const initial = initialCodePointFromEditor()
+    compositionCodePoint.value = initial.codePoint
+    compositionCodePointInput.value = initial.codePoint
+    initialGrids.clear()
+    initialGrids.set(initial.codePoint, initial.grid)
+    composer.reset(buildInitialDocument(initial.codePoint))
     hasOpened = true
     void restoreDraft()
+  } else {
+    compositionCodePointInput.value = compositionCodePoint.value
+    compositionCodePointError.value = null
   }
   overlayLocked = true
   previouslyFocused =
@@ -405,29 +511,6 @@ watch(
     else unregisterOverlay()
   },
   { immediate: true },
-)
-
-watch(
-  () => props.codePoint,
-  () => {
-    restoreGeneration += 1
-    clearDraftTimer()
-    if (autosaveReady && draftPending) {
-      void flushDraft().catch(() => undefined)
-    }
-    autosaveReady = false
-    draftPending = false
-    composer.reset(buildInitialDocument())
-    activeTab.value = 'canvas'
-    nextLayerNumber.value = 1
-    nextComponentNumber.value = 1
-    hasOpened = false
-    storageWarning.value = null
-    if (props.modelValue) {
-      hasOpened = true
-      void restoreDraft()
-    }
-  },
 )
 
 onMounted(() => {
@@ -475,14 +558,48 @@ onUnmounted(() => {
   padding-bottom: var(--space-3);
 }
 
+.composition-header > div:first-child {
+  min-width: 0;
+}
+
 .composition-header h2 {
   margin: 0;
+}
+
+.composition-code-point-control {
+  display: flex;
+  align-items: end;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.composition-code-point-field {
+  display: grid;
+  gap: 0.2rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.composition-code-point-field input {
+  box-sizing: border-box;
+  width: 8rem;
+  min-height: var(--control-height-compact);
+  padding-inline: 0.55rem;
+  font-family: var(--normal-font);
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
 }
 
 .composition-code-point {
   color: var(--text-secondary);
   font-family: var(--normal-font);
   font-variant-numeric: tabular-nums;
+}
+
+.composition-code-point-error {
+  margin: var(--space-1) 0 0;
+  color: var(--danger-color, var(--text-color));
+  font-size: 0.8rem;
 }
 
 .composition-storage-warning {

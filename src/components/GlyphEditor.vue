@@ -12,7 +12,7 @@
     ]"
   >
     <EditorHeader
-      :composition-enabled="width === 16"
+      :composition-enabled="compositionEnabled"
       @open-composition="openComposition"
       @open-settings="openSettings"
       @open-text-preview="openTextPreview"
@@ -67,7 +67,8 @@
       :code-point="currentCodePoint"
       :grid="gridData"
       :return-focus-target="compositionFocusTarget"
-      @apply="handleCompositionApply"
+      :saving="isSavingComposition"
+      @save="handleCompositionSave"
     />
 
     <main class="editor-layout">
@@ -529,6 +530,19 @@ const saveStatusLabel = computed(() =>
   $t(`storage.status_${documentSaveStatus.value}`),
 )
 const isSavingGlyph = ref(false)
+const isSavingComposition = ref(false)
+let glyphLibraryMutationQueue: Promise<void> = Promise.resolve()
+
+const enqueueGlyphLibraryMutation = (
+  mutation: () => Promise<void>,
+): Promise<void> => {
+  const request = glyphLibraryMutationQueue
+    .catch(() => undefined)
+    .then(mutation)
+  glyphLibraryMutationQueue = request
+  return request
+}
+
 const pendingRestoredDraft = ref<StoredDraft | null>(null)
 let draftTimer: number | null = null
 let storageReady = false
@@ -571,6 +585,10 @@ const currentCodePoint = computed({
   set: (codePoint: string) => {
     editorDocument.execute({ type: 'setCodePoint', codePoint })
   },
+})
+
+const compositionEnabled = computed(() => {
+  return width.value === 16
 })
 
 const currentGlyphIsManaged = computed(
@@ -1003,7 +1021,7 @@ const clearSelection = (): void => {
 }
 
 const setGlyphs = (newGlyphs: Glyph[]): Promise<void> =>
-  replaceGlyphLibrary(newGlyphs)
+  enqueueGlyphLibraryMutation(() => replaceGlyphLibrary(newGlyphs))
 
 const retryGlyphLibrary = (): Promise<Glyph[]> => loadGlyphLibrary(true)
 
@@ -1015,23 +1033,25 @@ const saveCurrentGlyph = async (): Promise<void> => {
   if (!hasUnsavedChanges.value || isSavingGlyph.value) return
 
   isSavingGlyph.value = true
+  const glyph: Glyph = {
+    codePoint: currentCodePoint.value,
+    hexValue: hexCode.value,
+  }
   try {
-    await loadGlyphLibrary()
-    const glyph: Glyph = {
-      codePoint: currentCodePoint.value,
-      hexValue: hexCode.value,
-    }
-    const existingIndex = glyphs.value.findIndex(
-      (item) => item.codePoint === glyph.codePoint,
-    )
-    const nextGlyphs =
-      existingIndex === -1
-        ? [...glyphs.value, glyph]
-        : glyphs.value.map((item, index) =>
-            index === existingIndex ? glyph : item,
-          )
+    await enqueueGlyphLibraryMutation(async () => {
+      await loadGlyphLibrary()
+      const existingIndex = glyphs.value.findIndex(
+        (item) => item.codePoint === glyph.codePoint,
+      )
+      const nextGlyphs =
+        existingIndex === -1
+          ? [...glyphs.value, glyph]
+          : glyphs.value.map((item, index) =>
+              index === existingIndex ? glyph : item,
+            )
 
-    await replaceGlyphLibrary(nextGlyphs)
+      await replaceGlyphLibrary(nextGlyphs)
+    })
     await handleGlyphSaved(glyph)
   } catch (error) {
     console.error('Unable to save the current glyph.', error)
@@ -1180,7 +1200,7 @@ const openSettings = (trigger: HTMLElement): void => {
 }
 
 const openComposition = (trigger: HTMLElement): void => {
-  if (width.value !== 16) return
+  if (!compositionEnabled.value) return
   compositionFocusTarget.value = trigger
   if (isSidebarActive.value) handleCloseSidebar()
   showSettings.value = false
@@ -1203,8 +1223,39 @@ const handleGridCommand = (command: EditorCommand): void => {
   editorDocument.execute(command)
 }
 
-const handleCompositionApply = (grid: GridData): void => {
-  editorDocument.execute({ type: 'replaceGrid', grid, reason: 'composition' })
+const handleCompositionSave = async (
+  codePoint: string,
+  grid: GridData,
+): Promise<void> => {
+  if (isSavingComposition.value) return
+
+  isSavingComposition.value = true
+  const glyph: Glyph = {
+    codePoint,
+    hexValue: gridToHex(grid),
+  }
+  try {
+    await enqueueGlyphLibraryMutation(async () => {
+      await loadGlyphLibrary()
+      const existingIndex = glyphs.value.findIndex(
+        (item) => item.codePoint === glyph.codePoint,
+      )
+      const nextGlyphs =
+        existingIndex === -1
+          ? [...glyphs.value, glyph]
+          : glyphs.value.map((item, index) =>
+              index === existingIndex ? glyph : item,
+            )
+      await replaceGlyphLibrary(nextGlyphs)
+    })
+    showComposition.value = false
+    notify({ tone: 'success', message: $t('storage.glyph_saved') })
+  } catch (error) {
+    console.error('Unable to save the composed glyph.', error)
+    notify({ tone: 'error', message: $t('storage.glyph_save_failed') })
+  } finally {
+    isSavingComposition.value = false
+  }
 }
 
 const selectTool = (tool: EditorTool): void => {

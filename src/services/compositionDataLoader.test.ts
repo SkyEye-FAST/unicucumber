@@ -178,6 +178,16 @@ describe('CompositionDataLoader', () => {
     ).toHaveLength(1)
   })
 
+  it('returns no IDS expressions when the Unicode chunk has no data', async () => {
+    const fixture = fixtureFetcher({
+      '/composition/index.json': { body: manifest(0) },
+    })
+    const loader = new CompositionDataLoader(fixture.fetcher)
+
+    await expect(loader.loadIdsForCodePoint(0)).resolves.toEqual([])
+    expect(fixture.calls).toContain('/composition/ids/000.json')
+  })
+
   it('rejects malformed hydrated component hex data', async () => {
     const summary = makeSummary('00', '木')
     const fixture = fixtureFetcher({

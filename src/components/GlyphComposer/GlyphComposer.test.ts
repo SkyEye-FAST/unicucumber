@@ -46,7 +46,9 @@ const messages = {
   en: {
     composition: {
       add_blank: 'Add blank layer',
-      apply: 'Apply',
+      code_point: 'Composition code point',
+      code_point_invalid: 'Enter a CJK Unicode code point.',
+      save: 'Save to glyph manager',
       canvas: 'Composition canvas',
       close: 'Close composition workspace',
       components: 'Components',
@@ -74,6 +76,7 @@ const messages = {
       operation_intersect: 'Intersect',
       operation_subtract: 'Subtract',
       ids: 'IDS guidance',
+      ids_empty: 'No IDS guidance is available for this code point.',
       ids_error: 'Unable to load IDS guidance.',
       ids_leaf: 'Search for {character}',
       ids_retry: 'Retry IDS',
@@ -144,10 +147,12 @@ describe('GlyphComposer', () => {
     const wrapper = mountComposer(grid)
 
     await wrapper.get('[data-testid="composition-add-blank"]').trigger('click')
-    await wrapper.get('[data-testid="composition-apply"]').trigger('click')
+    await wrapper.get('[data-testid="composition-save"]').trigger('click')
 
-    expect(wrapper.emitted('apply')).toHaveLength(1)
-    expect(wrapper.emitted<[GridData]>('apply')?.[0]?.[0]?.[0]?.[0]).toBe(1)
+    expect(wrapper.emitted('save')).toHaveLength(1)
+    expect(
+      wrapper.emitted<[string, GridData]>('save')?.[0]?.[1]?.[0]?.[0],
+    ).toBe(1)
     expect(grid).toEqual(before)
   })
 
@@ -163,13 +168,13 @@ describe('GlyphComposer', () => {
     await wrapper
       .get('[data-testid="composition-layer-current-glyph-visibility"]')
       .trigger('click')
-    await wrapper.get('[data-testid="composition-apply"]').trigger('click')
+    await wrapper.get('[data-testid="composition-save"]').trigger('click')
 
-    const applied = wrapper.emitted<[GridData]>('apply')?.[0]?.[0]
-    expect(applied?.flat().some(Boolean)).toBe(false)
+    const saved = wrapper.emitted<[string, GridData]>('save')?.[0]?.[1]
+    expect(saved?.flat().some(Boolean)).toBe(false)
   })
 
-  it('moves the selected layer by one cell per arrow key and retains state after Apply', async () => {
+  it('moves the selected layer by one cell per arrow key and retains state after Save', async () => {
     const wrapper = mountComposer()
 
     await wrapper
@@ -177,25 +182,27 @@ describe('GlyphComposer', () => {
       .trigger('click')
     const canvas = wrapper.get('[data-testid="composition-canvas"]')
     await canvas.trigger('keydown', { key: 'ArrowRight' })
-    await wrapper.get('[data-testid="composition-apply"]').trigger('click')
-    await wrapper.get('[data-testid="composition-apply"]').trigger('click')
+    await wrapper.get('[data-testid="composition-save"]').trigger('click')
+    await wrapper.get('[data-testid="composition-save"]').trigger('click')
 
-    const emissions = wrapper.emitted<[GridData]>('apply') ?? []
+    const emissions = wrapper.emitted<[string, GridData]>('save') ?? []
     expect(emissions).toHaveLength(2)
-    expect(emissions[0]?.[0]?.[0]?.[0]).toBe(0)
-    expect(emissions[0]?.[0]?.[0]?.[1]).toBe(1)
-    expect(emissions[1]?.[0]).toEqual(emissions[0]?.[0])
+    expect(emissions[0]?.[0]).toBe('660E')
+    expect(emissions[0]?.[1]?.[0]?.[0]).toBe(0)
+    expect(emissions[0]?.[1]?.[0]?.[1]).toBe(1)
+    expect(emissions[1]?.[1]).toEqual(emissions[0]?.[1])
   })
 
   it('initializes from the latest editor grid on the first open', async () => {
     const wrapper = mountComposer(pixelGrid(0, 0), false)
     await wrapper.setProps({ grid: pixelGrid(3, 4) })
     await wrapper.setProps({ modelValue: true })
-    await wrapper.get('[data-testid="composition-apply"]').trigger('click')
+    await wrapper.get('[data-testid="composition-save"]').trigger('click')
 
-    const applied = wrapper.emitted<[GridData]>('apply')?.[0]?.[0]
-    expect(applied?.[0]?.[0]).toBe(0)
-    expect(applied?.[3]?.[4]).toBe(1)
+    const saved = wrapper.emitted<[string, GridData]>('save')?.[0]
+    expect(saved?.[0]).toBe('660E')
+    expect(saved?.[1]?.[0]?.[0]).toBe(0)
+    expect(saved?.[1]?.[3]?.[4]).toBe(1)
   })
 
   it('exposes layer selection state without relying on color', async () => {
@@ -238,9 +245,10 @@ describe('GlyphComposer', () => {
 
     expect(loaderMocks.hydrateComponents).toHaveBeenCalledTimes(1)
     expect(loaderMocks.hydrateComponents).toHaveBeenCalledWith([summary.id])
-    await wrapper.get('[data-testid="composition-apply"]').trigger('click')
-    const applied = wrapper.emitted<[GridData]>('apply')?.[0]?.[0]
-    expect(applied?.[0]?.[0]).toBe(1)
+    await wrapper.get('[data-testid="composition-save"]').trigger('click')
+    const saved = wrapper.emitted<[string, GridData]>('save')?.[0]
+    expect(saved?.[0]).toBe('660E')
+    expect(saved?.[1]?.[0]?.[0]).toBe(1)
   })
 
   it('uses IDS leaves to drive metadata-only component search', async () => {
@@ -255,6 +263,58 @@ describe('GlyphComposer', () => {
 
     expect(loaderMocks.searchComponents).toHaveBeenLastCalledWith('日')
     expect(loaderMocks.hydrateComponents).not.toHaveBeenCalled()
+  })
+
+  it('shows a neutral state when IDS guidance is unavailable', async () => {
+    const wrapper = mountComposer()
+    await flushPromises()
+
+    expect(wrapper.get('[aria-label="Components"] h4').text()).toBe(
+      'IDS guidance',
+    )
+    expect(wrapper.text()).toContain(
+      'No IDS guidance is available for this code point.',
+    )
+    expect(wrapper.text()).not.toContain('Unable to load IDS guidance.')
+  })
+
+  it('keeps the composition code point independent from the editor code point', async () => {
+    const wrapper = mountComposer()
+    await flushPromises()
+
+    const codePoint = wrapper.get<HTMLInputElement>(
+      '[data-testid="composition-code-point"]',
+    )
+    expect(codePoint.element.value).toBe('660E')
+
+    await codePoint.setValue('4E00')
+    await codePoint.trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    expect(loaderMocks.loadIdsForCodePoint).toHaveBeenLastCalledWith(0x4e00)
+
+    await wrapper.get('[data-testid="composition-save"]').trigger('click')
+    expect(wrapper.emitted<[string, GridData]>('save')?.[0]?.[0]).toBe('4E00')
+
+    await wrapper.setProps({ codePoint: '0000' })
+    expect(codePoint.element.value).toBe('4E00')
+  })
+
+  it('rejects non-CJK composition code points without changing the workspace', async () => {
+    const wrapper = mountComposer()
+    await flushPromises()
+
+    const codePoint = wrapper.get<HTMLInputElement>(
+      '[data-testid="composition-code-point"]',
+    )
+    await codePoint.setValue('0041')
+    await codePoint.trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+
+    expect(codePoint.element.value).toBe('0041')
+    expect(wrapper.get('[role="alert"]').text()).toContain(
+      'Enter a CJK Unicode code point.',
+    )
+    expect(loaderMocks.loadIdsForCodePoint).not.toHaveBeenCalledWith(0x41)
   })
 
   it('restores the saved composition draft for the active code point', async () => {
@@ -286,10 +346,10 @@ describe('GlyphComposer', () => {
     await flushPromises()
 
     expect(draftRepositoryMocks.loadDraft).toHaveBeenCalledWith('660E')
-    await wrapper.get('[data-testid="composition-apply"]').trigger('click')
-    const applied = wrapper.emitted<[GridData]>('apply')?.[0]?.[0]
-    expect(applied?.[0]?.[0]).toBe(0)
-    expect(applied?.[4]?.[5]).toBe(1)
+    await wrapper.get('[data-testid="composition-save"]').trigger('click')
+    const saved = wrapper.emitted<[string, GridData]>('save')?.[0]?.[1]
+    expect(saved?.[0]?.[0]).toBe(0)
+    expect(saved?.[4]?.[5]).toBe(1)
   })
 
   it('autosaves only composition content changes after a bounded debounce', async () => {
@@ -315,11 +375,11 @@ describe('GlyphComposer', () => {
     )
   })
 
-  it('keeps the composition draft after Apply', async () => {
+  it('keeps the composition draft after Save', async () => {
     const wrapper = mountComposer()
     await flushPromises()
 
-    await wrapper.get('[data-testid="composition-apply"]').trigger('click')
+    await wrapper.get('[data-testid="composition-save"]').trigger('click')
 
     expect(draftRepositoryMocks.deleteDraft).not.toHaveBeenCalled()
   })
@@ -334,9 +394,9 @@ describe('GlyphComposer', () => {
     await flushPromises()
 
     expect(draftRepositoryMocks.deleteDraft).toHaveBeenCalledWith('660E')
-    await wrapper.get('[data-testid="composition-apply"]').trigger('click')
-    const applied = wrapper.emitted<[GridData]>('apply')?.[0]?.[0]
-    expect(applied).toEqual(input)
+    await wrapper.get('[data-testid="composition-save"]').trigger('click')
+    const saved = wrapper.emitted<[string, GridData]>('save')?.[0]?.[1]
+    expect(saved).toEqual(input)
   })
 
   it('keeps in-memory composition usable when draft autosave fails', async () => {
@@ -359,9 +419,9 @@ describe('GlyphComposer', () => {
     expect(
       wrapper.get('[data-testid="composition-storage-warning"]').text(),
     ).toContain('Unable to save composition draft.')
-    await wrapper.get('[data-testid="composition-apply"]').trigger('click')
-    const applied = wrapper.emitted<[GridData]>('apply')?.[0]?.[0]
-    expect(applied?.[0]?.[1]).toBe(1)
+    await wrapper.get('[data-testid="composition-save"]').trigger('click')
+    const saved = wrapper.emitted<[string, GridData]>('save')?.[0]?.[1]
+    expect(saved?.[0]?.[1]).toBe(1)
   })
 
   it('disables the composition entry when the parent marks it unavailable', () => {

@@ -9,7 +9,7 @@ The initial component dataset is converted at build/update time into UniCucumber
 ## Goals
 
 - Provide a visual, direct-manipulation workflow for assembling 16×16 glyphs from reusable components.
-- Preserve components as editable layers until the user explicitly applies the result to the main glyph editor.
+- Preserve components as editable layers until the user explicitly saves the result to the Glyph Library.
 - Support add, subtract, intersect, visibility, locking, ordering, translation, and binary masks with exact 1-bit semantics.
 - Use IDS decomposition as a component-discovery assistant without making IDS the authoritative composition document.
 - Keep the main editor, Glyph Library, and initial page load independent from the optional composition dataset.
@@ -33,14 +33,15 @@ Add a Composition button to `EditorHeader.vue`, alongside Glyph Manager and Text
 
 Opening Composition presents an independent modal workspace teleported to `body`. It uses the existing overlay-stack lock so it does not conflict with Settings or Text Preview. The main application becomes inert while the workspace is open, body scrolling is locked, Escape closes the top-level workspace when no nested editor is active, and focus returns to the invoking button.
 
+The workspace owns a separate composition code-point selector. It accepts every supported CJK ideograph range (including Extensions A–J and compatibility ideographs), rejects other Unicode code points, and does not follow later code-point or grid changes in the main editor.
+
 Opening behaviour:
 
-- If an unfinished composition draft exists for the current code point, restore it.
-- Otherwise create a new composition document.
-- If the current editor grid contains pixels, create one ordinary bottom layer named from the current glyph (localized as “Current glyph”).
-- If the current editor grid is blank, start with no layers.
+- If an unfinished composition draft exists for the selected composition code point, restore it.
+- Otherwise create a new composition document for that code point.
+- When the selected code point is a CJK code point already open in the editor, its grid may seed the ordinary bottom layer named from the current glyph (localized as “Current glyph”); a non-CJK editor starts the workspace at the default CJK code point without importing the editor grid.
 
-Applying a composition does not delete the composition document. It emits the composed `GridData` to `GlyphEditor.vue`, which executes one existing editor-document replacement command with reason `composition`. The main editor then owns dirty state, autosave, normal undo/redo, and saving to the glyph set. Reopening Composition can continue from the retained composition document.
+Saving a composition does not mutate the main editor document or its history. It emits the selected code point and composed `GridData` to `GlyphEditor.vue`, which upserts the result in the Glyph Library. The composition draft remains available for reopening, while the main editor remains responsible only for its own document state.
 
 Starting a new composition or explicitly discarding composition work replaces/deletes the composition document only after confirmation when it is dirty.
 
@@ -59,7 +60,7 @@ GlyphEditor
     └── CompositionLayerPanel ─ order / operation / visibility / lock
 ```
 
-`GlyphComposer` never writes the glyph repository and never mutates `useEditorDocument` directly. Its only final-output API is an `apply(GridData)` event.
+`GlyphComposer` never mutates `useEditorDocument` directly. Its only final-output API is a `save(codePoint, GridData)` event; `GlyphEditor.vue` serializes Glyph Library writes with other library mutations.
 
 The domain layer is pure and UI-independent. Vue components never implement bitmap boolean algebra themselves.
 
@@ -71,7 +72,7 @@ Create:
 - `src/domain/composition.ts`: pure layer translation, masking, boolean combination and document-command functions.
 - `src/domain/composition.test.ts`: truth tables, clipping, masking, ordering and immutability tests.
 - `src/composables/useGlyphComposer.ts`: bounded composition history and transient selection/controller state.
-- `src/composables/useGlyphComposer.test.ts`: history atomicity and apply-state tests.
+- `src/composables/useGlyphComposer.test.ts`: history atomicity and save-state tests.
 - `src/services/compositionManifest.ts`: strict manifest validation and cache-name helpers.
 - `src/services/compositionDataLoader.ts`: lazy catalog, component-chunk and IDS-chunk loading with bounded in-memory caches.
 - `src/services/compositionDataLoader.test.ts`: validation, deduplication, retry, LRU and malformed-data tests.
@@ -94,7 +95,7 @@ Modify:
 
 - `src/types/editor.ts`: add `composition` to the existing `replaceGrid.reason` union.
 - `src/components/EditorHeader.vue`: add composition entry event/button.
-- `src/components/GlyphEditor.vue`: open/close/apply orchestration only.
+- `src/components/GlyphEditor.vue`: open/close/save orchestration and serialized Glyph Library writes.
 - `src/locales/en.json`, `zh-cn.json`, `zh-tw.json`: all visible composition copy.
 - `vite.config.ts`: composition-data version define and bounded runtime caching.
 - `package.json`: composition-data generation/check scripts only; add no runtime dependency unless existing libraries prove insufficient.
@@ -344,23 +345,30 @@ Autosave behaviour:
 - Storage failure leaves the in-memory composition intact and surfaces a localized warning/error; it never closes the workspace.
 - Explicit discard deletes only that code point’s composition draft.
 
-## Apply semantics
+## Save semantics
 
-`GlyphComposer` computes `resultGrid = composeLayers(document.layers)` and emits it.
+`GlyphComposer` computes `resultGrid = composeLayers(document.layers)` and emits it with its independent composition code point.
 
-`GlyphEditor.vue` handles the event with:
+`GlyphEditor.vue` handles the event by loading the current Glyph Library, replacing an existing matching code point or appending a new glyph, and persisting the resulting collection:
 
 ```ts
-editorDocument.execute({
-  type: 'replaceGrid',
-  grid: resultGrid,
-  reason: 'composition',
-})
+const glyph = {
+  codePoint: compositionCodePoint,
+  hexValue: gridToHex(resultGrid),
+}
+const index = glyphs.value.findIndex(
+  (item) => item.codePoint === glyph.codePoint,
+)
+const nextGlyphs =
+  index === -1
+    ? [...glyphs.value, glyph]
+    : glyphs.value.map((item, itemIndex) =>
+        itemIndex === index ? glyph : item,
+      )
+await replaceGlyphLibrary(nextGlyphs)
 ```
 
-The change is one main-editor history entry regardless of how many composition operations occurred. Existing main-editor draft/autosave and normal Save/Add-to-glyph-set behaviour remain authoritative.
-
-If the composed result equals the current grid, the existing document controller treats it as a no-op.
+The main editor grid, dirty state, draft, and undo/redo history are unchanged by a composition save. Normal editor saves and Glyph Library edits share the same serialized write path so one operation cannot overwrite another operation's glyph snapshot.
 
 ## Desktop and tablet UI
 
@@ -368,7 +376,7 @@ For viewports with enough horizontal space, use a full-height modal workspace wi
 
 ```text
 ┌───────────────────────────────────────────────────────────────────┐
-│ Composition · U+XXXX      Undo Redo                 Cancel Apply │
+│ Composition · U+XXXX      Undo Redo                 Cancel Save  │
 ├────────────────┬─────────────────────────────┬────────────────────┤
 │ Components/IDS │       16×16 canvas          │ Layers             │
 │ search         │                             │ top layer          │
@@ -394,7 +402,7 @@ At narrow widths the modal becomes a full-screen workspace with one primary pane
 - Canvas
 - Layers
 
-Canvas is the default after adding a component. A sticky bottom action bar provides Cancel and Apply. Undo/redo remain globally available. Layer reordering uses explicit up/down buttons rather than touch drag to avoid scroll conflicts.
+Canvas is the default after adding a component. A sticky bottom action bar provides Cancel and Save. Undo/redo remain globally available. Layer reordering uses explicit up/down buttons rather than touch drag to avoid scroll conflicts.
 
 Mask editing switches the Canvas into a clearly labelled mode with Keep/Hide controls and a Done action. Mobile never requires hover.
 
@@ -483,7 +491,7 @@ Controller tests:
 - selection excluded from document history
 - history bounded to 100
 - current-glyph initialization
-- apply result does not clear the composition document
+- save result does not clear the composition document
 
 Loader tests:
 
@@ -512,15 +520,15 @@ Component tests:
 - operation selection
 - visibility/locking
 - mask mode
-- Apply emits final grid but retains composition state
+- Save emits the final grid and selected code point while retaining composition state
 - mobile panel switching
 
 Playwright workflows:
 
-1. Open a 16×16 glyph, enter Composition, add two fixture components, move one, subtract another, Apply, verify final GlyphGrid and one-step main-editor undo.
-2. Reload with unfinished composition and verify draft restoration without changing the main editor until Apply.
+1. Open a 16×16 glyph, enter Composition, add two fixture components, move one, subtract another, Save, verify the Glyph Library entry and unchanged main editor grid/history.
+2. Reload with unfinished composition and verify draft restoration without changing the main editor until Save.
 3. Verify desktop pointer drag and keyboard movement.
-4. Verify phone layout can add, move, reorder and apply without horizontal overflow.
+4. Verify phone layout can add, move, reorder and save without horizontal overflow.
 5. Production-preview PWA test: cache a component/IDS chunk, go offline, reopen and reuse cached data.
 6. Ensure opening/loading the normal Glyph Library does not request composition data.
 
@@ -538,7 +546,7 @@ Composition data versioning is independent from application and Unifont versions
 
 Implement in working vertical slices:
 
-1. Pure composition domain + controller with manual/current-glyph layers and Apply.
+1. Pure composition domain + controller with manual/current-glyph layers and Save.
 2. Modal workspace + responsive layer/canvas UI.
 3. Component runtime schema/loader + fixture data + component browser.
 4. IDS loader/parser and tree-assisted discovery.
@@ -557,7 +565,7 @@ The feature is ready when a user can, without a command line:
 3. Add multiple components as independent layers.
 4. Move, reorder, hide, lock, add, subtract, intersect and mask layers visually.
 5. Undo/redo composition actions independently from the main editor.
-6. Apply the final 16×16 result as exactly one main-editor history action.
+6. Save the final 16×16 result to the Glyph Library without creating a main-editor history action.
 7. Reload and recover unfinished composition safely.
 8. Use previously loaded composition data offline.
 9. Complete the workflow on desktop and phone with keyboard/touch accessible alternatives.

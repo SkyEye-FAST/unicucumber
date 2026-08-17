@@ -25,6 +25,19 @@ interface CompositionRuntimeCacheStorage {
   delete: (name: string) => Promise<boolean>
 }
 
+class CompositionHttpError extends Error {
+  constructor(
+    readonly label: string,
+    readonly status: number,
+  ) {
+    super(`${label}: ${status}`)
+    this.name = 'CompositionHttpError'
+  }
+}
+
+const isNotFoundError = (error: unknown): boolean =>
+  error instanceof CompositionHttpError && error.status === 404
+
 const getRuntimeCacheStorage = (): CompositionRuntimeCacheStorage | null =>
   (
     globalThis as typeof globalThis & {
@@ -227,7 +240,7 @@ export class CompositionDataLoader {
         }
         return response
       }
-      networkFailure = new Error(`${label}: ${response.status}`)
+      networkFailure = new CompositionHttpError(label, response.status)
     } catch (error) {
       networkFailure = error
     }
@@ -312,11 +325,17 @@ export class CompositionDataLoader {
 
     const request = this.loadManifest()
       .then(async (manifest) => {
-        const response = await this.fetchRuntimeResponse(
-          `${this.basePath}/ids/${normalized}.json`,
-          getCompositionRuntimeCacheNames(manifest.dataVersion).ids,
-          `Composition IDS chunk ${normalized}`,
-        )
+        let response: Response
+        try {
+          response = await this.fetchRuntimeResponse(
+            `${this.basePath}/ids/${normalized}.json`,
+            getCompositionRuntimeCacheNames(manifest.dataVersion).ids,
+            `Composition IDS chunk ${normalized}`,
+          )
+        } catch (error) {
+          if (isNotFoundError(error)) return Object.freeze({})
+          throw error
+        }
         const ids = parseCompositionIdsChunk(normalized, await response.json())
         if (ids === null) {
           throw new TypeError(`Invalid composition IDS chunk ${normalized}.`)

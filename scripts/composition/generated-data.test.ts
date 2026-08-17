@@ -71,5 +71,5 @@ describe('generated composition data', () => {
       }
     }
     expect(idsCount).toBe(manifest.idsCount)
-  })
+  }, 15_000)
 })

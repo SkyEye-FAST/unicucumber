@@ -12,7 +12,7 @@
       />
     </label>
 
-    <div v-if="idsNodes.length > 0 || idsError" class="ids-section">
+    <div v-if="idsLoaded || idsError" class="ids-section">
       <h4>{{ $t('composition.ids') }}</h4>
       <p v-if="idsError" class="browser-error" role="status">
         {{ $t('composition.ids_error') }}
@@ -23,6 +23,9 @@
         >
           {{ $t('composition.ids_retry') }}
         </button>
+      </p>
+      <p v-else-if="idsNodes.length === 0" class="browser-status" role="status">
+        {{ $t('composition.ids_empty') }}
       </p>
       <div v-else class="ids-list">
         <div
@@ -96,6 +99,7 @@ const { t: $t } = useI18n()
 const query = ref('')
 const results = ref<CompositionComponentSummary[]>([])
 const idsNodes = ref<Array<{ expression: string; node: IdsNode }>>([])
+const idsLoaded = ref(false)
 const loadingSearch = ref(false)
 const loadingComponentId = ref<string | null>(null)
 const searchError = ref(false)
@@ -139,7 +143,11 @@ const loadIds = async (): Promise<void> => {
   const codePoint = currentCodePoint()
   idsNodes.value = []
   idsError.value = false
-  if (codePoint === null) return
+  idsLoaded.value = false
+  if (codePoint === null) {
+    idsLoaded.value = true
+    return
+  }
   try {
     const expressions =
       await compositionDataLoader.loadIdsForCodePoint(codePoint)
@@ -147,6 +155,7 @@ const loadIds = async (): Promise<void> => {
       const node = parseIds(expression)
       return node === null ? [] : [{ expression, node }]
     })
+    idsLoaded.value = true
   } catch {
     idsError.value = true
   }

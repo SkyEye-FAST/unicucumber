@@ -41,12 +41,22 @@ const installCompositionFixture = async (page: Page): Promise<void> => {
       ],
     }),
   )
-  await page.route('**/composition/ids/000.json', (route) =>
-    route.fulfill({ json: {} }),
-  )
+  for (const chunk of ['004', '006']) {
+    await page.route(`**/composition/ids/${chunk}.json`, (route) =>
+      route.fulfill({ json: {} }),
+    )
+  }
+}
+
+const selectCjkGlyph = async (page: Page): Promise<void> => {
+  const codePoint = page.locator('.code-point-input input')
+  await codePoint.fill('660E')
+  await codePoint.press('Enter')
+  await expect(page.getByTestId('composition-open')).toBeEnabled()
 }
 
 const openComposition = async (page: Page): Promise<void> => {
+  await selectCjkGlyph(page)
   await page.getByTestId('composition-open').click()
   await expect(page.getByRole('dialog')).toBeVisible()
 }
@@ -73,7 +83,7 @@ const compositionDraftLayerCount = (page: Page): Promise<number> =>
           return
         }
         const transaction = request.result.transaction('drafts', 'readonly')
-        const getRequest = transaction.objectStore('drafts').get('0000')
+        const getRequest = transaction.objectStore('drafts').get('660E')
         getRequest.onerror = () => reject(getRequest.error)
         getRequest.onsuccess = () =>
           resolve(getRequest.result?.document?.layers?.length ?? 0)
@@ -89,7 +99,7 @@ test.beforeEach(async ({ page }) => {
   )
 })
 
-test('applies the composed bitmap as one undoable main-editor edit', async ({
+test('saves the composed bitmap to the glyph manager without changing the editor', async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== 'chromium', 'desktop workflow runs once')
@@ -106,18 +116,17 @@ test('applies the composed bitmap as one undoable main-editor edit', async ({
     .getByTestId(`composition-layer-component-${COMPONENT_ID}-2-operation`)
     .selectOption('subtract')
 
-  await page.getByTestId('composition-apply').click()
-  await page.keyboard.press('Escape')
+  await page.getByTestId('composition-save').click()
+  await expect(page.getByRole('dialog')).toBeHidden()
 
-  await expect(page.locator('[data-row="0"][data-col="1"]')).toHaveClass(
-    /filled/,
-  )
-  await expect(page.locator('[data-row="0"][data-col="0"]')).not.toHaveClass(
-    /filled/,
-  )
-
-  await page.getByRole('button', { name: /Undo/i }).last().click()
   await expect(page.locator('.cell.filled')).toHaveCount(0)
+  await expect(page.locator('.code-point-input input')).toHaveValue('660E')
+
+  await page.getByRole('button', { name: 'Open glyph manager' }).click()
+  await expect(page.locator('.glyph-manager')).toHaveAttribute(
+    'data-glyph-count',
+    '1',
+  )
 })
 
 test('restores an unfinished composition draft after reload', async ({
@@ -176,4 +185,18 @@ test('does not request composition data before the workspace is opened', async (
   await page.goto('/', { waitUntil: 'domcontentloaded' })
   await expect(page.locator('.grid-container')).toBeVisible()
   expect(requests).toEqual([])
+})
+
+test('keeps composition code point independent from a non-CJK editor glyph', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'desktop workflow runs once')
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
+
+  await expect(page.getByTestId('composition-open')).toBeEnabled()
+  await page.getByTestId('composition-open').click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await expect(page.getByTestId('composition-code-point')).toHaveValue('4E00')
+  await page.keyboard.press('Escape')
+  await expect(page.locator('.code-point-input input')).toHaveValue('0000')
 })
