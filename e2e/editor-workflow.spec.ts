@@ -57,31 +57,37 @@ test('allows page wheel scrolling while the pointer is over the editor viewport'
     .toBeGreaterThan(0)
 })
 
-test('fast pointer drawing is atomic and undoable', async ({ page }) => {
-  const first = await cellCenter(page, 0, 0)
-  const last = await cellCenter(page, 0, 5)
-  await page.mouse.move(first.x, first.y)
-  await page.mouse.down()
-  await page.mouse.move(last.x, last.y, { steps: 2 })
-  await page.mouse.up()
+test(
+  'fast pointer drawing is atomic and undoable',
+  {
+    tag: '@cross-browser',
+  },
+  async ({ page }) => {
+    const first = await cellCenter(page, 0, 0)
+    const last = await cellCenter(page, 0, 5)
+    await page.mouse.move(first.x, first.y)
+    await page.mouse.down()
+    await page.mouse.move(last.x, last.y, { steps: 2 })
+    await page.mouse.up()
 
-  for (let col = 0; col <= 5; col++) {
-    await expect(page.locator(`[data-row="0"][data-col="${col}"]`)).toHaveClass(
+    for (let col = 0; col <= 5; col++) {
+      await expect(
+        page.locator(`[data-row="0"][data-col="${col}"]`),
+      ).toHaveClass(/filled/)
+    }
+
+    await page.getByRole('button', { name: /Undo/i }).last().click()
+    for (let col = 0; col <= 5; col++) {
+      await expect(
+        page.locator(`[data-row="0"][data-col="${col}"]`),
+      ).not.toHaveClass(/filled/)
+    }
+    await page.getByRole('button', { name: /Redo/i }).last().click()
+    await expect(page.locator('[data-row="0"][data-col="5"]')).toHaveClass(
       /filled/,
     )
-  }
-
-  await page.getByRole('button', { name: /Undo/i }).last().click()
-  for (let col = 0; col <= 5; col++) {
-    await expect(
-      page.locator(`[data-row="0"][data-col="${col}"]`),
-    ).not.toHaveClass(/filled/)
-  }
-  await page.getByRole('button', { name: /Redo/i }).last().click()
-  await expect(page.locator('[data-row="0"][data-col="5"]')).toHaveClass(
-    /filled/,
-  )
-})
+  },
+)
 
 test('pointer cancellation leaves the next gesture usable', async ({
   page,
@@ -119,52 +125,56 @@ test('pointer cancellation leaves the next gesture usable', async ({
   )
 })
 
-test('two touch pointers zoom without drawing', async ({ page }) => {
-  const viewport = page.locator('.grid-viewport')
-  const first = await cellCenter(page, 2, 2)
-  const second = await cellCenter(page, 2, 7)
-  const zoom = page.locator('.zoom-value')
-  const initialZoom = await zoom.textContent()
+test(
+  'two touch pointers zoom without drawing',
+  { tag: '@tablet' },
+  async ({ page }) => {
+    const viewport = page.locator('.grid-viewport')
+    const first = await cellCenter(page, 2, 2)
+    const second = await cellCenter(page, 2, 7)
+    const zoom = page.locator('.zoom-value')
+    const initialZoom = await zoom.textContent()
 
-  await viewport.dispatchEvent('pointerdown', {
-    pointerId: 51,
-    pointerType: 'touch',
-    isPrimary: true,
-    clientX: first.x,
-    clientY: first.y,
-  })
-  await viewport.dispatchEvent('pointerdown', {
-    pointerId: 52,
-    pointerType: 'touch',
-    isPrimary: false,
-    clientX: second.x,
-    clientY: second.y,
-  })
-  await viewport.dispatchEvent('pointermove', {
-    pointerId: 52,
-    pointerType: 'touch',
-    isPrimary: false,
-    clientX: second.x + 60,
-    clientY: second.y,
-  })
-  await viewport.dispatchEvent('pointerup', {
-    pointerId: 51,
-    pointerType: 'touch',
-    isPrimary: true,
-    clientX: first.x,
-    clientY: first.y,
-  })
-  await viewport.dispatchEvent('pointerup', {
-    pointerId: 52,
-    pointerType: 'touch',
-    isPrimary: false,
-    clientX: second.x + 60,
-    clientY: second.y,
-  })
+    await viewport.dispatchEvent('pointerdown', {
+      pointerId: 51,
+      pointerType: 'touch',
+      isPrimary: true,
+      clientX: first.x,
+      clientY: first.y,
+    })
+    await viewport.dispatchEvent('pointerdown', {
+      pointerId: 52,
+      pointerType: 'touch',
+      isPrimary: false,
+      clientX: second.x,
+      clientY: second.y,
+    })
+    await viewport.dispatchEvent('pointermove', {
+      pointerId: 52,
+      pointerType: 'touch',
+      isPrimary: false,
+      clientX: second.x + 60,
+      clientY: second.y,
+    })
+    await viewport.dispatchEvent('pointerup', {
+      pointerId: 51,
+      pointerType: 'touch',
+      isPrimary: true,
+      clientX: first.x,
+      clientY: first.y,
+    })
+    await viewport.dispatchEvent('pointerup', {
+      pointerId: 52,
+      pointerType: 'touch',
+      isPrimary: false,
+      clientX: second.x + 60,
+      clientY: second.y,
+    })
 
-  await expect(zoom).not.toHaveText(initialZoom ?? '')
-  await expect(page.locator('.cell.filled')).toHaveCount(0)
-})
+    await expect(zoom).not.toHaveText(initialZoom ?? '')
+    await expect(page.locator('.cell.filled')).toHaveCount(0)
+  },
+)
 
 test('temporary invalid hexadecimal text preserves the document', async ({
   page,
@@ -331,73 +341,84 @@ test('empty autosaved drafts restore without showing the restore notice', async 
   await expect(page.locator('.restored-draft-notice')).toBeHidden()
 })
 
-test('mobile selection exposes copy and visible paste preview actions', async ({
-  page,
-}, testInfo) => {
-  test.skip(!testInfo.project.name.includes('phone'), 'mobile command surface')
-  await page.locator('.mobile-command-bar .toolbar-tool--select').click()
-  const first = await cellCenter(page, 0, 0)
-  const last = await cellCenter(page, 1, 1)
-  await page.mouse.move(first.x, first.y)
-  await page.mouse.down()
-  await page.mouse.move(last.x, last.y)
-  await page.mouse.up()
+test(
+  'mobile selection exposes copy and visible paste preview actions',
+  {
+    tag: '@phone',
+  },
+  async ({ page }, testInfo) => {
+    test.skip(
+      !testInfo.project.name.includes('phone'),
+      'mobile command surface',
+    )
+    await page.locator('.mobile-command-bar .toolbar-tool--select').click()
+    const first = await cellCenter(page, 0, 0)
+    const last = await cellCenter(page, 1, 1)
+    await page.mouse.move(first.x, first.y)
+    await page.mouse.down()
+    await page.mouse.move(last.x, last.y)
+    await page.mouse.up()
 
-  await expect(page.locator('.selection-toolbar')).toBeVisible()
-  const copySelection = page
-    .locator('.selection-toolbar')
-    .getByRole('button', { name: /Copy/ })
-  await expect(copySelection).toBeVisible()
-  await copySelection.dispatchEvent('click')
-  const primaryPaste = page.locator(
-    '.mobile-command-bar > .toolbar-action--paste',
-  )
-  if (await primaryPaste.isVisible()) {
-    await primaryPaste.click()
-  } else {
-    await page.getByRole('button', { name: 'More', exact: true }).click()
-    await page.locator('.more-rail .more-action--paste').click()
-  }
-  const pasteToolbar = page.locator('.paste-toolbar')
-  await expect(pasteToolbar).toBeVisible()
-  await expect(
-    pasteToolbar.getByRole('button', { name: 'Paste', exact: true }),
-  ).toBeVisible()
-  await expect(
-    pasteToolbar.getByRole('button', { name: 'Cancel', exact: true }),
-  ).toBeVisible()
-})
+    await expect(page.locator('.selection-toolbar')).toBeVisible()
+    const copySelection = page
+      .locator('.selection-toolbar')
+      .getByRole('button', { name: /Copy/ })
+    await expect(copySelection).toBeVisible()
+    await copySelection.dispatchEvent('click')
+    const primaryPaste = page.locator(
+      '.mobile-command-bar > .toolbar-action--paste',
+    )
+    if (await primaryPaste.isVisible()) {
+      await primaryPaste.click()
+    } else {
+      await page.getByRole('button', { name: 'More', exact: true }).click()
+      await page.locator('.more-rail .more-action--paste').click()
+    }
+    const pasteToolbar = page.locator('.paste-toolbar')
+    await expect(pasteToolbar).toBeVisible()
+    await expect(
+      pasteToolbar.getByRole('button', { name: 'Paste', exact: true }),
+    ).toBeVisible()
+    await expect(
+      pasteToolbar.getByRole('button', { name: 'Cancel', exact: true }),
+    ).toBeVisible()
+  },
+)
 
-test('mobile settings and glyph manager stay within the dynamic viewport', async ({
-  page,
-}, testInfo) => {
-  test.skip(!testInfo.project.name.includes('phone'), 'mobile overlay layout')
+test(
+  'mobile settings and glyph manager stay within the dynamic viewport',
+  {
+    tag: '@phone',
+  },
+  async ({ page }, testInfo) => {
+    test.skip(!testInfo.project.name.includes('phone'), 'mobile overlay layout')
 
-  await page.getByRole('button', { name: 'Open settings' }).click()
-  const settings = page.getByRole('dialog').last()
-  await expect(settings).toBeVisible()
-  const settingsBounds = await settings.boundingBox()
-  expect(settingsBounds?.height ?? Infinity).toBeLessThanOrEqual(
-    page.viewportSize()?.height ?? 0,
-  )
-  await expect(page.locator('body')).toHaveCSS('overflow', 'hidden')
-  await page.keyboard.press('Escape')
-  await expect(settings).toBeHidden({ timeout: 10_000 })
+    await page.getByRole('button', { name: 'Open settings' }).click()
+    const settings = page.getByRole('dialog').last()
+    await expect(settings).toBeVisible()
+    const settingsBounds = await settings.boundingBox()
+    expect(settingsBounds?.height ?? Infinity).toBeLessThanOrEqual(
+      page.viewportSize()?.height ?? 0,
+    )
+    await expect(page.locator('body')).toHaveCSS('overflow', 'hidden')
+    await page.keyboard.press('Escape')
+    await expect(settings).toBeHidden({ timeout: 10_000 })
 
-  await page.getByRole('button', { name: 'Open glyph manager' }).click()
-  await expect(page.locator('.sidebar.active')).toBeVisible()
-  await expect(page.locator('.glyph-manager')).toBeVisible()
-  await expect(page.locator('.glyph-manager .search-input')).toBeVisible()
-  const metrics = await page.evaluate(() => ({
-    width: document.documentElement.scrollWidth,
-    viewport: document.documentElement.clientWidth,
-    bodyOverflow: document.body.style.overflow,
-  }))
-  expect(metrics.width).toBeLessThanOrEqual(metrics.viewport)
-  expect(metrics.bodyOverflow).toBe('hidden')
-  await page.getByRole('button', { name: 'Close glyph manager' }).click()
-  await expect(page.locator('.sidebar.active')).toBeHidden()
-})
+    await page.getByRole('button', { name: 'Open glyph manager' }).click()
+    await expect(page.locator('.sidebar.active')).toBeVisible()
+    await expect(page.locator('.glyph-manager')).toBeVisible()
+    await expect(page.locator('.glyph-manager .search-input')).toBeVisible()
+    const metrics = await page.evaluate(() => ({
+      width: document.documentElement.scrollWidth,
+      viewport: document.documentElement.clientWidth,
+      bodyOverflow: document.body.style.overflow,
+    }))
+    expect(metrics.width).toBeLessThanOrEqual(metrics.viewport)
+    expect(metrics.bodyOverflow).toBe('hidden')
+    await page.getByRole('button', { name: 'Close glyph manager' }).click()
+    await expect(page.locator('.sidebar.active')).toBeHidden()
+  },
+)
 
 test('glyph manager loads only the requested Unifont range', async ({
   page,

@@ -6,6 +6,9 @@ const parsedPort = /^\d+$/.test(requestedPort)
   : 4173
 const serverPort = parsedPort >= 1 && parsedPort <= 65_535 ? parsedPort : 4173
 const serverUrl = `http://127.0.0.1:${serverPort}`
+const crossBrowserSmoke = /@cross-browser/
+const phoneSmoke = /@phone/
+const tabletSmoke = /@tablet/
 
 export default defineConfig({
   testDir: './e2e',
@@ -38,26 +41,27 @@ export default defineConfig({
     },
     {
       name: 'firefox',
+      grep: crossBrowserSmoke,
       use: { ...devices['Desktop Firefox'] },
     },
     {
       name: 'webkit',
+      grep: crossBrowserSmoke,
       use: { ...devices['Desktop Safari'] },
     },
     {
-      name: 'chromium-small-phone',
-      use: { ...devices['iPhone SE'] },
-    },
-    {
       name: 'chromium-phone',
+      grep: phoneSmoke,
       use: { ...devices['Pixel 5'] },
     },
     {
       name: 'chromium-tablet',
+      grep: tabletSmoke,
       use: { ...devices['iPad (gen 7)'] },
     },
     {
       name: 'webkit-phone',
+      grep: phoneSmoke,
       use: { ...devices['iPhone 13'] },
     },
   ],

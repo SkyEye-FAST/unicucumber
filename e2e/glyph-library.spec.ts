@@ -347,55 +347,59 @@ test.describe('full-screen glyph library', () => {
     await seedGlyphs(page)
   })
 
-  test('preserves sidebar search, selection, editor data, and focus across expansion', async ({
-    page,
-  }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' })
-    await page.locator('[data-row="0"][data-col="0"]').click()
-    await expect(page.locator('[data-row="0"][data-col="0"]')).toHaveClass(
-      /filled/,
-    )
-    await page.getByRole('button', { name: 'Open glyph manager' }).click()
-    await expect(
-      page.getByRole('button', { name: 'Expand glyph manager' }),
-    ).toBeVisible()
-    await expect(page.locator('.glyph-manager')).toHaveAttribute(
-      'data-glyph-count',
-      '96',
-    )
-    const sidebarSearch = page.locator(
-      '.glyph-manager > .toolbar .search-input',
-    )
-    await sidebarSearch.fill('0041')
-    await expect(page.locator('.glyph-card')).toHaveCount(1)
-    await page.locator('.glyph-list input[type="checkbox"]').last().check()
+  test(
+    'preserves sidebar search, selection, editor data, and focus across expansion',
+    {
+      tag: ['@cross-browser', '@phone', '@tablet'],
+    },
+    async ({ page }) => {
+      await page.goto('/', { waitUntil: 'domcontentloaded' })
+      await page.locator('[data-row="0"][data-col="0"]').click()
+      await expect(page.locator('[data-row="0"][data-col="0"]')).toHaveClass(
+        /filled/,
+      )
+      await page.getByRole('button', { name: 'Open glyph manager' }).click()
+      await expect(
+        page.getByRole('button', { name: 'Expand glyph manager' }),
+      ).toBeVisible()
+      await expect(page.locator('.glyph-manager')).toHaveAttribute(
+        'data-glyph-count',
+        '96',
+      )
+      const sidebarSearch = page.locator(
+        '.glyph-manager > .toolbar .search-input',
+      )
+      await sidebarSearch.fill('0041')
+      await expect(page.locator('.glyph-card')).toHaveCount(1)
+      await page.locator('.glyph-list input[type="checkbox"]').last().check()
 
-    await expandLibrary(page, 1)
-    await expect(page.locator('body')).toHaveCSS('overflow', 'hidden')
-    await expect(page.locator('.library-search input')).toHaveValue('0041')
-    await expect(page.locator('.glyph-library-cell')).toHaveAttribute(
-      'aria-selected',
-      'true',
-    )
-    await expect(page.locator('[data-row="0"][data-col="0"]')).toHaveClass(
-      /filled/,
-    )
-
-    await page.getByRole('button', { name: 'Exit full-screen view' }).click()
-    const expandButton = page.getByRole('button', {
-      name: 'Expand glyph manager',
-    })
-    await expect(expandButton).toBeFocused()
-    await expect(sidebarSearch).toHaveValue('0041')
-    await expect(
-      page.locator('.glyph-list input[type="checkbox"]').last(),
-    ).toBeChecked()
-    if ((page.viewportSize()?.width ?? 1280) < 720) {
+      await expandLibrary(page, 1)
       await expect(page.locator('body')).toHaveCSS('overflow', 'hidden')
-    } else {
-      await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden')
-    }
-  })
+      await expect(page.locator('.library-search input')).toHaveValue('0041')
+      await expect(page.locator('.glyph-library-cell')).toHaveAttribute(
+        'aria-selected',
+        'true',
+      )
+      await expect(page.locator('[data-row="0"][data-col="0"]')).toHaveClass(
+        /filled/,
+      )
+
+      await page.getByRole('button', { name: 'Exit full-screen view' }).click()
+      const expandButton = page.getByRole('button', {
+        name: 'Expand glyph manager',
+      })
+      await expect(expandButton).toBeFocused()
+      await expect(sidebarSearch).toHaveValue('0041')
+      await expect(
+        page.locator('.glyph-list input[type="checkbox"]').last(),
+      ).toBeChecked()
+      if ((page.viewportSize()?.width ?? 1280) < 720) {
+        await expect(page.locator('body')).toHaveCSS('overflow', 'hidden')
+      } else {
+        await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden')
+      }
+    },
+  )
 
   test('provides a persistent draggable scrollbar for the full-screen library', async ({
     page,
@@ -467,52 +471,57 @@ test.describe('full-screen glyph library', () => {
     await expect(page.locator('.glyph-library-cell')).toHaveCount(95)
   })
 
-  test('opens Unicode block search in a narrow-screen modal', async ({
-    page,
-  }, testInfo) => {
-    test.skip(
-      testInfo.project.name !== 'chromium-phone',
-      'narrow-screen selector behavior runs on the phone viewport',
-    )
-    await seedGlyphs(page)
-    await openLibrary(page)
-    await expandLibrary(page)
-    await page.getByRole('button', { name: 'Filters' }).click()
-
-    await page.getByRole('combobox', { name: 'Unicode plane' }).click()
-    await page
-      .getByRole('option', { name: /Plane 0.*Basic Multilingual Plane/ })
-      .click()
-    await page.getByRole('combobox', { name: 'Unicode block' }).click()
-
-    const modal = page.getByRole('dialog', { name: 'Unicode block' })
-    await expect(modal).toBeVisible()
-    await expect(modal).toHaveCSS('position', 'fixed')
-    await page.setViewportSize({
-      width: page.viewportSize()?.width ?? 393,
-      height: 420,
-    })
-    await expect
-      .poll(() =>
-        modal.evaluate((element) => {
-          const bounds = element.getBoundingClientRect()
-          const viewport = window.visualViewport
-          const viewportTop = viewport?.offsetTop ?? 0
-          const viewportBottom =
-            viewportTop + (viewport?.height ?? window.innerHeight)
-          return (
-            bounds.top >= viewportTop - 1 && bounds.bottom <= viewportBottom + 1
-          )
-        }),
+  test(
+    'opens Unicode block search in a narrow-screen modal',
+    {
+      tag: '@phone',
+    },
+    async ({ page }, testInfo) => {
+      test.skip(
+        !testInfo.project.name.includes('phone'),
+        'narrow-screen selector behavior runs on the phone viewport',
       )
-      .toBe(true)
-    await modal
-      .getByRole('searchbox', { name: 'Unicode block' })
-      .fill('Basic Latin')
-    await modal.getByRole('option', { name: /Basic Latin/ }).click()
-    await expect(modal).toBeHidden()
-    await expect(page.locator('.glyph-library-cell')).toHaveCount(95)
-  })
+      await seedGlyphs(page)
+      await openLibrary(page)
+      await expandLibrary(page)
+      await page.getByRole('button', { name: 'Filters' }).click()
+
+      await page.getByRole('combobox', { name: 'Unicode plane' }).click()
+      await page
+        .getByRole('option', { name: /Plane 0.*Basic Multilingual Plane/ })
+        .click()
+      await page.getByRole('combobox', { name: 'Unicode block' }).click()
+
+      const modal = page.getByRole('dialog', { name: 'Unicode block' })
+      await expect(modal).toBeVisible()
+      await expect(modal).toHaveCSS('position', 'fixed')
+      await page.setViewportSize({
+        width: page.viewportSize()?.width ?? 393,
+        height: 420,
+      })
+      await expect
+        .poll(() =>
+          modal.evaluate((element) => {
+            const bounds = element.getBoundingClientRect()
+            const viewport = window.visualViewport
+            const viewportTop = viewport?.offsetTop ?? 0
+            const viewportBottom =
+              viewportTop + (viewport?.height ?? window.innerHeight)
+            return (
+              bounds.top >= viewportTop - 1 &&
+              bounds.bottom <= viewportBottom + 1
+            )
+          }),
+        )
+        .toBe(true)
+      await modal
+        .getByRole('searchbox', { name: 'Unicode block' })
+        .fill('Basic Latin')
+      await modal.getByRole('option', { name: /Basic Latin/ }).click()
+      await expect(modal).toBeHidden()
+      await expect(page.locator('.glyph-library-cell')).toHaveCount(95)
+    },
+  )
 
   test('keeps the desktop filter toolbar within the viewport', async ({
     page,
