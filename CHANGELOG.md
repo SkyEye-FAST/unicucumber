@@ -8,10 +8,17 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 - Add a source-neutral visual 16×16 glyph composition workspace with layered bitmap operations, IDS-assisted component discovery, safe drafts, generated component data, and versioned offline caches.
 
+### Changed
+
+- Refine the visual glyph composition workspace around the canvas, add undoable layer deletion, and use a layer-based entry icon.
+- Show real component bitmap previews, strengthen the composition grid, add a desktop full-screen view and responsive motion, refine mobile navigation and action sizing, reserve a responsive aligned header region for complex IDS guidance beside or below the target code point, align desktop code-point editing with the main editor, and keep compact header actions available through Settings.
+- Reduce the default Playwright matrix from 903 duplicated project entries to 156 purpose-tagged full, cross-browser, phone, and tablet checks.
+
 ### Fixed
 
 - Replace the glyph library export menu's native `details/summary` toggle with explicit Vue state so export actions are stable in WebKit CI runs.
 - Treat missing IDS chunks as empty guidance, keep the composition workspace independent from the main editor, and save composed glyphs to the glyph manager.
+- Add an explicit mobile code-point confirmation action and ignore stale IDS responses during rapid target changes.
 - Allow the generated composition consistency check enough time under parallel quality gates.
 
 ## [1.6.0] - 2026-08-17
