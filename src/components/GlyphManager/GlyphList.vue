@@ -343,9 +343,9 @@ onBeforeUnmount(() => {
   max-width: 36px;
   flex: none;
   overflow: visible;
-  fill: #111;
+  fill: currentColor;
   image-rendering: pixelated;
-  background: white;
+  background: var(--background-color);
 }
 
 .browser-preview {

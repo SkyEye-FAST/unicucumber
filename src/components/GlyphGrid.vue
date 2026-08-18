@@ -1450,12 +1450,12 @@ defineExpose({
 }
 
 .cell {
-  background: white;
+  background: var(--background-color);
   box-shadow: inset 0 0 0 0.3px var(--primary-darker);
 }
 
 .cell.filled {
-  background: black;
+  background: currentColor;
 }
 
 .cell:not(.bordered) {
