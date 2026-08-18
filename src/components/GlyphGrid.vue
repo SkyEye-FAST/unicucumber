@@ -1466,13 +1466,13 @@ defineExpose({
 .preview-cell {
   position: absolute;
   z-index: 4;
-  background: black;
+  background: currentColor;
   opacity: 0.72;
   pointer-events: none;
 }
 
 .preview-cell.erase {
-  background: white;
+  background: var(--background-color);
   box-shadow: inset 0 0 0 1px var(--danger-color);
 }
 
