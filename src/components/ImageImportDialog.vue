@@ -345,17 +345,18 @@ const handleKeydown = (event: KeyboardEvent): void => {
   width: min(100%, 18rem);
   aspect-ratio: 1;
   display: grid;
+  color: var(--text-color);
   border: 1px solid var(--primary-darker);
   image-rendering: pixelated;
 }
 
 .pixel-preview span {
-  background: white;
+  background: var(--glyph-preview-background);
   box-shadow: inset 0 0 0 0.3px var(--primary-darker);
 }
 
 .pixel-preview span.filled {
-  background: black;
+  background: currentColor;
 }
 
 .image-import-dialog footer {
