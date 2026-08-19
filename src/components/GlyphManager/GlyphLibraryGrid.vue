@@ -921,8 +921,8 @@ defineExpose({
   align-items: center;
   justify-content: center;
   padding: 0.25rem 0.45rem;
-  background: white;
-  color: #111;
+  background: var(--background-color);
+  color: var(--text-color);
 }
 
 .bitmap-svg {
