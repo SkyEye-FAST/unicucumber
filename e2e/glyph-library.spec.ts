@@ -328,18 +328,27 @@ test('keeps the active selection action legible in dark mode', async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== 'chromium', 'interaction check runs once')
-  await seedGlyphs(page)
-  await page.goto('/', { waitUntil: 'domcontentloaded' })
-  await page.evaluate(() => {
-    document.documentElement.dataset.theme = 'dark'
-  })
-  await page.getByRole('button', { name: 'Open glyph manager' }).click()
+  await seedGlyphs(page, 96, 'dark')
+  await openLibrary(page)
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+
+  const sidebarPreview = page.locator('.glyph-card .glyph-preview').first()
+  await expect(sidebarPreview).toHaveCSS('background-color', 'rgb(51, 51, 51)')
+  await expect(sidebarPreview.locator('.bitmap-svg')).toHaveCSS(
+    'fill',
+    'rgb(224, 224, 224)',
+  )
+
   await expandLibrary(page)
 
   const selectionToggle = page.locator('.library-selection-toggle')
   await selectionToggle.click()
   await expect(selectionToggle).toHaveClass(/is-active/)
   await expect(selectionToggle).toHaveCSS('color', 'rgb(224, 224, 224)')
+
+  const bitmapPreview = page.locator('.bitmap-preview').first()
+  await expect(bitmapPreview).toHaveCSS('background-color', 'rgb(51, 51, 51)')
+  await expect(bitmapPreview).toHaveCSS('color', 'rgb(224, 224, 224)')
 })
 
 test.describe('full-screen glyph library', () => {

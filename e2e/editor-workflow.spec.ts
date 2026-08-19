@@ -360,6 +360,14 @@ test(
       !testInfo.project.name.includes('phone'),
       'mobile command surface',
     )
+    await page.evaluate(() => {
+      document.documentElement.dataset.theme = 'dark'
+      document.documentElement.style.colorScheme = 'dark'
+    })
+    const filledCell = page.locator('[data-row="0"][data-col="0"]')
+    await filledCell.click()
+    await expect(filledCell).toHaveClass(/filled/)
+
     await page.locator('.mobile-command-bar .toolbar-tool--select').click()
     const first = await cellCenter(page, 0, 0)
     const last = await cellCenter(page, 1, 1)
@@ -391,6 +399,18 @@ test(
     await expect(
       pasteToolbar.getByRole('button', { name: 'Cancel', exact: true }),
     ).toBeVisible()
+
+    const pasteCells = page.locator('.paste-cell')
+    await expect(pasteCells).toHaveCount(4)
+    await expect(page.locator('.paste-cell.filled')).toHaveCount(1)
+    await expect(page.locator('.paste-cell:not(.filled)').first()).toHaveCSS(
+      'background-color',
+      'rgb(30, 30, 30)',
+    )
+    await expect(page.locator('.paste-cell.filled')).toHaveCSS(
+      'background-color',
+      'rgb(224, 224, 224)',
+    )
   },
 )
 
