@@ -6,12 +6,14 @@
     :style="{
       width: getCanvasWidth,
       height: getCanvasHeight,
+      color: 'currentColor',
+      backgroundColor: 'var(--background-color)',
     }"
   ></canvas>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
   hexValue: {
@@ -29,6 +31,7 @@ const props = defineProps({
 })
 
 const canvas = ref<HTMLCanvasElement | null>(null)
+let themeObserver: MutationObserver | null = null
 
 const getCanvasWidth = computed(() => {
   const scale = props.displayMode === 'editor' ? 2 : 3
@@ -39,6 +42,15 @@ const getCanvasHeight = computed(() => {
   return props.displayMode === 'editor' ? '32px' : '48px'
 })
 
+const resolveCssColor = (cssVar: string, fallback: string): string => {
+  const element = canvas.value
+  if (!element) return fallback
+
+  const computedStyle = window.getComputedStyle(element)
+  const value = computedStyle.getPropertyValue(cssVar).trim()
+  return value || fallback
+}
+
 const drawGlyph = () => {
   if (!canvas.value) return
 
@@ -48,8 +60,11 @@ const drawGlyph = () => {
   }) as CanvasRenderingContext2D
 
   try {
+    const backgroundColor = resolveCssColor('--background-color', '#ffffff')
+    const foregroundColor = resolveCssColor('color', '#000000')
+
     ctx.clearRect(0, 0, props.width, 16)
-    ctx.fillStyle = 'white'
+    ctx.fillStyle = backgroundColor
     ctx.fillRect(0, 0, props.width, 16)
 
     const expectedLength = (props.width * 16) / 4
@@ -63,7 +78,7 @@ const drawGlyph = () => {
       return
     }
 
-    ctx.fillStyle = 'black'
+    ctx.fillStyle = foregroundColor
     for (let i = 0; i < props.width * 16; i++) {
       const nibble = Number.parseInt(
         props.hexValue.charAt(Math.floor(i / 4)),
@@ -78,7 +93,7 @@ const drawGlyph = () => {
   } catch (error) {
     console.warn('PixelPreview drawGlyph error:', error)
     try {
-      ctx.fillStyle = 'white'
+      ctx.fillStyle = '#ffffff'
       ctx.fillRect(0, 0, props.width, 16)
     } catch (fallbackError) {
       console.error('PixelPreview fallback draw error:', fallbackError)
@@ -88,10 +103,23 @@ const drawGlyph = () => {
 
 onMounted(() => {
   drawGlyph()
+
+  themeObserver = new MutationObserver(() => {
+    drawGlyph()
+  })
+
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  })
+})
+
+onBeforeUnmount(() => {
+  themeObserver?.disconnect()
 })
 
 watch(
-  [() => props.hexValue, () => props.width],
+  [() => props.hexValue, () => props.width, () => props.displayMode],
   () => {
     drawGlyph()
   },
@@ -102,7 +130,8 @@ watch(
 <style scoped>
 canvas {
   image-rendering: pixelated;
-  background: white;
+  color: currentColor;
+  background-color: var(--background-color);
   flex: none;
 }
 
