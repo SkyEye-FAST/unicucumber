@@ -16,6 +16,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Fixed
 
+- Keep editor paste previews, bitmap canvases, image-import pixels, and both glyph-library layouts synchronized with the active light or dark theme.
 - Make the editor wheel-scrolling browser regression construct its own scrollable page so Linux CI does not depend on platform-specific layout height.
 - Replace the glyph library export menu's native `details/summary` toggle with explicit Vue state so export actions are stable in WebKit CI runs.
 - Treat missing IDS chunks as empty guidance, keep the composition workspace independent from the main editor, and save composed glyphs to the glyph manager.
