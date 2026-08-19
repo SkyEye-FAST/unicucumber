@@ -463,6 +463,7 @@ const handleDialogKeydown = (event: KeyboardEvent): void => {
   font-size: 1.5em;
   padding: 4px;
   background: var(--glyph-preview-background);
+  color: var(--glyph-foreground-color);
   border: 1px solid var(--glyph-preview-border);
   border-radius: 4px;
   min-width: 40px;

@@ -922,7 +922,7 @@ defineExpose({
   justify-content: center;
   padding: 0.25rem 0.45rem;
   background: var(--glyph-preview-background);
-  color: var(--text-color);
+  color: var(--glyph-foreground-color);
 }
 
 .bitmap-svg {
@@ -937,9 +937,17 @@ defineExpose({
 
 .browser-primary {
   align-self: center;
+  min-width: 2.75rem;
+  min-height: 3.5rem;
   max-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
-  color: var(--text-color);
+  box-sizing: border-box;
+  padding: 0.25rem 0.45rem;
+  background: var(--glyph-preview-background);
+  color: var(--glyph-foreground-color);
   font-size: calc(var(--bitmap-height) * 0.85);
   line-height: 1;
   text-overflow: ellipsis;

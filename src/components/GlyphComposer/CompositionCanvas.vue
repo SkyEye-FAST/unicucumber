@@ -167,8 +167,8 @@ const cancelPointerMove = (): void => {
   width: min(100%, 34rem);
   aspect-ratio: 1;
   margin: auto;
-  color: var(--text-color);
-  background: var(--background-color);
+  color: var(--glyph-foreground-color);
+  background: var(--glyph-background-color);
   border: 1px solid var(--border-color);
   border-radius: 0;
   touch-action: none;
@@ -180,7 +180,7 @@ const cancelPointerMove = (): void => {
 }
 
 .canvas-background {
-  fill: var(--background-color);
+  fill: var(--glyph-background-color);
 }
 
 .canvas-pixel {

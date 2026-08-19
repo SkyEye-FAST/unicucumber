@@ -445,6 +445,14 @@
       "label": "Glyph preview mode",
       "pixel_only": "Pixel only"
     },
+    "glyph_colors": {
+      "background": "Background",
+      "description": "Set canvas and glyph preview colors separately for light and dark appearance.",
+      "foreground": "Foreground",
+      "input_label": "{theme} {color}",
+      "label": "Glyph colors",
+      "restore_defaults": "Restore default colors"
+    },
     "glyph_width": {
       "16px": "16 pixels",
       "8px": "8 pixels",

@@ -343,7 +343,7 @@ onBeforeUnmount(() => {
   max-width: 36px;
   flex: none;
   overflow: visible;
-  fill: var(--text-color);
+  fill: var(--glyph-foreground-color);
   image-rendering: pixelated;
   background: var(--glyph-preview-background);
 }
@@ -351,7 +351,7 @@ onBeforeUnmount(() => {
 .browser-preview {
   max-width: 36px;
   overflow: hidden;
-  color: var(--text-color);
+  color: var(--glyph-foreground-color);
   font-size: 30px;
   line-height: 1;
 }

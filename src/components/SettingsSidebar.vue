@@ -88,6 +88,108 @@
               </label>
             </div>
 
+            <div
+              class="glyph-colors"
+              role="group"
+              aria-labelledby="glyph-colors-label"
+              aria-describedby="glyph-colors-description"
+            >
+              <div class="glyph-colors-header">
+                <div>
+                  <span id="glyph-colors-label" class="settings-field-label">
+                    {{ $t('settings.glyph_colors.label') }}
+                  </span>
+                  <p
+                    id="glyph-colors-description"
+                    class="settings-hint glyph-colors-description"
+                  >
+                    {{ $t('settings.glyph_colors.description') }}
+                  </p>
+                </div>
+                <button
+                  class="ui-button ui-button--quiet glyph-colors-reset"
+                  type="button"
+                  :disabled="glyphColorsAreDefault"
+                  @click="resetGlyphColors"
+                >
+                  <i-material-symbols-restart-alt class="settings-icon" />
+                  {{ $t('settings.glyph_colors.restore_defaults') }}
+                </button>
+              </div>
+
+              <div class="glyph-color-themes">
+                <div
+                  v-for="colorTheme in glyphColorThemes"
+                  :key="colorTheme.id"
+                  class="glyph-color-theme"
+                >
+                  <div class="glyph-color-theme-header">
+                    <strong>{{ colorTheme.label }}</strong>
+                    <span
+                      class="glyph-color-sample"
+                      :style="{
+                        color: settings[colorTheme.foregroundKey],
+                        backgroundColor: settings[colorTheme.backgroundKey],
+                      }"
+                      aria-hidden="true"
+                    ></span>
+                  </div>
+
+                  <label class="glyph-color-field">
+                    <span class="settings-label">{{
+                      $t('settings.glyph_colors.foreground')
+                    }}</span>
+                    <span class="glyph-color-control">
+                      <input
+                        :id="colorTheme.foregroundKey"
+                        class="glyph-color-input"
+                        type="color"
+                        :value="settings[colorTheme.foregroundKey]"
+                        :aria-label="
+                          $t('settings.glyph_colors.input_label', {
+                            theme: colorTheme.label,
+                            color: $t('settings.glyph_colors.foreground'),
+                          })
+                        "
+                        @input="
+                          updateGlyphColor(colorTheme.foregroundKey, $event)
+                        "
+                      />
+                      <code class="glyph-color-value">{{
+                        formatHexColor(settings[colorTheme.foregroundKey])
+                      }}</code>
+                    </span>
+                  </label>
+
+                  <label class="glyph-color-field">
+                    <span class="settings-label">{{
+                      $t('settings.glyph_colors.background')
+                    }}</span>
+                    <span class="glyph-color-control">
+                      <input
+                        :id="colorTheme.backgroundKey"
+                        class="glyph-color-input"
+                        type="color"
+                        :value="settings[colorTheme.backgroundKey]"
+                        :aria-label="
+                          $t('settings.glyph_colors.input_label', {
+                            theme: colorTheme.label,
+                            color: $t('settings.glyph_colors.background'),
+                          })
+                        "
+                        @input="
+                          updateGlyphColor(colorTheme.backgroundKey, $event)
+                        "
+                      />
+                      <code class="glyph-color-value">{{
+                        formatHexColor(settings[colorTheme.backgroundKey])
+                      }}</code>
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
             <div class="settings-field settings-field--inline">
               <span class="settings-label">{{
                 $t('settings.language.label')
@@ -650,6 +752,45 @@ const languageOptions: CustomSelectOption[] = [
   { value: 'zh-TW', label: '繁體中文' },
 ]
 
+type GlyphColorSettingKey =
+  | 'lightGlyphForegroundColor'
+  | 'lightGlyphBackgroundColor'
+  | 'darkGlyphForegroundColor'
+  | 'darkGlyphBackgroundColor'
+
+interface GlyphColorTheme {
+  id: 'light' | 'dark'
+  label: string
+  foregroundKey: GlyphColorSettingKey
+  backgroundKey: GlyphColorSettingKey
+}
+
+const glyphColorThemes = computed<GlyphColorTheme[]>(() => [
+  {
+    id: 'light',
+    label: $t('settings.appearance.light'),
+    foregroundKey: 'lightGlyphForegroundColor',
+    backgroundKey: 'lightGlyphBackgroundColor',
+  },
+  {
+    id: 'dark',
+    label: $t('settings.appearance.dark'),
+    foregroundKey: 'darkGlyphForegroundColor',
+    backgroundKey: 'darkGlyphBackgroundColor',
+  },
+])
+const glyphColorsAreDefault = computed(
+  () =>
+    props.settings.lightGlyphForegroundColor ===
+      defaultSettings.lightGlyphForegroundColor &&
+    props.settings.lightGlyphBackgroundColor ===
+      defaultSettings.lightGlyphBackgroundColor &&
+    props.settings.darkGlyphForegroundColor ===
+      defaultSettings.darkGlyphForegroundColor &&
+    props.settings.darkGlyphBackgroundColor ===
+      defaultSettings.darkGlyphBackgroundColor,
+)
+
 let modalQuery: MediaQueryList | null = null
 let overlayLocked = false
 let openSession = false
@@ -659,6 +800,22 @@ const closeSidebar = (): void => emit('update:modelValue', false)
 
 const updateSettings = (patch: Partial<EditorSettings>): void => {
   emit('update:settings', { ...props.settings, ...patch })
+}
+
+const updateGlyphColor = (key: GlyphColorSettingKey, event: Event): void => {
+  const value = (event.target as HTMLInputElement).value.toLowerCase()
+  updateSettings({ [key]: value } as Partial<EditorSettings>)
+}
+
+const formatHexColor = (value: string): string => value.toUpperCase()
+
+const resetGlyphColors = (): void => {
+  updateSettings({
+    lightGlyphForegroundColor: defaultSettings.lightGlyphForegroundColor,
+    lightGlyphBackgroundColor: defaultSettings.lightGlyphBackgroundColor,
+    darkGlyphForegroundColor: defaultSettings.darkGlyphForegroundColor,
+    darkGlyphBackgroundColor: defaultSettings.darkGlyphBackgroundColor,
+  })
 }
 
 const updateDrawMode = (value: string | number): void => {
@@ -1025,6 +1182,139 @@ const confirmReset = (): void => {
   gap: var(--space-3);
 }
 
+.glyph-colors {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-color);
+}
+
+.glyph-colors-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+}
+
+.glyph-colors-header > div {
+  min-width: min(100%, 12rem);
+  flex: 1;
+}
+
+.glyph-colors-description {
+  margin-top: var(--space-1);
+}
+
+.glyph-colors-reset {
+  min-height: var(--control-height-compact);
+  flex: none;
+  padding-inline: var(--space-2);
+  font-size: 0.75rem;
+}
+
+.glyph-color-themes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.glyph-color-theme {
+  min-width: 0;
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--background-base);
+}
+
+.glyph-color-theme-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  color: var(--text-color);
+  font-size: 0.8125rem;
+}
+
+.glyph-color-sample {
+  min-width: 2.25rem;
+  height: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--glyph-preview-border);
+  border-radius: var(--radius-sm);
+}
+
+.glyph-color-sample::before {
+  content: '';
+  width: 0.45rem;
+  height: 0.45rem;
+  background: currentColor;
+  box-shadow:
+    0.45rem 0 currentColor,
+    0 0.45rem currentColor;
+}
+
+.glyph-color-field {
+  min-width: 0;
+  display: grid;
+  gap: var(--space-1);
+  cursor: pointer;
+}
+
+.glyph-color-control {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: var(--control-height) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.glyph-color-input {
+  box-sizing: border-box;
+  width: var(--control-height);
+  height: var(--control-height);
+  margin: 0;
+  padding: 0.2rem;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  background: var(--input-background);
+  cursor: pointer;
+}
+
+.glyph-color-input::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.glyph-color-input::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-sm) - 2px);
+}
+
+.glyph-color-input::-moz-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-sm) - 2px);
+}
+
+.glyph-color-input:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.glyph-color-value {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-family: var(--monospace-font);
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .settings-version {
   justify-self: end;
   color: var(--text-secondary);
@@ -1373,6 +1663,10 @@ const confirmReset = (): void => {
     min-height: var(--control-height);
     flex-direction: column;
     gap: 0.2rem;
+  }
+
+  .glyph-color-themes {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

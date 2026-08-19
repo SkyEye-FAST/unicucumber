@@ -405,7 +405,7 @@ test(
     await expect(page.locator('.paste-cell.filled')).toHaveCount(1)
     await expect(page.locator('.paste-cell:not(.filled)').first()).toHaveCSS(
       'background-color',
-      'rgb(30, 30, 30)',
+      'rgb(51, 51, 51)',
     )
     await expect(page.locator('.paste-cell.filled')).toHaveCSS(
       'background-color',
@@ -425,6 +425,14 @@ test(
     await page.getByRole('button', { name: 'Open settings' }).click()
     const settings = page.getByRole('dialog').last()
     await expect(settings).toBeVisible()
+    await expect(settings.locator('.glyph-color-theme')).toHaveCount(2)
+    expect(
+      await settings
+        .locator('.glyph-color-themes')
+        .evaluate((element) =>
+          getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/),
+        ),
+    ).toHaveLength(1)
     const settingsBounds = await settings.boundingBox()
     expect(settingsBounds?.height ?? Infinity).toBeLessThanOrEqual(
       page.viewportSize()?.height ?? 0,

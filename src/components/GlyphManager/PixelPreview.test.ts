@@ -3,6 +3,7 @@ import { nextTick } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 
+import { defaultSettings, useSettings } from '@/composables/useSettings'
 import {
   disposeTheme,
   initializeTheme,
@@ -41,19 +42,21 @@ beforeEach(() => {
   localStorage.clear()
   document.documentElement.removeAttribute('data-theme')
   document.documentElement.style.removeProperty('color-scheme')
+  useSettings().settings.value = { ...defaultSettings }
   installMatchMedia()
   disposeTheme()
   initializeTheme()
 })
 
 afterEach(() => {
+  useSettings().settings.value = { ...defaultSettings }
   disposeTheme()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
 
 describe('PixelPreview theme rendering', () => {
-  it('redraws with the shared preview colors when the theme changes', async () => {
+  it('redraws when the theme or configured glyph colors change', async () => {
     const fills: FillOperation[] = []
     let fillStyle = ''
     const context = {
@@ -71,21 +74,6 @@ describe('PixelPreview theme rendering', () => {
 
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
       context as never,
-    )
-    vi.spyOn(window, 'getComputedStyle').mockImplementation(
-      () =>
-        ({
-          getPropertyValue: (property: string) => {
-            const dark = document.documentElement.dataset.theme === 'dark'
-            if (property === '--glyph-preview-background') {
-              return dark ? '#333333' : '#f8f9fa'
-            }
-            if (property === '--text-color') {
-              return dark ? '#e0e0e0' : '#333333'
-            }
-            return ''
-          },
-        }) as CSSStyleDeclaration,
     )
 
     const wrapper = mount(PixelPreview, {
@@ -108,6 +96,19 @@ describe('PixelPreview theme rendering', () => {
     expect(fills.slice(0, 2)).toEqual([
       { color: '#333333', height: 16, width: 8, x: 0, y: 0 },
       { color: '#e0e0e0', height: 1, width: 1, x: 0, y: 0 },
+    ])
+
+    fills.length = 0
+    useSettings().settings.value = {
+      ...useSettings().settings.value,
+      darkGlyphBackgroundColor: '#102030',
+      darkGlyphForegroundColor: '#fedcba',
+    }
+    await nextTick()
+
+    expect(fills.slice(0, 2)).toEqual([
+      { color: '#102030', height: 16, width: 8, x: 0, y: 0 },
+      { color: '#fedcba', height: 1, width: 1, x: 0, y: 0 },
     ])
     wrapper.unmount()
   })

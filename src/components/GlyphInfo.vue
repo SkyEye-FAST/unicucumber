@@ -342,6 +342,11 @@ const encodingInfo = computed(() => {
 
 .unicode-char {
   min-width: 1.5rem;
+  padding: 0.1rem 0.2rem;
+  border: 1px solid var(--glyph-preview-border);
+  border-radius: 2px;
+  background: var(--glyph-background-color);
+  color: var(--glyph-foreground-color);
   font-size: 1.6rem;
   text-align: center;
   transition: none !important;

@@ -31,10 +31,17 @@
   --scrollbar-thumb: #ccc;
   --scrollbar-track: #f2f2f2;
 
+  --glyph-light-foreground-color: #333333;
+  --glyph-light-background-color: #f8f9fa;
+  --glyph-dark-foreground-color: #e0e0e0;
+  --glyph-dark-background-color: #333333;
+  --glyph-foreground-color: var(--glyph-light-foreground-color);
+  --glyph-background-color: var(--glyph-light-background-color);
+
   --glyph-card-background: #fff;
   --glyph-card-border: #ddd;
   --glyph-card-shadow: rgba(0, 0, 0, 0.1);
-  --glyph-preview-background: #f8f9fa;
+  --glyph-preview-background: var(--glyph-background-color);
   --glyph-preview-border: #ddd;
   --glyph-preview-hover: #f5f5f5;
   --glyph-preview-border-hover: #bbb;
@@ -74,6 +81,9 @@
   --text-secondary: #b0b0b0;
   --text-light: #cccccc;
 
+  --glyph-foreground-color: var(--glyph-dark-foreground-color);
+  --glyph-background-color: var(--glyph-dark-background-color);
+
   /* Effects */
   --shadow-color: rgba(0, 0, 0, 0.3);
   --modal-overlay: rgba(0, 0, 0, 0.7);
@@ -95,7 +105,6 @@
   --glyph-card-background: #2d2d2d;
   --glyph-card-border: #404040;
   --glyph-card-shadow: rgba(0, 0, 0, 0.4);
-  --glyph-preview-background: #333333;
   --glyph-preview-border: #404040;
   --glyph-preview-hover: #383838;
   --glyph-preview-border-hover: #505050;

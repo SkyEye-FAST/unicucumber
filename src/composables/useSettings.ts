@@ -122,6 +122,10 @@ export const defaultSettings: Readonly<EditorSettings> = {
   drawMode: 'singleButtonDraw',
   alwaysShowMouseCursor: false,
   showBorder: true,
+  lightGlyphForegroundColor: '#333333',
+  lightGlyphBackgroundColor: '#f8f9fa',
+  darkGlyphForegroundColor: '#e0e0e0',
+  darkGlyphBackgroundColor: '#333333',
   glyphManagerPushEditor: true,
   confirmClear: true,
   glyphPreviewMode: 'pixelOnly',
@@ -163,6 +167,10 @@ const isAutoSaveInterval = (value: unknown): value is AutoSaveInterval =>
   value === 3000 ||
   value === 5000 ||
   value === 10000
+const parseHexColor = (value: unknown, fallback: string): string =>
+  typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value)
+    ? value.toLowerCase()
+    : fallback
 
 export const parseSettings = (value: unknown): EditorSettings => {
   const stored =
@@ -195,6 +203,22 @@ export const parseSettings = (value: unknown): EditorSettings => {
       typeof stored.showBorder === 'boolean'
         ? stored.showBorder
         : defaultSettings.showBorder,
+    lightGlyphForegroundColor: parseHexColor(
+      stored.lightGlyphForegroundColor,
+      defaultSettings.lightGlyphForegroundColor,
+    ),
+    lightGlyphBackgroundColor: parseHexColor(
+      stored.lightGlyphBackgroundColor,
+      defaultSettings.lightGlyphBackgroundColor,
+    ),
+    darkGlyphForegroundColor: parseHexColor(
+      stored.darkGlyphForegroundColor,
+      defaultSettings.darkGlyphForegroundColor,
+    ),
+    darkGlyphBackgroundColor: parseHexColor(
+      stored.darkGlyphBackgroundColor,
+      defaultSettings.darkGlyphBackgroundColor,
+    ),
     glyphManagerPushEditor:
       typeof stored.glyphManagerPushEditor === 'boolean'
         ? stored.glyphManagerPushEditor
@@ -289,11 +313,34 @@ const loadSettings = (): EditorSettings => {
 const settings = ref<EditorSettings>(loadSettings())
 const showSettings = ref(false)
 
+const applyGlyphColors = (value: EditorSettings): void => {
+  if (typeof document === 'undefined') return
+  const root = document.documentElement
+  root.style.setProperty(
+    '--glyph-light-foreground-color',
+    value.lightGlyphForegroundColor,
+  )
+  root.style.setProperty(
+    '--glyph-light-background-color',
+    value.lightGlyphBackgroundColor,
+  )
+  root.style.setProperty(
+    '--glyph-dark-foreground-color',
+    value.darkGlyphForegroundColor,
+  )
+  root.style.setProperty(
+    '--glyph-dark-background-color',
+    value.darkGlyphBackgroundColor,
+  )
+}
+
+applyGlyphColors(settings.value)
+
 watch(
   settings,
   (value) => {
-    if (typeof window === 'undefined') return
-    persistSettings(value)
+    if (typeof window !== 'undefined') persistSettings(value)
+    applyGlyphColors(value)
   },
   { deep: true },
 )

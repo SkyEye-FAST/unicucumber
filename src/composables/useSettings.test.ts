@@ -23,6 +23,10 @@ describe('settings parsing and baseline reset', () => {
       enableSelection: defaultSettings.enableSelection,
       glyphLibraryDensity: defaultSettings.glyphLibraryDensity,
       glyphManagerPushEditor: true,
+      lightGlyphForegroundColor: defaultSettings.lightGlyphForegroundColor,
+      lightGlyphBackgroundColor: defaultSettings.lightGlyphBackgroundColor,
+      darkGlyphForegroundColor: defaultSettings.darkGlyphForegroundColor,
+      darkGlyphBackgroundColor: defaultSettings.darkGlyphBackgroundColor,
     })
   })
 
@@ -106,6 +110,24 @@ describe('settings parsing and baseline reset', () => {
       imageImportTransparentAsWhite: false,
       autoSaveEnabled: false,
       autoSaveInterval: 5000,
+    })
+  })
+
+  it('keeps valid theme-specific glyph colors and rejects malformed values', () => {
+    expect(
+      parseSettings({
+        version: SETTINGS_VERSION,
+        baseline: SETTINGS_BASELINE,
+        lightGlyphForegroundColor: '#A1B2C3',
+        lightGlyphBackgroundColor: 'white',
+        darkGlyphForegroundColor: '#102030',
+        darkGlyphBackgroundColor: '#12345g',
+      }),
+    ).toMatchObject({
+      lightGlyphForegroundColor: '#a1b2c3',
+      lightGlyphBackgroundColor: defaultSettings.lightGlyphBackgroundColor,
+      darkGlyphForegroundColor: '#102030',
+      darkGlyphBackgroundColor: defaultSettings.darkGlyphBackgroundColor,
     })
   })
 

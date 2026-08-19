@@ -11,8 +11,10 @@
 </template>
 
 <script setup lang="ts">
-import { useTheme } from '@/composables/useTheme'
 import { computed, onMounted, ref, watch } from 'vue'
+
+import { useSettings } from '@/composables/useSettings'
+import { useTheme } from '@/composables/useTheme'
 
 const props = defineProps({
   hexValue: {
@@ -30,7 +32,20 @@ const props = defineProps({
 })
 
 const { resolvedTheme } = useTheme()
+const { settings } = useSettings()
 const canvas = ref<HTMLCanvasElement | null>(null)
+
+const activeGlyphColors = computed(() =>
+  resolvedTheme.value === 'dark'
+    ? {
+        background: settings.value.darkGlyphBackgroundColor,
+        foreground: settings.value.darkGlyphForegroundColor,
+      }
+    : {
+        background: settings.value.lightGlyphBackgroundColor,
+        foreground: settings.value.lightGlyphForegroundColor,
+      },
+)
 
 const getCanvasWidth = computed(() => {
   const scale = props.displayMode === 'editor' ? 2 : 3
@@ -41,15 +56,6 @@ const getCanvasHeight = computed(() => {
   return props.displayMode === 'editor' ? '32px' : '48px'
 })
 
-const resolveCssVariable = (cssVar: string, fallback: string): string => {
-  const element = canvas.value
-  if (!element) return fallback
-
-  const computedStyle = window.getComputedStyle(element)
-  const value = computedStyle.getPropertyValue(cssVar).trim()
-  return value || fallback
-}
-
 const drawGlyph = () => {
   if (!canvas.value) return
 
@@ -59,11 +65,8 @@ const drawGlyph = () => {
   })
   if (!ctx) return
 
-  const backgroundColor = resolveCssVariable(
-    '--glyph-preview-background',
-    '#ffffff',
-  )
-  const foregroundColor = resolveCssVariable('--text-color', '#111111')
+  const { background: backgroundColor, foreground: foregroundColor } =
+    activeGlyphColors.value
 
   try {
     ctx.clearRect(0, 0, props.width, 16)
@@ -109,7 +112,7 @@ onMounted(() => {
 })
 
 watch(
-  [() => props.hexValue, () => props.width, resolvedTheme],
+  [() => props.hexValue, () => props.width, activeGlyphColors],
   () => {
     drawGlyph()
   },

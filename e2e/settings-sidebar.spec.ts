@@ -176,6 +176,85 @@ test(
   },
 )
 
+test(
+  'glyph colors are theme-specific, persistent, and restorable',
+  {
+    tag: '@cross-browser',
+  },
+  async ({ page }) => {
+    await loadEditor(page, 'light')
+    const filledCell = page.locator('[data-row="0"][data-col="0"]')
+    const emptyCell = page.locator('[data-row="0"][data-col="1"]')
+    await filledCell.click()
+
+    let settings = await openSettings(page)
+    const colorInput = (id: string) => settings.drawer.locator(`#${id}`)
+    const setColor = async (id: string, value: string): Promise<void> => {
+      const input = colorInput(id)
+      await input.evaluate((element, color) => {
+        const colorInput = element as HTMLInputElement
+        colorInput.value = color
+        colorInput.dispatchEvent(new Event('input', { bubbles: true }))
+      }, value)
+      await expect(input).toHaveValue(value)
+    }
+
+    await setColor('lightGlyphForegroundColor', '#123456')
+    await setColor('lightGlyphBackgroundColor', '#abcdef')
+    await expect(filledCell).toHaveCSS('background-color', 'rgb(18, 52, 86)')
+    await expect(emptyCell).toHaveCSS('background-color', 'rgb(171, 205, 239)')
+
+    await settings.drawer.getByRole('radio', { name: 'Dark' }).check()
+    await setColor('darkGlyphForegroundColor', '#fedcba')
+    await setColor('darkGlyphBackgroundColor', '#102030')
+    await expect(filledCell).toHaveCSS('background-color', 'rgb(254, 220, 186)')
+    await expect(emptyCell).toHaveCSS('background-color', 'rgb(16, 32, 48)')
+
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const stored = localStorage.getItem('unicucumber_settings')
+          return stored === null ? null : JSON.parse(stored)
+        }),
+      )
+      .toMatchObject({
+        lightGlyphForegroundColor: '#123456',
+        lightGlyphBackgroundColor: '#abcdef',
+        darkGlyphForegroundColor: '#fedcba',
+        darkGlyphBackgroundColor: '#102030',
+      })
+
+    await page.reload({ waitUntil: 'domcontentloaded' })
+    await expect(page.locator('.grid-container')).toBeVisible()
+    settings = await openSettings(page)
+    await expect(colorInput('lightGlyphForegroundColor')).toHaveValue('#123456')
+    await expect(colorInput('lightGlyphBackgroundColor')).toHaveValue('#abcdef')
+    await expect(colorInput('darkGlyphForegroundColor')).toHaveValue('#fedcba')
+    await expect(colorInput('darkGlyphBackgroundColor')).toHaveValue('#102030')
+
+    await settings.drawer
+      .getByRole('button', { name: 'Restore default colors' })
+      .click()
+    await expect(colorInput('darkGlyphForegroundColor')).toHaveValue('#e0e0e0')
+    await expect(colorInput('darkGlyphBackgroundColor')).toHaveValue('#333333')
+
+    const resetEmptyCell = page.locator('[data-row="0"][data-col="2"]')
+    await expect(resetEmptyCell).toHaveCSS(
+      'background-color',
+      'rgb(51, 51, 51)',
+    )
+    await resetEmptyCell.click()
+    await expect(resetEmptyCell).toHaveCSS(
+      'background-color',
+      'rgb(224, 224, 224)',
+    )
+
+    await settings.drawer.getByRole('radio', { name: 'Light' }).check()
+    await expect(colorInput('lightGlyphForegroundColor')).toHaveValue('#333333')
+    await expect(colorInput('lightGlyphBackgroundColor')).toHaveValue('#f8f9fa')
+  },
+)
+
 test('local preview font is prepended to the fallback stack and persists', async ({
   page,
 }) => {

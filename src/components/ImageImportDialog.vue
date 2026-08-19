@@ -345,7 +345,7 @@ const handleKeydown = (event: KeyboardEvent): void => {
   width: min(100%, 18rem);
   aspect-ratio: 1;
   display: grid;
-  color: var(--text-color);
+  color: var(--glyph-foreground-color);
   border: 1px solid var(--primary-darker);
   image-rendering: pixelated;
 }

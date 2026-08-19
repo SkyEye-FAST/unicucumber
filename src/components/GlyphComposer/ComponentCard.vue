@@ -94,7 +94,7 @@ const previewPixels = computed(() => {
   display: block;
   width: 3.5rem;
   aspect-ratio: 1;
-  color: var(--text-color);
+  color: var(--glyph-foreground-color);
   border: 1px solid var(--glyph-preview-border);
   border-radius: var(--radius-sm);
 }

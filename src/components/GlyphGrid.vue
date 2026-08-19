@@ -1451,12 +1451,12 @@ defineExpose({
 }
 
 .cell {
-  background: var(--background-color);
+  background: var(--glyph-background-color);
   box-shadow: inset 0 0 0 0.3px var(--primary-darker);
 }
 
 .cell.filled {
-  background: currentColor;
+  background: var(--glyph-foreground-color);
 }
 
 .cell:not(.bordered) {
@@ -1467,13 +1467,13 @@ defineExpose({
 .preview-cell {
   position: absolute;
   z-index: 4;
-  background: currentColor;
+  background: var(--glyph-foreground-color);
   opacity: 0.72;
   pointer-events: none;
 }
 
 .preview-cell.erase {
-  background: var(--background-color);
+  background: var(--glyph-background-color);
   box-shadow: inset 0 0 0 1px var(--danger-color);
 }
 
@@ -1502,12 +1502,12 @@ defineExpose({
 .paste-cell {
   width: var(--cell-size);
   height: var(--cell-size);
-  background: var(--background-color);
+  background: var(--glyph-background-color);
   box-shadow: inset 0 0 0 0.3px var(--primary-darker);
 }
 
 .paste-cell.filled {
-  background: currentColor;
+  background: var(--glyph-foreground-color);
 }
 
 .context-toolbar {

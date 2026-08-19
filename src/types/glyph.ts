@@ -42,6 +42,10 @@ export interface EditorSettings {
   drawMode: DrawMode
   alwaysShowMouseCursor: boolean
   showBorder: boolean
+  lightGlyphForegroundColor: string
+  lightGlyphBackgroundColor: string
+  darkGlyphForegroundColor: string
+  darkGlyphBackgroundColor: string
   glyphManagerPushEditor: boolean
   confirmClear: boolean
   glyphPreviewMode: GlyphPreviewMode

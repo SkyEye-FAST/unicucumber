@@ -445,6 +445,14 @@
       "label": "字形预览模式",
       "pixel_only": "仅像素预览"
     },
+    "glyph_colors": {
+      "background": "背景色",
+      "description": "分别设置浅色与深色模式下编辑画布和字形预览的颜色。",
+      "foreground": "前景色",
+      "input_label": "{theme}模式{color}",
+      "label": "字形颜色",
+      "restore_defaults": "恢复默认颜色"
+    },
     "glyph_width": {
       "16px": "16像素",
       "8px": "8像素",

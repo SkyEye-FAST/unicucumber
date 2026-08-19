@@ -623,7 +623,7 @@ onBeforeUnmount(() => {
   border: 1px solid var(--glyph-preview-border);
   border-radius: var(--radius-sm);
   background: var(--glyph-preview-background);
-  color: var(--text-color);
+  color: var(--glyph-foreground-color);
   scrollbar-width: thin;
 }
 
