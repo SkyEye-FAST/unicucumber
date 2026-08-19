@@ -921,7 +921,7 @@ defineExpose({
   align-items: center;
   justify-content: center;
   padding: 0.25rem 0.45rem;
-  background: var(--background-color);
+  background: var(--glyph-preview-background);
   color: var(--text-color);
 }
 

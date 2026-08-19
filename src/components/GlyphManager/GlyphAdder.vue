@@ -474,7 +474,7 @@ watch(
   display: flex;
   justify-content: center;
   padding: 8px;
-  background: white;
+  background: var(--glyph-preview-background);
   border-radius: 4px;
   border: 1px solid var(--border-color);
 }

@@ -326,7 +326,7 @@ onBeforeUnmount(() => {
   gap: 4px;
   padding: 3px;
   overflow: hidden;
-  background: var(--background-color);
+  background: var(--glyph-preview-background);
   border: 1px solid var(--border-color);
   border-radius: 4px;
   cursor: pointer;
@@ -343,9 +343,9 @@ onBeforeUnmount(() => {
   max-width: 36px;
   flex: none;
   overflow: visible;
-  fill: currentColor;
+  fill: var(--text-color);
   image-rendering: pixelated;
-  background: var(--background-color);
+  background: var(--glyph-preview-background);
 }
 
 .browser-preview {
