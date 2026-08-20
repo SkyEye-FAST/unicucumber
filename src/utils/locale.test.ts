@@ -25,7 +25,7 @@ describe('settings localization', () => {
     [en, ['Auto', 'Light', 'Dark', 'Follow system appearance']],
     [zhCn, ['自动', '浅色', '深色', '跟随系统外观']],
     [zhTw, ['自動', '淺色', '深色', '跟隨系統外觀']],
-    [lzh, ['自動', '淺色', '深色', '跟隨系統外觀']],
+    [lzh, ['自適', '明', '黯', '隨械綱']],
   ] as const)('defines every appearance preference label', (locale, labels) => {
     expect([
       locale.settings.appearance.auto,
