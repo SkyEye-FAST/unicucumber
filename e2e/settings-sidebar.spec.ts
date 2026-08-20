@@ -182,6 +182,7 @@ test(
     tag: '@cross-browser',
   },
   async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
     await loadEditor(page, 'light')
     const filledCell = page.locator('[data-row="0"][data-col="0"]')
     const emptyCell = page.locator('[data-row="0"][data-col="1"]')

@@ -261,8 +261,7 @@ import CustomSelect, {
 } from '@/components/CustomSelect.vue'
 import {
   blocksForPlane,
-  UNICODE_BLOCK_NAMES_ZH_HANS,
-  UNICODE_BLOCK_NAMES_ZH_HANT,
+  getUnicodeBlockNameForLocale,
   UNICODE_PLANES,
   type UnicodeBlock,
 } from '@/data/unicodeBlocks'
@@ -378,12 +377,7 @@ const availableBlocks = computed(() =>
 const formatCodePoint = (value: number): string =>
   value.toString(16).toUpperCase().padStart(4, '0')
 const blockLabel = (block: UnicodeBlock): string => {
-  const localized =
-    locale.value === 'zh-TW'
-      ? UNICODE_BLOCK_NAMES_ZH_HANT[block.id]
-      : locale.value.startsWith('zh')
-        ? UNICODE_BLOCK_NAMES_ZH_HANS[block.id]
-        : undefined
+  const localized = getUnicodeBlockNameForLocale(locale.value, block.id)
   const name = localized ? `${localized} · ${block.name}` : block.name
   return `${name}  U+${formatCodePoint(block.start)}–U+${formatCodePoint(block.end)}`
 }

@@ -1,0 +1,560 @@
+{
+  "dialog": {
+    "batch_delete": {
+      "confirm": "刪",
+      "message": "誠欲刪所擇 {count} 字形？",
+      "title": "誠刪之"
+    },
+    "cancel": "罷",
+    "clear_confirm": {
+      "confirm": "清",
+      "message": "誠欲清其柵乎？",
+      "title": "誠清之"
+    },
+    "confirm": "然",
+    "dimension_error": {
+      "message": "圖幅之高，恆定十六；寬須爲四、八、十二、十六、二十",
+      "title": "圖幅舛誤"
+    },
+    "format_error": {
+      "message": "圖色惟容黑白",
+      "title": "圖範舛誤"
+    },
+    "glyph_hex": "形錄",
+    "hex_import": {
+      "cancel": "略",
+      "confirm": "迭新所擇字形",
+      "message": "斯形既存，擇欲更者：",
+      "title": "尋現重形"
+    },
+    "image_error": {
+      "message": "載圖未成，且復試之",
+      "title": "載圖舛誤"
+    },
+    "select_all": "悉擇之",
+    "settings_reset": {
+      "confirm": "重設",
+      "message": "誠欲悉重設如預設？",
+      "title": "重設置設"
+    },
+    "unsaved_changes": {
+      "confirm": "續",
+      "message": "形尙未存，欲續行諸？",
+      "title": "未存之纂"
+    }
+  },
+  "editor": {
+    "actions": {
+      "add_to_glyphset": {
+        "button": "增至形集",
+        "title": "所擇字形，增入形集"
+      },
+      "clear": {
+        "button": "清",
+        "title": "清纂儀"
+      },
+      "open_in_zitools": "啟於字統網",
+      "redo": {
+        "title": "復（Ctrl並Y）"
+      },
+      "restore": {
+        "button": "形繕既存",
+        "title": "繕此形如初"
+      },
+      "save": {
+        "button": "存字形",
+        "title": "存此形至司形儀 （Ctrl並S）"
+      },
+      "show_encoding_info": "示編碼",
+      "undo": {
+        "title": "撤（Ctrl並Z）"
+      }
+    }
+  },
+  "errors": {
+    "unexpected": "未期之舛，芻稿方存。"
+  },
+  "export": {
+    "copy_failed": "入簿未成，且下傳之。",
+    "copy_image": "鈔其圖",
+    "download": "下傳 {format}",
+    "download_ready": "{format} 出錄備訖。",
+    "failed": "{format} 出錄未成。",
+    "filename": "案名",
+    "image_copied": "形圖既鈔。",
+    "options": "出錄選項",
+    "scale": "像素尺寸",
+    "share": "共享",
+    "share_failed": "共享而未成。",
+    "share_fallback": "共享既廢，故下傳其圖。",
+    "title": "出錄字形",
+    "transparent": "通透背幕"
+  },
+  "glyph_editor": {
+    "copy_title": "鈔（Ctrl並C）",
+    "cut_title": "摘（Ctrl並X）",
+    "invalid_code_point": "書一萬國碼標量，自 U+0000 至 U+10FFFF（代理碼位不含焉）",
+    "paste_title": "謄（Ctrl並V）"
+  },
+  "glyph_manager": {
+    "add": {
+      "add_button": "增形",
+      "character": "書一文符",
+      "clear_button": "清",
+      "code_point": "書萬國碼位",
+      "hex_value": "書十六進形錄（三十二抑六十四位）",
+      "preview": "預覽字形",
+      "update_button": "迭新字形"
+    },
+    "backup_exported": "字庫備份既錄出。",
+    "batch_delete": "群刪",
+    "delete_selected": "刪所擇 {count} 字形",
+    "duplicate": {
+      "cancel": "罷",
+      "update": "迭新既有字形",
+      "warning": "既有字佔碼位 U+{codePoint} 矣！"
+    },
+    "error": {
+      "loading_unicode_names": "萬國碼名無以載，猶可憑碼位求索。",
+      "loading_unifont": "載萬國碼字體而舛焉",
+      "saving_storage": "存字形而舛焉",
+      "unifont_not_found": "碼位未見於內成萬國碼字體。"
+    },
+    "export": "出錄字形",
+    "export_backup": "明版備份（.json）",
+    "export_bdf": "位圖分發範式（.bdf）",
+    "export_data_files": "形圖",
+    "export_failed": "字庫無以錄出。",
+    "export_font_files": "字體之案",
+    "export_hex": "萬國碼字體範式（.hex）",
+    "export_otf": "OpenType 字體（.otf）",
+    "export_psf": "Linux 控制臺字體（.psf）",
+    "export_sheet": "位圖表（.png）",
+    "export_ttf": "TrueType 字體（.ttf）",
+    "export_woff": "Web Open Font（.woff）",
+    "export_woff2": "Web Open Font 2（.woff2）",
+    "font_export": {
+      "metadata": {
+        "description": "斯將書至字體名契。盡數錄出，則以官版萬國碼字體之築錄爲範。",
+        "fields": {
+          "copyright": "版權",
+          "description": "述",
+          "designer": "字匠",
+          "designerUrl": "字匠網址",
+          "familyName": "族名",
+          "fullName": "全名",
+          "license": "契",
+          "licenseUrl": "契之網址",
+          "manufacturer": "製師",
+          "manufacturerUrl": "製師網址",
+          "postScriptName": "PostScript 之名",
+          "styleName": "範名",
+          "trademark": "商徽",
+          "uniqueId": "獨有棨信",
+          "vendorId": "坊家棨信（四字）",
+          "version": "版本"
+        },
+        "reset": "重設此域之錄",
+        "title": "纂字體之錄"
+      },
+      "preparing": "方備字體之錄⋯",
+      "scope": {
+        "full": {
+          "description": "官版主字體之域（U+0000 至 U+FFFF），所纂並存。",
+          "title": "官版主字體"
+        },
+        "modified": {
+          "description": "惟存異乎萬國碼字體之形。",
+          "title": "惟所修字形"
+        }
+      },
+      "scope_label": "字體之域"
+    },
+    "font_exported": "{format} 字體之案錄出矣。",
+    "glyph": {
+      "code_point": "碼位：",
+      "delete": "刪",
+      "edit": "纂",
+      "edit_in_grid": "擊之以纂字形：U+{codePoint}",
+      "hex": "十六進碼："
+    },
+    "hex_error_invalid_code_point": "無效萬國碼標量",
+    "hex_error_invalid_glyph_data": "形錄之十六進碼，其長須恰爲三十二抑六十四",
+    "hex_error_missing_separator": "碼位抑錄隔符闕",
+    "hex_invalid_count": "{count} 行無效，略而不顧。",
+    "hex_invalid_line": "第{line}行：{reason}",
+    "hex_invalid_title": "幾許十六進碼未錄入",
+    "import": "閲於萬國碼字體",
+    "library": {
+      "add_selected_to_manager": "增至司形儀（{count}）",
+      "added_to_manager": "既增 {count} 字形至司形儀。",
+      "cell_accessible": "{character}，U+{codePoint}，{width}像素字形{states}",
+      "clear_search": "清除求索",
+      "clear_selection": "清除所擇",
+      "density": {
+        "comfortable": "宜",
+        "compact": "密",
+        "large": "疏"
+      },
+      "density_label": "字形柵之疏密",
+      "entered_fullscreen": "全幕字庫既開。",
+      "exit_fullscreen": "離全幕之覽",
+      "exited_fullscreen": "既返司形儀之側欄。",
+      "expand": "展司形儀",
+      "filtered_count": "{total} 之 {filtered}",
+      "filters": "濾",
+      "glyph_count": "{count} 字形",
+      "grid_label": "萬國碼字體字庫",
+      "inspector_title": "增添 / 錄入",
+      "load_failed": "弗能載既存字形。",
+      "loading": "方載既存字形⋯",
+      "loading_unifont": "方載萬國碼字庫⋯",
+      "modified_badge": "既改",
+      "no_matches": "無字形相匹",
+      "no_matches_hint": "清除求索，抑或另試碼位。",
+      "remove_from_manager": "除於司形儀（{count}）",
+      "retry": "復試",
+      "scrollbar_label": "字庫卷",
+      "search_label": "字庫求索",
+      "select_filtered": "擇所濾字形",
+      "selected_count": "既擇{count}",
+      "selection_mode": "擇以增之",
+      "source": {
+        "all": "無遺",
+        "modified": "既改（{count}）"
+      },
+      "source_filter_label": "域",
+      "state_active": "方修",
+      "state_modified": "既改",
+      "state_selected": "既擇",
+      "title": "字庫",
+      "tools": "術",
+      "unicode_block_all": "全板面",
+      "unicode_block_label": "萬國碼區塊",
+      "unicode_plane": {
+        "0": "板面〇 · 多語基礎板面（BMP）",
+        "1": "板面一 · 多語增補板面（SMP）",
+        "2": "板面二 · 表意文字增補板面（SIP）",
+        "3": "板面三 · 第三表意文字板面（TIP）",
+        "14": "板面十四 · 殊用增補板面（SSP）",
+        "15": "板面十五 · 私用板面甲",
+        "16": "板面十六 · 私用板面乙",
+        "all": "擇一板面"
+      },
+      "unicode_plane_label": "萬國碼板面",
+      "workspace_label": "全幕字庫"
+    },
+    "manual_input": {
+      "message": "且書此字形之碼位：",
+      "process": "施行",
+      "skip_all": "悉越之",
+      "skip_one": "越",
+      "title": "須書碼位"
+    },
+    "search": "尋以碼位、字符、錄抑或萬國碼名⋯",
+    "select_all": "悉擇之",
+    "sheet_columns": "列數",
+    "sheet_exported": "位圖表既錄出（{columns} 列，{scale}倍幅）。",
+    "sheet_scale": "像素尺寸",
+    "title": "司形儀",
+    "upload": {
+      "clipboard_failed": "無以閲簿中之圖。",
+      "drop_hint": "亦可曳十六進碼案抑圖案於此。",
+      "hex_file": "傳十六進碼案",
+      "image_file": "圖庫",
+      "no_clipboard_image": "簿中無圖。",
+      "paste_image": "謄圖"
+    },
+    "validation": {
+      "add_glyph": "增其字形",
+      "enter_code_point": "且書萬國碼位",
+      "invalid_code_point": "碼位須爲四至六位十六進碼",
+      "invalid_hex": "且書有效十六進字錄（三十二抑六十四長）"
+    }
+  },
+  "composition": {
+    "add_blank": "增空層",
+    "add_first_layer": "增首層",
+    "code_point": "組字碼位",
+    "apply_code_point": "施行",
+    "code_point_invalid": "書寫漢字碼位。",
+    "canvas": "畫幅",
+    "canvas_dimensions": "橫縱十六",
+    "close": "關組字坊",
+    "components": "部件",
+    "component_add": "增{characters}",
+    "component_bounds": "界 {bounds}",
+    "component_loading": "方載部件⋯",
+    "component_no_results": "部件無相匹者。",
+    "component_retry": "復試",
+    "component_search": "尋部件",
+    "component_search_error": "弗能載部件之錄。",
+    "component_search_placeholder": "字符抑碼位",
+    "current_glyph": "方今字形",
+    "delete_layer": "刪{name}",
+    "discard": "棄芻稿",
+    "draft_fallback_warning": "組字芻稿方用備存。",
+    "draft_storage_warning": "弗能存組字芻稿。",
+    "empty_layers": "圖層尙闕。且增部件抑空幅。",
+    "exit_fullscreen": "離全幕組字坊",
+    "expand": "展組字坊",
+    "hide": "隱匿",
+    "hide_layer": "隱匿{name}",
+    "ids": "構形導引",
+    "ids_empty": "是碼位無構形導引。",
+    "ids_error": "弗能載構形導引。",
+    "ids_leaf": "尋{character}",
+    "ids_retry": "復試構形",
+    "layers": "層",
+    "layer_stack": "層棧",
+    "lock": "鑰",
+    "lock_layer": "鑰{name}",
+    "new_layer": "圖層 {number}",
+    "operation": "式",
+    "operation_add": "增",
+    "operation_intersect": "匯",
+    "operation_subtract": "剔",
+    "redo": "復組字",
+    "redo_short": "復",
+    "save": "存至司形儀",
+    "select_layer": "擇{name}",
+    "show": "顯",
+    "show_layer": "顯{name}",
+    "title": "組字坊",
+    "undo": "撤組字",
+    "undo_short": "撤",
+    "unlock": "解",
+    "unlock_layer": "解{name}"
+  },
+  "header": {
+    "close_glyph_manager": "關司形儀",
+    "github": "開 UniCucumber 之庫於 GitHub",
+    "open_composition": "開組字坊",
+    "open_composition_16_only": "組字坊須橫縱十六之字形",
+    "open_glyph_manager": "開司形儀",
+    "open_settings": "開置設",
+    "open_text_preview": "開文覽",
+    "toggle_theme": "更迭色采"
+  },
+  "hex_input": {
+    "apply": "施",
+    "committed": "字錄既施",
+    "copy": "鈔",
+    "invalid_characters": "惟容十六進數。",
+    "invalid_length": "書十六、三十二、四十八、六十四、八十長之碼錄，以得縱十六而寬四、八、十二、十六、二十之字形。",
+    "label": "十六進字錄",
+    "placeholder": "書十六進字錄（十六、三十二、四十八、六十四、八十位）",
+    "ready": "堪用字錄既備。",
+    "width": "{width} 像素"
+  },
+  "image_import": {
+    "cancel": "罷",
+    "confirm": "錄入字形",
+    "crop": "盈",
+    "fit": "適",
+    "imported": "圖既錄如字形。",
+    "invert": "反色",
+    "load_failed": "所擇之圖無以載，且另尋他圖。",
+    "loading": "方載圖⋯",
+    "mode": "法式",
+    "prepared": "既化圖式，書碼位以成哉。",
+    "preview": "所化字形預覽",
+    "target_width": "字幅",
+    "threshold": "黑色之閾",
+    "title": "化圖爲字",
+    "transparent_white": "視空爲白"
+  },
+  "mobile_toolbar": {
+    "close_short": "關",
+    "label": "移動端之纂令"
+  },
+  "notifications": {
+    "dismiss": "隱通告"
+  },
+  "pwa": {
+    "apply_update": "旋即迭新",
+    "offline": "離綫",
+    "offline_ready": "UniCucumber 既備，離綫無礙。",
+    "online_again": "復聯矣。",
+    "registration_failed": "離綫廢矣，不堪啟用。",
+    "update_check_failed": "察新未成。俄頃復試之。",
+    "update_check_offline": "查閲迭新，須聯網在先。",
+    "update_check_unavailable": "安裝正器，乃可察新。",
+    "update_failed": "芻稿難存，故迭新既罷。",
+    "update_not_found": "既爲新版焉。",
+    "update_ready": "迭新之際，芻稿自存。",
+    "update_title": "新版在候"
+  },
+  "selection": {
+    "actions": "擇",
+    "cancel_paste": "罷",
+    "confirm_paste": "謄",
+    "copy": "鈔",
+    "cut": "摘",
+    "delete": "刪",
+    "deselect": "免",
+    "duplicate": "立副本",
+    "move_down": "下",
+    "move_left": "左",
+    "move_right": "右",
+    "move_up": "上",
+    "paste_actions": "謄貼預覽"
+  },
+  "settings": {
+    "always_show_mouse_cursor": "恆示光標",
+    "appearance": {
+      "auto": "自適",
+      "dark": "黯",
+      "follow_system": "隨械綱",
+      "label": "觀",
+      "light": "明"
+    },
+    "auto_save_enabled": "自存芻稿",
+    "auto_save_hint": "雖禁此用，然葉隱、更新、閉時，猶試存其稿。",
+    "auto_save_interval": "存稿間歇",
+    "auto_save_intervals": {
+      "10s": "十秒",
+      "1s": "一秒",
+      "3s": "三秒",
+      "500ms": "半秒",
+      "5s": "五秒"
+    },
+    "browser_preview_font": "覽字體備簿",
+    "close_sidebar": "關置設",
+    "confirm_clear": "清除叩問",
+    "draw_mode": {
+      "double_button": "左擊以繪而右擊以除",
+      "label": "繪式",
+      "single_button": "左擊繪除"
+    },
+    "enable_selection": "啟擇術",
+    "export_defaults": "錄出預設",
+    "export_scale": "圖幅",
+    "export_transparent": "通透背幕",
+    "font_edit": {
+      "cancel": "罷",
+      "save": "存",
+      "title": "纂預覽字體"
+    },
+    "glyph_library_density": "字庫疏密",
+    "glyph_manager_push_editor": "示纂具於司形儀之側",
+    "glyph_manager_push_editor_hint": "寬幕者，司形儀形變，則纂域隨變，不爲所蔽。",
+    "glyph_preview": {
+      "both": "皆有",
+      "browser_only": "惟瀏覽器",
+      "label": "字形覽式",
+      "pixel_only": "惟像素"
+    },
+    "glyph_colors": {
+      "background": "背幕",
+      "description": "爲明黯之式，分設畫幅、字形之色。",
+      "foreground": "前幕",
+      "input_label": "{theme}式{color}",
+      "label": "字色",
+      "restore_defaults": "回復預設"
+    },
+    "glyph_width": {
+      "16px": "十六像素",
+      "8px": "八像素",
+      "label": "字寬"
+    },
+    "image_import_defaults": "圖錄預設",
+    "image_import_mode": "法式",
+    "image_import_threshold": "黑色之閾",
+    "image_import_transparent_white": "視空爲白",
+    "language": {
+      "label": "文"
+    },
+    "local_font": {
+      "active": "本機字體：{name}",
+      "import": "錄本機字體",
+      "import_failed": "弗能載之。須擇堪用 TTF、OTF、WOFF、WOFF2 字體。",
+      "priority_hint": "以此字體爲先；下簿仍作備棧。",
+      "remove": "除",
+      "remove_failed": "弗能除本機字體既存者。",
+      "replace": "替本機字體",
+      "restore_failed": "弗能繕本機字體既存者。",
+      "session_only": "今雖用此字體，然不能久存。",
+      "supported": "錄入 TTF、OTF、WOFF、WOFF2。所錄字體惟存於斯器。"
+    },
+    "reset": "重設",
+    "sections": {
+      "canvas": "卷工",
+      "general": "常",
+      "glyph_preview": "預覽暨字庫",
+      "import_export": "錄",
+      "safety": "安虞",
+      "updates": "迭新",
+      "workflow": "工緒"
+    },
+    "show_border": "示柵匡",
+    "title": "置設",
+    "updates": {
+      "check": "查閲迭新",
+      "checking": "方察迭新⋯",
+      "hint": "存稿在先，而後迭新。",
+      "version": "版本"
+    }
+  },
+  "storage": {
+    "discard_draft": "棄",
+    "draft_restore_failed": "嚮稿無以復。",
+    "draft_save_failed": "芻稿無以存，離前毋忘備份。",
+    "fallback_warning": "IndexedDB 不堪用。存容或爲之所限。",
+    "glyph_save_failed": "無以存字庫。",
+    "glyph_saved": "字形存矣。",
+    "keep_draft": "畱稿",
+    "restored_draft": "未竟芻稿已復。",
+    "status_error": "存而未果",
+    "status_saved": "既存",
+    "status_saving": "方存⋯",
+    "status_unsaved": "未存"
+  },
+  "text_preview": {
+    "close": "關預覽",
+    "empty": "書文以預覽之。",
+    "hint": "據現存萬國碼點陣字形所成也。",
+    "input_label": "預覽",
+    "live_hint": "君之所纂、形司所改，皆自現於此。",
+    "load_failed": "萬國碼字體未能盡數載焉。",
+    "loading": "方載字形⋯",
+    "missing": "闕 {count} 字形",
+    "placeholder": "題文一至數行",
+    "preview_label": "萬國碼字體預覽：{text}",
+    "sample": "寄蜉蝣于天地，渺滄海之一粟。",
+    "scale": "尺寸",
+    "title": "預覽"
+  },
+  "title": "UniCucumber - 纂萬國碼字體",
+  "tools": {
+    "draw": "繪",
+    "erase": "削",
+    "fill": "漆",
+    "filled_rectangle": "實矩",
+    "flip_horizontal": "橫反",
+    "flip_vertical": "縱反",
+    "invert": "反色",
+    "line": "綫",
+    "more": "增益",
+    "pan": "移",
+    "rectangle": "矩",
+    "secondary": "繪具補益",
+    "select": "擇",
+    "shift_down": "下",
+    "shift_left": "左",
+    "shift_right": "右",
+    "shift_up": "上",
+    "toolbar": "纂具",
+    "transforms": "柵變"
+  },
+  "workspace": {
+    "fit": "適",
+    "grid_label": "{width}×16 像素字柵",
+    "label": "纂形之所",
+    "reset_view": "復觀",
+    "view_controls": "柵觀調適",
+    "zoom_in": "近觀",
+    "zoom_level": "觀階",
+    "zoom_out": "遠觀"
+  }
+}

@@ -3,6 +3,10 @@ import { expect, test } from '@playwright/test'
 const DEFAULT_PREVIEW = '南去經三國，東來過五湖。'
 
 test.beforeEach(async ({ page }) => {
+  await page.route(
+    /^https:\/\/(fonts\.googleapis|fontsapi\.zeoseven)\.com\//,
+    (route) => route.fulfill({ contentType: 'text/css', body: '' }),
+  )
   await page.goto('/', { waitUntil: 'domcontentloaded' })
   await expect(page.locator('.grid-container')).toBeVisible()
 })
@@ -42,6 +46,7 @@ test(
     tag: '@phone',
   },
   async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.setViewportSize({ width: 390, height: 844 })
     const codePointInput = page.locator('.code-point-input input')
     await codePointInput.fill('5357')
@@ -52,6 +57,8 @@ test(
       .dispatchEvent('click')
     const drawer = page.getByRole('dialog', { name: 'Text preview' })
     const input = drawer.getByRole('textbox', { name: 'Preview text' })
+    await expect(drawer).toBeVisible()
+    await expect(input).toBeFocused()
     const longLine = '南'.repeat(24)
     await input.fill(`${longLine}\n${longLine}`)
 
