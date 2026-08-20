@@ -1,0 +1,560 @@
+{
+  "dialog": {
+    "batch_delete": {
+      "confirm": "Delete",
+      "message": "Are you sure to delete the selected {count} glyphs?",
+      "title": "Confirm Delete"
+    },
+    "cancel": "Cancel",
+    "clear_confirm": {
+      "confirm": "Clear",
+      "message": "Are you sure you want to clear the current grid?",
+      "title": "Confirm Clear"
+    },
+    "confirm": "Confirm",
+    "dimension_error": {
+      "message": "Image dimensions must be 4×16, 8×16, 12×16, 16×16, or 20×16 pixels",
+      "title": "Invalid Image Dimensions"
+    },
+    "format_error": {
+      "message": "Image must be black and white only",
+      "title": "Invalid Image Format"
+    },
+    "glyph_hex": "Glyph Data",
+    "hex_import": {
+      "cancel": "Skip",
+      "confirm": "Update Selected Glyphs",
+      "message": "The following glyphs already exist, please select which ones to update:",
+      "title": "Duplicate Glyphs Found"
+    },
+    "image_error": {
+      "message": "Failed to load image, please try again",
+      "title": "Image Loading Error"
+    },
+    "select_all": "Select All",
+    "settings_reset": {
+      "confirm": "Reset",
+      "message": "Are you sure you want to reset all settings to default?",
+      "title": "Reset Settings"
+    },
+    "unsaved_changes": {
+      "confirm": "Continue",
+      "message": "There are unsaved changes to the current glyph. Do you want to continue?",
+      "title": "Unsaved Changes"
+    }
+  },
+  "editor": {
+    "actions": {
+      "add_to_glyphset": {
+        "button": "Add to Glyph Set",
+        "title": "Add current glyph to glyph set"
+      },
+      "clear": {
+        "button": "Clear",
+        "title": "Clear editor"
+      },
+      "open_in_zitools": "Open in zi.tools",
+      "redo": {
+        "title": "Redo (Ctrl+Y)"
+      },
+      "restore": {
+        "button": "Restore saved",
+        "title": "Restore this glyph to its last saved state"
+      },
+      "save": {
+        "button": "Save glyph",
+        "title": "Save this glyph to the glyph manager (Ctrl+S)"
+      },
+      "show_encoding_info": "Show Encoding Info",
+      "undo": {
+        "title": "Undo (Ctrl+Z)"
+      }
+    }
+  },
+  "errors": {
+    "unexpected": "An unexpected error occurred. The current draft is being preserved."
+  },
+  "export": {
+    "copy_failed": "Clipboard access failed. Download the file instead.",
+    "copy_image": "Copy image",
+    "download": "Download {format}",
+    "download_ready": "{format} export is ready.",
+    "failed": "{format} export failed.",
+    "filename": "Filename",
+    "image_copied": "Glyph image copied.",
+    "options": "Export options",
+    "scale": "Pixel scale",
+    "share": "Share",
+    "share_failed": "The image could not be shared.",
+    "share_fallback": "Sharing is unavailable; the PNG was downloaded instead.",
+    "title": "Export glyph",
+    "transparent": "Transparent background"
+  },
+  "glyph_editor": {
+    "copy_title": "Copy (Ctrl+C)",
+    "cut_title": "Cut (Ctrl+X)",
+    "invalid_code_point": "Enter a Unicode scalar value from U+0000 to U+10FFFF, excluding surrogates.",
+    "paste_title": "Paste (Ctrl+V)"
+  },
+  "glyph_manager": {
+    "add": {
+      "add_button": "Add Glyph",
+      "character": "Enter character",
+      "clear_button": "Clear",
+      "code_point": "Enter Unicode code point",
+      "hex_value": "Enter glyph data (32 or 64 hex digits)",
+      "preview": "Glyph Preview",
+      "update_button": "Update Glyph"
+    },
+    "backup_exported": "Glyph-library backup exported.",
+    "batch_delete": "Batch Delete",
+    "delete_selected": "Delete Selected {count}",
+    "duplicate": {
+      "cancel": "Cancel",
+      "update": "Update Existing Glyph",
+      "warning": "A glyph with code point U+{codePoint} already exists"
+    },
+    "error": {
+      "loading_unicode_names": "Unicode names could not be loaded. Code-point search remains available.",
+      "loading_unifont": "Error loading Unifont data",
+      "saving_storage": "Error saving glyphs to storage",
+      "unifont_not_found": "This code point is not present in the bundled Unifont data."
+    },
+    "export": "Export Glyphs",
+    "export_backup": "Versioned backup (.json)",
+    "export_bdf": "Bitmap Distribution Format (.bdf)",
+    "export_data_files": "Glyph data & image",
+    "export_failed": "The glyph library could not be exported.",
+    "export_font_files": "Font files",
+    "export_hex": "Unifont glyphs (.hex)",
+    "export_otf": "OpenType font (.otf)",
+    "export_psf": "Linux console font (.psf)",
+    "export_sheet": "Bitmap sheet (.png)",
+    "export_ttf": "TrueType font (.ttf)",
+    "export_woff": "Web Open Font (.woff)",
+    "export_woff2": "Web Open Font 2 (.woff2)",
+    "font_export": {
+      "metadata": {
+        "description": "These values are written to the font's standard name and licensing records. Complete exports start from the official Unifont build metadata.",
+        "fields": {
+          "copyright": "Copyright",
+          "description": "Description",
+          "designer": "Designer",
+          "designerUrl": "Designer URL",
+          "familyName": "Family name",
+          "fullName": "Full name",
+          "license": "License",
+          "licenseUrl": "License URL",
+          "manufacturer": "Manufacturer",
+          "manufacturerUrl": "Manufacturer URL",
+          "postScriptName": "PostScript name",
+          "styleName": "Style name",
+          "trademark": "Trademark",
+          "uniqueId": "Unique ID",
+          "vendorId": "Vendor ID (4 characters)",
+          "version": "Version"
+        },
+        "reset": "Reset metadata for this range",
+        "title": "Edit font metadata"
+      },
+      "preparing": "Preparing font data…",
+      "scope": {
+        "full": {
+          "description": "Official main-font range (U+0000–U+FFFF), with your changes applied.",
+          "title": "Official main font"
+        },
+        "modified": {
+          "description": "Only glyphs whose bitmap differs from the bundled Unifont data.",
+          "title": "Modified glyphs only"
+        }
+      },
+      "scope_label": "Font range"
+    },
+    "font_exported": "{format} font exported.",
+    "glyph": {
+      "code_point": "Code point:",
+      "delete": "Delete",
+      "edit": "Edit",
+      "edit_in_grid": "Click to edit glyph: U+{codePoint}",
+      "hex": "Hex:"
+    },
+    "hex_error_invalid_code_point": "invalid Unicode scalar value",
+    "hex_error_invalid_glyph_data": "glyph data must contain exactly 32 or 64 hexadecimal digits",
+    "hex_error_missing_separator": "missing code-point/data separator",
+    "hex_invalid_count": "{count} invalid .hex line was skipped. | {count} invalid .hex lines were skipped.",
+    "hex_invalid_line": "Line {line}: {reason}",
+    "hex_invalid_title": "Some .hex lines were not imported",
+    "import": "Import from Unifont",
+    "library": {
+      "add_selected_to_manager": "Add to glyph manager ({count})",
+      "added_to_manager": "Added {count} glyphs to the glyph manager.",
+      "cell_accessible": "{character}, U+{codePoint}, {width}-pixel glyph{states}",
+      "clear_search": "Clear glyph search",
+      "clear_selection": "Clear selection",
+      "density": {
+        "comfortable": "Comfortable",
+        "compact": "Compact",
+        "large": "Large"
+      },
+      "density_label": "Glyph matrix density",
+      "entered_fullscreen": "Full-screen glyph library opened.",
+      "exit_fullscreen": "Exit full-screen view",
+      "exited_fullscreen": "Returned to the glyph-manager sidebar.",
+      "expand": "Expand glyph manager",
+      "filtered_count": "{filtered} / {total}",
+      "filters": "Filters",
+      "glyph_count": "{count} glyph | {count} glyphs",
+      "grid_label": "Unifont glyph library",
+      "inspector_title": "Add / Import",
+      "load_failed": "Unable to load your saved glyphs.",
+      "loading": "Loading saved glyphs…",
+      "loading_unifont": "Loading the complete Unifont library…",
+      "modified_badge": "Modified",
+      "no_matches": "No matching glyphs",
+      "no_matches_hint": "Clear the search or try another character or code point.",
+      "remove_from_manager": "Remove from manager ({count})",
+      "retry": "Retry",
+      "scrollbar_label": "Scroll glyph library",
+      "search_label": "Search glyph library",
+      "select_filtered": "Select filtered glyphs",
+      "selected_count": "{count} selected",
+      "selection_mode": "Select to add",
+      "source": {
+        "all": "All glyphs",
+        "modified": "Modified ({count})"
+      },
+      "source_filter_label": "Scope",
+      "state_active": "currently being edited",
+      "state_modified": "modified",
+      "state_selected": "selected",
+      "title": "Glyph Library",
+      "tools": "Tools",
+      "unicode_block_all": "Entire plane",
+      "unicode_block_label": "Unicode block",
+      "unicode_plane": {
+        "0": "Plane 0 · Basic Multilingual Plane (BMP)",
+        "1": "Plane 1 · Supplementary Multilingual Plane (SMP)",
+        "2": "Plane 2 · Supplementary Ideographic Plane (SIP)",
+        "3": "Plane 3 · Tertiary Ideographic Plane (TIP)",
+        "14": "Plane 14 · Supplementary Special-purpose Plane (SSP)",
+        "15": "Plane 15 · Private Use Area-A",
+        "16": "Plane 16 · Private Use Area-B",
+        "all": "Choose a plane"
+      },
+      "unicode_plane_label": "Unicode plane",
+      "workspace_label": "Full-screen glyph library"
+    },
+    "manual_input": {
+      "message": "Please input code point for this glyph:",
+      "process": "Process",
+      "skip_all": "Skip All",
+      "skip_one": "Skip",
+      "title": "Manual Code Point Input Required"
+    },
+    "search": "Search code point, character, data, or Unicode name…",
+    "select_all": "Select All",
+    "sheet_columns": "Columns",
+    "sheet_exported": "Bitmap sheet exported ({columns} columns, {scale}× pixel scale).",
+    "sheet_scale": "Pixel scale",
+    "title": "Glyph Manager",
+    "upload": {
+      "clipboard_failed": "The clipboard image could not be read.",
+      "drop_hint": "You can also drop .hex or image files here.",
+      "hex_file": "Upload Hex File",
+      "image_file": "Photo Library",
+      "no_clipboard_image": "No image was found on the clipboard.",
+      "paste_image": "Paste Image"
+    },
+    "validation": {
+      "add_glyph": "Add glyph",
+      "enter_code_point": "Please enter Unicode code point",
+      "invalid_code_point": "Code point must be 4-6 hex digits",
+      "invalid_hex": "Please enter valid glyph data (32 or 64 hex digits)"
+    }
+  },
+  "composition": {
+    "add_blank": "Add blank layer",
+    "add_first_layer": "Add blank layer",
+    "code_point": "Composition code point",
+    "apply_code_point": "Apply",
+    "code_point_invalid": "Enter a CJK Unicode code point.",
+    "canvas": "Canvas",
+    "canvas_dimensions": "16 × 16",
+    "close": "Close composition workspace",
+    "components": "Components",
+    "component_add": "Add {characters}",
+    "component_bounds": "Bounds {bounds}",
+    "component_loading": "Loading components…",
+    "component_no_results": "No matching components.",
+    "component_retry": "Retry",
+    "component_search": "Search components",
+    "component_search_error": "Unable to load components.",
+    "component_search_placeholder": "Character or code point",
+    "current_glyph": "Current glyph",
+    "delete_layer": "Delete {name}",
+    "discard": "Discard draft",
+    "draft_fallback_warning": "Composition drafts are using fallback storage.",
+    "draft_storage_warning": "Unable to save composition draft.",
+    "empty_layers": "No layers yet. Add a component or start with a blank layer.",
+    "exit_fullscreen": "Exit full-screen composition workspace",
+    "expand": "Expand composition workspace",
+    "hide": "Hide",
+    "hide_layer": "Hide {name}",
+    "ids": "IDS guidance",
+    "ids_empty": "No IDS guidance is available for this code point.",
+    "ids_error": "Unable to load IDS guidance.",
+    "ids_leaf": "Search for {character}",
+    "ids_retry": "Retry IDS",
+    "layers": "Layers",
+    "layer_stack": "Layer stack",
+    "lock": "Lock",
+    "lock_layer": "Lock {name}",
+    "new_layer": "Layer {number}",
+    "operation": "Operation",
+    "operation_add": "Add",
+    "operation_intersect": "Intersect",
+    "operation_subtract": "Subtract",
+    "redo": "Redo composition action",
+    "redo_short": "Redo",
+    "save": "Save to glyph manager",
+    "select_layer": "Select {name}",
+    "show": "Show",
+    "show_layer": "Show {name}",
+    "title": "Glyph composition",
+    "undo": "Undo composition action",
+    "undo_short": "Undo",
+    "unlock": "Unlock",
+    "unlock_layer": "Unlock {name}"
+  },
+  "header": {
+    "close_glyph_manager": "Close glyph manager",
+    "github": "Open the UniCucumber repository on GitHub",
+    "open_composition": "Open glyph composition",
+    "open_composition_16_only": "Glyph composition requires a 16×16 glyph",
+    "open_glyph_manager": "Open glyph manager",
+    "open_settings": "Open settings",
+    "open_text_preview": "Open text preview",
+    "toggle_theme": "Toggle color theme"
+  },
+  "hex_input": {
+    "apply": "Apply",
+    "committed": "Glyph data is applied.",
+    "copy": "Copy",
+    "invalid_characters": "Only hexadecimal digits are allowed.",
+    "invalid_length": "Enter 16, 32, 48, 64, or 80 digits for a 4×16, 8×16, 12×16, 16×16, or 20×16 glyph.",
+    "label": "Hexadecimal glyph data",
+    "placeholder": "Enter glyph data (16, 32, 48, 64, or 80 hex digits)",
+    "ready": "Valid glyph data is ready to apply.",
+    "width": "{width}px"
+  },
+  "image_import": {
+    "cancel": "Cancel",
+    "confirm": "Import glyph",
+    "crop": "Crop to fill",
+    "fit": "Fit inside",
+    "imported": "Image imported as a glyph.",
+    "invert": "Invert black and white",
+    "load_failed": "The selected image could not be prepared. Choose another image.",
+    "loading": "Preparing image…",
+    "mode": "Sizing mode",
+    "prepared": "Image converted. Enter or confirm its code point to finish importing.",
+    "preview": "Converted pixel glyph preview",
+    "target_width": "Glyph size",
+    "threshold": "Black threshold",
+    "title": "Prepare image as glyph",
+    "transparent_white": "Treat transparency as white"
+  },
+  "mobile_toolbar": {
+    "close_short": "Close",
+    "label": "Mobile editor commands"
+  },
+  "notifications": {
+    "dismiss": "Dismiss notification"
+  },
+  "pwa": {
+    "apply_update": "Update now",
+    "offline": "Offline",
+    "offline_ready": "UniCucumber is ready to use offline.",
+    "online_again": "Back online.",
+    "registration_failed": "Offline support could not be enabled.",
+    "update_check_failed": "Unable to check for updates. Try again shortly.",
+    "update_check_offline": "Connect to the internet before checking for updates.",
+    "update_check_unavailable": "Update checks are available in the installed production app.",
+    "update_failed": "The update was not applied because the draft could not be preserved.",
+    "update_not_found": "You're using the latest version.",
+    "update_ready": "Your current draft will be saved safely before updating.",
+    "update_title": "Update available"
+  },
+  "selection": {
+    "actions": "Selection actions",
+    "cancel_paste": "Cancel",
+    "confirm_paste": "Paste",
+    "copy": "Copy",
+    "cut": "Cut",
+    "delete": "Delete",
+    "deselect": "Deselect",
+    "duplicate": "Duplicate",
+    "move_down": "Move down",
+    "move_left": "Move left",
+    "move_right": "Move right",
+    "move_up": "Move up",
+    "paste_actions": "Paste preview actions"
+  },
+  "settings": {
+    "always_show_mouse_cursor": "Always show mouse cursor",
+    "appearance": {
+      "auto": "Auto",
+      "dark": "Dark",
+      "follow_system": "Follow system appearance",
+      "label": "Appearance",
+      "light": "Light"
+    },
+    "auto_save_enabled": "Automatically save draft",
+    "auto_save_hint": "When disabled, drafts are still preserved when the page is hidden, updated, or closed.",
+    "auto_save_interval": "Save interval",
+    "auto_save_intervals": {
+      "10s": "10 seconds",
+      "1s": "1 second",
+      "3s": "3 seconds",
+      "500ms": "0.5 seconds",
+      "5s": "5 seconds"
+    },
+    "browser_preview_font": "Preview font fallback list",
+    "close_sidebar": "Close settings",
+    "confirm_clear": "Confirm before clearing",
+    "draw_mode": {
+      "double_button": "Left draw, right erase",
+      "label": "Draw mode",
+      "single_button": "Left draw and erase"
+    },
+    "enable_selection": "Enable selection tool",
+    "export_defaults": "Export defaults",
+    "export_scale": "Image scale",
+    "export_transparent": "Use transparent background",
+    "font_edit": {
+      "cancel": "Cancel",
+      "save": "Save",
+      "title": "Edit preview font"
+    },
+    "glyph_library_density": "Glyph library density",
+    "glyph_manager_push_editor": "Move the editor beside the glyph manager",
+    "glyph_manager_push_editor_hint": "On wide screens, resizing the glyph manager also resizes the editor instead of covering it.",
+    "glyph_preview": {
+      "both": "Both",
+      "browser_only": "Browser only",
+      "label": "Glyph preview mode",
+      "pixel_only": "Pixel only"
+    },
+    "glyph_colors": {
+      "background": "Background",
+      "description": "Set canvas and glyph preview colors separately for light and dark appearance.",
+      "foreground": "Foreground",
+      "input_label": "{theme} {color}",
+      "label": "Glyph colors",
+      "restore_defaults": "Restore default colors"
+    },
+    "glyph_width": {
+      "16px": "16 pixels",
+      "8px": "8 pixels",
+      "label": "Glyph width"
+    },
+    "image_import_defaults": "Image import defaults",
+    "image_import_mode": "Sizing mode",
+    "image_import_threshold": "Black threshold",
+    "image_import_transparent_white": "Treat transparent pixels as white",
+    "language": {
+      "label": "Language"
+    },
+    "local_font": {
+      "active": "Local font: {name}",
+      "import": "Import local font",
+      "import_failed": "Unable to load this font file. Use a valid TTF, OTF, WOFF, or WOFF2 font.",
+      "priority_hint": "This local font is used first; the list below remains the fallback stack.",
+      "remove": "Remove",
+      "remove_failed": "Unable to remove the saved local font.",
+      "replace": "Replace local font",
+      "restore_failed": "The saved local preview font could not be restored.",
+      "session_only": "The font is active for this session but could not be saved in this browser.",
+      "supported": "Import TTF, OTF, WOFF, or WOFF2. Imported fonts are stored only in this browser."
+    },
+    "reset": "Reset to defaults",
+    "sections": {
+      "canvas": "Canvas & tools",
+      "general": "General",
+      "glyph_preview": "Preview & library",
+      "import_export": "Import & export",
+      "safety": "Safety",
+      "updates": "Updates",
+      "workflow": "Workflow"
+    },
+    "show_border": "Show grid border",
+    "title": "Settings",
+    "updates": {
+      "check": "Check for updates",
+      "checking": "Checking for updates…",
+      "hint": "Updates save your current draft before they are applied.",
+      "version": "App version"
+    }
+  },
+  "storage": {
+    "discard_draft": "Discard",
+    "draft_restore_failed": "The previous draft could not be restored.",
+    "draft_save_failed": "The current draft could not be saved. Export a backup before leaving.",
+    "fallback_warning": "IndexedDB is unavailable. Storage capacity may be limited.",
+    "glyph_save_failed": "The glyph library could not be saved.",
+    "glyph_saved": "Glyph saved.",
+    "keep_draft": "Keep",
+    "restored_draft": "Your unfinished editing draft has been restored.",
+    "status_error": "Save failed",
+    "status_saved": "Saved",
+    "status_saving": "Saving…",
+    "status_unsaved": "Unsaved"
+  },
+  "text_preview": {
+    "close": "Close text preview",
+    "empty": "Type text to preview.",
+    "hint": "Rendered directly from the current Unifont bitmap glyph data.",
+    "input_label": "Preview text",
+    "live_hint": "Current editor and glyph-manager changes appear here automatically.",
+    "load_failed": "Some Unifont glyph data could not be loaded.",
+    "loading": "Loading glyphs…",
+    "missing": "{count} glyph is unavailable. | {count} glyphs are unavailable.",
+    "placeholder": "Type one or more lines of text",
+    "preview_label": "Unifont text preview: {text}",
+    "sample": "南去經三國，東來過五湖。",
+    "scale": "Scale",
+    "title": "Text preview"
+  },
+  "title": "UniCucumber - Unifont Web Editor",
+  "tools": {
+    "draw": "Draw",
+    "erase": "Erase",
+    "fill": "Flood fill",
+    "filled_rectangle": "Filled rectangle",
+    "flip_horizontal": "Flip horizontally",
+    "flip_vertical": "Flip vertically",
+    "invert": "Invert pixels",
+    "line": "Line",
+    "more": "More",
+    "pan": "Pan",
+    "rectangle": "Rectangle",
+    "secondary": "More drawing tools",
+    "select": "Select",
+    "shift_down": "Shift down",
+    "shift_left": "Shift left",
+    "shift_right": "Shift right",
+    "shift_up": "Shift up",
+    "toolbar": "Editor tools",
+    "transforms": "Grid transforms"
+  },
+  "workspace": {
+    "fit": "Fit grid to screen",
+    "grid_label": "{width} by 16 pixel glyph grid",
+    "label": "Glyph editing workspace",
+    "reset_view": "Reset view",
+    "view_controls": "Grid view controls",
+    "zoom_in": "Zoom in",
+    "zoom_level": "Zoom level",
+    "zoom_out": "Zoom out"
+  }
+}

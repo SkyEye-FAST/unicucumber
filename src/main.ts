@@ -12,6 +12,7 @@ import App from './App.vue'
 import { useNotifications } from './composables/useNotifications'
 import { disposeTheme, initializeTheme } from './composables/useTheme'
 import en from './locales/en.json'
+import lzh from './locales/lzh.json'
 import zh_cn from './locales/zh-cn.json'
 import zh_tw from './locales/zh-tw.json'
 import { flushPendingDrafts } from './platform/draftFlush'
@@ -33,6 +34,7 @@ const i18n = createI18n({
     zh: zh_cn,
     'zh-CN': zh_cn,
     'zh-TW': zh_tw,
+    lzh: lzh,
   },
   postTranslation: (translated) =>
     typeof translated === 'string'

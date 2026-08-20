@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import en from '@/locales/en.json'
+import lzh from '@/locales/lzh.json'
 import zhCn from '@/locales/zh-cn.json'
 import zhTw from '@/locales/zh-tw.json'
 
@@ -10,6 +11,7 @@ describe('locale normalization', () => {
   it.each([
     ['zh-Hans-CN', 'zh-CN'],
     ['zh_TW', 'zh-TW'],
+    ['lzh', 'lzh'],
     ['zh', 'zh'],
     ['en-GB', 'en'],
     [undefined, 'en'],
@@ -23,6 +25,7 @@ describe('settings localization', () => {
     [en, ['Auto', 'Light', 'Dark', 'Follow system appearance']],
     [zhCn, ['自动', '浅色', '深色', '跟随系统外观']],
     [zhTw, ['自動', '淺色', '深色', '跟隨系統外觀']],
+    [lzh, ['自動', '淺色', '深色', '跟隨系統外觀']],
   ] as const)('defines every appearance preference label', (locale, labels) => {
     expect([
       locale.settings.appearance.auto,
@@ -44,7 +47,7 @@ describe('settings localization', () => {
 })
 
 describe('glyph-library localization', () => {
-  it.each([en, zhCn, zhTw])(
+  it.each([en, zhCn, zhTw, lzh])(
     'defines the complete full-screen glyph-library vocabulary',
     (locale) => {
       const library = locale.glyph_manager.library
