@@ -45,3 +45,10 @@ body {
     'Source Han Sans TC', 'Microsoft JhengHei UI', 'Microsoft JhengHei',
     'PingFang TC', system-ui, sans-serif;
 }
+
+[lang='lzh'] body {
+  --normal-font:
+    'Shanggu Sans', 'Noto Sans TC', 'Noto Sans CJK TC', 'Source Han Sans TC',
+    'Microsoft JhengHei UI', 'Microsoft JhengHei', 'PingFang TC',
+    'BabelStone Han', system-ui, sans-serif;
+}

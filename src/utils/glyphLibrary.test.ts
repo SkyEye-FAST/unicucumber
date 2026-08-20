@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   blocksForPlane,
+  getUnicodeBlockNameForLocale,
   UNICODE_BLOCK_NAMES_ZH_HANS,
   UNICODE_BLOCK_NAMES_ZH_HANT,
   UNICODE_BLOCKS,
@@ -55,6 +56,13 @@ describe('glyph-library preview preparation', () => {
     expect(
       UNICODE_BLOCKS.filter((block) => !UNICODE_BLOCK_NAMES_ZH_HANT[block.id]),
     ).toEqual([])
+  })
+
+  it('selects the matching Unicode block translation for each locale', () => {
+    expect(getUnicodeBlockNameForLocale('zh-CN', 'cyrillic')).toBe('西里尔字母')
+    expect(getUnicodeBlockNameForLocale('zh-TW', 'cyrillic')).toBe('西里爾字母')
+    expect(getUnicodeBlockNameForLocale('lzh', 'cyrillic')).toBe('西里爾字母')
+    expect(getUnicodeBlockNameForLocale('en', 'cyrillic')).toBeUndefined()
   })
 
   it('sorts glyphs by numeric code point', () => {
