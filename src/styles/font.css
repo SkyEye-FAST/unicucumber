@@ -6,8 +6,6 @@
 /* Plangothic P1 and P2 */
 @import url('https://fontsapi.zeoseven.com/150/main/result.css');
 @import url('https://fontsapi.zeoseven.com/152/main/result.css');
-/* Shanggu Sans (Inherited Glyphs / 傳承字形) */
-@import url('https://cdn.jsdelivr.net/npm/@hanzi.pro/webfonts-shanggu-sans@0.1.0/swap.css');
 
 .icon {
   font-weight: normal;
@@ -50,7 +48,7 @@ body {
 
 [lang='lzh'] body {
   --normal-font:
-    'Shanggu Sans', 'Noto Sans TC', 'Noto Sans CJK TC',
-    'Source Han Sans TC', 'Microsoft JhengHei UI', 'Microsoft JhengHei',
-    'PingFang TC', 'BabelStone Han', system-ui, sans-serif;
+    'Shanggu Sans', 'Noto Sans TC', 'Noto Sans CJK TC', 'Source Han Sans TC',
+    'Microsoft JhengHei UI', 'Microsoft JhengHei', 'PingFang TC',
+    'BabelStone Han', system-ui, sans-serif;
 }

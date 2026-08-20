@@ -9,7 +9,14 @@ const argv = process.argv.slice(2)
 const dryRun = argv.includes('--dry-run')
 
 const localesDir = resolve(projectRoot, 'src/locales')
-const localeFiles = ['en.json', 'zh-cn.json', 'zh-tw.json']
+const localeFiles = [
+  'en.json',
+  ...readdirSync(localesDir)
+    .filter(
+      (fileName) => extname(fileName) === '.json' && fileName !== 'en.json',
+    )
+    .sort(),
+]
 const sourceRoot = resolve(projectRoot, 'src')
 const sourceExtensions = new Set(['.vue', '.ts', '.js', '.mjs'])
 

@@ -12,11 +12,37 @@ describe('locale normalization', () => {
     ['zh-Hans-CN', 'zh-CN'],
     ['zh_TW', 'zh-TW'],
     ['lzh', 'lzh'],
+    ['lzh-Hant', 'lzh'],
+    ['lzh_TW', 'lzh'],
+    ['lzhfoo', 'en'],
+    ['zhfoo', 'en'],
     ['zh', 'zh'],
     ['en-GB', 'en'],
     [undefined, 'en'],
   ])('normalizes %s to %s', (input, expected) => {
     expect(normalizeLocale(input)).toBe(expected)
+  })
+})
+
+describe('locale branding', () => {
+  it.each([en, zhCn, zhTw, lzh])(
+    'preserves the UniCucumber product name',
+    (locale) => {
+      expect(locale.title).toContain('UniCucumber')
+      expect(locale.header.github).toContain('UniCucumber')
+      expect(locale.pwa.offline_ready).toContain('UniCucumber')
+    },
+  )
+})
+
+describe('Literary Chinese localization', () => {
+  it('preserves current glyph dimensions and Unicode terminology', () => {
+    expect(lzh.dialog.dimension_error.message).toContain('十二')
+    expect(lzh.glyph_manager.library.cell_accessible).toBe(
+      '{character}，U+{codePoint}，{width}像素字形{states}',
+    )
+    expect(lzh.glyph_manager.library.unicode_plane['2']).toContain('表意文字')
+    expect(lzh.glyph_manager.library.unicode_plane['3']).toContain('表意文字')
   })
 })
 

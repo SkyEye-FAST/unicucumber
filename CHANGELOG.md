@@ -6,7 +6,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Added
 
-- Add a Literary Chinese locale option with the language code `lzh`, browser/setting recognition, and direct Shanggu Sans webfont loading for the Inherited Glyphs presentation.
+- Add a Literary Chinese (`lzh`) locale with browser and settings recognition, consistent UniCucumber branding, on-demand Shanggu Sans presentation, Traditional Chinese Unicode block labels, and automatic locale validation.
 - Add separate light- and dark-mode glyph foreground and background color controls in Settings, with live updates, persistence, and a dedicated default-color reset.
 - Add a source-neutral visual 16×16 glyph composition workspace with layered bitmap operations, IDS-assisted component discovery, safe drafts, generated component data, and versioned offline caches.
 
@@ -18,6 +18,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Fixed
 
+- Launch Playwright's web server through Corepack so browser tests always use the repository's pinned pnpm version.
 - Keep editor paste previews, bitmap canvases, image-import pixels, and both glyph-library layouts synchronized with the active light or dark theme.
 - Make the editor wheel-scrolling browser regression construct its own scrollable page so Linux CI does not depend on platform-specific layout height.
 - Replace the glyph library export menu's native `details/summary` toggle with explicit Vue state so export actions are stable in WebKit CI runs.

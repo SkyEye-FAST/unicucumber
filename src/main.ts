@@ -56,9 +56,7 @@ const readSavedLocale = (): SupportedLocale | null => {
 }
 
 const setLocaleFromPreference = (preferredLanguages: readonly string[]) => {
-  const locale = normalizeLocale(preferredLanguages[0])
-  i18n.global.locale.value = locale
-  updateHtmlLang(locale)
+  i18n.global.locale.value = normalizeLocale(preferredLanguages[0])
 }
 
 const savedLocale = readSavedLocale()
@@ -66,16 +64,21 @@ if (savedLocale === null) {
   setLocaleFromPreference(languages.value)
 } else {
   i18n.global.locale.value = savedLocale
-  updateHtmlLang(savedLocale)
 }
 
 watch(languages, (newLanguages) => {
   if (readSavedLocale() === null) setLocaleFromPreference(newLanguages)
 })
 
-watch(i18n.global.locale, (newLocale) => {
-  updateHtmlLang(normalizeLocale(newLocale))
-})
+watch(
+  i18n.global.locale,
+  (newLocale) => {
+    const locale = normalizeLocale(newLocale)
+    updateHtmlLang(locale)
+    if (locale === 'lzh') void import('./styles/lzh-font.css')
+  },
+  { immediate: true },
+)
 
 useTitle(computed(() => i18n.global.t('title')))
 

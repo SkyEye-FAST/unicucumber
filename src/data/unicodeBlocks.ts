@@ -1939,3 +1939,16 @@ export const UNICODE_BLOCK_NAMES_ZH_HANT: Readonly<Record<string, string>> = {
   'supplementary-private-use-area-a': '補充私人使用區-A',
   'supplementary-private-use-area-b': '補充私人使用區-B',
 }
+
+export const getUnicodeBlockNameForLocale = (
+  locale: string,
+  blockId: string,
+): string | undefined => {
+  if (locale === 'lzh' || locale === 'zh-TW') {
+    return UNICODE_BLOCK_NAMES_ZH_HANT[blockId]
+  }
+  if (locale === 'zh' || locale === 'zh-CN') {
+    return UNICODE_BLOCK_NAMES_ZH_HANS[blockId]
+  }
+  return undefined
+}

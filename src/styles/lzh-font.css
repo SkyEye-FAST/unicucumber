@@ -1,0 +1,2 @@
+/* Load Shanggu Sans only after Literary Chinese is selected. */
+@import url('https://cdn.jsdelivr.net/npm/@hanzi.pro/webfonts-shanggu-sans@0.1.0/swap.min.css');

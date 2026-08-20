@@ -13,7 +13,7 @@
     },
     "confirm": "然",
     "dimension_error": {
-      "message": "圖幅之高，恆定十六；寬須爲四、八、十六、二十",
+      "message": "圖幅之高，恆定十六；寬須爲四、八、十二、十六、二十",
       "title": "圖幅舛誤"
     },
     "format_error": {
@@ -188,7 +188,7 @@
     "library": {
       "add_selected_to_manager": "增至司形儀（{count}）",
       "added_to_manager": "既增 {count} 字形至司形儀。",
-      "cell_accessible": "{character}, U+{codePoint}, {width}像素字形{states}",
+      "cell_accessible": "{character}，U+{codePoint}，{width}像素字形{states}",
       "clear_search": "清除求索",
       "clear_selection": "清除所擇",
       "density": {
@@ -234,8 +234,8 @@
       "unicode_plane": {
         "0": "板面〇 · 多語基礎板面（BMP）",
         "1": "板面一 · 多語增補板面（SMP）",
-        "2": "板面二 · 會意增補板面（SIP）",
-        "3": "板面三 · 第三多語板面（TIP）",
+        "2": "板面二 · 表意文字增補板面（SIP）",
+        "3": "板面三 · 第三表意文字板面（TIP）",
         "14": "板面十四 · 殊用增補板面（SSP）",
         "15": "板面十五 · 私用板面甲",
         "16": "板面十六 · 私用板面乙",
@@ -254,7 +254,7 @@
     "search": "尋以碼位、字符、錄抑或萬國碼名⋯",
     "select_all": "悉擇之",
     "sheet_columns": "列數",
-    "sheet_exported": "位圖表既錄出（{columns} 列, {scale}倍幅）。",
+    "sheet_exported": "位圖表既錄出（{columns} 列，{scale}倍幅）。",
     "sheet_scale": "像素尺寸",
     "title": "司形儀",
     "upload": {
@@ -328,14 +328,12 @@
   },
   "header": {
     "close_glyph_manager": "關司形儀",
-    "github": "開「匯翠」之庫於技閣",
+    "github": "開 UniCucumber 之庫於 GitHub",
     "open_composition": "開組字坊",
     "open_composition_16_only": "組字坊須橫縱十六之字形",
     "open_glyph_manager": "開司形儀",
     "open_settings": "開置設",
     "open_text_preview": "開文覽",
-    "title_cucumber": "翠",
-    "title_uni": "匯",
     "toggle_theme": "更迭色采"
   },
   "hex_input": {
@@ -376,7 +374,7 @@
   "pwa": {
     "apply_update": "旋即迭新",
     "offline": "離綫",
-    "offline_ready": "「匯翠」既備，離綫無礙。",
+    "offline_ready": "UniCucumber 既備，離綫無礙。",
     "online_again": "復聯矣。",
     "registration_failed": "離綫廢矣，不堪啟用。",
     "update_check_failed": "察新未成。俄頃復試之。",
@@ -440,7 +438,7 @@
     },
     "glyph_library_density": "字庫疏密",
     "glyph_manager_push_editor": "示纂具於司形儀之側",
-    "glyph_manager_push_editor_hint": "寬幕者, 司形儀形變，則纂域隨變，不爲所蔽。",
+    "glyph_manager_push_editor_hint": "寬幕者，司形儀形變，則纂域隨變，不爲所蔽。",
     "glyph_preview": {
       "both": "皆有",
       "browser_only": "惟瀏覽器",
@@ -527,7 +525,7 @@
     "scale": "尺寸",
     "title": "預覽"
   },
-  "title": "「匯翠」- 纂萬國碼字體",
+  "title": "UniCucumber - 纂萬國碼字體",
   "tools": {
     "draw": "繪",
     "erase": "削",
