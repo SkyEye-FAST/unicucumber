@@ -22,6 +22,7 @@ describe('settings parsing and baseline reset', () => {
       drawMode: 'doubleButtonDraw',
       enableSelection: defaultSettings.enableSelection,
       glyphLibraryDensity: defaultSettings.glyphLibraryDensity,
+      preserveGlyphLibraryFilters: true,
       glyphManagerPushEditor: true,
       lightGlyphForegroundColor: defaultSettings.lightGlyphForegroundColor,
       lightGlyphBackgroundColor: defaultSettings.lightGlyphBackgroundColor,
@@ -87,6 +88,23 @@ describe('settings parsing and baseline reset', () => {
     ).toMatchObject({
       glyphManagerPushEditor: true,
     })
+  })
+
+  it('keeps the glyph-library filter retention preference', () => {
+    expect(
+      parseSettings({
+        version: SETTINGS_VERSION,
+        baseline: SETTINGS_BASELINE,
+        preserveGlyphLibraryFilters: false,
+      }),
+    ).toMatchObject({ preserveGlyphLibraryFilters: false })
+    expect(
+      parseSettings({
+        version: SETTINGS_VERSION,
+        baseline: SETTINGS_BASELINE,
+        preserveGlyphLibraryFilters: 'yes',
+      }),
+    ).toMatchObject({ preserveGlyphLibraryFilters: true })
   })
 
   it('keeps valid import, export, and workflow preferences', () => {

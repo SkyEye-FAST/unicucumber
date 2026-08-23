@@ -425,6 +425,22 @@
               />
             </div>
 
+            <label class="settings-check-row" for="preserveGlyphLibraryFilters">
+              <span class="settings-label">{{
+                $t('settings.preserve_glyph_library_filters')
+              }}</span>
+              <input
+                id="preserveGlyphLibraryFilters"
+                type="checkbox"
+                role="switch"
+                :checked="settings.preserveGlyphLibraryFilters"
+                @change="updateBoolean('preserveGlyphLibraryFilters', $event)"
+              />
+            </label>
+            <p class="settings-hint">
+              {{ $t('settings.preserve_glyph_library_filters_hint') }}
+            </p>
+
             <label class="settings-check-row" for="glyphManagerPushEditor">
               <span class="settings-label">{{
                 $t('settings.glyph_manager_push_editor')
@@ -886,6 +902,7 @@ const updateBoolean = (
     | 'alwaysShowMouseCursor'
     | 'showBorder'
     | 'glyphManagerPushEditor'
+    | 'preserveGlyphLibraryFilters'
     | 'confirmClear'
     | 'enableSelection'
     | 'exportTransparent'

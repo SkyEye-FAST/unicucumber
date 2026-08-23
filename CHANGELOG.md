@@ -4,6 +4,10 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+### Added
+
+- Preserve glyph-library search and Unicode filters after choosing a glyph, with a persisted Settings option to clear filters after selection when preferred.
+
 ## [1.7.0] - 2026-08-23
 
 ### Added

@@ -689,26 +689,90 @@ test.describe('full-screen glyph library', () => {
     await expect(page.locator('.sidebar.active')).toHaveCount(0)
   })
 
-  test('keyboard navigation opens a glyph and restores the library context', async ({
+  test('preserves filters after choosing a glyph and honors the setting', async ({
     page,
   }) => {
     await openLibrary(page)
     await expandLibrary(page)
-    const cells = page.locator('.glyph-library-cell')
-    await cells.first().focus()
-    await page.keyboard.press('ArrowRight')
-    await expect(cells.nth(1)).toBeFocused()
+    await page.getByRole('button', { name: 'Filters', exact: true }).click()
+    await page.getByRole('combobox', { name: 'Unicode plane' }).click()
+    await page
+      .getByRole('option', { name: /Plane 0.*Basic Multilingual Plane/ })
+      .click()
+    await page.getByRole('combobox', { name: 'Unicode block' }).click()
+    await page
+      .getByRole('searchbox', { name: 'Unicode block' })
+      .fill('Basic Latin')
+    await page.getByRole('option', { name: /Basic Latin/ }).click()
+    await page.locator('.library-search input').fill('0022')
+
+    const filteredCell = page.locator('.glyph-library-cell')
+    await expect(filteredCell).toHaveCount(1)
+    await filteredCell.focus()
     await page.keyboard.press('Enter')
     await expect(page.locator('.sidebar')).not.toHaveClass(
       /glyph-library-expanded/,
     )
     await expect(page.locator('.code-point-input input')).toHaveValue('0022')
 
-    await page.getByRole('button', { name: 'Expand glyph manager' }).click()
-    await expect(page.locator('.library-search input')).toHaveValue('')
-    await expect(page.locator('.glyph-library-cell').nth(1)).toHaveClass(
-      /is-active/,
+    await page.locator('.btn-close-sidebar').click()
+    await expect(page.locator('.sidebar.active')).toHaveCount(0)
+    await page.getByRole('button', { name: 'Open glyph manager' }).click()
+    await expandLibrary(page, 1)
+    await page.getByRole('button', { name: 'Filters', exact: true }).click()
+    await expect(page.locator('.library-search input')).toHaveValue('0022')
+    await expect(
+      page.getByRole('combobox', { name: 'Unicode plane' }),
+    ).toContainText('Plane 0')
+    await expect(
+      page.getByRole('combobox', { name: 'Unicode block' }),
+    ).toContainText('Basic Latin')
+
+    await page.getByRole('button', { name: 'Exit full-screen view' }).click()
+    await page.locator('.btn-close-sidebar').click()
+    await expect(page.locator('.sidebar.active')).toHaveCount(0)
+    await page.getByRole('button', { name: 'Open settings' }).click()
+    const settingsDrawer = page.getByRole('dialog', { name: 'Settings' })
+    const preserveFilters = settingsDrawer.getByRole('switch', {
+      name: 'Keep filters after choosing a glyph',
+    })
+    await expect(preserveFilters).toBeChecked()
+    await preserveFilters.uncheck()
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const stored = localStorage.getItem('unicucumber_settings')
+          return stored === null
+            ? null
+            : JSON.parse(stored).preserveGlyphLibraryFilters
+        }),
+      )
+      .toBe(false)
+    await settingsDrawer.getByRole('button', { name: 'Close settings' }).click()
+
+    await page.getByRole('button', { name: 'Open glyph manager' }).click()
+    await expandLibrary(page, 1)
+    await page.locator('.glyph-library-cell').focus()
+    await page.keyboard.press('Enter')
+    await expect(page.locator('.sidebar')).not.toHaveClass(
+      /glyph-library-expanded/,
     )
+
+    await page.locator('.btn-close-sidebar').click()
+    await expect(page.locator('.sidebar.active')).toHaveCount(0)
+    await page.getByRole('button', { name: 'Open glyph manager' }).click()
+    await expandLibrary(page)
+    await page.getByRole('button', { name: 'Filters', exact: true }).click()
+    await expect(page.locator('.library-search input')).toHaveValue('')
+    await expect(
+      page.getByRole('combobox', { name: 'Unicode plane' }),
+    ).toContainText('Choose a plane')
+    await expect(
+      page.getByRole('combobox', { name: 'Unicode block' }),
+    ).toBeDisabled()
+    await expect(
+      page.locator('.glyph-library-cell[data-code-point="0022"]'),
+    ).toHaveClass(/is-active/)
   })
 
   test('selection actions remove saved copies without removing Unifont glyphs', async ({

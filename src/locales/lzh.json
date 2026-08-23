@@ -439,6 +439,8 @@
     "glyph_library_density": "字庫疏密",
     "glyph_manager_push_editor": "示纂具於司形儀之側",
     "glyph_manager_push_editor_hint": "寬幕者，司形儀形變，則纂域隨變，不爲所蔽。",
+    "preserve_glyph_library_filters": "擇字後存字庫選限",
+    "preserve_glyph_library_filters_hint": "復入字庫時，存所索、所自、層面及區域之限。",
     "glyph_preview": {
       "both": "皆有",
       "browser_only": "惟瀏覽器",

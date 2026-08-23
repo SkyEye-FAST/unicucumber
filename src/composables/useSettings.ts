@@ -130,6 +130,7 @@ export const defaultSettings: Readonly<EditorSettings> = {
   confirmClear: true,
   glyphPreviewMode: 'pixelOnly',
   glyphLibraryDensity: 'comfortable',
+  preserveGlyphLibraryFilters: true,
   browserPreviewFont: defaultFontStack,
   enableSelection: true,
   exportScale: 8,
@@ -233,6 +234,10 @@ export const parseSettings = (value: unknown): EditorSettings => {
     glyphLibraryDensity: isGlyphLibraryDensity(stored.glyphLibraryDensity)
       ? stored.glyphLibraryDensity
       : defaultSettings.glyphLibraryDensity,
+    preserveGlyphLibraryFilters:
+      typeof stored.preserveGlyphLibraryFilters === 'boolean'
+        ? stored.preserveGlyphLibraryFilters
+        : defaultSettings.preserveGlyphLibraryFilters,
     browserPreviewFont: storedPreviewFont ?? defaultSettings.browserPreviewFont,
     enableSelection:
       typeof stored.enableSelection === 'boolean'

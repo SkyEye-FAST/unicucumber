@@ -278,13 +278,19 @@ const props = withDefaults(defineProps<GlyphManagerProps>(), {
 })
 const isExpanded = defineModel<boolean>('expanded', { default: false })
 const searchQuery = defineModel<string>('searchQuery', { default: '' })
+const sourceFilter = defineModel<GlyphSourceFilter>('sourceFilter', {
+  default: 'all',
+})
+const unicodePlane = defineModel<GlyphUnicodePlaneFilter>('unicodePlane', {
+  default: 'all',
+})
+const unicodeBlock = defineModel<GlyphUnicodeBlockFilter>('unicodeBlock', {
+  default: 'all',
+})
 
 const emit = defineEmits<GlyphManagerEmits>()
 
 const newGlyph = ref<GlyphData>({ codePoint: '', hexValue: '' })
-const sourceFilter = ref<GlyphSourceFilter>('all')
-const unicodePlane = ref<GlyphUnicodePlaneFilter>('all')
-const unicodeBlock = ref<GlyphUnicodeBlockFilter>('all')
 const editMode = ref<boolean>(false)
 const duplicateGlyph = ref<Glyph | null>(null)
 const pendingImageFile = ref<File | null>(null)

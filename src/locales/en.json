@@ -439,6 +439,8 @@
     "glyph_library_density": "Glyph library density",
     "glyph_manager_push_editor": "Move the editor beside the glyph manager",
     "glyph_manager_push_editor_hint": "On wide screens, resizing the glyph manager also resizes the editor instead of covering it.",
+    "preserve_glyph_library_filters": "Keep filters after choosing a glyph",
+    "preserve_glyph_library_filters_hint": "Preserves the search, source, Unicode plane, and block filters for the next visit to the glyph library.",
     "glyph_preview": {
       "both": "Both",
       "browser_only": "Browser only",

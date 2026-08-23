@@ -50,6 +50,7 @@ export interface EditorSettings {
   confirmClear: boolean
   glyphPreviewMode: GlyphPreviewMode
   glyphLibraryDensity: GlyphLibraryDensity
+  preserveGlyphLibraryFilters: boolean
   browserPreviewFont: string
   enableSelection: boolean
   exportScale: ExportScale

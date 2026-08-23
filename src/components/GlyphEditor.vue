@@ -243,6 +243,9 @@
             ref="glyphManagerRef"
             v-model:expanded="isGlyphLibraryExpanded"
             v-model:search-query="glyphManagerSearchQuery"
+            v-model:source-filter="glyphLibrarySourceFilter"
+            v-model:unicode-block="glyphLibraryUnicodeBlock"
+            v-model:unicode-plane="glyphLibraryUnicodePlane"
             :glyphs="glyphs"
             :library-loading="glyphLibraryLoading"
             :library-loaded="glyphLibraryLoaded"
@@ -322,6 +325,9 @@ import type { EditorCommand, MobileAction } from '@/types/editor'
 import type {
   EditorTool,
   Glyph,
+  GlyphSourceFilter,
+  GlyphUnicodeBlockFilter,
+  GlyphUnicodePlaneFilter,
   GridCell,
   GridData,
   PrefillData,
@@ -397,6 +403,9 @@ const narrowSidebarQuery = window.matchMedia('(max-width: 719px)')
 const isNarrowSidebar = ref(narrowSidebarQuery.matches)
 const isGlyphLibraryExpanded = ref(false)
 const glyphManagerSearchQuery = ref('')
+const glyphLibrarySourceFilter = ref<GlyphSourceFilter>('all')
+const glyphLibraryUnicodePlane = ref<GlyphUnicodePlaneFilter>('all')
+const glyphLibraryUnicodeBlock = ref<GlyphUnicodeBlockFilter>('all')
 const showComposition = ref(false)
 const showTextPreview = ref(false)
 const compositionFocusTarget = ref<HTMLElement | null>(null)
@@ -1091,6 +1100,18 @@ const showConfirmDialog = ({
 }
 
 const handleGlyphEdit = (hexValue: string, glyph?: Glyph): void => {
+  const finishGlyphEdit = (): void => {
+    if (!glyph) return
+    loadGlyph(hexValue, glyph)
+    if (!settings.value.preserveGlyphLibraryFilters) {
+      glyphManagerSearchQuery.value = ''
+      glyphLibrarySourceFilter.value = 'all'
+      glyphLibraryUnicodePlane.value = 'all'
+      glyphLibraryUnicodeBlock.value = 'all'
+    }
+    isGlyphLibraryExpanded.value = false
+  }
+
   try {
     if (hasUnsavedChanges.value) {
       showConfirmDialog({
@@ -1098,16 +1119,12 @@ const handleGlyphEdit = (hexValue: string, glyph?: Glyph): void => {
         message: $t('dialog.unsaved_changes.message'),
         confirmText: $t('dialog.unsaved_changes.confirm'),
         onConfirm: () => {
-          if (glyph) loadGlyph(hexValue, glyph)
-          if (glyph) isGlyphLibraryExpanded.value = false
+          finishGlyphEdit()
           showDialog.value = false
         },
       })
     } else {
-      if (glyph) {
-        loadGlyph(hexValue, glyph)
-        isGlyphLibraryExpanded.value = false
-      }
+      finishGlyphEdit()
     }
   } catch (error) {
     console.error('Error loading glyph:', error)

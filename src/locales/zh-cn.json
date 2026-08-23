@@ -439,6 +439,8 @@
     "glyph_library_density": "字形库密度",
     "glyph_manager_push_editor": "在字形管理器旁显示编辑区",
     "glyph_manager_push_editor_hint": "宽屏下调整字形管理器宽度时，编辑区会同步缩放而不会被遮挡。",
+    "preserve_glyph_library_filters": "选字后保留字形库筛选",
+    "preserve_glyph_library_filters_hint": "再次进入字形库时，保留搜索、来源、Unicode 平面和区块筛选。",
     "glyph_preview": {
       "both": "双重预览",
       "browser_only": "仅浏览器显示",
