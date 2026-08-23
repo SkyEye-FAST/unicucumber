@@ -328,12 +328,14 @@
   },
   "header": {
     "close_glyph_manager": "關司形儀",
-    "github": "開 UniCucumber 之庫於 GitHub",
+    "github": "開「匯翠」之庫於技閣",
     "open_composition": "開組字坊",
     "open_composition_16_only": "組字坊須橫縱十六之字形",
     "open_glyph_manager": "開司形儀",
     "open_settings": "開置設",
     "open_text_preview": "開文覽",
+    "title_cucumber": "翠",
+    "title_uni": "匯",
     "toggle_theme": "更迭色采"
   },
   "hex_input": {
@@ -527,7 +529,7 @@
     "scale": "尺寸",
     "title": "預覽"
   },
-  "title": "UniCucumber - 纂萬國碼字體",
+  "title": "「匯翠」- 纂萬國碼字體",
   "tools": {
     "draw": "繪",
     "erase": "削",

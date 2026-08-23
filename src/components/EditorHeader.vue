@@ -2,7 +2,10 @@
   <header class="editor-header">
     <div class="brand">
       <img src="@/assets/icon.png" alt="UniCucumber" class="logo" />
-      <h1 class="title"><span class="title-prefix">Uni</span>Cucumber</h1>
+      <h1 class="title">
+        <span class="title-prefix">{{ $t('header.title_uni') }}</span
+        >{{ $t('header.title_cucumber') }}
+      </h1>
     </div>
     <div class="modal-buttons">
       <button

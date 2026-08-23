@@ -105,6 +105,8 @@ const messages = {
       open_glyph_manager: 'Open glyph manager',
       open_settings: 'Open settings',
       open_text_preview: 'Open text preview',
+      title_cucumber: 'Cucumber',
+      title_uni: 'Uni',
       toggle_theme: 'Toggle theme',
     },
   },

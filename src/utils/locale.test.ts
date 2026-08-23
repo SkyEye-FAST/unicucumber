@@ -25,11 +25,35 @@ describe('locale normalization', () => {
 })
 
 describe('locale branding', () => {
-  it.each([en, zhCn, zhTw, lzh])(
+  it.each([
+    [en, 'Uni', 'Cucumber'],
+    [zhCn, 'Uni', 'Cucumber'],
+    [zhTw, 'Uni', 'Cucumber'],
+    [lzh, '匯', '翠'],
+  ] as const)(
+    'defines localized editor-header branding',
+    (locale, titleUni, titleCucumber) => {
+      expect(locale.header.title_uni).toBe(titleUni)
+      expect(locale.header.title_cucumber).toBe(titleCucumber)
+    },
+  )
+
+  it.each([en, zhCn, zhTw])(
     'preserves the UniCucumber product name',
     (locale) => {
       expect(locale.title).toContain('UniCucumber')
       expect(locale.header.github).toContain('UniCucumber')
+    },
+  )
+
+  it('uses the Literary Chinese product and GitHub translations', () => {
+    expect(lzh.title).toBe('「匯翠」- 纂萬國碼字體')
+    expect(lzh.header.github).toBe('開「匯翠」之庫於技閣')
+  })
+
+  it.each([en, zhCn, zhTw, lzh])(
+    'identifies UniCucumber in the offline-ready message',
+    (locale) => {
       expect(locale.pwa.offline_ready).toContain('UniCucumber')
     },
   )

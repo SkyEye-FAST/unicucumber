@@ -11,6 +11,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 ### Fixed
 
 - Keep the glyph-library export panel above the bulk-selection action bar when both are open.
+- Restore localized editor branding in Literary Chinese, including the “匯翠” title and translated GitHub repository label.
 
 ## [1.7.0] - 2026-08-23
 
