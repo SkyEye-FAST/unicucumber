@@ -4,6 +4,8 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-08-23
+
 ### Added
 
 - Add a Literary Chinese (`lzh`) locale with browser and settings recognition, consistent UniCucumber branding, on-demand Shanggu Sans presentation, Traditional Chinese Unicode block labels, and automatic locale validation.
@@ -15,6 +17,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 - Refine the visual glyph composition workspace around the canvas, add undoable layer deletion, and use a layer-based entry icon.
 - Show real component bitmap previews, strengthen the composition grid, add a desktop full-screen view and responsive motion, refine mobile navigation and action sizing, reserve a responsive aligned header region for complex IDS guidance beside or below the target code point, align desktop code-point editing with the main editor, and keep compact header actions available through Settings.
 - Reduce the default Playwright matrix from 903 duplicated project entries to 156 purpose-tagged full, cross-browser, phone, and tablet checks.
+- Update development dependencies and maintenance tooling for composition data, generated type declarations, and completed design plans.
 
 ### Fixed
 
