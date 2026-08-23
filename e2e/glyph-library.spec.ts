@@ -869,6 +869,32 @@ test.describe('full-screen glyph library', () => {
     await expect(
       page.getByRole('button', { name: /Add to glyph manager/ }),
     ).toBeDisabled()
+    await page.getByRole('button', { name: 'Export Glyphs' }).click()
+    const exportOptionsCoverSelectionBar = await page.evaluate(() => {
+      const exportOptions = document.querySelector<HTMLElement>(
+        '.library-export-options',
+      )
+      const selectionBar = document.querySelector<HTMLElement>(
+        '.library-selection-bar',
+      )
+      if (!exportOptions || !selectionBar) return false
+
+      const exportRect = exportOptions.getBoundingClientRect()
+      const selectionRect = selectionBar.getBoundingClientRect()
+      const left = Math.max(exportRect.left, selectionRect.left)
+      const right = Math.min(exportRect.right, selectionRect.right)
+      const top = Math.max(exportRect.top, selectionRect.top)
+      const bottom = Math.min(exportRect.bottom, selectionRect.bottom)
+      if (left >= right || top >= bottom) return false
+
+      const topElement = document.elementFromPoint(
+        (left + right) / 2,
+        (top + bottom) / 2,
+      )
+      return topElement !== null && exportOptions.contains(topElement)
+    })
+    expect(exportOptionsCoverSelectionBar).toBe(true)
+    await page.getByRole('button', { name: 'Export Glyphs' }).click()
     if (testInfo.project.name === 'chromium') {
       await page.waitForTimeout(200)
       await page.screenshot({

@@ -720,6 +720,7 @@ const exportSheet = (): void => {
   position: absolute;
   inset-block-start: calc(100% + 0.35rem);
   inset-inline-end: 0;
+  z-index: 30;
   box-sizing: border-box;
   width: min(34rem, calc(100vw - 1.5rem));
   max-height: calc(100dvh - 12rem);
