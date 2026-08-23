@@ -55,7 +55,7 @@
       },
       "open_in_zitools": "在zi.tools中打開",
       "redo": {
-        "title": "重做 (Ctrl+Y)"
+        "title": "重做（Ctrl+Y）"
       },
       "restore": {
         "button": "還原已儲存",
@@ -67,7 +67,7 @@
       },
       "show_encoding_info": "顯示編碼資訊",
       "undo": {
-        "title": "復原 (Ctrl+Z)"
+        "title": "復原（Ctrl+Z）"
       }
     }
   },
@@ -91,23 +91,23 @@
     "transparent": "透明背景"
   },
   "glyph_editor": {
-    "copy_title": "複製 (Ctrl+C)",
-    "cut_title": "剪下 (Ctrl+X)",
+    "copy_title": "複製（Ctrl+C）",
+    "cut_title": "剪下（Ctrl+X）",
     "invalid_code_point": "請輸入U+0000至U+10FFFF的Unicode純量值（不含代理碼位）。",
-    "paste_title": "貼上 (Ctrl+V)"
+    "paste_title": "貼上（Ctrl+V）"
   },
   "glyph_manager": {
     "add": {
       "add_button": "新增字形",
-      "character": "輸入字符",
+      "character": "輸入字元",
       "clear_button": "清除",
       "code_point": "輸入Unicode碼位",
-      "hex_value": "輸入16進位字形資料（32或64位）",
+      "hex_value": "輸入字形資料（16、32、48、64或80個十六進位數字）",
       "preview": "字形預覽",
       "update_button": "更新字形"
     },
     "backup_exported": "字形庫備份已匯出。",
-    "batch_delete": "批量刪除",
+    "batch_delete": "批次刪除",
     "delete_selected": "刪除選中的{count}項",
     "duplicate": {
       "cancel": "取消",
@@ -117,7 +117,7 @@
     "error": {
       "loading_unicode_names": "無法載入Unicode名稱，仍可使用碼位搜尋。",
       "loading_unifont": "載入Unifont資料出錯",
-      "saving_storage": "儲存字形到存儲時出錯",
+      "saving_storage": "儲存字形時發生錯誤",
       "unifont_not_found": "內建Unifont資料中沒有此碼位。"
     },
     "export": "匯出字形",
@@ -179,7 +179,7 @@
       "hex": "Hex："
     },
     "hex_error_invalid_code_point": "Unicode純量值無效",
-    "hex_error_invalid_glyph_data": "字形資料必須恰好包含32或64位16進位數字",
+    "hex_error_invalid_glyph_data": "字形資料必須恰好包含16、32、48、64或80個十六進位數字",
     "hex_error_missing_separator": "缺少碼位與資料分隔符",
     "hex_invalid_count": "已略過{count}行無效的.hex資料。",
     "hex_invalid_line": "第{line}行：{reason}",
@@ -201,11 +201,11 @@
       "exit_fullscreen": "退出全螢幕檢視",
       "exited_fullscreen": "已返回字形管理器側欄。",
       "expand": "展開字形管理器",
-      "filtered_count": "{filtered} / {total}",
+      "filtered_count": "{filtered}／{total}",
       "filters": "篩選",
       "glyph_count": "{count}個字形",
       "grid_label": "Unifont字形庫",
-      "inspector_title": "新增 / 匯入",
+      "inspector_title": "新增／匯入",
       "load_failed": "無法載入已儲存的字形。",
       "loading": "正在載入已儲存的字形…",
       "loading_unifont": "正在載入完整的Unifont字形庫…",
@@ -268,8 +268,8 @@
     "validation": {
       "add_glyph": "新增字形",
       "enter_code_point": "請輸入Unicode碼位",
-      "invalid_code_point": "碼位必須是4-6位16進位數",
-      "invalid_hex": "請輸入有效的16進位字形資料（32或64位）"
+      "invalid_code_point": "碼位必須是4至6位十六進位數字",
+      "invalid_hex": "請輸入有效的字形資料（16、32、48、64或80個十六進位數字）"
     }
   },
   "composition": {
@@ -342,10 +342,10 @@
     "apply": "套用",
     "committed": "字形資料已套用。",
     "copy": "複製",
-    "invalid_characters": "只能輸入16進位數字。",
-    "invalid_length": "4×16、8×16、12×16、16×16或20×16字形需分別輸入16、32、48、64或80位。",
-    "label": "16進位字形資料",
-    "placeholder": "輸入16進位字形資料（16、32、48、64或80位）",
+    "invalid_characters": "只能輸入十六進位數字。",
+    "invalid_length": "4×16、8×16、12×16、16×16或20×16字形需分別輸入16、32、48、64或80個十六進位數字。",
+    "label": "十六進位字形資料",
+    "placeholder": "輸入字形資料（16、32、48、64或80個十六進位數字）",
     "ready": "有效的字形資料已可套用。",
     "width": "{width}像素"
   },

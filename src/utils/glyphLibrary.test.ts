@@ -50,12 +50,6 @@ describe('glyph-library preview preparation', () => {
     expect(Object.values(UNICODE_BLOCK_NAMES_ZH_HANT)).not.toContainEqual(
       expect.stringMatching(/英[语語]\s*：/),
     )
-    expect(
-      UNICODE_BLOCKS.filter((block) => !UNICODE_BLOCK_NAMES_ZH_HANS[block.id]),
-    ).toEqual([])
-    expect(
-      UNICODE_BLOCKS.filter((block) => !UNICODE_BLOCK_NAMES_ZH_HANT[block.id]),
-    ).toEqual([])
   })
 
   it('selects the matching Unicode block translation for each locale', () => {

@@ -8,9 +8,14 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 - Preserve glyph-library search and Unicode filters after choosing a glyph, with a persisted Settings option to clear filters after selection when preferred.
 
+### Changed
+
+- Remove duplicate Unicode-block locale assertions from the test suite.
+
 ### Fixed
 
 - Keep the glyph-library export panel above the bulk-selection action bar when both are open.
+- Correct stale glyph-data length guidance and inconsistent wording and punctuation across locales.
 - Restore localized editor branding in Literary Chinese, including the “匯翠” title and translated GitHub repository label.
 
 ## [1.7.0] - 2026-08-23

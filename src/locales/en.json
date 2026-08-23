@@ -2,7 +2,7 @@
   "dialog": {
     "batch_delete": {
       "confirm": "Delete",
-      "message": "Are you sure to delete the selected {count} glyphs?",
+      "message": "Are you sure you want to delete the selected {count} glyphs?",
       "title": "Confirm Delete"
     },
     "cancel": "Cancel",
@@ -24,11 +24,11 @@
     "hex_import": {
       "cancel": "Skip",
       "confirm": "Update Selected Glyphs",
-      "message": "The following glyphs already exist, please select which ones to update:",
+      "message": "The following glyphs already exist. Please select which ones to update:",
       "title": "Duplicate Glyphs Found"
     },
     "image_error": {
-      "message": "Failed to load image, please try again",
+      "message": "Failed to load the image. Please try again.",
       "title": "Image Loading Error"
     },
     "select_all": "Select All",
@@ -102,7 +102,7 @@
       "character": "Enter character",
       "clear_button": "Clear",
       "code_point": "Enter Unicode code point",
-      "hex_value": "Enter glyph data (32 or 64 hex digits)",
+      "hex_value": "Enter glyph data (16, 32, 48, 64, or 80 hexadecimal digits)",
       "preview": "Glyph Preview",
       "update_button": "Update Glyph"
     },
@@ -179,7 +179,7 @@
       "hex": "Hex:"
     },
     "hex_error_invalid_code_point": "invalid Unicode scalar value",
-    "hex_error_invalid_glyph_data": "glyph data must contain exactly 32 or 64 hexadecimal digits",
+    "hex_error_invalid_glyph_data": "glyph data must contain exactly 16, 32, 48, 64, or 80 hexadecimal digits",
     "hex_error_missing_separator": "missing code-point/data separator",
     "hex_invalid_count": "{count} invalid .hex line was skipped. | {count} invalid .hex lines were skipped.",
     "hex_invalid_line": "Line {line}: {reason}",
@@ -269,7 +269,7 @@
       "add_glyph": "Add glyph",
       "enter_code_point": "Please enter Unicode code point",
       "invalid_code_point": "Code point must be 4-6 hex digits",
-      "invalid_hex": "Please enter valid glyph data (32 or 64 hex digits)"
+      "invalid_hex": "Please enter valid glyph data (16, 32, 48, 64, or 80 hexadecimal digits)"
     }
   },
   "composition": {

@@ -55,7 +55,7 @@
       },
       "open_in_zitools": "在zi.tools中打开",
       "redo": {
-        "title": "重做 (Ctrl+Y)"
+        "title": "重做（Ctrl+Y）"
       },
       "restore": {
         "button": "恢复已保存",
@@ -67,7 +67,7 @@
       },
       "show_encoding_info": "显示编码信息",
       "undo": {
-        "title": "撤销 (Ctrl+Z)"
+        "title": "撤销（Ctrl+Z）"
       }
     }
   },
@@ -91,10 +91,10 @@
     "transparent": "透明背景"
   },
   "glyph_editor": {
-    "copy_title": "复制 (Ctrl+C)",
-    "cut_title": "剪切 (Ctrl+X)",
+    "copy_title": "复制（Ctrl+C）",
+    "cut_title": "剪切（Ctrl+X）",
     "invalid_code_point": "请输入U+0000至U+10FFFF的Unicode标量值（不含代理码位）。",
-    "paste_title": "粘贴 (Ctrl+V)"
+    "paste_title": "粘贴（Ctrl+V）"
   },
   "glyph_manager": {
     "add": {
@@ -102,7 +102,7 @@
       "character": "输入字符",
       "clear_button": "清除",
       "code_point": "输入Unicode码位",
-      "hex_value": "输入16进制字形数据（32或64位）",
+      "hex_value": "输入字形数据（16、32、48、64或80个十六进制数字）",
       "preview": "字形预览",
       "update_button": "更新字形"
     },
@@ -179,7 +179,7 @@
       "hex": "Hex："
     },
     "hex_error_invalid_code_point": "Unicode标量值无效",
-    "hex_error_invalid_glyph_data": "字形数据必须恰好包含32或64位16进制数字",
+    "hex_error_invalid_glyph_data": "字形数据必须恰好包含16、32、48、64或80个十六进制数字",
     "hex_error_missing_separator": "缺少码位与数据分隔符",
     "hex_invalid_count": "已跳过{count}行无效的.hex数据。",
     "hex_invalid_line": "第{line}行：{reason}",
@@ -187,7 +187,7 @@
     "import": "从Unifont读取",
     "library": {
       "add_selected_to_manager": "添加到字形管理器（{count}）",
-      "added_to_manager": "已添加 {count} 个字形到字形管理器。",
+      "added_to_manager": "已添加{count}个字形到字形管理器。",
       "cell_accessible": "{character}，U+{codePoint}，{width}像素字形{states}",
       "clear_search": "清除搜索",
       "clear_selection": "清除选择",
@@ -201,11 +201,11 @@
       "exit_fullscreen": "退出全屏视图",
       "exited_fullscreen": "已返回字形管理器侧栏。",
       "expand": "展开字形管理器",
-      "filtered_count": "{filtered} / {total}",
+      "filtered_count": "{filtered}／{total}",
       "filters": "筛选",
       "glyph_count": "{count}个字形",
       "grid_label": "Unifont字形库",
-      "inspector_title": "添加 / 导入",
+      "inspector_title": "添加／导入",
       "load_failed": "无法加载已保存的字形。",
       "loading": "正在加载已保存的字形…",
       "loading_unifont": "正在加载完整的Unifont字形库…",
@@ -268,8 +268,8 @@
     "validation": {
       "add_glyph": "添加字形",
       "enter_code_point": "请输入Unicode码位",
-      "invalid_code_point": "码位必须是4-6位16进制数",
-      "invalid_hex": "请输入有效的16进制字形数据（32或64位）"
+      "invalid_code_point": "码位必须是4至6位十六进制数字",
+      "invalid_hex": "请输入有效的字形数据（16、32、48、64或80个十六进制数字）"
     }
   },
   "composition": {
@@ -342,10 +342,10 @@
     "apply": "应用",
     "committed": "字形数据已应用。",
     "copy": "复制",
-    "invalid_characters": "只能输入16进制数字。",
-    "invalid_length": "4×16、8×16、12×16、16×16或20×16字形需分别输入16、32、48、64或80位。",
-    "label": "16进制字形数据",
-    "placeholder": "输入16进制字形数据（16、32、48、64或80位）",
+    "invalid_characters": "只能输入十六进制数字。",
+    "invalid_length": "4×16、8×16、12×16、16×16或20×16字形需分别输入16、32、48、64或80个十六进制数字。",
+    "label": "十六进制字形数据",
+    "placeholder": "输入字形数据（16、32、48、64或80个十六进制数字）",
     "ready": "有效的字形数据已可应用。",
     "width": "{width}像素"
   },
