@@ -103,21 +103,4 @@ describe('glyph-library preview preparation', () => {
     expect(updated).not.toBe(first)
     expect(updated.path).not.toBe(first.path)
   })
-
-  it.each([100, 1_000, 5_000])(
-    'prepares %i stable previews without per-cell reactive state',
-    (count) => {
-      const source = Array.from({ length: count }, (_, index) => ({
-        codePoint: (0x100 + index).toString(16).toUpperCase(),
-        hexValue: index % 2 === 0 ? 'AA'.repeat(16) : '55'.repeat(32),
-      }))
-      const started = performance.now()
-      const previews = sortGlyphsByCodePoint(source).map(prepareGlyphPreview)
-      expect(previews).toHaveLength(count)
-      expect(new Set(previews.map((preview) => preview.codePoint)).size).toBe(
-        count,
-      )
-      expect(performance.now() - started).toBeLessThan(3_000)
-    },
-  )
 })

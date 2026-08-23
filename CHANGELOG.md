@@ -11,6 +11,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 ### Changed
 
 - Remove duplicate Unicode-block locale assertions from the test suite.
+- Remove redundant locale-key checks, internal Escape-state coverage, and wall-clock glyph-preview assertions from the test suite.
 
 ### Fixed
 

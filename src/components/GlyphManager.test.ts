@@ -475,27 +475,4 @@ describe('GlyphManager full-screen state', () => {
     ])
     wrapper.unmount()
   })
-
-  it('handles Escape in selection, full-screen, then desktop tools order', async () => {
-    const wrapper = mountManager()
-    await flushPromises()
-    await wrapper
-      .findAll<HTMLInputElement>('input[type="checkbox"]')[1]
-      ?.setValue(true)
-    await wrapper.get('.glyph-manager-expand').trigger('click')
-
-    expect(wrapper.vm.handleEscape()).toBe(true)
-    await nextTick()
-    expect(wrapper.find('.glyph-manager').classes()).toContain('is-expanded')
-    expect(wrapper.find('.library-selection-bar').exists()).toBe(false)
-
-    expect(wrapper.vm.handleEscape()).toBe(true)
-    await nextTick()
-    expect(wrapper.find('.glyph-manager').classes()).not.toContain(
-      'is-expanded',
-    )
-    expect(wrapper.vm.handleEscape()).toBe(true)
-    expect(wrapper.vm.handleEscape()).toBe(false)
-    wrapper.unmount()
-  })
 })

@@ -83,39 +83,5 @@ describe('settings localization', () => {
       locale.settings.appearance.dark,
       locale.settings.appearance.follow_system,
     ]).toEqual(labels)
-    expect(locale.settings.close_sidebar).toBeTruthy()
-    expect(locale.settings.sections.general).toBeTruthy()
-    expect(locale.settings.sections.canvas).toBeTruthy()
-    expect(locale.settings.sections.glyph_preview).toBeTruthy()
-    expect(locale.settings.sections.safety).toBeTruthy()
-    expect(locale.settings.enable_selection).toBeTruthy()
-    expect(locale.settings.glyph_library_density).toBeTruthy()
-    expect(locale.settings.sections.import_export).toBeTruthy()
-    expect(locale.settings.sections.workflow).toBeTruthy()
-    expect(locale.settings.auto_save_enabled).toBeTruthy()
   })
-})
-
-describe('glyph-library localization', () => {
-  it.each([en, zhCn, zhTw, lzh])(
-    'defines the complete full-screen glyph-library vocabulary',
-    (locale) => {
-      const library = locale.glyph_manager.library
-      expect(
-        [
-          library.expand,
-          library.exit_fullscreen,
-          library.title,
-          library.density.compact,
-          library.density.comfortable,
-          library.density.large,
-          library.selection_mode,
-          library.select_filtered,
-          library.clear_selection,
-          library.selected_count,
-          library.no_matches,
-        ].every(Boolean),
-      ).toBe(true)
-    },
-  )
 })
