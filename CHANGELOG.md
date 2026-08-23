@@ -18,6 +18,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Fixed
 
+- Remove unintended left-side accent bars from mobile command buttons and selected composition layer cards.
 - Launch Playwright's web server through Corepack so browser tests always use the repository's pinned pnpm version.
 - Keep editor paste previews, bitmap canvases, image-import pixels, and both glyph-library layouts synchronized with the active light or dark theme.
 - Make the editor wheel-scrolling browser regression construct its own scrollable page so Linux CI does not depend on platform-specific layout height.

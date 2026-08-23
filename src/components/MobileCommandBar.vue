@@ -253,7 +253,6 @@ const chooseAction = (action: MobileAction): void => {
     align-self: stretch;
     padding-right: max(0.35rem, env(safe-area-inset-right)) !important;
     border: 0 !important;
-    border-left: 1px solid var(--primary-color) !important;
     border-radius: 0 !important;
     background: color-mix(
       in srgb,
@@ -265,7 +264,6 @@ const chooseAction = (action: MobileAction): void => {
   }
 
   .more-toggle--close {
-    border-left-color: var(--danger-color) !important;
     background: color-mix(
       in srgb,
       var(--danger-color) 20%,

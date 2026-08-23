@@ -138,7 +138,6 @@ const handleOperationChange = (event: Event): void => {
 .composition-layer.selected {
   border-color: var(--primary-color);
   background: var(--background-hover);
-  box-shadow: inset 0.2rem 0 0 var(--primary-color);
 }
 
 .composition-layer.layer-hidden .layer-name {
