@@ -41,8 +41,8 @@
     "opentype.js": "^2.0.0",
     "stream-browserify": "^3.0.0",
     "unicode-name": "^1.1.0",
-    "vue": "^3.5.41",
-    "vue-i18n": "^11.4.8",
+    "vue": "^3.5.42",
+    "vue-i18n": "^11.4.10",
     "woff2-encoder": "^2.0.0"
   },
   "devDependencies": {
