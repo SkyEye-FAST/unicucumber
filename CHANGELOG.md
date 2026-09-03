@@ -10,6 +10,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Changed
 
+- Update the component-testing, DOM simulation, linting, type-checking, coverage, and Material Symbols development dependencies.
 - Update Vue and Vue I18n to their latest compatible patch releases.
 - Remove an unused conversion module and obsolete locale keys, consolidate duplicate glyph sorting, and drop stale test-runner paths from the TypeScript configuration.
 - Remove duplicate Unicode-block locale assertions from the test suite.
