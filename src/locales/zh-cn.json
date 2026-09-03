@@ -544,10 +544,6 @@
     "rectangle": "矩形",
     "secondary": "更多绘图工具",
     "select": "选择",
-    "shift_down": "下移",
-    "shift_left": "左移",
-    "shift_right": "右移",
-    "shift_up": "上移",
     "toolbar": "编辑工具",
     "transforms": "网格变换"
   },

@@ -1,4 +1,5 @@
 import type { Glyph } from '@/types/glyph'
+import { sortGlyphsByCodePoint } from '@/utils/glyphLibrary'
 import { hexToGrid } from '@/utils/hexUtils'
 
 export interface GlyphBackup {
@@ -14,11 +15,6 @@ export interface BitmapSheetOptions {
   scale?: number
 }
 
-export const sortGlyphs = (glyphs: Glyph[]): Glyph[] =>
-  [...glyphs].sort(
-    (a, b) => parseInt(a.codePoint, 16) - parseInt(b.codePoint, 16),
-  )
-
 export const createGlyphBackup = (
   glyphs: Glyph[],
   now = new Date(),
@@ -27,7 +23,7 @@ export const createGlyphBackup = (
   exportedAt: now.toISOString(),
   generator: 'UniCucumber',
   metadata: { glyphCount: glyphs.length, format: 'unifont-hex' },
-  glyphs: sortGlyphs(glyphs).map((glyph) => ({ ...glyph })),
+  glyphs: sortGlyphsByCodePoint(glyphs).map((glyph) => ({ ...glyph })),
 })
 
 export const getBitmapSheetLayout = (
@@ -55,7 +51,7 @@ export const createBitmapSheet = (
   glyphs: Glyph[],
   options: BitmapSheetOptions = {},
 ): HTMLCanvasElement => {
-  const sorted = sortGlyphs(glyphs)
+  const sorted = sortGlyphsByCodePoint(glyphs)
   const layout = getBitmapSheetLayout(sorted.length, options)
   const canvas = document.createElement('canvas')
   canvas.width = layout.columns * layout.tileWidth
