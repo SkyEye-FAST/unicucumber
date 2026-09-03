@@ -544,10 +544,6 @@
     "rectangle": "Rectangle",
     "secondary": "More drawing tools",
     "select": "Select",
-    "shift_down": "Shift down",
-    "shift_left": "Shift left",
-    "shift_right": "Shift right",
-    "shift_up": "Shift up",
     "toolbar": "Editor tools",
     "transforms": "Grid transforms"
   },
