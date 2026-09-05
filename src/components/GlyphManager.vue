@@ -1865,6 +1865,7 @@ defineExpose({ handleEscape })
   padding: 16px;
   background: var(--background-light);
   container-type: inline-size;
+  animation: glyph-manager-return 180ms ease-out;
 }
 
 .glyph-manager.is-expanded {
@@ -1875,39 +1876,30 @@ defineExpose({ handleEscape })
   isolation: isolate;
   overflow: hidden;
   background: var(--background-color);
-  transform-origin: left top;
-  animation: glyph-library-workspace-enter 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: none;
 }
 
 .glyph-manager.is-expanded > :deep(.library-toolbar) {
-  animation: glyph-library-toolbar-enter 240ms 30ms
+  animation: glyph-library-content-enter 220ms 60ms
     cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .glyph-manager.is-expanded > :deep(.glyph-library-shell),
 .glyph-manager.is-expanded > .glyph-library-status {
-  animation: glyph-library-content-enter 300ms 60ms
+  animation: glyph-library-content-enter 260ms 100ms
     cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@keyframes glyph-library-workspace-enter {
+@keyframes glyph-manager-return {
   from {
-    opacity: 0.72;
-    transform: translateX(-0.85rem) scale(0.985);
-  }
-}
-
-@keyframes glyph-library-toolbar-enter {
-  from {
-    opacity: 0;
-    transform: translateY(-0.5rem);
+    opacity: 0.6;
   }
 }
 
 @keyframes glyph-library-content-enter {
   from {
     opacity: 0;
-    transform: translateY(0.75rem);
+    transform: translateY(0.4rem);
   }
 }
 
@@ -2020,6 +2012,13 @@ defineExpose({ handleEscape })
 }
 
 @media (max-width: 719px) {
+  .glyph-manager.is-expanded > :deep(.library-toolbar),
+  .glyph-manager.is-expanded > :deep(.glyph-library-shell),
+  .glyph-manager.is-expanded > .glyph-library-status {
+    animation-duration: 200ms;
+    animation-delay: 0ms;
+  }
+
   .glyph-manager {
     height: 100dvh;
     padding: max(0.75rem, env(safe-area-inset-top))
@@ -2044,7 +2043,7 @@ defineExpose({ handleEscape })
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .glyph-manager.is-expanded,
+  .glyph-manager,
   .glyph-manager.is-expanded > :deep(.library-toolbar),
   .glyph-manager.is-expanded > :deep(.glyph-library-shell),
   .glyph-manager.is-expanded > .glyph-library-status {

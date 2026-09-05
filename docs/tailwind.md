@@ -94,8 +94,7 @@ The subsequent cleanup uses focused editor/library/settings browser workflows,
 the saved-list component tests, changed-file lint/format checks, and a production
 build; it does not require repeating unrelated domain and persistence suites.
 
-This is an internal styling refactor without a new user-visible feature, browser
-support change, or data format change. Keep application version 1.7.0 and record
-the work under Unreleased; a standalone release is not recommended for this
-refactor. The other accumulated Unreleased settings feature warrants a minor
-release if the complete pending changes are published together.
+The styling refactor did not require a standalone release or change browser
+support or data formats. It is included in 1.8.0 alongside the user-visible glyph
+library navigation, adaptive tooltips, and filter-retention settings; those
+features warrant the minor release.

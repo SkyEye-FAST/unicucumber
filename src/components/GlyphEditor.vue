@@ -1369,6 +1369,7 @@ const handlePasteStart = (): void => {
 }
 
 .sidebar {
+  --library-entry-width: min(v-bind(sidebarWidth + 'px'), calc(100vw - 2rem));
   position: fixed;
   top: 0;
   left: 0;
@@ -1411,6 +1412,20 @@ const handlePasteStart = (): void => {
   max-width: none;
   border-right: 0;
   box-shadow: none;
+  transform: translateX(0);
+  transition: none;
+  animation: glyph-library-expand 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Reveal the final-size workspace instead of resizing the virtual grid on
+ * every frame. The surface grows from the current sidebar edge. */
+@keyframes glyph-library-expand {
+  from {
+    clip-path: inset(0 max(0px, calc(100vw - var(--library-entry-width))) 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
 }
 
 .sidebar.glyph-library-expanded .sidebar-resizer,
@@ -1645,6 +1660,7 @@ const handlePasteStart = (): void => {
   }
 
   .sidebar {
+    --library-entry-width: 100vw;
     width: 100%;
     max-width: 100%;
     padding-top: env(safe-area-inset-top);
@@ -1702,6 +1718,10 @@ const handlePasteStart = (): void => {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .sidebar.glyph-library-expanded {
+    animation: none;
+  }
+
   .sidebar.glyph-sidebar-enter-active,
   .sidebar.glyph-sidebar-leave-active {
     transition: none;

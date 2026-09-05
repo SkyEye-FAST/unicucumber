@@ -4,6 +4,8 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-09-05
+
 ### Added
 
 - Add shared icon-button tooltips with viewport-aware positioning, right-side hints for editor commands, vertical hints for horizontal toolbars, and reduced-motion-aware fade and slide transitions.
@@ -11,6 +13,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Changed
 
+- Smooth the glyph-library transition by revealing the workspace from the sidebar edge, staging content entry without resizing the virtual grid, and shortening motion on phones.
 - Make “Open glyph library” a prominent entry with collection guidance, retain a compact return arrow, and place “Add and import” directly above its expandable controls.
 - Streamline glyph-manager and library layout styles with Tailwind, consolidate glyph-adder button rules, and remove obsolete inspector styling and redundant breakpoint declarations.
 - Simplify editor and Settings layouts with Tailwind utilities, consolidate shared settings typography, and remove duplicate dialog styles.

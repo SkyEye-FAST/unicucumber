@@ -323,15 +323,42 @@ test('animates the transition into the full-screen glyph library', async ({
   await seedGlyphs(page)
   await page.setViewportSize({ width: 1024, height: 768 })
   await openLibrary(page)
-  await page.getByRole('button', { name: 'Open glyph library' }).click()
-
+  const motion = await page
+    .getByRole('button', { name: 'Open glyph library' })
+    .evaluate(async (button) => {
+      button.click()
+      await new Promise(requestAnimationFrame)
+      const sidebar = document.querySelector<HTMLElement>('.sidebar')!
+      const toolbar = sidebar.querySelector<HTMLElement>('.library-toolbar')!
+      const animation = sidebar
+        .getAnimations()
+        .find(
+          (entry) =>
+            entry instanceof CSSAnimation &&
+            entry.animationName.startsWith('glyph-library-expand-'),
+        )!
+      animation.pause()
+      const sample = (time: number) => {
+        animation.currentTime = time
+        return {
+          clip: getComputedStyle(sidebar).clipPath,
+          width: toolbar.getBoundingClientRect().width,
+        }
+      }
+      const start = sample(0)
+      const middle = sample(160)
+      animation.finish()
+      return { start, middle, endWidth: toolbar.getBoundingClientRect().width }
+    })
+  const inset = (clip: string) => Number.parseFloat(clip.split(' ')[1]!)
+  expect(inset(motion.start.clip)).toBeGreaterThan(0)
+  expect(inset(motion.middle.clip)).toBeLessThan(inset(motion.start.clip))
+  expect(inset(motion.middle.clip)).toBeGreaterThan(0)
+  expect(motion.start.width).toBe(motion.middle.width)
+  expect(motion.middle.width).toBe(motion.endWidth)
   await expect(
     page.getByRole('region', { name: 'Full-screen glyph library' }),
   ).toBeVisible()
-  await expect(page.locator('.glyph-manager')).toHaveCSS(
-    'animation-name',
-    /^glyph-library-workspace-enter-/,
-  )
 })
 
 test('keeps the active selection action legible in dark mode', async ({
