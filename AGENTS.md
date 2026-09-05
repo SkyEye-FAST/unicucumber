@@ -40,7 +40,7 @@ pnpm test:e2e
 pnpm check:locales
 ```
 
-`pnpm check` is the normal pre-commit quality gate. It runs type checking, linting, formatting checks, unit tests, and version validation. Run `pnpm build` as well for changes that affect application code, build configuration, assets, PWA behaviour, or dependency resolution.
+Choose verification from the actual change and its risk. `pnpm check` is the comprehensive quality gate, not a requirement for every task or commit. It runs type checking, linting, formatting checks, unit tests, and version validation. Use focused checks for ordinary changes; reserve the comprehensive gate for releases, broad changes, or unresolved regression risk. Run `pnpm build` when changing build configuration, dependencies, assets, or PWA behaviour, or when production bundling is relevant to an application change.
 
 Use `pnpm format` and `pnpm lint:fix` only when intentionally applying automatic fixes. Avoid formatting unrelated files.
 
@@ -127,30 +127,38 @@ Follow the configured ESLint and Prettier rules. Avoid `any`; use precise types 
 
 ## Testing expectations
 
-Add or update regression tests with behavioural changes:
+Add or update regression tests when they protect meaningful behaviour or reproduce a bug. Do not add tests solely for documentation, static styling, mechanical refactors, or assertions that mirror the implementation. For changes that warrant tests:
 
 - colocate Vitest files as `*.test.ts` or `*.spec.ts` under `src` or `scripts`;
 - test domain and utility logic with focused unit tests;
 - use Vue Test Utils for component behaviour;
 - use `fake-indexeddb` for persistence and migration tests;
-- add Playwright coverage for complete user workflows, pointer/touch behaviour, responsive UI, browser integration, and PWA behaviour.
+- use Playwright when the behaviour depends on real browser layout, input, or platform APIs and existing coverage is insufficient.
 
-Run the narrowest relevant test first, then the broader quality gates. Examples:
+Run the narrowest relevant checks first and stop once they adequately cover the change:
+
+- Documentation and shared editor configuration: formatting and configuration validation; no application tests or build by default.
+- Local TypeScript or Vue logic: type checking and the affected tests; lint the changed files when appropriate.
+- Static styling and localized responsive changes: inspect the affected UI and run its focused browser workflow when useful; no full browser matrix by default.
+- Persistence, document history, shared pointer handling, or platform changes: targeted regression tests and the relevant browser/device projects. Broaden to the full suite only when the impact crosses those boundaries or failures leave uncertainty.
+- Build and dependency changes: a production build plus relevant smoke tests. Use `pnpm check` for broad dependency/toolchain changes.
+
+Do not repeat successful checks just to split the same validated changes into several commits. Each change still needs an Unreleased entry and a version decision; run `pnpm version:check` before the final handoff. Releases retain the full checks required by `docs/versioning.md`.
+
+Examples:
 
 ```shell
 pnpm exec vitest run src/path/to/file.test.ts
 pnpm exec playwright test e2e/editor-workflow.spec.ts --project=chromium
-pnpm check
-pnpm build
 ```
 
-Run the full Playwright matrix when changing shared interaction logic, responsive layouts, browser-specific behaviour, file/clipboard/image workflows, or other cross-platform paths:
+Run the full Playwright matrix when a broad cross-platform change or the evidence from focused checks warrants it:
 
 ```shell
 pnpm test:e2e
 ```
 
-For service-worker and offline tests, build first and use the production-preview mode expected by the E2E suite:
+When service-worker or offline behaviour needs verification, build first and use the production-preview mode expected by the E2E suite:
 
 ```shell
 pnpm build
@@ -161,4 +169,4 @@ State exactly which checks were run. Do not claim a test passed when it was not 
 
 ## Change hygiene
 
-Keep diffs focused on the requested task. Do not commit build output, coverage output, Playwright reports, test artifacts, editor settings, or unrelated generated files. Update documentation when commands, architecture, platform support, persistence formats, release procedures, or user-visible behaviour change.
+Keep diffs focused on the requested task. Do not commit build output, coverage output, Playwright reports, test artifacts, machine-specific editor preferences, or unrelated generated files. Shared project editor configuration may be committed through explicit `.vscode` allowlist entries in `.gitignore`. Update documentation when commands, architecture, platform support, persistence formats, release procedures, or user-visible behaviour change.

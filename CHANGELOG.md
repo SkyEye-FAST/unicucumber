@@ -10,6 +10,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Changed
 
+- Scale agent verification to change scope and risk, avoid mandatory full test runs for routine edits, and allow explicitly shared project editor configuration.
 - Update the component-testing, DOM simulation, linting, type-checking, coverage, and Material Symbols development dependencies.
 - Update Vue and Vue I18n to their latest compatible patch releases.
 - Remove an unused conversion module and obsolete locale keys, consolidate duplicate glyph sorting, and drop stale test-runner paths from the TypeScript configuration.
