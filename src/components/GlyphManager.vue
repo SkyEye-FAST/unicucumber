@@ -1,6 +1,6 @@
 <template>
   <div
-    class="glyph-manager"
+    class="glyph-manager tw:relative tw:box-border tw:flex tw:h-full tw:min-h-0 tw:min-w-0 tw:flex-col tw:gap-3 tw:overflow-x-hidden tw:overflow-y-auto tw:overscroll-contain"
     :class="{ 'is-expanded': isExpanded }"
     :data-glyph-count="props.glyphs.length"
     :role="isExpanded ? 'region' : undefined"
@@ -8,12 +8,21 @@
       isExpanded ? $t('glyph_manager.library.workspace_label') : undefined
     "
   >
-    <header v-if="!isExpanded" class="glyph-manager-heading">
-      <div class="glyph-manager-heading__identity">
-        <h2 class="title">{{ $t('glyph_manager.title') }}</h2>
+    <header
+      v-if="!isExpanded"
+      class="glyph-manager-heading tw:flex tw:min-w-0 tw:flex-nowrap tw:items-center tw:justify-between tw:gap-2"
+    >
+      <div
+        class="glyph-manager-heading__identity tw:flex tw:min-w-0 tw:flex-auto tw:items-center tw:gap-2 tw:overflow-hidden"
+      >
+        <h2 class="title tw:m-0 tw:min-w-0 tw:truncate">
+          {{ $t('glyph_manager.title') }}
+        </h2>
         <span class="compact-count">{{ props.glyphs.length }}</span>
       </div>
-      <div class="glyph-manager-heading__actions">
+      <div
+        class="glyph-manager-heading__actions tw:flex tw:min-w-0 tw:flex-none tw:items-center tw:gap-2"
+      >
         <button
           class="ui-button compact-tools-toggle"
           type="button"
@@ -96,7 +105,7 @@
       v-show="!isExpanded && compactToolsOpen"
       :id="!isExpanded ? 'compact-glyph-tools' : undefined"
       ref="inspector"
-      class="glyph-manager-inspector"
+      class="glyph-manager-inspector tw:flex tw:min-w-0 tw:flex-col tw:gap-3"
       role="complementary"
       :aria-label="$t('glyph_manager.library.inspector_title')"
     >
@@ -119,7 +128,7 @@
 
     <div
       v-if="displayLibraryPending"
-      class="glyph-library-status"
+      class="glyph-library-status tw:flex tw:flex-1 tw:items-center tw:justify-center tw:gap-3 tw:p-6 tw:text-center"
       role="status"
       aria-live="polite"
     >
@@ -129,7 +138,7 @@
 
     <div
       v-else-if="displayLibraryError"
-      class="glyph-library-status is-error"
+      class="glyph-library-status is-error tw:flex tw:flex-1 tw:items-center tw:justify-center tw:gap-3 tw:p-6 tw:text-center"
       role="alert"
     >
       <span>{{ $t('glyph_manager.library.load_failed') }}</span>
@@ -1832,20 +1841,10 @@ defineExpose({ handleEscape })
 </script>
 
 <style scoped>
+/* Workspace surfaces and expanded-state motion. Static layout lives in the template. */
 .glyph-manager {
-  position: relative;
-  box-sizing: border-box;
-  min-width: 0;
-  min-height: 0;
   font-family: var(--normal-font);
   padding: 16px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
   background: var(--background-light);
   container-type: inline-size;
 }
@@ -1896,14 +1895,7 @@ defineExpose({ handleEscape })
 
 .glyph-library-status {
   min-height: 12rem;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-3);
-  padding: var(--space-6);
   color: var(--text-secondary);
-  text-align: center;
 }
 
 .glyph-library-status.is-error {
@@ -1927,30 +1919,7 @@ defineExpose({ handleEscape })
 }
 
 .glyph-manager-heading {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: nowrap;
-  gap: var(--space-2);
   padding-inline-end: 2.85rem;
-}
-
-.glyph-manager-heading__identity,
-.glyph-manager-heading__actions {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.glyph-manager-heading__identity {
-  flex: 1 1 auto;
-  overflow: hidden;
-}
-
-.glyph-manager-heading__actions {
-  flex: 0 0 auto;
 }
 
 .compact-count {
@@ -1972,14 +1941,9 @@ defineExpose({ handleEscape })
 }
 
 .title {
-  min-width: 0;
-  overflow: hidden;
-  margin: 0;
   color: var(--text-color);
   font-size: 1.5rem;
   font-weight: bold;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* The sidebar can be narrowed independently of the viewport. At its compact
@@ -2008,80 +1972,6 @@ defineExpose({ handleEscape })
   color: var(--text-secondary);
 }
 
-.icon {
-  font-size: 20px;
-}
-
-.glyph-manager-inspector {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.is-expanded .glyph-manager-inspector {
-  position: absolute;
-  z-index: 30;
-  inset-block: 0;
-  inset-inline-end: 0;
-  width: min(24rem, calc(100vw - 3rem));
-  box-sizing: border-box;
-  padding: 0 var(--space-4) max(1rem, env(safe-area-inset-bottom));
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  border-inline-start: 1px solid var(--border-color);
-  background: var(--background-light);
-  box-shadow: -6px 0 20px
-    color-mix(in srgb, var(--shadow-color) 75%, transparent);
-  animation: inspector-in 160ms ease-out;
-}
-
-.inspector-heading {
-  position: sticky;
-  inset-block-start: 0;
-  z-index: 1;
-  min-height: 3.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-inline: calc(var(--space-4) * -1);
-  padding: max(0.5rem, env(safe-area-inset-top)) var(--space-4) 0.5rem;
-  border-bottom: 1px solid var(--border-color);
-  background: var(--background-light);
-}
-
-.inspector-heading h3 {
-  margin: 0;
-  color: var(--text-color);
-  font-size: 0.95rem;
-}
-
-.is-expanded .glyph-manager-inspector :deep(.add-glyph) {
-  padding: var(--space-4) 0;
-  border: 0;
-  border-bottom: 1px solid var(--border-color);
-  border-radius: 0;
-  background: transparent;
-}
-
-.is-expanded .glyph-manager-inspector :deep(.upload-section) {
-  padding-block-end: var(--space-4);
-  border-bottom: 1px solid var(--border-color);
-  border-radius: 0;
-  background: transparent;
-}
-
-.inspector-scrim {
-  display: none;
-}
-
-@keyframes inspector-in {
-  from {
-    transform: translateX(1rem);
-    opacity: 0;
-  }
-}
-
 @media (max-width: 719px) {
   .glyph-manager {
     height: 100dvh;
@@ -2104,32 +1994,13 @@ defineExpose({ handleEscape })
   .glyph-manager-heading {
     padding-inline-end: 3.25rem;
   }
-
-  .is-expanded .glyph-manager-inspector {
-    position: fixed;
-    width: 100%;
-    max-width: none;
-    padding-inline: max(var(--space-4), env(safe-area-inset-left))
-      max(var(--space-4), env(safe-area-inset-right));
-    border-inline-start: 0;
-  }
-
-  .inspector-scrim {
-    position: fixed;
-    z-index: 29;
-    inset: 0;
-    display: block;
-    border: 0;
-    background: var(--modal-overlay);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .glyph-manager.is-expanded,
   .glyph-manager.is-expanded > :deep(.library-toolbar),
   .glyph-manager.is-expanded > :deep(.glyph-library-shell),
-  .glyph-manager.is-expanded > .glyph-library-status,
-  .is-expanded .glyph-manager-inspector {
+  .glyph-manager.is-expanded > .glyph-library-status {
     animation: none;
   }
 }

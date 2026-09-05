@@ -6,7 +6,10 @@
     @dragleave.prevent="dragActive = false"
     @drop.prevent="handleDrop"
   >
-    <div class="upload-buttons" :class="{ 'drag-active': dragActive }">
+    <div
+      class="upload-buttons tw:grid tw:grid-cols-[repeat(auto-fit,minmax(10.5rem,1fr))] tw:gap-[0.5rem] tw:p-0"
+      :class="{ 'drag-active': dragActive }"
+    >
       <button
         class="btn-upload btn-upload--primary"
         type="button"
@@ -121,10 +124,6 @@ const pasteImage = async (): Promise<void> => {
 }
 
 .upload-buttons {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
-  gap: 0.5rem;
-  padding: 0;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
 }

@@ -8,7 +8,7 @@
           })
         }}
       </p>
-      <div class="warning-actions">
+      <div class="tw:flex tw:gap-[8px]">
         <button class="btn-warn" @click="$emit('update')">
           {{ $t('glyph_manager.duplicate.update') }}
         </button>
@@ -19,8 +19,8 @@
     </div>
 
     <template v-else>
-      <div class="input-group">
-        <div class="char-codepoint-row">
+      <div class="input-group tw:flex tw:flex-col tw:gap-2">
+        <div class="tw:flex tw:w-full tw:min-w-0 tw:items-center tw:gap-2">
           <input
             :value="modelValue.codePoint"
             :placeholder="$t('glyph_manager.add.code_point')"
@@ -42,12 +42,14 @@
           class="input"
           @input="updateHexValue"
         />
-        <div v-else class="hex-preview">{{ prefillData.hexValue }}</div>
+        <div v-else class="hex-preview tw:truncate">
+          {{ prefillData.hexValue }}
+        </div>
       </div>
 
       <div v-if="shouldShowPreview" class="glyph-preview-section">
         <div class="preview-label">{{ $t('glyph_manager.add.preview') }}:</div>
-        <div class="preview-container">
+        <div class="preview-container tw:flex tw:justify-center">
           <PixelPreview
             :hex-value="getHexValue"
             :width="getGlyphWidth"
@@ -56,7 +58,7 @@
         </div>
       </div>
 
-      <div class="button-group">
+      <div class="button-group tw:mt-[12px] tw:flex tw:flex-wrap tw:gap-[8px]">
         <button
           class="btn-add"
           :disabled="!isValidInput"
@@ -70,7 +72,7 @@
           }}
         </button>
         <button
-          class="btn-import"
+          class="btn-import tw:flex tw:items-center tw:gap-2"
           :disabled="!modelValue.codePoint"
           @click="$emit('import')"
         >
@@ -261,12 +263,6 @@ watch(
   );
 }
 
-.add-glyph h3 {
-  margin: 0 0 10px 0;
-  font-size: 1rem;
-  color: var(--text-secondary);
-}
-
 .input {
   box-sizing: border-box;
   width: 100%;
@@ -298,84 +294,53 @@ watch(
   min-width: 0;
 }
 
-.char-codepoint-row {
-  display: flex;
-  gap: var(--space-2);
-  align-items: center;
-  min-width: 0;
-  width: 100%;
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.input-group label {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
-
-.input[readonly] {
-  background-color: var(--background-hover);
-  cursor: not-allowed;
-}
-
 .hex-preview {
   background: var(--background-hover);
   padding: 8px 12px;
   border-radius: 4px;
   margin-top: 4px;
   font-family: var(--monospace-font);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.button-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.btn-add {
-  min-height: var(--control-height);
+/* Shared button structure, followed by action-specific colors and states. */
+.btn-add,
+.btn-import,
+.btn-clear,
+.btn-warn,
+.btn-cancel {
   font-family: var(--normal-font);
-  padding: 0.55rem 0.85rem;
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: var(--radius-sm);
   cursor: pointer;
   font-weight: 600;
+}
+
+.btn-add,
+.btn-import,
+.btn-clear {
+  min-height: var(--control-height);
+  padding: 0.55rem 0.85rem;
+  border-radius: var(--radius-sm);
+}
+
+.btn-add,
+.btn-clear {
+  color: white;
+  border: none;
   font-size: 0.9em;
 }
 
-.btn-add:disabled {
+.btn-add {
+  background: var(--primary-color);
+}
+
+.btn-add:disabled,
+.btn-import:disabled {
   background: var(--border-color);
-  cursor: not-allowed;
 }
 
 .btn-import {
-  min-height: var(--control-height);
-  font-family: var(--normal-font);
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 0.55rem 0.85rem;
   background: transparent;
   color: var(--text-color);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.btn-import:disabled {
-  background: var(--border-color);
-  cursor: not-allowed;
 }
 
 .btn-import:hover:not(:disabled) {
@@ -388,32 +353,24 @@ watch(
 }
 
 .btn-clear {
-  min-height: var(--control-height);
-  font-family: var(--normal-font);
-  padding: 0.55rem 0.85rem;
   background: var(--danger-color);
-  color: white;
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9em;
 }
 
 .btn-clear:hover {
   background: var(--danger-hover);
 }
 
-.btn-warn {
-  font-family: var(--normal-font);
+.btn-warn,
+.btn-cancel {
   padding: 8px 16px;
-  background: var(--warning-color);
-  color: black;
   border: none;
   border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
   transition: background-color 0.2s;
+}
+
+.btn-warn {
+  background: var(--warning-color);
+  color: black;
 }
 
 .btn-warn:hover {
@@ -421,15 +378,8 @@ watch(
 }
 
 .btn-cancel {
-  font-family: var(--normal-font);
-  padding: 8px 16px;
   background: var(--grey-color);
   color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.2s;
 }
 
 .btn-cancel:hover {
@@ -450,11 +400,6 @@ watch(
   font-weight: 600;
 }
 
-.warning-actions {
-  display: flex;
-  gap: 8px;
-}
-
 .glyph-preview-section {
   margin-top: 12px;
   padding: 12px;
@@ -471,8 +416,6 @@ watch(
 }
 
 .preview-container {
-  display: flex;
-  justify-content: center;
   padding: 8px;
   background: var(--glyph-preview-background);
   border-radius: 4px;

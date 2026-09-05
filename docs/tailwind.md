@@ -34,11 +34,19 @@ Vite assets and PWA precache, requiring no runtime CDN, network request, or
 JavaScript styling engine. No storage or application-version schema changes are
 involved.
 
-The same-machine production builds during this change measured the main CSS at
+The same-machine production builds during the initial integration measured the main CSS at
 138.32 kB before and 138.93 kB after; gzip grew from 21.87 kB to 22.38 kB. These
 are Vite's rounded asset measurements, not a performance benchmark. This bounded
 migration does **not** reduce transferred CSS. Its justification is shared
 authoring conventions and fewer local declarations, not a bundle-size claim.
+
+The subsequent component cleanup removed 533 scoped CSS lines across 10
+components (2,896 to 2,363, including whitespace). Main CSS decreased from
+138.93 kB to 131.30 kB, or 22.38 kB to 21.53 kB gzip. Template class lists also
+increased main JavaScript from 597.94 kB to 602.36 kB, or 178.57 kB to 179.55 kB
+gzip. The combined compressed CSS and main JavaScript is therefore approximately
+unchanged. The practical benefit is fewer repeated declarations and removal of
+obsolete rules, not a claim of faster loading.
 
 ## Implemented scope
 
@@ -56,6 +64,14 @@ authoring conventions and fewer local declarations, not a bundle-size claim.
 - Migrate static layout, spacing, text, and SVG fill in `ComponentCard`,
   `CompositionLayerItem`, `CompositionLayerPanel`, `CompositionToolbar`,
   `CompositionIdsGuide`, and `IdsTree`; delete their replaced declarations.
+- Extend static layout utilities to `EditorHeader`, `HexCodeInput`,
+  `DownloadButtons`, `SettingsSidebar`, `GlyphManager`, `GlyphList`,
+  `GlyphLibraryToolbar`, `GlyphAdder`, and `UploadSection`.
+- Consolidate shared settings-label typography and GlyphAdder button structure.
+  Remove duplicate dialog styles and unused glyph-adder selectors. Remove the
+  obsolete expanded inspector, scrim, and related animation rules: the current
+  inspector is shown only in the compact manager. Keep the library toolbar's
+  responsive rules together after its controls, without redundant mobile defaults.
 - Keep button skins, hover/selected/hidden states, mobile control sizing,
   safe-area rules, and complex selectors in their owning CSS. Canvas geometry,
   virtual lists, pointer handling, persistence, and PWA update logic are untouched.
@@ -74,6 +90,9 @@ responsive editor layouts, and reduced motion. Choose focused checks for later
 styling changes according to [the repository testing guidance](../AGENTS.md#testing-expectations).
 The full quality gate, browser matrix, and production build were used for this
 initial toolchain integration. PWA offline workflows require a production build.
+The subsequent cleanup uses focused editor/library/settings browser workflows,
+the saved-list component tests, changed-file lint/format checks, and a production
+build; it does not require repeating unrelated domain and persistence suites.
 
 This is an internal styling refactor without a new user-visible feature, browser
 support change, or data format change. Keep application version 1.7.0 and record

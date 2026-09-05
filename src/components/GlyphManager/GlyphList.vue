@@ -1,7 +1,7 @@
 <template>
-  <div class="glyph-list">
+  <div class="glyph-list tw:flex tw:flex-col tw:gap-[6px] tw:overflow-hidden">
     <div class="select-all-row">
-      <div class="selection-controls">
+      <div class="tw:flex tw:w-full tw:items-center tw:justify-between">
         <label class="checkbox-label">
           <input
             type="checkbox"
@@ -28,7 +28,7 @@
 
     <div
       ref="scrollContainer"
-      class="glyph-list-scroll"
+      class="glyph-list-scroll tw:min-h-0 tw:flex-1 tw:overflow-auto tw:overscroll-contain"
       role="list"
       :aria-label="$t('glyph_manager.library.grid_label')"
       :data-total-count="glyphs.length"
@@ -36,13 +36,13 @@
     >
       <div
         v-if="glyphs.length"
-        class="glyph-list-virtual"
+        class="glyph-list-virtual tw:relative tw:w-full"
         :style="{ height: `${virtualHeight}px` }"
       >
         <div
           v-for="item in visibleGlyphs"
           :key="item.glyph.codePoint"
-          class="glyph-card"
+          class="glyph-card tw:box-border tw:flex tw:items-center tw:overflow-hidden"
           role="listitem"
           :aria-posinset="item.index + 1"
           :aria-setsize="glyphs.length"
@@ -57,12 +57,17 @@
               @change="$emit('toggle-selection', item.glyph.codePoint)"
             />
           </label>
-          <div class="glyph-preview-stack">
-            <span class="glyph-character-label" :style="browserPreviewStyle">
+          <div
+            class="tw:grid tw:w-max tw:flex-none tw:justify-items-center tw:gap-[2px]"
+          >
+            <span
+              class="glyph-character-label tw:truncate"
+              :style="browserPreviewStyle"
+            >
               {{ item.glyph.character }}
             </span>
             <div
-              class="glyph-preview"
+              class="glyph-preview tw:flex tw:items-center tw:justify-center tw:gap-[4px] tw:overflow-hidden"
               :class="{
                 'dual-preview': showPixelPreview && showBrowserPreview,
               }"
@@ -93,21 +98,23 @@
               </div>
             </div>
           </div>
-          <div class="glyph-info">
-            <div class="info-row">
+          <div
+            class="glyph-info tw:flex tw:min-w-0 tw:flex-1 tw:flex-col tw:gap-[3px]"
+          >
+            <div class="tw:flex tw:min-w-0 tw:items-center tw:gap-[8px]">
               <span class="info-label">{{
                 $t('glyph_manager.glyph.code_point')
               }}</span>
               <span class="info-value">U+{{ item.glyph.codePoint }}</span>
             </div>
-            <div class="info-row">
+            <div class="tw:flex tw:min-w-0 tw:items-center tw:gap-[8px]">
               <span class="info-label">{{
                 $t('glyph_manager.glyph.hex')
               }}</span>
               <span class="info-value">{{ item.glyph.hexValue }}</span>
             </div>
           </div>
-          <div class="glyph-actions">
+          <div class="glyph-actions tw:flex tw:flex-none tw:gap-[6px]">
             <button
               class="btn-icon"
               :title="$t('glyph_manager.glyph.edit')"
@@ -126,7 +133,11 @@
         </div>
       </div>
 
-      <div v-else class="glyph-list-empty" role="status">
+      <div
+        v-else
+        class="glyph-list-empty tw:grid tw:place-items-center tw:text-center"
+        role="status"
+      >
         {{ $t('glyph_manager.library.no_matches') }}
       </div>
     </div>
@@ -259,37 +270,20 @@ onBeforeUnmount(() => {
 .glyph-list {
   min-height: 12rem;
   flex: 1 1 24rem;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  overflow: hidden;
   background-color: var(--background-color);
 }
 
 .glyph-list-scroll {
-  min-height: 0;
-  flex: 1;
-  overflow: auto;
-  overscroll-behavior: contain;
   contain: strict;
-}
-
-.glyph-list-virtual {
-  position: relative;
-  width: 100%;
 }
 
 .glyph-card {
   position: absolute;
   inset-block-start: 0;
   inset-inline: 0;
-  box-sizing: border-box;
   height: 82px;
-  display: flex;
-  align-items: center;
   gap: 10px;
   padding: 10px;
-  overflow: hidden;
   background: var(--background-light);
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -297,35 +291,19 @@ onBeforeUnmount(() => {
   contain: layout paint style;
 }
 
-.glyph-preview-stack {
-  width: max-content;
-  flex: none;
-  display: grid;
-  justify-items: center;
-  gap: 2px;
-}
-
 .glyph-character-label {
   max-width: 76px;
-  overflow: hidden;
   color: var(--text-color);
   font-size: 0.9rem;
   font-weight: 650;
   line-height: 1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .glyph-preview {
   width: 40px;
   height: 42px;
   flex: 0 0 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
   padding: 3px;
-  overflow: hidden;
   background: var(--glyph-preview-background);
   border: 1px solid var(--border-color);
   border-radius: 4px;
@@ -357,20 +335,8 @@ onBeforeUnmount(() => {
 }
 
 .glyph-info {
-  min-width: 0;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
   color: var(--text-secondary);
   font-size: 0.85rem;
-}
-
-.info-row {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .info-label {
@@ -387,12 +353,6 @@ onBeforeUnmount(() => {
   font-family: var(--monospace-font);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.glyph-actions {
-  flex: none;
-  display: flex;
-  gap: 6px;
 }
 
 .btn-icon {
@@ -438,13 +398,6 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 
-.selection-controls {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .btn-danger {
   display: flex;
   align-items: center;
@@ -464,10 +417,7 @@ onBeforeUnmount(() => {
 
 .glyph-list-empty {
   min-height: 8rem;
-  display: grid;
-  place-items: center;
   color: var(--text-secondary);
-  text-align: center;
 }
 
 @media (max-width: 420px) {

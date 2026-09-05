@@ -1,14 +1,22 @@
 <template>
   <header class="library-toolbar">
-    <div class="library-toolbar__main">
-      <div class="library-identity">
-        <h2>{{ $t('glyph_manager.library.title') }}</h2>
+    <div
+      class="library-toolbar__main tw:grid tw:items-center tw:gap-x-3 tw:gap-y-2"
+    >
+      <div
+        class="library-identity tw:inline-flex tw:items-baseline tw:gap-3 tw:whitespace-nowrap"
+      >
+        <h2 class="tw:m-0 tw:min-w-0 tw:truncate">
+          {{ $t('glyph_manager.library.title') }}
+        </h2>
         <span class="library-count" aria-live="polite">
           {{ countLabel }}
         </span>
       </div>
 
-      <div class="library-search">
+      <div
+        class="library-search tw:grid tw:min-w-0 tw:grid-cols-[auto_minmax(0,1fr)_auto] tw:items-center tw:gap-2"
+      >
         <i-material-symbols-search aria-hidden="true" />
         <input
           :value="searchQuery"
@@ -31,7 +39,7 @@
       <div
         v-show="filtersOpen"
         id="glyph-library-filters"
-        class="library-filters"
+        class="library-filters tw:flex tw:min-w-0 tw:items-center tw:gap-2"
       >
         <label>
           <span>{{ $t('glyph_manager.library.source_filter_label') }}</span>
@@ -42,7 +50,7 @@
             @update:model-value="updateSourceFilter"
           />
         </label>
-        <div class="unicode-range-filters">
+        <div class="unicode-range-filters tw:grid tw:items-center tw:gap-2">
           <label>
             <span>{{ $t('glyph_manager.library.unicode_plane_label') }}</span>
             <CustomSelect
@@ -70,7 +78,9 @@
         </div>
       </div>
 
-      <div class="library-toolbar__buttons">
+      <div
+        class="library-toolbar__buttons tw:flex tw:min-w-0 tw:items-center tw:justify-end tw:gap-2"
+      >
         <button
           class="ui-button library-filter-toggle"
           type="button"
@@ -124,8 +134,12 @@
       </div>
     </div>
 
-    <div v-show="toolsOpen" id="glyph-library-tools" class="library-tools">
-      <div class="library-export-menu">
+    <div
+      v-show="toolsOpen"
+      id="glyph-library-tools"
+      class="library-tools tw:flex tw:min-w-0 tw:items-center tw:justify-end tw:gap-2"
+    >
+      <div class="library-export-menu tw:relative">
         <button
           class="ui-button library-action library-export-trigger"
           type="button"
@@ -140,7 +154,7 @@
         <div
           v-show="exportMenuOpen"
           id="glyph-library-export-options"
-          class="library-export-options"
+          class="library-export-options tw:box-border tw:grid tw:gap-px tw:overflow-y-auto tw:overscroll-contain"
         >
           <FontExportOptions
             :busy="fontExportBusy"
@@ -203,9 +217,12 @@
       </fieldset>
     </div>
 
-    <div v-if="selectionMode" class="library-selection-bar">
+    <div
+      v-if="selectionMode"
+      class="library-selection-bar tw:flex tw:items-center tw:gap-2"
+    >
       <strong>{{ selectedLabel }}</strong>
-      <span class="library-selection-spacer" />
+      <span class="library-selection-spacer tw:flex-1" />
       <button
         class="ui-button ui-button--primary library-selection-add"
         type="button"
@@ -424,6 +441,7 @@ const exportSheet = (): void => {
 </script>
 
 <style scoped>
+/* Toolbar placement and control surfaces; static layout is expressed in the template. */
 .library-toolbar {
   position: sticky;
   inset-block-start: 0;
@@ -435,35 +453,23 @@ const exportSheet = (): void => {
 }
 
 .library-toolbar__main {
-  display: grid;
   grid-template-areas:
     'identity actions'
     'search search'
     'filters filters';
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--space-2) var(--space-3);
   padding: 0.75rem max(0.75rem, env(safe-area-inset-right)) 0.55rem
     max(0.75rem, env(safe-area-inset-left));
 }
 
 .library-identity {
   grid-area: identity;
-  display: inline-flex;
-  align-items: baseline;
-  gap: var(--space-3);
-  white-space: nowrap;
 }
 
 .library-identity h2 {
-  min-width: 0;
-  overflow: hidden;
-  margin: 0;
   color: var(--text-color);
   font-size: 1.5rem;
   font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .library-count {
@@ -480,12 +486,7 @@ const exportSheet = (): void => {
 
 .library-search {
   grid-area: search;
-  min-width: 0;
   height: var(--control-height);
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--space-2);
   padding-inline: 0.7rem 0.3rem;
   border: 1px solid var(--input-border);
   border-radius: var(--radius-sm);
@@ -527,10 +528,6 @@ const exportSheet = (): void => {
 
 .library-filters {
   grid-area: filters;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
 }
 
 .library-filters label {
@@ -554,10 +551,7 @@ const exportSheet = (): void => {
 }
 
 .unicode-range-filters {
-  display: grid;
   grid-template-columns: minmax(8rem, 0.9fr) minmax(12rem, 1.4fr);
-  align-items: center;
-  gap: var(--space-2);
 }
 
 .unicode-range-filters label {
@@ -567,81 +561,6 @@ const exportSheet = (): void => {
 .unicode-range-filters :deep(.custom-select) {
   width: 100%;
   max-width: none;
-}
-
-@media (min-width: 720px) {
-  .library-toolbar__main {
-    align-items: end;
-  }
-
-  .library-identity {
-    align-self: center;
-  }
-
-  .library-filters {
-    align-items: end;
-  }
-
-  .library-filters > label,
-  .unicode-range-filters label {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.2rem;
-  }
-}
-
-@media (min-width: 1360px) and (max-width: 1899px) {
-  .library-toolbar__main {
-    grid-template-areas:
-      'identity filters actions'
-      'search search search';
-    grid-template-columns: auto minmax(0, 1fr) auto;
-  }
-}
-
-@media (min-width: 1900px) {
-  .library-toolbar__main {
-    grid-template-areas: 'identity search filters actions';
-    grid-template-columns: auto minmax(10rem, 1fr) auto auto;
-  }
-}
-
-@media (min-width: 1600px) {
-  .library-filters > label {
-    width: 12rem;
-  }
-
-  .unicode-range-filters {
-    grid-template-columns: 19rem 30rem;
-  }
-}
-
-@media (min-width: 1200px) and (max-width: 1599px) {
-  .library-filters > label {
-    width: 11rem;
-  }
-
-  .unicode-range-filters {
-    grid-template-columns: 12rem 18rem;
-  }
-}
-
-@media (min-width: 960px) and (max-width: 1199px) {
-  .library-filters > label {
-    width: 9rem;
-  }
-
-  .unicode-range-filters {
-    grid-template-columns: 11rem 15rem;
-  }
-}
-
-.library-toolbar__buttons,
-.library-tools {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-2);
 }
 
 .library-toolbar__buttons {
@@ -712,23 +631,15 @@ const exportSheet = (): void => {
   color: var(--text-primary);
 }
 
-.library-export-menu {
-  position: relative;
-}
-
+/* Export popover and nested-select stacking. */
 .library-export-options {
   position: absolute;
   inset-block-start: calc(100% + 0.35rem);
   inset-inline-end: 0;
   z-index: 30;
-  box-sizing: border-box;
   width: min(34rem, calc(100vw - 1.5rem));
   max-height: calc(100dvh - 12rem);
-  display: grid;
-  gap: 1px;
   padding: 0.35rem;
-  overflow-y: auto;
-  overscroll-behavior: contain;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   background: var(--dialog-background);
@@ -791,6 +702,7 @@ const exportSheet = (): void => {
   overflow: visible;
 }
 
+/* Density selection and bulk actions. */
 .density-control {
   height: var(--control-height-compact);
   display: inline-flex;
@@ -846,9 +758,6 @@ const exportSheet = (): void => {
 
 .library-selection-bar {
   min-height: 3rem;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
   padding: 0.35rem max(0.75rem, env(safe-area-inset-right)) 0.35rem
     max(0.75rem, env(safe-area-inset-left));
   border-top: 1px solid var(--border-color);
@@ -860,23 +769,81 @@ const exportSheet = (): void => {
   font-size: 0.8125rem;
 }
 
-.library-selection-spacer {
-  flex: 1;
-}
-
 .library-selection-bar .ui-button {
   min-height: var(--control-height-compact);
   padding: 0.45rem 0.65rem;
   font-size: 0.78rem;
 }
 
-@media (max-width: 719px) {
+/* Width-dependent layout belongs together, after the control rules. */
+@media (min-width: 720px) {
+  .library-toolbar__main {
+    align-items: end;
+  }
+
+  .library-identity {
+    align-self: center;
+  }
+
+  .library-filters {
+    align-items: end;
+  }
+
+  .library-filters > label,
+  .unicode-range-filters label {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.2rem;
+  }
+}
+
+@media (min-width: 1360px) and (max-width: 1899px) {
   .library-toolbar__main {
     grid-template-areas:
-      'identity actions'
-      'search search'
-      'filters filters';
-    grid-template-columns: minmax(0, 1fr) auto;
+      'identity filters actions'
+      'search search search';
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+}
+
+@media (min-width: 1900px) {
+  .library-toolbar__main {
+    grid-template-areas: 'identity search filters actions';
+    grid-template-columns: auto minmax(10rem, 1fr) auto auto;
+  }
+}
+
+@media (min-width: 1600px) {
+  .library-filters > label {
+    width: 12rem;
+  }
+
+  .unicode-range-filters {
+    grid-template-columns: 19rem 30rem;
+  }
+}
+
+@media (min-width: 1200px) and (max-width: 1599px) {
+  .library-filters > label {
+    width: 11rem;
+  }
+
+  .unicode-range-filters {
+    grid-template-columns: 12rem 18rem;
+  }
+}
+
+@media (min-width: 960px) and (max-width: 1199px) {
+  .library-filters > label {
+    width: 9rem;
+  }
+
+  .unicode-range-filters {
+    grid-template-columns: 11rem 15rem;
+  }
+}
+
+@media (max-width: 719px) {
+  .library-toolbar__main {
     gap: var(--space-2);
     padding: max(0.75rem, env(safe-area-inset-top))
       max(0.75rem, env(safe-area-inset-right)) 0.75rem
@@ -898,7 +865,6 @@ const exportSheet = (): void => {
   .library-filters {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--space-2);
   }
 
   .library-filters label {
@@ -968,16 +934,8 @@ const exportSheet = (): void => {
 }
 
 @media (max-width: 420px) {
-  .library-identity {
-    padding-inline-end: 0;
-  }
-
   .library-identity h2 {
     font-size: 0.95rem;
-  }
-
-  .library-count {
-    font-size: 0.72rem;
   }
 
   .density-control {
