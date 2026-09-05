@@ -134,7 +134,7 @@ const openLibrary = async (page: Page, expectedCount = 96) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' })
   await page.getByRole('button', { name: 'Open glyph manager' }).click()
   await expect(
-    page.getByRole('button', { name: 'Expand glyph manager' }),
+    page.getByRole('button', { name: 'Open glyph library' }),
   ).toBeVisible()
   await expect(page.locator('.glyph-manager')).toHaveAttribute(
     'data-glyph-count',
@@ -144,7 +144,7 @@ const openLibrary = async (page: Page, expectedCount = 96) => {
 }
 
 const expandLibrary = async (page: Page, expectedCount = 96) => {
-  await page.getByRole('button', { name: 'Expand glyph manager' }).click()
+  await page.getByRole('button', { name: 'Open glyph library' }).click()
   await expect(
     page.getByRole('region', { name: 'Full-screen glyph library' }),
   ).toBeVisible()
@@ -213,9 +213,7 @@ test('resizes the glyph manager freely and keeps its compact heading on one row'
     .locator('.glyph-manager-heading')
     .evaluate((header) => {
       const title = header.querySelector<HTMLElement>('.title')
-      const actions = header.querySelector<HTMLElement>(
-        '.glyph-manager-heading__actions',
-      )
+      const actions = header.querySelector<HTMLElement>('.compact-count')
       const headerBox = header.getBoundingClientRect()
       const titleBox = title?.getBoundingClientRect()
       const actionsBox = actions?.getBoundingClientRect()
@@ -226,13 +224,10 @@ test('resizes the glyph manager freely and keeps its compact heading on one row'
         titleCenter: titleBox.top + titleBox.height / 2,
         actionsCenter: actionsBox.top + actionsBox.height / 2,
         titleWhiteSpace: title ? getComputedStyle(title).whiteSpace : '',
-        toolsLabelDisplay: getComputedStyle(
-          header.querySelector('.compact-tools-toggle span')!,
-        ).display,
       }
     })
   expect(compactHeader.titleWhiteSpace).toBe('nowrap')
-  expect(compactHeader.toolsLabelDisplay).not.toBe('none')
+  await expect(page.locator('.compact-tools-toggle span')).toBeVisible()
   expect(compactHeader.height).toBeLessThan(50)
   expect(
     Math.abs(compactHeader.titleCenter - compactHeader.actionsCenter),
@@ -266,7 +261,7 @@ test('keeps the tools action explicit in the mobile glyph manager', async ({
 
   const toolsToggle = page.locator('.compact-tools-toggle')
   const expandButton = page.locator('.glyph-manager-expand')
-  await expect(toolsToggle).toHaveAccessibleName('Tools')
+  await expect(toolsToggle).toHaveAccessibleName('Add and import')
   await expect(toolsToggle.locator('span')).toBeVisible()
   await expect(
     toolsToggle.locator('.compact-tools-toggle__indicator'),
@@ -277,12 +272,27 @@ test('keeps the tools action explicit in the mobile glyph manager', async ({
   const expandButtonWidth = await expandButton.evaluate(
     (button) => button.getBoundingClientRect().width,
   )
-  expect(toolsToggleWidth).toBeGreaterThan(expandButtonWidth)
+  expect(expandButtonWidth).toBeGreaterThan(toolsToggleWidth)
+  await expect(expandButton.locator('strong')).toHaveText('Open glyph library')
+  await expect(page.locator('#glyph-library-entry-description')).toBeVisible()
 
   await expect(toolsToggle).toHaveAttribute('aria-expanded', 'false')
   await toolsToggle.click()
   await expect(toolsToggle).toHaveAttribute('aria-expanded', 'true')
   await expect(page.locator('#compact-glyph-tools')).toBeVisible()
+  const panelTop = await page
+    .locator('#compact-glyph-tools')
+    .evaluate((element) => element.getBoundingClientRect().top)
+  const toggleBottom = await toolsToggle.evaluate(
+    (element) => element.getBoundingClientRect().bottom,
+  )
+  expect(Math.abs(panelTop - toggleBottom)).toBeLessThanOrEqual(1)
+  await page.locator('#compact-glyph-tools .codepoint-input').fill('0041')
+  await toolsToggle.click()
+  await toolsToggle.click()
+  await expect(
+    page.locator('#compact-glyph-tools .codepoint-input'),
+  ).toHaveValue('0041')
 })
 
 test('keeps the full-screen tools action explicit on mobile', async ({
@@ -313,7 +323,7 @@ test('animates the transition into the full-screen glyph library', async ({
   await seedGlyphs(page)
   await page.setViewportSize({ width: 1024, height: 768 })
   await openLibrary(page)
-  await page.getByRole('button', { name: 'Expand glyph manager' }).click()
+  await page.getByRole('button', { name: 'Open glyph library' }).click()
 
   await expect(
     page.getByRole('region', { name: 'Full-screen glyph library' }),
@@ -369,7 +379,7 @@ test.describe('full-screen glyph library', () => {
       )
       await page.getByRole('button', { name: 'Open glyph manager' }).click()
       await expect(
-        page.getByRole('button', { name: 'Expand glyph manager' }),
+        page.getByRole('button', { name: 'Open glyph library' }),
       ).toBeVisible()
       await expect(page.locator('.glyph-manager')).toHaveAttribute(
         'data-glyph-count',
@@ -393,9 +403,9 @@ test.describe('full-screen glyph library', () => {
         /filled/,
       )
 
-      await page.getByRole('button', { name: 'Exit full-screen view' }).click()
+      await page.getByRole('button', { name: 'Back to glyph manager' }).click()
       const expandButton = page.getByRole('button', {
-        name: 'Expand glyph manager',
+        name: 'Open glyph library',
       })
       await expect(expandButton).toBeFocused()
       await expect(sidebarSearch).toHaveValue('0041')
@@ -674,15 +684,13 @@ test.describe('full-screen glyph library', () => {
       /glyph-library-expanded/,
     )
     await expect(
-      page.getByRole('button', { name: 'Expand glyph manager' }),
+      page.getByRole('button', { name: 'Open glyph library' }),
     ).toBeFocused()
 
     await page.keyboard.press('Escape')
     if (await page.locator('.sidebar.active').count()) {
       await expect(
-        page
-          .locator('.glyph-manager-heading')
-          .getByRole('button', { name: 'Tools' }),
+        page.getByRole('button', { name: 'Add and import' }),
       ).toHaveAttribute('aria-expanded', 'false')
       await page.keyboard.press('Escape')
     }
@@ -728,7 +736,7 @@ test.describe('full-screen glyph library', () => {
       page.getByRole('combobox', { name: 'Unicode block' }),
     ).toContainText('Basic Latin')
 
-    await page.getByRole('button', { name: 'Exit full-screen view' }).click()
+    await page.getByRole('button', { name: 'Back to glyph manager' }).click()
     await page.locator('.btn-close-sidebar').click()
     await expect(page.locator('.sidebar.active')).toHaveCount(0)
     await page.getByRole('button', { name: 'Open settings' }).click()
@@ -973,7 +981,7 @@ test('large synthetic library remains responsive while searching and scrolling',
   await seedIndexedDbGlyphs(page, 2500)
   await page.getByRole('button', { name: 'Open glyph manager' }).click()
   await expect(
-    page.getByRole('button', { name: 'Expand glyph manager' }),
+    page.getByRole('button', { name: 'Open glyph library' }),
   ).toBeVisible()
   const started = Date.now()
   await expandLibrary(page, 2500)
@@ -1022,7 +1030,7 @@ test('real Unifont catalog stays responsive during code-point search', async ({
   await page.goto('/', { waitUntil: 'domcontentloaded' })
   await expect(page.locator('.grid-container')).toBeVisible()
   await page.getByRole('button', { name: 'Open glyph manager' }).click()
-  await page.getByRole('button', { name: 'Expand glyph manager' }).click()
+  await page.getByRole('button', { name: 'Open glyph library' }).click()
 
   const grid = page.locator('.glyph-library-grid')
   await expect

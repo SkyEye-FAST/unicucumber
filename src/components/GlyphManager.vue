@@ -20,42 +20,35 @@
         </h2>
         <span class="compact-count">{{ props.glyphs.length }}</span>
       </div>
-      <div
-        class="glyph-manager-heading__actions tw:flex tw:min-w-0 tw:flex-none tw:items-center tw:gap-2"
-      >
-        <button
-          class="ui-button compact-tools-toggle"
-          type="button"
-          :aria-label="$t('glyph_manager.library.tools')"
-          :aria-expanded="compactToolsOpen"
-          :aria-controls="'compact-glyph-tools'"
-          @click="compactToolsOpen = !compactToolsOpen"
-        >
-          <i-material-symbols-tune aria-hidden="true" />
-          <span>{{ $t('glyph_manager.library.tools') }}</span>
-          <i-material-symbols-keyboard-arrow-up
-            v-if="compactToolsOpen"
-            class="compact-tools-toggle__indicator"
-            aria-hidden="true"
-          />
-          <i-material-symbols-keyboard-arrow-down
-            v-else
-            class="compact-tools-toggle__indicator"
-            aria-hidden="true"
-          />
-        </button>
-        <button
-          ref="expandButton"
-          class="ui-icon-button glyph-manager-expand"
-          type="button"
-          :aria-label="$t('glyph_manager.library.expand')"
-          :title="$t('glyph_manager.library.expand')"
-          @click="expandLibrary"
-        >
-          <i-material-symbols-fullscreen aria-hidden="true" />
-        </button>
-      </div>
     </header>
+
+    <button
+      v-if="!isExpanded"
+      ref="expandButton"
+      class="glyph-manager-expand tw:flex tw:w-full tw:flex-none tw:items-center tw:gap-3 tw:text-left"
+      type="button"
+      :aria-label="$t('glyph_manager.library.expand')"
+      aria-describedby="glyph-library-entry-description"
+      @click="expandLibrary"
+    >
+      <i-material-symbols-grid-view-outline
+        class="tw:flex-none"
+        aria-hidden="true"
+      />
+      <span class="tw:grid tw:min-w-0 tw:flex-1 tw:gap-1">
+        <strong>{{ $t('glyph_manager.library.expand') }}</strong>
+        <span
+          id="glyph-library-entry-description"
+          class="glyph-library-entry-description"
+        >
+          {{ $t('glyph_manager.library.entry_description') }}
+        </span>
+      </span>
+      <i-material-symbols-arrow-forward
+        class="tw:flex-none"
+        aria-hidden="true"
+      />
+    </button>
 
     <SearchToolbar
       v-if="!isExpanded"
@@ -101,30 +94,55 @@
       @update:density="settings.glyphLibraryDensity = $event"
     />
 
-    <aside
-      v-show="!isExpanded && compactToolsOpen"
-      :id="!isExpanded ? 'compact-glyph-tools' : undefined"
-      ref="inspector"
-      class="glyph-manager-inspector tw:flex tw:min-w-0 tw:flex-col tw:gap-3"
-      role="complementary"
-      :aria-label="$t('glyph_manager.library.inspector_title')"
-    >
-      <GlyphAdder
-        v-model="newGlyph"
-        :prefill-data="props.prefillData"
-        :edit-mode="editMode"
-        :duplicate-glyph="duplicateGlyph"
-        @add="handleAdd"
-        @update="updateExistingGlyph"
-        @import="importFromUnifont"
-        @clear="handleClear"
-      />
+    <section v-show="!isExpanded" class="compact-tools tw:flex-none">
+      <button
+        class="ui-button compact-tools-toggle"
+        type="button"
+        :aria-label="$t('glyph_manager.library.add_import')"
+        :aria-expanded="compactToolsOpen"
+        aria-controls="compact-glyph-tools"
+        @click="compactToolsOpen = !compactToolsOpen"
+      >
+        <i-material-symbols-add aria-hidden="true" />
+        <span class="tw:flex-1 tw:text-left">{{
+          $t('glyph_manager.library.add_import')
+        }}</span>
+        <i-material-symbols-keyboard-arrow-up
+          v-if="compactToolsOpen"
+          class="compact-tools-toggle__indicator"
+          aria-hidden="true"
+        />
+        <i-material-symbols-keyboard-arrow-down
+          v-else
+          class="compact-tools-toggle__indicator"
+          aria-hidden="true"
+        />
+      </button>
+      <aside
+        v-show="!isExpanded && compactToolsOpen"
+        :id="!isExpanded ? 'compact-glyph-tools' : undefined"
+        ref="inspector"
+        class="glyph-manager-inspector tw:flex tw:min-w-0 tw:flex-col tw:gap-3 tw:p-3 tw:pt-0"
+        role="complementary"
+        :aria-label="$t('glyph_manager.library.inspector_title')"
+      >
+        <GlyphAdder
+          v-model="newGlyph"
+          :prefill-data="props.prefillData"
+          :edit-mode="editMode"
+          :duplicate-glyph="duplicateGlyph"
+          @add="handleAdd"
+          @update="updateExistingGlyph"
+          @import="importFromUnifont"
+          @clear="handleClear"
+        />
 
-      <UploadSection
-        @hex-upload="handleHexFileUpload"
-        @image-upload="handleImageFileUpload"
-      />
-    </aside>
+        <UploadSection
+          @hex-upload="handleHexFileUpload"
+          @image-upload="handleImageFileUpload"
+        />
+      </aside>
+    </section>
 
     <div
       v-if="displayLibraryPending"
@@ -1934,10 +1952,19 @@ defineExpose({ handleEscape })
   text-align: center;
 }
 
+.compact-tools {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--background-light);
+}
+
 .compact-tools-toggle {
+  width: 100%;
   min-height: var(--control-height-compact);
-  padding-inline: 0.55rem;
-  font-size: 0.75rem;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  background: transparent;
+  font-size: 0.8rem;
 }
 
 .title {
@@ -1946,16 +1973,14 @@ defineExpose({ handleEscape })
   font-weight: bold;
 }
 
-/* The sidebar can be narrowed independently of the viewport. At its compact
- * width, keep the primary controls on one stable row by reducing gaps and
- * truncating the title before hiding the tools action's visible guidance. */
+/* The sidebar can be narrowed independently of the viewport. Keep its title
+ * and count on one row while the library entry retains its full-width guidance. */
 @container (max-width: 28rem) {
   .glyph-manager-heading {
     gap: var(--space-1);
   }
 
-  .glyph-manager-heading__identity,
-  .glyph-manager-heading__actions {
+  .glyph-manager-heading__identity {
     gap: var(--space-1);
   }
 
@@ -1965,11 +1990,33 @@ defineExpose({ handleEscape })
 }
 
 .glyph-manager-expand {
-  flex: none;
-  width: var(--control-height-compact);
-  min-width: var(--control-height-compact);
   min-height: var(--control-height-compact);
+  padding: var(--space-3);
+  border: 1px solid
+    color-mix(in srgb, var(--primary-color) 45%, var(--border-color));
+  border-radius: var(--radius-sm);
+  background: color-mix(
+    in srgb,
+    var(--primary-color) 9%,
+    var(--background-light)
+  );
+  color: var(--primary-color);
+  cursor: pointer;
+}
+
+.glyph-manager-expand:hover {
+  background: color-mix(
+    in srgb,
+    var(--primary-color) 16%,
+    var(--background-light)
+  );
+  border-color: var(--primary-color);
+}
+
+.glyph-library-entry-description {
   color: var(--text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.5;
 }
 
 @media (max-width: 719px) {

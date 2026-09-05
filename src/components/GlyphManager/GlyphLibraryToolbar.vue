@@ -28,6 +28,7 @@
         <button
           v-if="searchQuery"
           class="library-clear-search"
+          data-tooltip
           type="button"
           :aria-label="$t('glyph_manager.library.clear_search')"
           @click="$emit('update:searchQuery', '')"
@@ -126,10 +127,9 @@
           class="ui-icon-button library-collapse"
           type="button"
           :aria-label="$t('glyph_manager.library.exit_fullscreen')"
-          :title="$t('glyph_manager.library.exit_fullscreen')"
           @click="$emit('collapse')"
         >
-          <i-material-symbols-fullscreen-exit aria-hidden="true" />
+          <i-material-symbols-arrow-back aria-hidden="true" />
         </button>
       </div>
     </div>

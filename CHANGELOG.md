@@ -11,6 +11,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Changed
 
+- Make “Open glyph library” a prominent entry with collection guidance, retain a compact return arrow, and place “Add and import” directly above its expandable controls.
 - Streamline glyph-manager and library layout styles with Tailwind, consolidate glyph-adder button rules, and remove obsolete inspector styling and redundant breakpoint declarations.
 - Simplify editor and Settings layouts with Tailwind utilities, consolidate shared settings typography, and remove duplicate dialog styles.
 - Integrate Tailwind CSS 4 through Vite for composition-panel static styles, reuse existing theme tokens without Preflight, and document the migration tradeoffs with cross-browser layout and theme regression coverage.

@@ -513,7 +513,10 @@ test('image file import still opens the preparation dialog without capture input
   test.skip(testInfo.project.name !== 'chromium', 'one image import smoke test')
   await page.getByRole('button', { name: 'Open glyph manager' }).click()
   await expect(page.locator('input[capture]')).toHaveCount(0)
-  const toolsToggle = page.getByRole('button', { name: 'Tools', exact: true })
+  const toolsToggle = page.getByRole('button', {
+    name: 'Add and import',
+    exact: true,
+  })
   if ((await toolsToggle.getAttribute('aria-expanded')) !== 'true') {
     await toolsToggle.click()
   }
