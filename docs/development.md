@@ -69,6 +69,12 @@ Tailwind CSS 4 runs through `@tailwindcss/vite`. Import its single entry point,
 configuration is needed. See [Tailwind evaluation](tailwind.md) for the decision,
 scope, and measured cost.
 
+In VS Code, install the recommended `bradlc.vscode-tailwindcss` extension.
+The shared `.vscode/settings.json` selects its `tailwindcss` language mode only
+for `src/styles/tailwind.css`. This recognizes `@theme`, `@source`, and Tailwind's
+custom import modifiers; other stylesheets keep standard CSS validation. See
+the [official editor setup](https://tailwindcss.com/docs/editor-setup).
+
 - Use `tw:` utilities for ordinary static layout in Vue templates. The source
   scanner reads `src/**/*.vue`; add explicit sources if classes move outside Vue
   files. Write complete class names rather than concatenating fragments.

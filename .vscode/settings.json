@@ -1,0 +1,7 @@
+{
+  "i18n-ally.localesPaths": ["src/locales"],
+  "i18n-ally.keystyle": "nested",
+  "files.associations": {
+    "**/src/styles/tailwind.css": "tailwindcss"
+  }
+}

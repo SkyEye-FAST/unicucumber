@@ -20,6 +20,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Fixed
 
+- Recognize Tailwind directives and import syntax in VS Code through the official Tailwind language mode, with shared workspace settings and an extension recommendation.
 - Keep the glyph-library export panel above the bulk-selection action bar when both are open.
 - Correct stale glyph-data length guidance and inconsistent wording and punctuation across locales.
 - Restore localized editor branding in Literary Chinese, including the “匯翠” title and translated GitHub repository label.
