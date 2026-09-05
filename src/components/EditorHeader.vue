@@ -1,13 +1,19 @@
 <template>
-  <header class="editor-header">
-    <div class="brand">
-      <img src="@/assets/icon.png" alt="UniCucumber" class="logo" />
+  <header
+    class="editor-header tw:box-border tw:flex tw:flex-row tw:items-center tw:justify-between tw:gap-4"
+  >
+    <div class="tw:flex tw:min-w-0 tw:items-center">
+      <img
+        src="@/assets/icon.png"
+        alt="UniCucumber"
+        class="logo tw:flex-none"
+      />
       <h1 class="title">
         <span class="title-prefix">{{ $t('header.title_uni') }}</span
         >{{ $t('header.title_cucumber') }}
       </h1>
     </div>
-    <div class="modal-buttons">
+    <div class="modal-buttons tw:flex tw:items-center tw:gap-2">
       <button
         class="modal-button ui-icon-button header-theme-action"
         type="button"
@@ -113,28 +119,15 @@ const handleOpenTextPreview = (event: MouseEvent): void => {
 
 <style scoped>
 .editor-header {
-  box-sizing: border-box;
   width: min(100%, var(--workspace-max));
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
   min-height: 3.5rem;
   padding: 0.25rem 0 0.75rem;
   border-bottom: 1px solid var(--border-color);
 }
 
-.brand {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
-
 .logo {
   width: 2.25rem;
   height: 2.25rem;
-  flex: none;
   margin-right: 0.55rem;
 }
 
@@ -151,12 +144,6 @@ const handleOpenTextPreview = (event: MouseEvent): void => {
 
 .title-prefix {
   color: var(--text-color);
-}
-
-.modal-buttons {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
 }
 
 .modal-button {

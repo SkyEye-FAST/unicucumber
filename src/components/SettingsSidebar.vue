@@ -13,13 +13,15 @@
       <aside
         v-if="modelValue"
         ref="sidebarRef"
-        class="settings-sidebar"
+        class="settings-sidebar tw:box-border tw:grid tw:grid-rows-[auto_minmax(0,1fr)] tw:overflow-hidden"
         role="dialog"
         :aria-modal="isModalMode ? 'true' : undefined"
         aria-labelledby="settings-sidebar-title"
         @click.stop
       >
-        <header class="settings-header">
+        <header
+          class="settings-header tw:flex tw:items-center tw:justify-between tw:gap-4"
+        >
           <h2 id="settings-sidebar-title">{{ $t('settings.title') }}</h2>
           <button
             ref="closeButtonRef"
@@ -32,7 +34,9 @@
           </button>
         </header>
 
-        <div class="settings-content">
+        <div
+          class="settings-content tw:min-h-0 tw:overflow-y-auto tw:overscroll-contain"
+        >
           <fieldset
             class="settings-section"
             aria-describedby="appearance-description"
@@ -94,7 +98,9 @@
               aria-labelledby="glyph-colors-label"
               aria-describedby="glyph-colors-description"
             >
-              <div class="glyph-colors-header">
+              <div
+                class="glyph-colors-header tw:flex tw:flex-wrap tw:items-start tw:justify-between tw:gap-x-3 tw:gap-y-2"
+              >
                 <div>
                   <span id="glyph-colors-label" class="settings-field-label">
                     {{ $t('settings.glyph_colors.label') }}
@@ -117,13 +123,17 @@
                 </button>
               </div>
 
-              <div class="glyph-color-themes">
+              <div
+                class="glyph-color-themes tw:mt-3 tw:grid tw:grid-cols-2 tw:gap-2"
+              >
                 <div
                   v-for="colorTheme in glyphColorThemes"
                   :key="colorTheme.id"
-                  class="glyph-color-theme"
+                  class="glyph-color-theme tw:grid tw:min-w-0 tw:gap-3 tw:p-3"
                 >
-                  <div class="glyph-color-theme-header">
+                  <div
+                    class="glyph-color-theme-header tw:flex tw:items-center tw:justify-between tw:gap-2"
+                  >
                     <strong>{{ colorTheme.label }}</strong>
                     <span
                       class="glyph-color-sample"
@@ -135,11 +145,13 @@
                     ></span>
                   </div>
 
-                  <label class="glyph-color-field">
+                  <label class="glyph-color-field tw:grid tw:min-w-0 tw:gap-1">
                     <span class="settings-label">{{
                       $t('settings.glyph_colors.foreground')
                     }}</span>
-                    <span class="glyph-color-control">
+                    <span
+                      class="tw:grid tw:min-w-0 tw:grid-cols-[var(--control-height)_minmax(0,1fr)] tw:items-center tw:gap-2"
+                    >
                       <input
                         :id="colorTheme.foregroundKey"
                         class="glyph-color-input"
@@ -155,17 +167,19 @@
                           updateGlyphColor(colorTheme.foregroundKey, $event)
                         "
                       />
-                      <code class="glyph-color-value">{{
+                      <code class="glyph-color-value tw:min-w-0 tw:truncate">{{
                         formatHexColor(settings[colorTheme.foregroundKey])
                       }}</code>
                     </span>
                   </label>
 
-                  <label class="glyph-color-field">
+                  <label class="glyph-color-field tw:grid tw:min-w-0 tw:gap-1">
                     <span class="settings-label">{{
                       $t('settings.glyph_colors.background')
                     }}</span>
-                    <span class="glyph-color-control">
+                    <span
+                      class="tw:grid tw:min-w-0 tw:grid-cols-[var(--control-height)_minmax(0,1fr)] tw:items-center tw:gap-2"
+                    >
                       <input
                         :id="colorTheme.backgroundKey"
                         class="glyph-color-input"
@@ -181,7 +195,7 @@
                           updateGlyphColor(colorTheme.backgroundKey, $event)
                         "
                       />
-                      <code class="glyph-color-value">{{
+                      <code class="glyph-color-value tw:min-w-0 tw:truncate">{{
                         formatHexColor(settings[colorTheme.backgroundKey])
                       }}</code>
                     </span>
@@ -190,7 +204,9 @@
               </div>
             </div>
 
-            <div class="settings-field settings-field--inline">
+            <div
+              class="settings-field settings-field--inline tw:mt-3 tw:grid tw:gap-2"
+            >
               <span class="settings-label">{{
                 $t('settings.language.label')
               }}</span>
@@ -211,7 +227,9 @@
               {{ $t('settings.sections.canvas') }}
             </h3>
 
-            <div class="settings-field settings-field--inline">
+            <div
+              class="settings-field settings-field--inline tw:mt-3 tw:grid tw:gap-2"
+            >
               <span class="settings-label">{{
                 $t('settings.glyph_width.label')
               }}</span>
@@ -223,7 +241,9 @@
               />
             </div>
 
-            <div class="settings-field settings-field--inline">
+            <div
+              class="settings-field settings-field--inline tw:mt-3 tw:grid tw:gap-2"
+            >
               <span class="settings-label">{{
                 $t('settings.draw_mode.label')
               }}</span>
@@ -235,7 +255,10 @@
               />
             </div>
 
-            <label class="settings-check-row" for="showBorder">
+            <label
+              class="settings-check-row tw:mt-2 tw:flex tw:items-center tw:justify-between tw:gap-4"
+              for="showBorder"
+            >
               <span class="settings-label">
                 {{ $t('settings.show_border') }}
               </span>
@@ -248,7 +271,10 @@
               />
             </label>
 
-            <label class="settings-check-row" for="enableSelection">
+            <label
+              class="settings-check-row tw:mt-2 tw:flex tw:items-center tw:justify-between tw:gap-4"
+              for="enableSelection"
+            >
               <span class="settings-label">{{
                 $t('settings.enable_selection')
               }}</span>
@@ -261,7 +287,10 @@
               />
             </label>
 
-            <label class="settings-check-row" for="alwaysShowMouseCursor">
+            <label
+              class="settings-check-row tw:mt-2 tw:flex tw:items-center tw:justify-between tw:gap-4"
+              for="alwaysShowMouseCursor"
+            >
               <span class="settings-label">
                 {{ $t('settings.always_show_mouse_cursor') }}
               </span>
@@ -282,7 +311,10 @@
             <h3 id="settings-workflow-title" class="settings-section-title">
               {{ $t('settings.sections.workflow') }}
             </h3>
-            <label class="settings-check-row" for="autoSaveEnabled">
+            <label
+              class="settings-check-row tw:mt-2 tw:flex tw:items-center tw:justify-between tw:gap-4"
+              for="autoSaveEnabled"
+            >
               <span class="settings-label">{{
                 $t('settings.auto_save_enabled')
               }}</span>
@@ -294,7 +326,9 @@
                 @change="updateBoolean('autoSaveEnabled', $event)"
               />
             </label>
-            <div class="settings-field settings-field--inline">
+            <div
+              class="settings-field settings-field--inline tw:mt-3 tw:grid tw:gap-2"
+            >
               <span class="settings-label">{{
                 $t('settings.auto_save_interval')
               }}</span>
@@ -323,7 +357,9 @@
             <span class="settings-field-label">{{
               $t('settings.export_defaults')
             }}</span>
-            <div class="settings-field settings-field--inline">
+            <div
+              class="settings-field settings-field--inline tw:mt-3 tw:grid tw:gap-2"
+            >
               <span class="settings-label">{{
                 $t('settings.export_scale')
               }}</span>
@@ -334,7 +370,10 @@
                 @update:model-value="updateExportScale"
               />
             </div>
-            <label class="settings-check-row" for="exportTransparent">
+            <label
+              class="settings-check-row tw:mt-2 tw:flex tw:items-center tw:justify-between tw:gap-4"
+              for="exportTransparent"
+            >
               <span class="settings-label">{{
                 $t('settings.export_transparent')
               }}</span>
@@ -350,7 +389,9 @@
             <span class="settings-field-label settings-field-label--spaced">{{
               $t('settings.image_import_defaults')
             }}</span>
-            <div class="settings-field settings-field--inline">
+            <div
+              class="settings-field settings-field--inline tw:mt-3 tw:grid tw:gap-2"
+            >
               <span class="settings-label">{{
                 $t('settings.image_import_mode')
               }}</span>
@@ -361,7 +402,9 @@
                 @update:model-value="updateImageImportMode"
               />
             </div>
-            <div class="settings-field settings-field--inline">
+            <div
+              class="settings-field settings-field--inline tw:mt-3 tw:grid tw:gap-2"
+            >
               <label class="settings-label" for="imageImportThreshold">{{
                 $t('settings.image_import_threshold')
               }}</label>
@@ -377,7 +420,7 @@
               />
             </div>
             <label
-              class="settings-check-row"
+              class="settings-check-row tw:mt-2 tw:flex tw:items-center tw:justify-between tw:gap-4"
               for="imageImportTransparentAsWhite"
             >
               <span class="settings-label">{{
@@ -401,7 +444,9 @@
               {{ $t('settings.sections.glyph_preview') }}
             </h3>
 
-            <div class="settings-field settings-field--inline">
+            <div
+              class="settings-field settings-field--inline tw:mt-3 tw:grid tw:gap-2"
+            >
               <span class="settings-label">{{
                 $t('settings.glyph_preview.label')
               }}</span>
@@ -413,7 +458,9 @@
               />
             </div>
 
-            <div class="settings-field settings-field--inline">
+            <div
+              class="settings-field settings-field--inline tw:mt-3 tw:grid tw:gap-2"
+            >
               <span class="settings-label">{{
                 $t('settings.glyph_library_density')
               }}</span>
@@ -425,7 +472,10 @@
               />
             </div>
 
-            <label class="settings-check-row" for="preserveGlyphLibraryFilters">
+            <label
+              class="settings-check-row tw:mt-2 tw:flex tw:items-center tw:justify-between tw:gap-4"
+              for="preserveGlyphLibraryFilters"
+            >
               <span class="settings-label">{{
                 $t('settings.preserve_glyph_library_filters')
               }}</span>
@@ -441,7 +491,10 @@
               {{ $t('settings.preserve_glyph_library_filters_hint') }}
             </p>
 
-            <label class="settings-check-row" for="glyphManagerPushEditor">
+            <label
+              class="settings-check-row tw:mt-2 tw:flex tw:items-center tw:justify-between tw:gap-4"
+              for="glyphManagerPushEditor"
+            >
               <span class="settings-label">{{
                 $t('settings.glyph_manager_push_editor')
               }}</span>
@@ -457,7 +510,7 @@
               {{ $t('settings.glyph_manager_push_editor_hint') }}
             </p>
 
-            <div class="settings-field">
+            <div class="settings-field tw:mt-3 tw:grid tw:gap-2">
               <span id="browser-font-label" class="settings-field-label">
                 {{ $t('settings.browser_preview_font') }}
               </span>
@@ -468,8 +521,8 @@
                 :accept="LOCAL_PREVIEW_FONT_ACCEPT"
                 @change="handleLocalFontImport"
               />
-              <div class="local-font-controls">
-                <div class="local-font-actions">
+              <div class="tw:grid tw:gap-2">
+                <div class="local-font-actions tw:flex tw:flex-wrap tw:gap-2">
                   <button
                     class="ui-button"
                     type="button"
@@ -497,7 +550,7 @@
                 </div>
                 <div
                   v-if="localPreviewFontName"
-                  class="local-font-status"
+                  class="local-font-status tw:grid tw:gap-[0.2rem] tw:px-3 tw:py-2"
                   role="status"
                 >
                   <strong class="local-font-name">{{
@@ -530,11 +583,17 @@
                 :title="settings.browserPreviewFont"
                 @click="toggleFontEdit"
               >
-                <span>{{ settings.browserPreviewFont }}</span>
+                <span class="tw:min-w-0 tw:truncate">{{
+                  settings.browserPreviewFont
+                }}</span>
                 <i-material-symbols-edit class="settings-icon" />
               </button>
 
-              <div v-if="showFontEdit" id="font-editor" class="font-editor">
+              <div
+                v-if="showFontEdit"
+                id="font-editor"
+                class="tw:grid tw:gap-2 tw:pt-1"
+              >
                 <label for="fontInput" class="visually-hidden">
                   {{ $t('settings.font_edit.title') }}
                 </label>
@@ -545,7 +604,7 @@
                   class="font-input"
                   rows="5"
                 ></textarea>
-                <div class="font-edit-actions">
+                <div class="tw:flex tw:justify-end tw:gap-2">
                   <button
                     class="ui-button ui-button--primary"
                     type="button"
@@ -574,7 +633,10 @@
               {{ $t('settings.sections.safety') }}
             </h3>
 
-            <label class="settings-check-row" for="confirmClear">
+            <label
+              class="settings-check-row tw:mt-2 tw:flex tw:items-center tw:justify-between tw:gap-4"
+              for="confirmClear"
+            >
               <span class="settings-label">
                 {{ $t('settings.confirm_clear') }}
               </span>
@@ -595,7 +657,9 @@
             <h3 id="settings-updates-title" class="settings-section-title">
               {{ $t('settings.sections.updates') }}
             </h3>
-            <div class="settings-field settings-field--inline">
+            <div
+              class="settings-field settings-field--inline tw:mt-3 tw:grid tw:gap-2"
+            >
               <span class="settings-label">{{
                 $t('settings.updates.version')
               }}</span>
@@ -619,7 +683,7 @@
             </button>
           </section>
 
-          <footer class="settings-footer">
+          <footer class="settings-footer tw:grid tw:gap-2 tw:pt-3">
             <a
               class="ui-button ui-button--quiet settings-footer-action repository-link"
               href="https://github.com/SkyEye-FAST/unicucumber"
@@ -1065,6 +1129,7 @@ const confirmReset = (): void => {
 </script>
 
 <style scoped>
+/* Drawer surfaces and safe-area sizing. */
 .settings-overlay {
   position: fixed;
   inset: 0;
@@ -1076,12 +1141,8 @@ const confirmReset = (): void => {
   position: fixed;
   inset: 0 0 0 auto;
   z-index: 1091;
-  box-sizing: border-box;
   width: clamp(20rem, 30vw, 24rem);
   height: 100dvh;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  overflow: hidden;
   border-left: 1px solid var(--border-color);
   background: var(--background-light);
   box-shadow: -0.35rem 0 1.4rem rgba(0, 0, 0, 0.14);
@@ -1090,10 +1151,6 @@ const confirmReset = (): void => {
 
 .settings-header {
   min-height: 4rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
   padding: max(var(--space-3), env(safe-area-inset-top))
     max(var(--space-4), env(safe-area-inset-right)) var(--space-3)
     var(--space-6);
@@ -1120,13 +1177,11 @@ const confirmReset = (): void => {
 }
 
 .settings-content {
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
   padding: 0 var(--space-6) max(var(--space-6), env(safe-area-inset-bottom));
   scrollbar-gutter: stable;
 }
 
+/* Section hierarchy and shared field typography. */
 .settings-section {
   min-width: 0;
   margin: 0;
@@ -1163,17 +1218,12 @@ const confirmReset = (): void => {
   line-height: 1.4;
 }
 
-.settings-field {
-  display: grid;
-  gap: var(--space-2);
-  margin-top: var(--space-3);
-}
-
 .settings-section-title + .settings-field {
   margin-top: 0;
 }
 
-.settings-label {
+.settings-label,
+.settings-field-label {
   min-width: 0;
   color: var(--text-color);
   font-size: 0.8125rem;
@@ -1183,11 +1233,6 @@ const confirmReset = (): void => {
 
 .settings-field-label {
   display: block;
-  min-width: 0;
-  color: var(--text-color);
-  font-size: 0.8125rem;
-  font-weight: 650;
-  line-height: 1.4;
 }
 
 .settings-field-label--spaced {
@@ -1200,18 +1245,11 @@ const confirmReset = (): void => {
   gap: var(--space-3);
 }
 
+/* Theme-aware glyph colors and native color controls. */
 .glyph-colors {
   margin-top: var(--space-4);
   padding-top: var(--space-4);
   border-top: 1px solid var(--border-color);
-}
-
-.glyph-colors-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-3);
 }
 
 .glyph-colors-header > div {
@@ -1230,28 +1268,13 @@ const confirmReset = (): void => {
   font-size: 0.75rem;
 }
 
-.glyph-color-themes {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-2);
-  margin-top: var(--space-3);
-}
-
 .glyph-color-theme {
-  min-width: 0;
-  display: grid;
-  gap: var(--space-3);
-  padding: var(--space-3);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   background: var(--background-base);
 }
 
 .glyph-color-theme-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
   color: var(--text-color);
   font-size: 0.8125rem;
 }
@@ -1278,18 +1301,7 @@ const confirmReset = (): void => {
 }
 
 .glyph-color-field {
-  min-width: 0;
-  display: grid;
-  gap: var(--space-1);
   cursor: pointer;
-}
-
-.glyph-color-control {
-  min-width: 0;
-  display: grid;
-  grid-template-columns: var(--control-height) minmax(0, 1fr);
-  align-items: center;
-  gap: var(--space-2);
 }
 
 .glyph-color-input {
@@ -1318,19 +1330,10 @@ const confirmReset = (): void => {
   border-radius: calc(var(--radius-sm) - 2px);
 }
 
-.glyph-color-input:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-}
-
 .glyph-color-value {
-  min-width: 0;
-  overflow: hidden;
   color: var(--text-secondary);
   font-family: var(--monospace-font);
   font-size: 0.72rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .settings-version {
@@ -1367,13 +1370,9 @@ const confirmReset = (): void => {
   font: inherit;
 }
 
+/* Switch and appearance controls keep their state rules together. */
 .settings-check-row {
   min-height: 2.35rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  margin-top: var(--space-2);
   cursor: pointer;
 }
 
@@ -1507,6 +1506,7 @@ const confirmReset = (): void => {
   outline-offset: -3px;
 }
 
+/* Font editor and footer actions. */
 .font-button {
   width: 100%;
   min-width: 0;
@@ -1514,19 +1514,6 @@ const confirmReset = (): void => {
   padding-inline: var(--space-3);
   font-weight: 500;
   text-align: left;
-}
-
-.font-button span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.font-editor {
-  display: grid;
-  gap: var(--space-2);
-  padding-top: var(--space-1);
 }
 
 .font-input {
@@ -1538,31 +1525,11 @@ const confirmReset = (): void => {
   line-height: 1.45;
 }
 
-.font-edit-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-2);
-}
-
-.local-font-controls {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.local-font-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
 .local-font-actions .ui-button {
   min-width: 0;
 }
 
 .local-font-status {
-  display: grid;
-  gap: 0.2rem;
-  padding: var(--space-2) var(--space-3);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   background: var(--background-color);
@@ -1583,12 +1550,6 @@ const confirmReset = (): void => {
   line-height: 1.4;
 }
 
-.settings-footer {
-  display: grid;
-  gap: var(--space-2);
-  padding: var(--space-3) 0 0;
-}
-
 .settings-footer-action {
   width: 100%;
   justify-content: flex-start;
@@ -1602,6 +1563,7 @@ const confirmReset = (): void => {
   color: var(--primary-color);
 }
 
+/* Drawer motion and responsive adjustments. */
 .settings-drawer-enter-active {
   transition:
     transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -1667,10 +1629,6 @@ const confirmReset = (): void => {
   .settings-content {
     padding-right: max(var(--space-4), env(safe-area-inset-right));
     padding-left: max(var(--space-4), env(safe-area-inset-left));
-  }
-
-  .settings-section {
-    padding-block: var(--space-4);
   }
 
   .settings-field--inline {

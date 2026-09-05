@@ -1,6 +1,8 @@
 <template>
-  <div class="hex-code-container">
-    <div class="hex-field-header">
+  <div class="hex-code-container tw:m-0 tw:w-full tw:min-w-0">
+    <div
+      class="tw:mb-[0.35rem] tw:flex tw:items-center tw:justify-between tw:gap-3"
+    >
       <label class="hex-field-label" for="hexInput">
         {{ $t('hex_input.label') }}
       </label>
@@ -8,12 +10,12 @@
         {{ $t('hex_input.width', { width: glyphWidth }) }}
       </span>
     </div>
-    <div class="hex-input-row">
-      <div class="hex-input-wrapper">
+    <div class="hex-input-row tw:flex tw:items-center tw:gap-2">
+      <div class="hex-input-wrapper tw:relative tw:flex tw:min-w-0 tw:flex-1">
         <input
           id="hexInput"
           v-model="draft"
-          class="hex-input"
+          class="hex-input tw:box-border tw:w-full tw:min-w-0 tw:whitespace-nowrap"
           maxlength="80"
           inputmode="text"
           autocapitalize="characters"
@@ -32,7 +34,7 @@
         />
       </div>
       <button
-        class="copy-button ui-icon-button ui-button--primary"
+        class="copy-button ui-icon-button ui-button--primary tw:flex-none"
         type="button"
         :title="$t('hex_input.copy')"
         :aria-label="$t('hex_input.copy')"
@@ -46,7 +48,7 @@
         <i-material-symbols-content-copy-outline v-else class="icon" />
       </button>
       <button
-        class="apply-button ui-button ui-button--primary"
+        class="apply-button ui-button ui-button--primary tw:flex-none"
         type="button"
         :disabled="!normalizedDraft || !isChanged"
         @click="applyDraft"
@@ -152,49 +154,18 @@ const copyHex = async (): Promise<void> => {
 </script>
 
 <style scoped>
-.hex-code-container {
-  width: 100%;
-  min-width: 0;
-  margin: 0;
-}
-
-.hex-field-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin-bottom: 0.35rem;
-}
-
 .hex-field-label {
   color: var(--text-color);
   font-size: 0.8rem;
   font-weight: 650;
 }
 
-.hex-input-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.hex-input-wrapper {
-  position: relative;
-  display: flex;
-  min-width: 0;
-  flex: 1;
-}
-
 .hex-input {
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
   min-height: var(--control-height);
   padding: 0.55rem 0.7rem;
   font-family: var(--monospace-font);
   font-size: 0.88rem;
   line-height: 1.2;
-  white-space: nowrap;
   background-color: var(--input-background);
   color: var(--text-color);
   border: 1px solid var(--border-color);
@@ -216,11 +187,6 @@ const copyHex = async (): Promise<void> => {
   font-family: var(--monospace-font);
   font-size: 0.72rem;
   white-space: nowrap;
-}
-
-.copy-button,
-.apply-button {
-  flex: none;
 }
 
 .apply-button:disabled {

@@ -1,15 +1,23 @@
 <template>
-  <section class="export-panel" :aria-label="$t('export.title')">
-    <div class="export-title-row">
+  <section
+    class="export-panel tw:box-border tw:grid tw:w-full tw:gap-2 tw:p-3"
+    :aria-label="$t('export.title')"
+  >
+    <div
+      class="tw:flex tw:min-w-0 tw:items-baseline tw:justify-between tw:gap-3"
+    >
       <span class="section-heading">{{ $t('export.title') }}</span>
-      <output class="filename-preview" :aria-label="$t('export.filename')">
+      <output
+        class="filename-preview tw:min-w-0 tw:text-end tw:wrap-anywhere"
+        :aria-label="$t('export.filename')"
+      >
         {{ filename(selectedFormat.toLowerCase()) }}
       </output>
     </div>
 
-    <div class="export-command">
+    <div class="export-command tw:grid tw:min-w-0 tw:gap-2">
       <div
-        class="format-picker"
+        class="format-picker tw:grid tw:min-w-0 tw:grid-cols-4 tw:p-[0.2rem]"
         role="radiogroup"
         :aria-label="$t('export.title')"
       >
@@ -37,7 +45,10 @@
       </button>
     </div>
 
-    <div v-if="canCopyImage || canShare" class="utility-actions">
+    <div
+      v-if="canCopyImage || canShare"
+      class="utility-actions tw:grid tw:grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] tw:gap-2"
+    >
       <button
         v-if="canCopyImage"
         class="ui-button"
@@ -58,13 +69,17 @@
       </button>
     </div>
 
-    <details class="export-settings">
-      <summary class="settings-trigger">
+    <details class="export-settings tw:min-w-0">
+      <summary class="settings-trigger tw:flex tw:items-center tw:gap-2">
         <i-material-symbols-tune class="icon" />
         <span>{{ $t('export.options') }}</span>
-        <i-material-symbols-keyboard-arrow-down class="icon settings-chevron" />
+        <i-material-symbols-keyboard-arrow-down
+          class="icon settings-chevron tw:ml-auto"
+        />
       </summary>
-      <div class="export-options">
+      <div
+        class="export-options tw:mt-2 tw:grid tw:grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] tw:items-center tw:gap-2 tw:px-3 tw:py-2"
+      >
         <label class="export-option">
           <span class="export-option__label">{{ $t('export.scale') }}</span>
           <CustomSelect
@@ -235,45 +250,19 @@ const shareImage = async (): Promise<void> => {
 
 <style scoped>
 .export-panel {
-  box-sizing: border-box;
-  width: 100%;
   margin: 0.35rem 0 0;
-  display: grid;
-  gap: var(--space-2);
-  padding: var(--space-3);
   border-top: 1px solid var(--border-color);
   border-bottom: 1px solid var(--border-color);
   background: var(--background-light);
 }
 
-.export-title-row {
-  min-width: 0;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
 .filename-preview {
-  min-width: 0;
   color: var(--text-secondary);
   font-family: var(--monospace-font);
   font-size: 0.78rem;
-  overflow-wrap: anywhere;
-  text-align: end;
-}
-
-.export-command {
-  min-width: 0;
-  display: grid;
-  gap: var(--space-2);
 }
 
 .format-picker {
-  min-width: 0;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  padding: 0.2rem;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   background: var(--background-hover);
@@ -313,22 +302,12 @@ const shareImage = async (): Promise<void> => {
   min-width: 0;
 }
 
-.utility-actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-  gap: var(--space-2);
-}
-
 .export-settings {
-  min-width: 0;
   border-top: 1px solid var(--border-color);
 }
 
 .settings-trigger {
   min-height: var(--control-height-compact);
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
   padding: var(--space-2) 0 0;
   cursor: pointer;
   color: var(--text-secondary);
@@ -341,7 +320,6 @@ const shareImage = async (): Promise<void> => {
 }
 
 .settings-chevron {
-  margin-left: auto;
   transition: transform 140ms ease;
 }
 
@@ -350,12 +328,6 @@ const shareImage = async (): Promise<void> => {
 }
 
 .export-options {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-  align-items: center;
-  gap: var(--space-2);
-  margin-top: var(--space-2);
-  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-sm);
   background: var(--background-hover);
 }

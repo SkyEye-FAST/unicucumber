@@ -502,14 +502,6 @@ const handleDialogKeydown = (event: KeyboardEvent): void => {
   background: var(--danger-color);
 }
 
-.dialog-title {
-  color: var(--text-color);
-}
-
-[data-theme='dark'] .conflict-item {
-  border-color: var(--glyph-card-border);
-}
-
 [data-theme='dark'] input[type='checkbox'] {
   background-color: var(--checkbox-background);
   border-color: var(--checkbox-border);
