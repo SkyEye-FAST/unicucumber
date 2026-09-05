@@ -1,5 +1,6 @@
 <template>
   <header
+    data-tooltip-placement="bottom"
     class="editor-header tw:box-border tw:flex tw:flex-row tw:items-center tw:justify-between tw:gap-4"
   >
     <div class="tw:flex tw:min-w-0 tw:items-center">

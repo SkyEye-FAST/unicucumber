@@ -11,6 +11,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AppTooltip: typeof import('./src/components/AppTooltip.vue')['default']
     ComponentBrowser: typeof import('./src/components/GlyphComposer/ComponentBrowser.vue')['default']
     ComponentCard: typeof import('./src/components/GlyphComposer/ComponentCard.vue')['default']
     CompositionCanvas: typeof import('./src/components/GlyphComposer/CompositionCanvas.vue')['default']
@@ -70,6 +71,7 @@ declare module 'vue' {
     IMaterialSymbolsFullscreen: typeof import('~icons/material-symbols/fullscreen')['default']
     IMaterialSymbolsFullscreenExit: typeof import('~icons/material-symbols/fullscreen-exit')['default']
     IMaterialSymbolsGlyphs: typeof import('~icons/material-symbols/glyphs')['default']
+    IMaterialSymbolsGridViewOutline: typeof import('~icons/material-symbols/grid-view-outline')['default']
     IMaterialSymbolsImageOutline: typeof import('~icons/material-symbols/image-outline')['default']
     IMaterialSymbolsImagesmodeOutline: typeof import('~icons/material-symbols/imagesmode-outline')['default']
     IMaterialSymbolsInfoOutline: typeof import('~icons/material-symbols/info-outline')['default']

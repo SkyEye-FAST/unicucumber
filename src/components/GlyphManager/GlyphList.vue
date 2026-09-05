@@ -117,14 +117,16 @@
           <div class="glyph-actions tw:flex tw:flex-none tw:gap-[6px]">
             <button
               class="btn-icon"
-              :title="$t('glyph_manager.glyph.edit')"
+              data-tooltip
+              :aria-label="$t('glyph_manager.glyph.edit')"
               @click="$emit('edit', item.source)"
             >
               <i-material-symbols-edit-outline class="icon" />
             </button>
             <button
               class="btn-icon danger"
-              :title="$t('glyph_manager.glyph.delete')"
+              data-tooltip
+              :aria-label="$t('glyph_manager.glyph.delete')"
               @click="$emit('remove', item.glyph.codePoint)"
             >
               <i-material-symbols-delete-outline class="icon" />

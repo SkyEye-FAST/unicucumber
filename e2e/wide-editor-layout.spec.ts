@@ -163,7 +163,9 @@ test.describe('wide editor layout', () => {
     expect(sidebar.right).toBeGreaterThan(grid.left)
   })
 
-  test('reveals every vertical command name to the left', async ({ page }) => {
+  test('reveals every vertical command name within the viewport', async ({
+    page,
+  }) => {
     await loadWideEditor(page, 768, 1024)
     const actionButtons = page.locator(
       '.action-group > button, .history-controls > button',
@@ -175,53 +177,38 @@ test.describe('wide editor layout', () => {
     await expect(actionButtons).toHaveCount(5)
     await expect(toolButtons).toHaveCount(5)
 
-    for (const button of await actionButtons.all()) {
+    const tooltip = page.getByRole('tooltip')
+    for (const button of [
+      ...(await actionButtons.all()),
+      ...(await toolButtons.all()),
+    ]) {
       const label = await button.getAttribute('aria-label')
       if (!label) throw new Error('Vertical command is missing its label')
       await expect(button).not.toHaveAttribute('title')
       await button.hover({ force: true })
-      await expect
-        .poll(() =>
-          button.evaluate((element) => ({
-            content: getComputedStyle(element, '::after').content,
-            opacity: getComputedStyle(element, '::after').opacity,
-          })),
-        )
-        .toEqual({
-          content: `"${label}"`,
-          opacity: '1',
-        })
-      expect(
-        await button.evaluate((element) =>
-          Number.parseFloat(getComputedStyle(element, '::after').right),
-        ),
-      ).toBeGreaterThan(8)
-    }
-
-    for (const button of await toolButtons.all()) {
-      const label = await button.getAttribute('aria-label')
-      const tooltip = button.locator('.tool-name-tooltip')
-      if (!label) throw new Error('Vertical tool is missing its label')
-      await expect(button).not.toHaveAttribute('title')
-      await button.hover()
-      await expect(tooltip).toHaveCSS('opacity', '1')
+      await expect(tooltip).toBeVisible()
       await expect(tooltip).toHaveText(label)
       const buttonBounds = await button.boundingBox()
       const tooltipBounds = await tooltip.boundingBox()
       if (!buttonBounds || !tooltipBounds) {
         throw new Error('Tool name tooltip is unavailable')
       }
-      expect(tooltipBounds.x + tooltipBounds.width).toBeLessThanOrEqual(
-        buttonBounds.x,
-      )
+      expect(tooltipBounds.x).toBeGreaterThanOrEqual(8)
+      expect(tooltipBounds.x + tooltipBounds.width).toBeLessThanOrEqual(760)
+      expect(tooltipBounds.y).toBeGreaterThanOrEqual(8)
+      expect(tooltipBounds.y + tooltipBounds.height).toBeLessThanOrEqual(1016)
+      const overlaps =
+        tooltipBounds.x < buttonBounds.x + buttonBounds.width &&
+        tooltipBounds.x + tooltipBounds.width > buttonBounds.x &&
+        tooltipBounds.y < buttonBounds.y + buttonBounds.height &&
+        tooltipBounds.y + tooltipBounds.height > buttonBounds.y
+      expect(overlaps).toBe(false)
     }
 
     await page.getByRole('button', { name: 'Erase', exact: true }).focus()
-    await expect(
-      page
-        .getByRole('button', { name: 'Erase', exact: true })
-        .locator('.tool-name-tooltip'),
-    ).toHaveCSS('opacity', '1')
+    await expect(tooltip).toHaveText('Erase')
+    await page.keyboard.press('Escape')
+    await expect(tooltip).toHaveCount(0)
 
     const gridBefore = await getBounds(page, '.grid-container')
     const canvasBefore = await getBounds(page, '.editor-canvas-column')
@@ -239,11 +226,10 @@ test.describe('wide editor layout', () => {
     await expect(menuButtons).toHaveCount(7)
     for (const button of await menuButtons.all()) {
       const label = await button.getAttribute('aria-label')
-      const tooltip = button.locator('.tool-menu-tooltip')
       if (!label) throw new Error('Overflow tool is missing its label')
       await expect(button).not.toHaveAttribute('title')
       await button.hover()
-      await expect(tooltip).toHaveCSS('opacity', '1')
+      await expect(tooltip).toBeVisible()
       await expect(tooltip).toContainText(label)
     }
   })

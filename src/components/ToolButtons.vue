@@ -1,5 +1,10 @@
 <template>
-  <div class="tool-buttons" role="toolbar" :aria-label="$t('tools.toolbar')">
+  <div
+    class="tool-buttons"
+    data-tooltip-group
+    role="toolbar"
+    :aria-label="$t('tools.toolbar')"
+  >
     <button
       v-for="tool in primaryTools"
       :key="tool.id"
@@ -19,9 +24,6 @@
         class="icon"
       />
       <i-material-symbols-pan-tool-outline v-else class="icon" />
-      <span class="tool-name-tooltip" aria-hidden="true">
-        {{ $t(tool.label) }}
-      </span>
     </button>
 
     <details
@@ -37,9 +39,6 @@
         :aria-label="$t('tools.more')"
       >
         <i-material-symbols-more-horiz class="icon" />
-        <span class="tool-name-tooltip" aria-hidden="true">
-          {{ $t('tools.more') }}
-        </span>
       </summary>
       <div class="tool-sheet">
         <div
@@ -53,6 +52,7 @@
             type="button"
             :class="{ active: currentTool === tool.id }"
             :aria-label="$t(tool.label)"
+            :data-tooltip="`${$t(tool.label)} (${tool.shortcut})`"
             @click="updateTool(tool.id)"
           >
             <i-material-symbols-format-color-fill
@@ -68,9 +68,6 @@
               class="icon"
             />
             <i-material-symbols-rectangle v-else class="icon" />
-            <span class="tool-menu-tooltip" aria-hidden="true">
-              {{ $t(tool.label) }} ({{ tool.shortcut }})
-            </span>
           </button>
         </div>
         <div
@@ -84,9 +81,6 @@
             @click="runCommand({ type: 'invert' })"
           >
             <i-material-symbols-invert-colors class="icon" />
-            <span class="tool-menu-tooltip" aria-hidden="true">
-              {{ $t('tools.invert') }}
-            </span>
           </button>
           <button
             type="button"
@@ -94,9 +88,6 @@
             @click="runCommand({ type: 'flipHorizontal' })"
           >
             <i-material-symbols-flip class="icon" />
-            <span class="tool-menu-tooltip" aria-hidden="true">
-              {{ $t('tools.flip_horizontal') }}
-            </span>
           </button>
           <button
             type="button"
@@ -104,9 +95,6 @@
             @click="runCommand({ type: 'flipVertical' })"
           >
             <i-material-symbols-flip class="icon vertical" />
-            <span class="tool-menu-tooltip" aria-hidden="true">
-              {{ $t('tools.flip_vertical') }}
-            </span>
           </button>
         </div>
       </div>
@@ -213,10 +201,6 @@ const runCommand = (command: EditorCommand): void => {
   color: var(--text-color);
   cursor: pointer;
   list-style: none;
-}
-
-.tool-name-tooltip {
-  display: none;
 }
 
 .tool-buttons > .tool-button:first-child {
@@ -347,49 +331,6 @@ const runCommand = (command: EditorCommand): void => {
     border-radius: var(--radius-sm);
   }
 
-  .tool-name-tooltip {
-    position: absolute;
-    z-index: 50;
-    top: 50%;
-    right: calc(100% + var(--space-2));
-    display: block;
-    padding: 0.35rem 0.6rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    background: var(--background-light);
-    box-shadow: 0 3px 10px var(--modal-overlay);
-    color: var(--text-color);
-    font-family: var(--normal-font);
-    font-size: 0.78rem;
-    font-weight: 650;
-    line-height: 1.2;
-    white-space: nowrap;
-    pointer-events: none;
-    opacity: 0;
-    visibility: hidden;
-    transform: translate(0.35rem, -50%) scale(0.96);
-    transform-origin: right center;
-    transition:
-      opacity 120ms ease,
-      transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      visibility 0s linear 160ms;
-  }
-
-  .tool-button:hover > .tool-name-tooltip,
-  .tool-button:focus-visible > .tool-name-tooltip {
-    opacity: 1;
-    visibility: visible;
-    transform: translate(0, -50%) scale(1);
-    transition-delay: 70ms;
-  }
-
-  .tool-overflow[open] > summary .tool-name-tooltip {
-    opacity: 0;
-    visibility: hidden;
-    transform: translate(0.35rem, -50%) scale(0.96);
-    transition-delay: 0s;
-  }
-
   .tool-sheet {
     position: absolute;
     top: 0;
@@ -425,49 +366,6 @@ const runCommand = (command: EditorCommand): void => {
 
   .tool-sheet button .icon {
     flex: none;
-  }
-
-  .tool-menu-tooltip {
-    position: absolute;
-    z-index: 55;
-    top: 50%;
-    right: calc(100% + var(--space-2));
-    display: block;
-    padding: 0.35rem 0.6rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    background: var(--background-light);
-    box-shadow: 0 3px 10px var(--modal-overlay);
-    color: var(--text-color);
-    font-family: var(--normal-font);
-    font-size: 0.78rem;
-    font-weight: 650;
-    line-height: 1.2;
-    white-space: nowrap;
-    pointer-events: none;
-    opacity: 0;
-    visibility: hidden;
-    transform: translate(0.35rem, -50%) scale(0.96);
-    transform-origin: right center;
-    transition:
-      opacity 120ms ease,
-      transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      visibility 0s linear 160ms;
-  }
-
-  .tool-sheet button:hover > .tool-menu-tooltip,
-  .tool-sheet button:focus-visible > .tool-menu-tooltip {
-    opacity: 1;
-    visibility: visible;
-    transform: translate(0, -50%) scale(1);
-    transition-delay: 70ms;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tool-name-tooltip,
-  .tool-menu-tooltip {
-    transition: none;
   }
 }
 </style>

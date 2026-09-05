@@ -1,11 +1,16 @@
 <template>
-  <section class="workspace" :aria-label="$t('workspace.label')">
+  <section
+    class="workspace"
+    data-tooltip-group
+    :aria-label="$t('workspace.label')"
+  >
     <div class="workspace-toolbar">
       <div class="workspace-metadata">
         <slot name="toolbar"></slot>
       </div>
       <div
         class="view-controls"
+        data-tooltip-placement="bottom"
         role="toolbar"
         :aria-label="$t('workspace.view_controls')"
       >

@@ -99,6 +99,24 @@ Build when changing the styling toolchain; use the full browser matrix when the
 scope or focused results warrant it. Verify offline behaviour against a production
 preview when relevant, as described in [Platform support](platform.md).
 
+## Tooltips
+
+`AppTooltip` renders one shared tooltip outside clipped panels. Icon controls
+using `.ui-icon-button` get their text from `aria-label`. For other controls, use
+`data-tooltip` with an accessible label, or `data-tooltip-group` on a toolbar of
+labeled buttons, links, and summaries. A translated `data-tooltip` value can add
+details such as keyboard shortcuts without changing the control's name.
+
+Positioning uses [Floating UI](https://floating-ui.com/docs/computePosition),
+preferring the right side and flipping or shifting within the viewport. Horizontal
+headers and view controls use `data-tooltip-placement="bottom"` to restrict hints
+to below or above the controls, keeping neighboring buttons clear.
+Tooltips support keyboard focus, Escape dismissal, pointer travel into
+the hint, and cleanup on activation. Touch activation does not show hover hints.
+Hints fade and slide from their chosen side; reduced-motion preferences disable
+these animations. Do not add component-specific tooltip pseudo-elements or
+duplicate tooltip CSS.
+
 ## Updating Unifont data
 
 Run the following command to download the latest release and atomically replace the

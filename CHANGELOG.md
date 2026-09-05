@@ -6,6 +6,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Added
 
+- Add shared icon-button tooltips with viewport-aware positioning, right-side hints for editor commands, vertical hints for horizontal toolbars, and reduced-motion-aware fade and slide transitions.
 - Preserve glyph-library search and Unicode filters after choosing a glyph, with a persisted Settings option to clear filters after selection when preferred.
 
 ### Changed

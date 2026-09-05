@@ -113,7 +113,7 @@
       </section>
 
       <aside class="editor-control-stack">
-        <div class="editor-actions">
+        <div class="editor-actions" data-tooltip-group>
           <div class="action-group">
             <button
               v-if="hasSelection"
@@ -232,6 +232,7 @@
         <div class="sidebar-resizer" @pointerdown="startResize"></div>
         <button
           class="btn-close-sidebar"
+          data-tooltip
           type="button"
           :aria-label="$t('header.close_glyph_manager')"
           @click="handleCloseSidebar"
@@ -1747,46 +1748,6 @@ const handlePasteStart = (): void => {
   .editor-control-stack .history-controls button {
     position: relative;
     overflow: visible;
-  }
-
-  .editor-control-stack .action-button::after,
-  .editor-control-stack .history-controls button::after {
-    content: attr(aria-label);
-    position: absolute;
-    z-index: 50;
-    top: 50%;
-    right: calc(100% + var(--space-2));
-    display: block;
-    padding: 0.35rem 0.6rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    background: var(--background-light);
-    box-shadow: 0 3px 10px var(--modal-overlay);
-    color: var(--text-color);
-    font-family: var(--normal-font);
-    font-size: 0.78rem;
-    font-weight: 650;
-    line-height: 1.2;
-    white-space: nowrap;
-    pointer-events: none;
-    opacity: 0;
-    visibility: hidden;
-    transform: translate(0.35rem, -50%) scale(0.96);
-    transform-origin: right center;
-    transition:
-      opacity 120ms ease,
-      transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      visibility 0s linear 160ms;
-  }
-
-  .editor-control-stack .action-button:hover::after,
-  .editor-control-stack .action-button:focus-visible::after,
-  .editor-control-stack .history-controls button:hover::after,
-  .editor-control-stack .history-controls button:focus-visible::after {
-    opacity: 1;
-    visibility: visible;
-    transform: translate(0, -50%) scale(1);
-    transition-delay: 70ms;
   }
 
   .editor-actions,
