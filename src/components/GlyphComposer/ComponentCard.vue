@@ -1,7 +1,7 @@
 <template>
   <button
     type="button"
-    class="component-card"
+    class="component-card tw:grid tw:w-full tw:grid-cols-[3.5rem_minmax(0,1fr)] tw:items-center tw:gap-3 tw:p-3 tw:text-left"
     :data-testid="`composition-component-${component.id}`"
     :aria-label="
       $t('composition.component_add', {
@@ -11,27 +11,32 @@
     @click="$emit('select')"
   >
     <svg
-      class="component-preview"
+      class="component-preview tw:box-border tw:block tw:aspect-square tw:w-14 tw:text-glyph"
       :data-testid="`composition-component-${component.id}-preview`"
       viewBox="0 0 16 16"
       shape-rendering="crispEdges"
       aria-hidden="true"
     >
-      <rect class="component-preview-background" width="16" height="16" />
+      <rect class="tw:fill-glyph-background" width="16" height="16" />
       <rect
         v-for="pixel in previewPixels"
         :key="`${pixel.x}-${pixel.y}`"
-        class="component-preview-pixel"
+        class="component-preview-pixel tw:fill-current"
         :x="pixel.x"
         :y="pixel.y"
         width="1"
         height="1"
       />
     </svg>
-    <span class="component-copy">
-      <span class="component-characters">{{ displayCharacters }}</span>
-      <span class="component-id">{{ component.id }}</span>
-      <span class="component-bounds">
+    <span class="tw:grid tw:min-w-0 tw:gap-[0.2rem]">
+      <span class="tw:text-[1.2rem] tw:font-[650]">{{
+        displayCharacters
+      }}</span>
+      <span
+        class="tw:wrap-anywhere tw:text-[0.75rem] tw:text-muted tw:tabular-nums"
+        >{{ component.id }}</span
+      >
+      <span class="tw:wrap-anywhere tw:text-[0.75rem] tw:text-muted">
         {{
           $t('composition.component_bounds', {
             bounds: component.bounds.join(', '),
@@ -70,14 +75,7 @@ const previewPixels = computed(() => {
 
 <style scoped>
 .component-card {
-  display: grid;
-  grid-template-columns: 3.5rem minmax(0, 1fr);
-  align-items: center;
-  gap: var(--space-3);
-  width: 100%;
-  padding: var(--space-3);
   color: inherit;
-  text-align: left;
   background: var(--background-light);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
@@ -90,42 +88,7 @@ const previewPixels = computed(() => {
 }
 
 .component-preview {
-  box-sizing: border-box;
-  display: block;
-  width: 3.5rem;
-  aspect-ratio: 1;
-  color: var(--glyph-foreground-color);
   border: 1px solid var(--glyph-preview-border);
   border-radius: var(--radius-sm);
-}
-
-.component-preview-background {
-  fill: var(--glyph-preview-background);
-}
-
-.component-preview-pixel {
-  fill: currentColor;
-}
-
-.component-copy {
-  display: grid;
-  gap: 0.2rem;
-  min-width: 0;
-}
-
-.component-characters {
-  font-size: 1.2rem;
-  font-weight: 650;
-}
-
-.component-id,
-.component-bounds {
-  overflow-wrap: anywhere;
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-}
-
-.component-id {
-  font-variant-numeric: tabular-nums;
 }
 </style>

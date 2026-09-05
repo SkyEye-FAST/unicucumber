@@ -10,6 +10,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Changed
 
+- Integrate Tailwind CSS 4 through Vite for composition-panel static styles, reuse existing theme tokens without Preflight, and document the migration tradeoffs with cross-browser layout and theme regression coverage.
 - Scale agent verification to change scope and risk, avoid mandatory full test runs for routine edits, and allow explicitly shared project editor configuration.
 - Update the component-testing, DOM simulation, linting, type-checking, coverage, and Material Symbols development dependencies.
 - Update Vue and Vue I18n to their latest compatible patch releases.

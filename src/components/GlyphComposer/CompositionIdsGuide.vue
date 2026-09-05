@@ -1,24 +1,42 @@
 <template>
   <section
-    class="composition-ids-guide"
+    class="composition-ids-guide tw:grid tw:w-full tw:min-w-0 tw:gap-1"
     data-testid="composition-ids-guide"
     :aria-label="$t('composition.ids')"
   >
-    <h4>{{ $t('composition.ids') }}</h4>
-    <p v-if="idsError" class="ids-error" role="status">
+    <h4
+      class="tw:m-0 tw:text-[0.7rem] tw:font-semibold tw:tracking-[0.04em] tw:text-muted"
+    >
+      {{ $t('composition.ids') }}
+    </h4>
+    <p
+      v-if="idsError"
+      class="ids-error tw:m-0 tw:flex tw:items-center tw:gap-2 tw:overflow-hidden tw:text-[0.75rem] tw:leading-[1.35] tw:text-ellipsis"
+      role="status"
+    >
       {{ $t('composition.ids_error') }}
-      <button type="button" class="ui-button ui-button--quiet" @click="loadIds">
+      <button
+        type="button"
+        class="ui-button ui-button--quiet tw:flex-none"
+        @click="loadIds"
+      >
         {{ $t('composition.ids_retry') }}
       </button>
     </p>
-    <p v-else-if="idsLoaded && idsNodes.length === 0" class="ids-status">
+    <p
+      v-else-if="idsLoaded && idsNodes.length === 0"
+      class="ids-status tw:m-0 tw:overflow-hidden tw:text-[0.75rem] tw:leading-[1.35] tw:text-ellipsis tw:text-muted"
+    >
       {{ $t('composition.ids_empty') }}
     </p>
-    <div v-else-if="idsNodes.length > 0" class="ids-list">
+    <div
+      v-else-if="idsNodes.length > 0"
+      class="ids-list tw:flex tw:min-w-0 tw:items-stretch tw:gap-2 tw:overflow-x-auto tw:pb-[0.15rem] tw:[scrollbar-width:thin]"
+    >
       <div
         v-for="item in idsNodes"
         :key="item.expression"
-        class="ids-expression"
+        class="tw:flex tw:min-h-10 tw:flex-none tw:items-stretch"
       >
         <IdsTree
           :node="item.node"
@@ -90,60 +108,11 @@ watch(() => props.codePoint, loadIds)
 </script>
 
 <style scoped>
-.composition-ids-guide {
-  display: grid;
-  gap: 0.25rem;
-  width: 100%;
-  min-width: 0;
-}
-
-.composition-ids-guide h4,
-.composition-ids-guide p {
-  margin: 0;
-}
-
-.composition-ids-guide h4 {
-  color: var(--text-secondary);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-}
-
-.ids-list {
-  display: flex;
-  align-items: stretch;
-  gap: var(--space-2);
-  min-width: 0;
-  overflow-x: auto;
-  padding-bottom: 0.15rem;
-  scrollbar-width: thin;
-}
-
-.ids-expression {
-  flex: none;
-  display: flex;
-  align-items: stretch;
-  min-height: 2.5rem;
-}
-
-.ids-status,
 .ids-error {
-  overflow: hidden;
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-  line-height: 1.35;
-  text-overflow: ellipsis;
-}
-
-.ids-error {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
   color: var(--danger-color, var(--text-color));
 }
 
 .ids-error .ui-button {
-  flex: none;
   min-height: var(--control-height-compact);
 }
 </style>

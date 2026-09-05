@@ -1,10 +1,12 @@
 <template>
   <div
-    class="composition-toolbar"
+    class="composition-toolbar tw:flex tw:items-center tw:justify-between tw:gap-2 tw:px-4 tw:py-3"
     role="toolbar"
     :aria-label="$t('composition.title')"
   >
-    <div class="toolbar-group toolbar-document-actions">
+    <div
+      class="toolbar-group toolbar-document-actions tw:flex tw:items-center tw:gap-2"
+    >
       <button
         type="button"
         class="ui-button"
@@ -24,7 +26,9 @@
         <span>{{ $t('composition.discard') }}</span>
       </button>
     </div>
-    <div class="toolbar-group toolbar-commit-actions">
+    <div
+      class="toolbar-group toolbar-commit-actions tw:flex tw:items-center tw:gap-2"
+    >
       <button
         type="button"
         class="ui-button ui-button--quiet"
@@ -83,18 +87,7 @@ const { t: $t } = useI18n()
 
 <style scoped>
 .composition-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
   background: var(--modal-background);
-}
-
-.toolbar-group {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
 }
 
 .toolbar-danger {

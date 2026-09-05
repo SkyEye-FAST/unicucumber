@@ -62,6 +62,37 @@ generated-data commands change files, so review their diffs before committing.
   their data from the required chunks instead of parsing the complete map in the
   browser.
 
+## Styling
+
+Tailwind CSS 4 runs through `@tailwindcss/vite`. Import its single entry point,
+`src/styles/tailwind.css`, from `src/main.ts`; no PostCSS or JavaScript Tailwind
+configuration is needed. See [Tailwind evaluation](tailwind.md) for the decision,
+scope, and measured cost.
+
+- Use `tw:` utilities for ordinary static layout in Vue templates. The source
+  scanner reads `src/**/*.vue`; add explicit sources if classes move outside Vue
+  files. Write complete class names rather than concatenating fragments.
+- Reuse the application theme through the inline aliases in `tailwind.css`:
+  `tw:text-muted`, `tw:text-glyph`, `tw:fill-glyph-background`, and the existing
+  spacing tokens. Light/dark mode remains controlled by `useTheme` and
+  `data-theme`, including user-defined glyph colors.
+- Keep shared controls in `base.css` and specialized state, media queries,
+  animations, and dynamic geometry in scoped CSS or bound styles. Remove the old
+  declaration when moving a property into a utility.
+- Preflight is deliberately omitted: native controls, heading defaults, focus
+  indicators, and box sizing retain the application baseline. Set box sizing and
+  border style explicitly when needed.
+- Utilities are layered; existing unlayered CSS takes priority. Do not override
+  shared controls using `!important` utilities. Modify the owning control rule
+  instead. Preserve the 719px/720px layout boundary and safe-area rules rather
+  than substituting Tailwind's default breakpoints.
+
+For styling changes, inspect the affected UI and choose focused browser workflows
+according to [the repository testing guidance](../AGENTS.md#testing-expectations).
+Build when changing the styling toolchain; use the full browser matrix when the
+scope or focused results warrant it. Verify offline behaviour against a production
+preview when relevant, as described in [Platform support](platform.md).
+
 ## Updating Unifont data
 
 Run the following command to download the latest release and atomically replace the

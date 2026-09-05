@@ -13,6 +13,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
+import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 
 import {
@@ -170,6 +171,7 @@ export default defineConfig(({ command }) => ({
     'import.meta.env.VITE_UNIFONT_VERSION': JSON.stringify(unifontVersion),
   },
   plugins: [
+    tailwindcss(),
     createUnifontCatalogPlugin(unifontCatalog),
     vue({
       script: {

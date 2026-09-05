@@ -1,24 +1,26 @@
 <template>
   <article
-    class="composition-layer"
+    class="composition-layer tw:grid tw:gap-2 tw:p-2"
     :class="{ selected, 'layer-hidden': !layer.visible }"
   >
-    <div class="layer-heading">
+    <div class="tw:flex tw:min-w-0 tw:items-center tw:gap-2">
       <button
         type="button"
-        class="layer-select"
+        class="layer-select tw:grid tw:min-w-0 tw:flex-1 tw:gap-[0.2rem] tw:p-1 tw:text-left"
         :data-testid="`composition-layer-${layer.id}-select`"
         :aria-label="$t('composition.select_layer', { name: layer.name })"
         :aria-pressed="selected"
         @click="$emit('select')"
       >
-        <span class="layer-name">{{ layer.name }}</span>
-        <span class="layer-offset">
+        <span class="layer-name tw:truncate tw:font-[650]">{{
+          layer.name
+        }}</span>
+        <span class="tw:text-[0.75rem] tw:text-muted tw:tabular-nums">
           {{ layer.offsetX }}, {{ layer.offsetY }}
         </span>
       </button>
 
-      <div class="layer-actions">
+      <div class="tw:flex tw:flex-none tw:gap-1">
         <button
           type="button"
           class="ui-icon-button layer-action"
@@ -75,7 +77,9 @@
       </div>
     </div>
 
-    <label class="layer-operation">
+    <label
+      class="layer-operation tw:grid tw:gap-1 tw:text-[0.8rem] tw:text-muted"
+    >
       <span>{{ $t('composition.operation') }}</span>
       <select
         :value="layer.operation"
@@ -127,9 +131,6 @@ const handleOperationChange = (event: Event): void => {
 
 <style scoped>
 .composition-layer {
-  display: grid;
-  gap: var(--space-2);
-  padding: var(--space-2);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   background: var(--background-color);
@@ -144,54 +145,15 @@ const handleOperationChange = (event: Event): void => {
   color: var(--text-secondary);
 }
 
-.layer-heading {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-width: 0;
-}
-
 .layer-select {
-  display: grid;
-  flex: 1;
-  gap: 0.2rem;
-  min-width: 0;
-  padding: var(--space-1);
   color: inherit;
-  text-align: left;
   background: none;
   border: 0;
   cursor: pointer;
 }
 
-.layer-name {
-  overflow: hidden;
-  font-weight: 650;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.layer-offset {
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.layer-operation {
-  display: grid;
-  gap: 0.25rem;
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-}
-
 .layer-operation select {
   min-height: var(--control-height-compact);
-}
-
-.layer-actions {
-  display: flex;
-  flex: none;
-  gap: var(--space-1);
 }
 
 .layer-action {
