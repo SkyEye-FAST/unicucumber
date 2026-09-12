@@ -4,6 +4,12 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-09-12
+
+### Added
+
+- Add an editor glyph strip with searchable Unicode blocks, bitmap previews, and quick switching through the existing unsaved-edit confirmation (#29).
+
 ### Changed
 
 - Update Playwright, Node.js types, Vue ESLint rules, Happy DOM, and TypeScript ESLint development dependencies.

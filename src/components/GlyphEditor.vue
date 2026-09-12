@@ -101,6 +101,12 @@
             />
           </template>
         </GlyphGrid>
+        <GlyphNavigator
+          v-show="!isGlyphLibraryExpanded"
+          :active-code-point="currentCodePoint"
+          :glyphs="glyphs"
+          @open="handleGlyphEdit"
+        />
         <div class="editor-output-stack">
           <HexCodeInput :hex-code="hexCode" @apply="applyHexCode" />
           <DownloadButtons
@@ -343,6 +349,7 @@ import GlyphComposer from './GlyphComposer/GlyphComposer.vue'
 import GlyphGrid from './GlyphGrid.vue'
 import GlyphInfo from './GlyphInfo.vue'
 import GlyphManager from './GlyphManager.vue'
+import GlyphNavigator from './GlyphNavigator.vue'
 import HexCodeInput from './HexCodeInput.vue'
 import MobileCommandBar from './MobileCommandBar.vue'
 import SettingsSidebar from './SettingsSidebar.vue'

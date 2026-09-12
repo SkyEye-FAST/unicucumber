@@ -97,6 +97,45 @@ const seedGlyphs = async (
   })
 }
 
+test('editor glyph navigation searches blocks and switches glyphs @phone @tablet', async ({
+  page,
+}, testInfo) => {
+  await seedGlyphs(page, 160)
+  await page.goto('/')
+  const navigator = page.getByRole('navigation', { name: 'Browse glyphs' })
+  await expect(navigator.locator('[data-code-point]')).toHaveCount(32)
+  await navigator.locator('[data-code-point="0021"]').click()
+  await expect(page.locator('.code-point-input input')).toHaveValue('0021')
+  await navigator.getByRole('combobox', { name: 'Unicode block' }).click()
+  await page.getByRole('searchbox', { name: 'Unicode block' }).fill('Latin-1')
+  await page
+    .getByRole('option', { name: 'Latin-1 Supplement', exact: true })
+    .click()
+  await navigator.locator('[data-code-point="0080"]').click()
+  await expect(page.locator('.code-point-input input')).toHaveValue('0080')
+  await expect(navigator.locator('[aria-current="true"]')).toHaveAttribute(
+    'data-code-point',
+    '0080',
+  )
+  await expect(page.locator('body')).toHaveJSProperty(
+    'scrollWidth',
+    await page.locator('body').evaluate((body) => body.clientWidth),
+  )
+  await navigator.screenshot({
+    path: testInfo.outputPath('glyph-navigation.png'),
+  })
+  await page.locator('#hexInput').fill('FF'.repeat(16))
+  await page.locator('#hexInput').press('Enter')
+  await navigator.locator('[data-code-point="0081"]').click()
+  const confirmation = page.getByRole('dialog', { name: 'Unsaved Changes' })
+  await expect(confirmation).toBeVisible()
+  await confirmation
+    .getByRole('button', { name: 'Cancel', exact: true })
+    .click()
+  await expect(page.locator('.code-point-input input')).toHaveValue('0080')
+  await expect(page.locator('#hexInput')).toHaveValue('FF'.repeat(16))
+})
+
 const seedIndexedDbGlyphs = async (page: Page, count: number) => {
   await seedGlyphs(page, 0)
   await page.goto('/', { waitUntil: 'domcontentloaded' })
