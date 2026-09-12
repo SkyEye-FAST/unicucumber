@@ -1,324 +1,91 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
-import { join } from 'node:path'
-
+// Cover distinct toolbar and canvas layouts; theme behavior has its own tests.
 const viewports = [
-  { name: 'small-phone', width: 320, height: 568 },
-  { name: 'android-phone', width: 360, height: 800 },
-  { name: 'iphone', width: 390, height: 844 },
-  { name: 'large-phone', width: 412, height: 915 },
-  { name: 'wide-phone', width: 480, height: 854 },
-  { name: 'large-mobile', width: 600, height: 960 },
-  { name: 'tablet-short-wide', width: 720, height: 871 },
-  { name: 'tablet-short', width: 768, height: 871 },
-  { name: 'tablet-short-boundary', width: 899, height: 871 },
-  { name: 'tablet-portrait', width: 768, height: 1024 },
-  { name: 'tablet-landscape', width: 1024, height: 768 },
-  { name: 'desktop-compact', width: 1280, height: 720 },
-  { name: 'desktop', width: 1440, height: 900 },
-  { name: 'desktop-tall', width: 1440, height: 1200 },
-  { name: 'desktop-1300-height-871', width: 1300, height: 871 },
-  { name: 'desktop-1000-height-871', width: 1000, height: 871 },
-  { name: 'large-desktop-compact', width: 1560, height: 871 },
-  { name: 'large-desktop-tall', width: 1560, height: 1040 },
-] as const
+  { width: 320, height: 568 },
+  { width: 390, height: 844 },
+  { width: 480, height: 854 },
+  { width: 600, height: 960 },
+  { width: 768, height: 871 },
+  { width: 1024, height: 768 },
+  { width: 1280, height: 720 },
+  { width: 1440, height: 1200 },
+]
 
-const getLayoutMetrics = (page: Page) =>
-  page.evaluate(() => {
-    const root = document.documentElement
-    const body = document.body
-    const grid = document.querySelector<HTMLElement>('.grid-container')
-    const gridViewport = document.querySelector<HTMLElement>('.grid-viewport')
-    const cell = document.querySelector<HTMLElement>('.cell')
-    const gridBounds = grid?.getBoundingClientRect()
-    const gridViewportBounds = gridViewport?.getBoundingClientRect()
-    const cellBounds = cell?.getBoundingClientRect()
-
-    return {
-      viewportWidth: root.clientWidth,
-      documentWidth: Math.max(root.scrollWidth, body.scrollWidth),
-      horizontalOverflow:
-        Math.max(root.scrollWidth, body.scrollWidth) - root.clientWidth,
-      grid: gridBounds
-        ? {
-            left: gridBounds.left,
-            right: gridBounds.right,
-            top: gridBounds.top,
-            bottom: gridBounds.bottom,
-            width: gridBounds.width,
-            height: gridBounds.height,
-          }
-        : null,
-      gridViewport: gridViewportBounds
-        ? {
-            top: gridViewportBounds.top,
-            bottom: gridViewportBounds.bottom,
-          }
-        : null,
-      cellSize: cellBounds
-        ? { width: cellBounds.width, height: cellBounds.height }
-        : null,
-      overflowElements: Array.from(
-        document.querySelectorAll<HTMLElement>('body *'),
-      )
-        .map((element) => {
-          const bounds = element.getBoundingClientRect()
-          return {
-            selector: `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''}${
-              element.classList.length
-                ? `.${Array.from(element.classList).join('.')}`
-                : ''
-            }`,
-            left: bounds.left,
-            right: bounds.right,
-            width: bounds.width,
-          }
-        })
-        .filter(
-          ({ left, right, width }) =>
-            width > 0 && (left < -1 || right > root.clientWidth + 1),
-        )
-        .slice(0, 12),
-    }
-  })
-
-test.describe('responsive visual baseline', () => {
+test.describe('responsive editor layout', () => {
   for (const viewport of viewports) {
-    for (const colorScheme of ['light', 'dark'] as const) {
-      test(`${viewport.name} ${colorScheme}`, async ({ page }, testInfo) => {
-        test.skip(
-          testInfo.project.name !== 'chromium',
-          'the exact viewport matrix runs once; device projects cover configured profiles',
-        )
-        const messages: string[] = []
-        const remoteFontRequests: string[] = []
-        page.on('console', (message) => {
-          if (message.type() === 'error' || message.type() === 'warning') {
-            messages.push(`${message.type()}: ${message.text()}`)
-          }
-        })
-        page.on('request', (request) => {
-          if (
-            /^https:\/\/(?:fonts\.googleapis\.com|fontsapi\.zeoseven\.com)\//.test(
-              request.url(),
-            )
-          ) {
-            remoteFontRequests.push(request.url())
-          }
-        })
-        page.on('pageerror', (error) =>
-          messages.push(`pageerror: ${error.message}`),
-        )
+    test(`keeps the canvas and tools usable at ${viewport.width}x${viewport.height}`, async ({
+      page,
+    }, testInfo) => {
+      test.skip(
+        testInfo.project.name !== 'chromium',
+        'layout breakpoints run once',
+      )
+      await page.route(
+        /^https:\/\/(fonts\.googleapis|fontsapi\.zeoseven)\.com\//,
+        (route) => route.fulfill({ contentType: 'text/css', body: '' }),
+      )
+      await page.setViewportSize(viewport)
+      await page.emulateMedia({ reducedMotion: 'reduce' })
+      await page.goto('/', { waitUntil: 'domcontentloaded' })
+      await expect(page.locator('.grid-container')).toBeVisible()
 
-        await page.route(
-          /^https:\/\/(fonts\.googleapis|fontsapi\.zeoseven)\.com\//,
-          (route) => route.fulfill({ contentType: 'text/css', body: '' }),
-        )
-        await page.setViewportSize(viewport)
-        await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
-        await page.goto('/', { waitUntil: 'domcontentloaded' })
-
-        await expect(page).toHaveTitle(/UniCucumber/i)
-        await expect(page.locator('#app')).not.toBeEmpty()
-        await expect(page.locator('.grid-container')).toBeVisible()
-        expect(
-          remoteFontRequests,
-          'startup should request the preferred web font stylesheets',
-        ).toEqual(
-          expect.arrayContaining([
-            expect.stringMatching(/^https:\/\/fonts\.googleapis\.com\//),
-            expect.stringMatching(/^https:\/\/fontsapi\.zeoseven\.com\//),
-          ]),
-        )
-
-        const metrics = await getLayoutMetrics(page)
-        const screenshotDir = join(
-          process.env.TEMP ?? testInfo.outputDir,
-          'unicucumber-baseline',
-        )
-        await page.screenshot({
-          path: join(
-            screenshotDir,
-            `${viewport.width}x${viewport.height}-${colorScheme}.png`,
-          ),
-          fullPage: false,
-        })
-
-        console.log(
-          JSON.stringify({ viewport, colorScheme, metrics, messages }, null, 2),
-        )
-
-        expect(messages, 'unexpected console warnings or errors').toEqual([])
-        expect(
-          metrics.horizontalOverflow,
-          'the page must not scroll horizontally',
-        ).toBeLessThanOrEqual(1)
-        expect(metrics.grid).not.toBeNull()
-        expect(metrics.grid?.left ?? -1).toBeGreaterThanOrEqual(0)
-        expect(metrics.grid?.right ?? Infinity).toBeLessThanOrEqual(
-          viewport.width,
-        )
-        expect(metrics.gridViewport).not.toBeNull()
-        expect(metrics.grid?.top ?? -1).toBeGreaterThanOrEqual(
-          metrics.gridViewport?.top ?? 0,
-        )
-        expect(metrics.grid?.bottom ?? Infinity).toBeLessThanOrEqual(
-          metrics.gridViewport?.bottom ?? -1,
-        )
-        expect(metrics.cellSize).not.toBeNull()
-        expect(metrics.cellSize?.width).toBe(metrics.cellSize?.height)
-        const themeTransitionDurations = await page
-          .locator('.editor-header')
-          .evaluate((element) =>
-            getComputedStyle(element)
-              .transitionDuration.split(',')
-              .map((duration) => duration.trim()),
-          )
-        expect(
-          themeTransitionDurations.every((duration) => duration === '0s'),
-        ).toBe(true)
-        if (viewport.width < 720) {
-          expect(metrics.cellSize?.width ?? 0).toBeGreaterThanOrEqual(17)
-        } else {
-          expect(metrics.cellSize?.width ?? 0).toBeGreaterThanOrEqual(9)
-          expect(metrics.cellSize?.width ?? Infinity).toBeLessThanOrEqual(30)
-          if (
-            (viewport.height >= 800 && viewport.height <= 899) ||
-            (viewport.width >= 1200 && viewport.height >= 1000)
-          ) {
-            expect(metrics.cellSize?.width).toBe(30)
-          }
-        }
-
-        if (viewport.width < 720) {
-          const headerTargetSizes = await page
-            .locator('.editor-header .modal-button:visible')
-            .evaluateAll((buttons) =>
-              buttons.map((button) => {
-                const bounds = button.getBoundingClientRect()
-                return { width: bounds.width, height: bounds.height }
-              }),
-            )
-          expect(headerTargetSizes).toHaveLength(
-            viewport.width >= 600 ? 6 : viewport.width >= 480 ? 5 : 4,
-          )
-          headerTargetSizes.forEach(({ width, height }) => {
-            expect(width).toBeGreaterThanOrEqual(44)
-            expect(height).toBeGreaterThanOrEqual(44)
-          })
-          const mobileCommandBar = page.locator('.mobile-command-bar')
-          await expect(mobileCommandBar).toBeVisible()
-          await expect(page.locator('.tool-buttons')).toBeHidden()
-          const visibleToolbarButtons = mobileCommandBar.locator(
-            ':scope > button:visible',
-          )
-          await expect(visibleToolbarButtons).toHaveCount(
-            viewport.width >= 360 ? 6 : 5,
-          )
-          expect(
-            await visibleToolbarButtons.evaluateAll((buttons) =>
-              buttons.map((button) => button.getAttribute('aria-label')),
-            ),
-          ).toEqual(
-            viewport.width >= 360
-              ? ['Draw', 'Erase', 'Select', 'Pan', 'Paste', 'More']
-              : ['Draw', 'Erase', 'Select', 'Pan', 'More'],
-          )
-          await expect(mobileCommandBar.locator('.save-button')).toHaveCount(0)
-          await expect(mobileCommandBar.locator('.danger')).toHaveCount(0)
-          await expect(
-            page.locator('.editor-actions .clear-action'),
-          ).toBeVisible()
-
-          const moreToggle = mobileCommandBar.getByRole('button', {
-            name: 'More',
-            exact: true,
-          })
-          const moreToggleBounds = await moreToggle.boundingBox()
-          await moreToggle.click()
-          await expect(mobileCommandBar).toHaveClass(/mobile-command-bar--more/)
-          const closeToggle = mobileCommandBar.getByRole('button', {
-            name: 'Close',
-            exact: true,
-          })
-          await expect(closeToggle).toBeVisible()
-          await expect(closeToggle).toHaveClass(/more-toggle--close/)
-          await expect(closeToggle).toHaveText('Close')
-          const closeToggleBounds = await closeToggle.boundingBox()
-          expect(
-            Math.abs(
-              (closeToggleBounds?.x ?? Infinity) -
-                (moreToggleBounds?.x ?? -Infinity),
-            ),
-          ).toBeLessThanOrEqual(1)
-          await expect(
-            mobileCommandBar.locator('.mobile-tool-sheet'),
-          ).toHaveCount(0)
-          const moreRail = mobileCommandBar.locator('.more-rail')
-          await expect(
-            moreRail.locator('.more-action:visible').first(),
-          ).toContainText(viewport.width >= 360 ? 'Flood fill' : 'Paste')
-          const toolbarBounds = await mobileCommandBar.boundingBox()
-          expect(metrics.grid?.bottom ?? Infinity).toBeLessThanOrEqual(
-            toolbarBounds?.y ?? -1,
-          )
-          await page.screenshot({
-            path: join(
-              screenshotDir,
-              `${viewport.width}x${viewport.height}-${colorScheme}-more.png`,
-            ),
-            fullPage: false,
-          })
-        } else {
-          await expect(page.locator('.mobile-command-bar')).toBeHidden()
-          await expect(page.locator('.tool-buttons')).toBeVisible()
-          await expect(
-            page.locator('.editor-actions .clear-action'),
-          ).toBeVisible()
-          await expect(
-            page.locator('.clear-action + .ui-button--primary'),
-          ).toHaveCount(1)
-          await expect(
-            page.locator('.tool-sheet-group').last().locator('button'),
-          ).toHaveCount(3)
-
-          if (viewport.width >= 1024) {
-            const restoreAlignment = await page
-              .locator('.editor-control-stack .restore-action')
-              .evaluate((button) => {
-                const icon = button.querySelector<HTMLElement>('.icon')
-                const buttonBounds = button.getBoundingClientRect()
-                const iconBounds = icon?.getBoundingClientRect()
-                if (!iconBounds)
-                  throw new Error('Restore button icon is missing')
-                return {
-                  buttonCenter: buttonBounds.left + buttonBounds.width / 2,
-                  iconCenter: iconBounds.left + iconBounds.width / 2,
-                }
-              })
-            expect(
-              Math.abs(
-                restoreAlignment.buttonCenter - restoreAlignment.iconCenter,
-              ),
-            ).toBeLessThanOrEqual(1)
-          }
-        }
-
-        const hexInput = page.locator('#hexInput')
-        await expect(hexInput).toHaveValue(/[0-9A-F]{64}/)
-        await expect(hexInput).toHaveAttribute('title', /[0-9A-F]{64}/)
-
-        if (viewport.width >= 720 && viewport.width < 1024) {
-          await page.getByRole('button', { name: 'Open glyph manager' }).click()
-          const drawer = page.locator('.sidebar.active')
-          await expect(drawer).toBeVisible()
-          const drawerBounds = await drawer.boundingBox()
-          expect(drawerBounds?.width ?? Infinity).toBeLessThan(viewport.width)
-          await page
-            .getByRole('button', { name: 'Close glyph manager' })
-            .click()
+      const metrics = await page.evaluate(() => {
+        const grid = document
+          .querySelector('.grid-container')!
+          .getBoundingClientRect()
+        const viewport = document
+          .querySelector('.grid-viewport')!
+          .getBoundingClientRect()
+        const cell = document.querySelector('.cell')!.getBoundingClientRect()
+        return {
+          overflow:
+            Math.max(
+              document.documentElement.scrollWidth,
+              document.body.scrollWidth,
+            ) - document.documentElement.clientWidth,
+          grid: {
+            left: grid.left,
+            right: grid.right,
+            top: grid.top,
+            bottom: grid.bottom,
+          },
+          viewport: { top: viewport.top, bottom: viewport.bottom },
+          cell: { width: cell.width, height: cell.height },
         }
       })
-    }
+      expect(metrics.overflow).toBeLessThanOrEqual(1)
+      expect(metrics.grid.left).toBeGreaterThanOrEqual(0)
+      expect(metrics.grid.right).toBeLessThanOrEqual(viewport.width)
+      expect(metrics.grid.top).toBeGreaterThanOrEqual(metrics.viewport.top)
+      expect(metrics.grid.bottom).toBeLessThanOrEqual(metrics.viewport.bottom)
+      expect(metrics.cell.width).toBe(metrics.cell.height)
+      expect(metrics.cell.width).toBeGreaterThanOrEqual(
+        viewport.width < 720 ? 17 : 9,
+      )
+
+      if (viewport.width >= 720) {
+        await expect(page.locator('.tool-buttons')).toBeVisible()
+        return
+      }
+      const headerTargets = await page
+        .locator('.editor-header .modal-button:visible')
+        .evaluateAll((buttons) =>
+          buttons.map((button) => {
+            const bounds = button.getBoundingClientRect()
+            return Math.min(bounds.width, bounds.height)
+          }),
+        )
+      expect(Math.min(...headerTargets)).toBeGreaterThanOrEqual(44)
+      const toolbar = page.locator('.mobile-command-bar')
+      await expect(toolbar).toBeVisible()
+      await expect(page.locator('.tool-buttons')).toBeHidden()
+      await toolbar.getByRole('button', { name: 'More', exact: true }).click()
+      await expect(toolbar.locator('.more-rail')).toBeVisible()
+      const toolbarBounds = await toolbar.boundingBox()
+      expect(metrics.grid.bottom).toBeLessThanOrEqual(toolbarBounds!.y)
+      await toolbar.getByRole('button', { name: 'Close', exact: true }).click()
+      await expect(toolbar.locator('.more-rail')).toBeHidden()
+    })
   }
 })

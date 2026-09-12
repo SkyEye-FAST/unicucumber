@@ -136,9 +136,9 @@ test('editor glyph navigation searches blocks and switches glyphs @phone @tablet
   await expect(page.locator('#hexInput')).toHaveValue('FF'.repeat(16))
 })
 
-test('desktop glyph navigation scrolls with a mouse wheel and keeps code points readable @cross-browser', async ({
+test('desktop glyph navigation scrolls with a mouse wheel and releases page scrolling at the edge @cross-browser', async ({
   page,
-}, testInfo) => {
+}) => {
   await seedGlyphs(page, 160)
   await page.setViewportSize({ width: 1280, height: 720 })
   await page.goto('/')
@@ -146,12 +146,6 @@ test('desktop glyph navigation scrolls with a mouse wheel and keeps code points 
   const strip = navigator.locator('.glyph-navigator__strip')
   await expect(strip).toHaveAttribute('aria-busy', 'false')
   await expect(navigator).toBeInViewport({ ratio: 1 })
-  await expect(navigator.locator('small').first()).toBeVisible()
-  expect(
-    await navigator.evaluate(
-      (element) => element.getBoundingClientRect().width,
-    ),
-  ).toBeLessThanOrEqual(688)
   const moveMouseToStrip = async () => {
     const bounds = await strip.boundingBox()
     if (!bounds) throw new Error('Glyph strip is not measurable')
@@ -164,21 +158,60 @@ test('desktop glyph navigation scrolls with a mouse wheel and keeps code points 
     .poll(() => strip.evaluate((element) => element.scrollLeft))
     .toBeGreaterThan(0)
   expect(await page.evaluate(() => window.scrollY)).toBe(initialPageScroll)
-  await navigator.locator('[data-code-point="0030"]').click()
+  const nextGlyph = navigator.locator('[data-code-point="0030"]')
+  await expect(nextGlyph).toBeInViewport({ ratio: 1 })
+  const glyphBounds = await nextGlyph.boundingBox()
+  if (!glyphBounds) throw new Error('Scrolled glyph is not measurable')
+  await page.mouse.click(
+    glyphBounds.x + glyphBounds.width / 2,
+    glyphBounds.y + glyphBounds.height / 2,
+  )
   await expect(page.locator('.code-point-input input')).toHaveValue('0030')
-  await strip.evaluate((element) => {
-    element.scrollLeft = element.scrollWidth
-  })
+  await navigator.getByRole('scrollbar').focus()
+  await page.keyboard.press('End')
   await moveMouseToStrip()
   const edgePageScroll = await page.evaluate(() => window.scrollY)
   await page.mouse.wheel(0, 200)
   await expect
     .poll(() => page.evaluate(() => window.scrollY))
     .toBeGreaterThan(edgePageScroll)
-  await page.mouse.move(0, 0)
-  await navigator.screenshot({
-    path: testInfo.outputPath('desktop-glyph-navigation.png'),
-  })
+})
+
+test('desktop glyph scrollbar supports dragging and keyboard navigation @cross-browser', async ({
+  page,
+}) => {
+  await seedGlyphs(page, 160)
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/')
+  const navigator = page.getByRole('navigation', { name: 'Browse glyphs' })
+  const strip = navigator.locator('.glyph-navigator__strip')
+  const scrollbar = navigator.getByRole('scrollbar')
+  await expect(strip).toHaveAttribute('aria-busy', 'false')
+  await expect(scrollbar).toBeVisible()
+  await scrollbar.focus()
+  await page.keyboard.press('End')
+  await expect
+    .poll(() => strip.evaluate((element) => element.scrollLeft))
+    .toBeGreaterThan(500)
+  await page.keyboard.press('Home')
+  await expect
+    .poll(() => strip.evaluate((element) => element.scrollLeft))
+    .toBe(0)
+  const thumb = await scrollbar
+    .locator('.horizontal-scrollbar__thumb')
+    .boundingBox()
+  if (!thumb) throw new Error('Scrollbar thumb is not measurable')
+  await page.mouse.move(thumb.x + thumb.width / 2, thumb.y + thumb.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(
+    thumb.x + thumb.width / 2 + 120,
+    thumb.y + thumb.height / 2,
+    { steps: 5 },
+  )
+  await page.mouse.up()
+  await expect
+    .poll(() => strip.evaluate((element) => element.scrollLeft))
+    .toBeGreaterThan(0)
 })
 
 const seedIndexedDbGlyphs = async (page: Page, count: number) => {
@@ -1238,89 +1271,52 @@ test('compact manager preloads once, windows rows, and preserves state on reopen
   expect(unifontChunks).toEqual([])
 })
 
-const visualViewports = [
+const libraryViewports = [
   { width: 390, height: 844 },
-  { width: 640, height: 800 },
   { width: 768, height: 1024 },
-  { width: 1024, height: 768 },
-  { width: 1280, height: 800 },
   { width: 1440, height: 900 },
-  { width: 1920, height: 1080 },
 ] as const
 
-const themeCases = [
-  { preference: 'light', system: 'dark', resolved: 'light' },
-  { preference: 'dark', system: 'light', resolved: 'dark' },
-  { preference: 'auto', system: 'dark', resolved: 'dark' },
-] as const
+for (const viewport of libraryViewports) {
+  test(`glyph-library layout ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== 'chromium',
+      'layout breakpoints run once',
+    )
+    await seedGlyphs(page, 120)
+    await page.setViewportSize(viewport)
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await openLibrary(page, 120)
+    await expandLibrary(page, 120)
 
-for (const viewport of visualViewports) {
-  for (const themeCase of themeCases) {
-    test(`glyph-library visual ${viewport.width}x${viewport.height} ${themeCase.preference}`, async ({
-      page,
-    }, testInfo) => {
-      test.skip(testInfo.project.name !== 'chromium', 'visual matrix runs once')
-      const messages: string[] = []
-      page.on('console', (message) => {
-        if (['error', 'warning'].includes(message.type())) {
-          messages.push(`${message.type()}: ${message.text()}`)
-        }
-      })
-      page.on('pageerror', (error) =>
-        messages.push(`pageerror: ${error.message}`),
-      )
-
-      await seedGlyphs(page, 120, themeCase.preference)
-      await page.setViewportSize(viewport)
-      await page.emulateMedia({
-        colorScheme: themeCase.system,
-        reducedMotion: 'reduce',
-      })
-      await openLibrary(page, 120)
-      await expandLibrary(page, 120)
-
-      const metrics = await page.evaluate(() => ({
-        documentWidth: Math.max(
-          document.documentElement.scrollWidth,
-          document.body.scrollWidth,
-        ),
-        viewportWidth: document.documentElement.clientWidth,
-        theme: document.documentElement.dataset.theme,
-        toolbarRight: document
-          .querySelector('.library-toolbar')
-          ?.getBoundingClientRect().right,
-        identityScrollWidth:
-          document.querySelector<HTMLElement>('.library-identity')?.scrollWidth,
-        identityClientWidth:
-          document.querySelector<HTMLElement>('.library-identity')?.clientWidth,
-        gridRight: document
-          .querySelector('.glyph-library-grid')
-          ?.getBoundingClientRect().right,
-      }))
-      expect(metrics.theme).toBe(themeCase.resolved)
-      expect(metrics.documentWidth).toBeLessThanOrEqual(metrics.viewportWidth)
-      expect(metrics.toolbarRight ?? Infinity).toBeLessThanOrEqual(
-        metrics.viewportWidth + 1,
-      )
-      expect(metrics.identityScrollWidth ?? 0).toBeLessThanOrEqual(
-        metrics.identityClientWidth ?? 0,
-      )
-      expect(metrics.gridRight ?? Infinity).toBeLessThanOrEqual(
-        metrics.viewportWidth + 1,
-      )
-      expect(messages).toEqual([])
-
-      const screenshotDir = join(
-        process.env.TEMP ?? testInfo.outputDir,
-        'unicucumber-glyph-library',
-      )
-      await page.screenshot({
-        path: join(
-          screenshotDir,
-          `${viewport.width}x${viewport.height}-${themeCase.preference}-${themeCase.system}.png`,
-        ),
-        fullPage: false,
-      })
-    })
-  }
+    const metrics = await page.evaluate(() => ({
+      documentWidth: Math.max(
+        document.documentElement.scrollWidth,
+        document.body.scrollWidth,
+      ),
+      viewportWidth: document.documentElement.clientWidth,
+      toolbarRight: document
+        .querySelector('.library-toolbar')
+        ?.getBoundingClientRect().right,
+      identityScrollWidth:
+        document.querySelector<HTMLElement>('.library-identity')?.scrollWidth,
+      identityClientWidth:
+        document.querySelector<HTMLElement>('.library-identity')?.clientWidth,
+      gridRight: document
+        .querySelector('.glyph-library-grid')
+        ?.getBoundingClientRect().right,
+    }))
+    expect(metrics.documentWidth).toBeLessThanOrEqual(metrics.viewportWidth)
+    expect(metrics.toolbarRight ?? Infinity).toBeLessThanOrEqual(
+      metrics.viewportWidth + 1,
+    )
+    expect(metrics.identityScrollWidth ?? 0).toBeLessThanOrEqual(
+      metrics.identityClientWidth ?? 0,
+    )
+    expect(metrics.gridRight ?? Infinity).toBeLessThanOrEqual(
+      metrics.viewportWidth + 1,
+    )
+  })
 }

@@ -4,6 +4,10 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+### Changed
+
+- Reduce redundant viewport/theme test combinations, static translation and styling assertions, and glyph navigation screenshot delays while retaining representative layouts and behavioral regressions.
+
 ### Fixed
 
 - Keep the desktop glyph navigator's horizontal scrollbar visible independently of system scrollbar settings and remove redundant glyph hover tooltips.

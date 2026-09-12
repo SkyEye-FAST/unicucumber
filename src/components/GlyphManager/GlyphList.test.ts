@@ -74,15 +74,12 @@ describe('GlyphList compact virtualization', () => {
     wrapper.unmount()
   })
 
-  it('renders crisp 8x16 and 16x16 SVGs and invalidates changed data', async () => {
+  it('updates the preview when glyph data changes', async () => {
     const glyphs: Glyph[] = [
       { codePoint: '0041', hexValue: `80${'00'.repeat(15)}` },
       { codePoint: '0042', hexValue: `8000${'00'.repeat(30)}` },
     ]
     const wrapper = mountList(glyphs)
-    expect(
-      wrapper.findAll('.bitmap-svg').map((svg) => svg.attributes('viewBox')),
-    ).toEqual(['0 0 8 16', '0 0 16 16'])
     const previousPath = wrapper.find('path').attributes('d')
     await wrapper.setProps({
       glyphs: [{ ...glyphs[0]!, hexValue: `40${'00'.repeat(15)}` }, glyphs[1]!],

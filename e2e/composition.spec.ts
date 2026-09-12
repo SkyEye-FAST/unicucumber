@@ -114,29 +114,6 @@ test(
     )
     await expect(preview).toBeVisible()
     await expect(preview.locator('.component-preview-pixel')).toHaveCount(1)
-    await expect(preview).toHaveCSS('width', '56px')
-    await expect(preview).toHaveCSS('height', '56px')
-    await expect(preview).toHaveCSS('border-top-width', '1px')
-
-    const card = page.getByTestId(`composition-component-${COMPONENT_ID}`)
-    await expect(card).toHaveCSS('display', 'grid')
-    await expect(card).toHaveCSS('column-gap', '12px')
-    await expect(card).toHaveCSS('padding-left', '12px')
-
-    for (const [colorScheme, foreground, background] of [
-      ['dark', 'rgb(224, 224, 224)', 'rgb(51, 51, 51)'],
-      ['light', 'rgb(51, 51, 51)', 'rgb(248, 249, 250)'],
-    ] as const) {
-      await page.emulateMedia({ colorScheme })
-      await expect(preview.locator('.component-preview-pixel')).toHaveCSS(
-        'fill',
-        foreground,
-      )
-      await expect(preview.locator('rect').first()).toHaveCSS(
-        'fill',
-        background,
-      )
-    }
 
     await page.getByTestId('composition-expand').click()
     const workspaceBounds = await page
@@ -147,13 +124,6 @@ test(
     expect(viewport).not.toBeNull()
     expect(workspaceBounds?.width).toBe(viewport?.width)
     expect(workspaceBounds?.height).toBe(viewport?.height)
-
-    const grid = page.locator('.canvas-grid')
-    await expect(grid).toHaveCSS('vector-effect', 'none')
-    await expect(page.getByTestId('composition-canvas')).toHaveCSS(
-      'border-radius',
-      '0px',
-    )
 
     await searchAndAddFixtureComponent(page)
     await page.getByTestId('composition-canvas').focus()

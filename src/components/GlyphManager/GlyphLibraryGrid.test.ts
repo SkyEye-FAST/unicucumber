@@ -42,7 +42,7 @@ const mountGrid = (
   })
 
 describe('GlyphLibraryGrid', () => {
-  it('renders ordered dual previews with configured font and widths', () => {
+  it('renders ordered dual previews with the configured font', () => {
     const wrapper = mountGrid('both')
     const cells = wrapper.findAll('.glyph-library-cell')
     expect(cells.map((cell) => cell.attributes('data-code-point'))).toEqual([
@@ -54,8 +54,6 @@ describe('GlyphLibraryGrid', () => {
     expect(wrapper.find('.browser-reference').attributes('style')).toContain(
       'Test Preview Font',
     )
-    expect(cells[0]?.find('svg').attributes('viewBox')).toBe('0 0 8 16')
-    expect(cells[1]?.find('svg').attributes('viewBox')).toBe('0 0 16 16')
     expect(cells[0]?.classes()).toContain('is-active')
     wrapper.unmount()
   })

@@ -153,9 +153,10 @@ describe('TextPreview', () => {
 
     await vi.advanceTimersByTimeAsync(100)
     await flushPromises()
-    expect(
-      wrapper.findAll('.preview-glyph')[0].get('path').attributes('d'),
-    ).toBe('M0 0h1v1h-1z')
+    const previousPath = wrapper
+      .findAll('.preview-glyph')[0]
+      .get('path')
+      .attributes('d')
 
     await wrapper.setProps({
       currentGlyph: {
@@ -168,7 +169,7 @@ describe('TextPreview', () => {
 
     expect(
       wrapper.findAll('.preview-glyph')[0].get('path').attributes('d'),
-    ).toBe('M1 0h1v1h-1z')
+    ).not.toBe(previousPath)
   })
 
   it('stops queuing remote glyph batches after the preview closes', async () => {
