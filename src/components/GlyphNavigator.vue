@@ -34,6 +34,7 @@
         v-for="codePoint in visibleCodePoints"
         :key="codePoint"
         class="glyph-navigator__glyph"
+        data-tooltip
         type="button"
         :data-code-point="formatCodePoint(codePoint)"
         :aria-label="`U+${formatCodePoint(codePoint)}`"
@@ -280,7 +281,7 @@ onBeforeUnmount(() => {
     grid-template-columns: minmax(0, 18rem) minmax(0, 1fr);
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem;
+    padding: 0 0.5rem;
   }
 
   .glyph-navigator__controls {
@@ -289,6 +290,17 @@ onBeforeUnmount(() => {
 
   .glyph-navigator__strip {
     padding-bottom: 0;
+    scrollbar-width: none;
+  }
+
+  .glyph-navigator__glyph {
+    min-height: 2.5rem;
+    justify-content: center;
+    padding: 0.125rem;
+  }
+
+  .glyph-navigator__glyph small {
+    display: none;
   }
 
   .glyph-navigator__status,

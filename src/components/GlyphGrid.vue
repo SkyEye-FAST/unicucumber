@@ -1593,11 +1593,11 @@ defineExpose({
        desktop and tablet viewports. The canvas remains pannable when its
        natural grid size exceeds this allocation. */
     min-height: max(
-      120px,
+      160px,
       min(260px, calc(100dvh - 37.5rem - var(--glyph-navigation-height, 0px)))
     );
     max-height: max(
-      120px,
+      160px,
       calc(100dvh - 37.5rem - var(--glyph-navigation-height, 0px))
     );
   }
