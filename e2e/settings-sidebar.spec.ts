@@ -526,17 +526,3 @@ test(
     await expect(page.locator('html')).not.toHaveCSS('overflow-x', 'auto')
   },
 )
-
-test('legacy manual theme values migrate into the new preference', async ({
-  page,
-}) => {
-  await loadEditor(page, 'light', { theme: 'dark' })
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
-  const { drawer } = await openSettings(page)
-  await expect(drawer.getByRole('radio', { name: 'Dark' })).toBeChecked()
-  const storage = await page.evaluate(() => ({
-    current: localStorage.getItem('unicucumber_theme_preference'),
-    legacy: localStorage.getItem('theme'),
-  }))
-  expect(storage).toEqual({ current: 'dark', legacy: null })
-})

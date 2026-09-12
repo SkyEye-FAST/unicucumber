@@ -87,7 +87,9 @@ Release and version-bump rules are documented in [Versioning](docs/versioning.md
 
 Chinese and Literary Chinese typography uses CSS `text-autospace: normal`.
 Translations and copied text retain their semantic content without inserted
-visual spaces.
+visual spaces. Theme preferences use `unicucumber_theme_preference` with
+`auto`, `light`, or `dark`; obsolete theme keys and formats are no longer read.
+The documented glyph-storage migration remains supported.
 
 ## License
 

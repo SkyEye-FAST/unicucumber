@@ -4,7 +4,6 @@ export type ThemePreference = 'auto' | 'light' | 'dark'
 export type ResolvedTheme = Exclude<ThemePreference, 'auto'>
 
 export const THEME_PREFERENCE_KEY = 'unicucumber_theme_preference'
-export const LEGACY_THEME_KEYS = ['theme', 'unicucumber_theme'] as const
 
 const SYSTEM_THEME_QUERY = '(prefers-color-scheme: dark)'
 
@@ -16,21 +15,8 @@ let mediaQuery: MediaQueryList | null = null
 let listenerAttached = false
 let initialized = false
 
-const parseStoredPreference = (value: unknown): ThemePreference | null => {
-  if (typeof value === 'boolean') return value ? 'dark' : 'light'
-  if (typeof value !== 'string') return null
-
-  const normalized = value.trim().toLowerCase()
-  if (normalized === 'auto' || normalized === 'system') return 'auto'
-  if (normalized === 'light' || normalized === 'false') return 'light'
-  if (normalized === 'dark' || normalized === 'true') return 'dark'
-
-  try {
-    return parseStoredPreference(JSON.parse(value))
-  } catch {
-    return null
-  }
-}
+const parseStoredPreference = (value: unknown): ThemePreference | null =>
+  value === 'auto' || value === 'light' || value === 'dark' ? value : null
 
 const persistPreference = (value: ThemePreference): boolean => {
   if (typeof window === 'undefined') return false
@@ -47,31 +33,12 @@ const loadPreference = (): ThemePreference => {
 
   try {
     const stored = window.localStorage.getItem(THEME_PREFERENCE_KEY)
-    if (stored !== null) {
-      const parsed = parseStoredPreference(stored) ?? 'auto'
-      persistPreference(parsed)
-      return parsed
-    }
-
-    for (const key of LEGACY_THEME_KEYS) {
-      const legacyValue = window.localStorage.getItem(key)
-      if (legacyValue === null) continue
-      const migrated = parseStoredPreference(legacyValue)
-      if (migrated === null) continue
-
-      if (persistPreference(migrated)) {
-        for (const legacyKey of LEGACY_THEME_KEYS) {
-          window.localStorage.removeItem(legacyKey)
-        }
-      }
-      return migrated
-    }
+    const parsed = parseStoredPreference(stored) ?? 'auto'
+    persistPreference(parsed)
+    return parsed
   } catch {
     return 'auto'
   }
-
-  persistPreference('auto')
-  return 'auto'
 }
 
 const getSystemTheme = (): ResolvedTheme =>
@@ -122,7 +89,7 @@ export const initializeTheme = (): void => {
 
 export const setThemePreference = (value: ThemePreference): void => {
   if (!initialized) initializeTheme()
-  preference.value = parseStoredPreference(value) ?? 'auto'
+  preference.value = value
   persistPreference(preference.value)
   syncSystemListener()
   applyResolvedTheme()

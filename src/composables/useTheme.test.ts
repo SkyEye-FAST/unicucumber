@@ -174,27 +174,6 @@ describe('theme preference', () => {
     second.disposeTheme()
   })
 
-  it.each([
-    ['dark', 'dark'],
-    ['light', 'light'],
-    ['true', 'dark'],
-    ['false', 'light'],
-    ['"dark"', 'dark'],
-  ] as const)(
-    'migrates legacy theme value %s to %s',
-    async (stored, expected) => {
-      localStorage.setItem('theme', stored)
-      installMatchMedia(false)
-      const theme = await import('./useTheme')
-      theme.initializeTheme()
-
-      expect(theme.useTheme().preference.value).toBe(expected)
-      expect(localStorage.getItem(theme.THEME_PREFERENCE_KEY)).toBe(expected)
-      expect(localStorage.getItem('theme')).toBeNull()
-      theme.disposeTheme()
-    },
-  )
-
   it('falls back safely when the stored preference is invalid', async () => {
     localStorage.setItem('unicucumber_theme_preference', 'sepia')
     installMatchMedia(true)

@@ -7,6 +7,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 ### Changed
 
 - Use native CSS CJK autospace without modifying translated strings, and remove visual spacing from Chinese messages.
+- Accept only the current theme preference key and format; remove obsolete theme migrations.
 
 ## [1.9.3] - 2026-09-12
 
