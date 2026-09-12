@@ -1592,8 +1592,14 @@ defineExpose({
     /* Keep the hex and export controls reachable without scrolling on short
        desktop and tablet viewports. The canvas remains pannable when its
        natural grid size exceeds this allocation. */
-    min-height: max(160px, min(260px, calc(100dvh - 37.5rem)));
-    max-height: max(160px, calc(100dvh - 37.5rem));
+    min-height: max(
+      120px,
+      min(260px, calc(100dvh - 37.5rem - var(--glyph-navigation-height, 0px)))
+    );
+    max-height: max(
+      120px,
+      calc(100dvh - 37.5rem - var(--glyph-navigation-height, 0px))
+    );
   }
 }
 
@@ -1602,8 +1608,14 @@ defineExpose({
     /* Taller desktop screens have enough room for the editor chrome and the
        default-size grid. Use the measured chrome budget instead of the compact
        viewport reserve so a spacious screen does not show a tiny glyph grid. */
-    min-height: max(260px, min(510px, calc(100dvh - 24rem)));
-    max-height: max(510px, calc(100dvh - 24rem));
+    min-height: max(
+      260px,
+      min(510px, calc(100dvh - 24rem - var(--glyph-navigation-height, 0px)))
+    );
+    max-height: max(
+      510px,
+      calc(100dvh - 24rem - var(--glyph-navigation-height, 0px))
+    );
   }
 }
 

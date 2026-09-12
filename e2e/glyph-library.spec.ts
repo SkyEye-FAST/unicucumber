@@ -502,6 +502,8 @@ test.describe('full-screen glyph library', () => {
     })
     await expect(scrollbar).toBeVisible()
     const thumb = scrollbar.locator('.glyph-library-scrollbar-thumb')
+    // Coordinate-based dragging needs the expanding library to stop moving.
+    await thumb.click({ trial: true })
     const thumbBox = await thumb.boundingBox()
     const trackBox = await scrollbar.boundingBox()
     if (!thumbBox || !trackBox)

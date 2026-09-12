@@ -273,4 +273,27 @@ onBeforeUnmount(() => {
   color: var(--text-secondary);
   font-size: 0.875rem;
 }
+
+@media (min-width: 720px) {
+  .glyph-navigator {
+    display: grid;
+    grid-template-columns: minmax(0, 18rem) minmax(0, 1fr);
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .glyph-navigator__controls {
+    margin-bottom: 0;
+  }
+
+  .glyph-navigator__strip {
+    padding-bottom: 0;
+  }
+
+  .glyph-navigator__status,
+  .glyph-navigator > p {
+    grid-column: 1 / -1;
+  }
+}
 </style>

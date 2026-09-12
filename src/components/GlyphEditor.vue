@@ -72,7 +72,14 @@
     />
 
     <main class="editor-layout">
-      <section class="editor-canvas-column">
+      <section
+        class="editor-canvas-column"
+        :style="{
+          '--glyph-navigation-height': glyphNavigationHeight
+            ? `calc(${glyphNavigationHeight}px + var(--space-2))`
+            : '0px',
+        }"
+      >
         <GlyphGrid
           ref="gridRef"
           :grid-data="gridData"
@@ -102,6 +109,7 @@
           </template>
         </GlyphGrid>
         <GlyphNavigator
+          ref="glyphNavigatorRef"
           v-show="!isGlyphLibraryExpanded"
           :active-code-point="currentCodePoint"
           :glyphs="glyphs"
@@ -317,6 +325,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import { useI18n } from 'vue-i18n'
+import { useElementSize } from '@vueuse/core'
 
 import { useEditorDocument } from '@/composables/useEditorDocument'
 import { useGlyphLibrary } from '@/composables/useGlyphLibrary'
@@ -366,6 +375,15 @@ interface DialogConfigExtended {
 }
 
 const { t: $t } = useI18n()
+const glyphNavigatorRef = ref<InstanceType<typeof GlyphNavigator> | null>(null)
+const { height: glyphNavigationHeight } = useElementSize(
+  () => {
+    const element: unknown = glyphNavigatorRef.value?.$el
+    return element instanceof HTMLElement ? element : null
+  },
+  { width: 0, height: 0 },
+  { box: 'border-box' },
+)
 const { notify } = useNotifications()
 
 const { settings, showSettings } = useSettings()
@@ -1736,6 +1754,19 @@ const handlePasteStart = (): void => {
 }
 
 @media (min-width: 720px) {
+  .copyright-text {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0 0.5rem;
+  }
+
+  .copyright-line {
+    width: auto;
+    margin: 0;
+  }
+
   .editor-layout {
     grid-template-columns: minmax(0, 1fr) var(--control-height);
     column-gap: var(--space-3);

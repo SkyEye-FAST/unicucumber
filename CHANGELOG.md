@@ -4,6 +4,11 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+### Fixed
+
+- Account for the glyph navigator's measured height and use a single-row navigator on tablets and desktops so editor controls remain within the viewport.
+- Wait for the glyph-library scrollbar to become stable before its coordinate-based drag regression test.
+
 ## [1.9.0] - 2026-09-12
 
 ### Added
