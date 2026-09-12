@@ -42,7 +42,20 @@ const expectControlsReachable = async (page: Page) => {
     '.copyright-text',
   ]) {
     await page.locator(selector).scrollIntoViewIfNeeded()
-    await expect(page.locator(selector)).toBeInViewport({ ratio: 1 })
+    // Browser scrolling rounds fractional CSS pixels at viewport edges.
+    await expect
+      .poll(() =>
+        page.locator(selector).evaluate((element) => {
+          const bounds = element.getBoundingClientRect()
+          return Math.max(
+            -bounds.top,
+            -bounds.left,
+            bounds.bottom - document.documentElement.clientHeight,
+            bounds.right - document.documentElement.clientWidth,
+          )
+        }),
+      )
+      .toBeLessThanOrEqual(1)
   }
 }
 

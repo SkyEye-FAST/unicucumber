@@ -4,6 +4,10 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+### Fixed
+
+- Allow one CSS pixel of browser scroll rounding in editor control visibility regression checks.
+
 ## [1.9.2] - 2026-09-12
 
 ### Fixed
