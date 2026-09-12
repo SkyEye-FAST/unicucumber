@@ -4,6 +4,8 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-09-12
+
 ### Fixed
 
 - Account for the glyph navigator's measured height and use a single-row navigator on tablets and desktops so editor controls remain within the viewport.
