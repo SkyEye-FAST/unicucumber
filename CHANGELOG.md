@@ -4,10 +4,12 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+## [1.9.4] - 2026-09-12
+
 ### Changed
 
 - Use native CSS CJK autospace without modifying translated strings, and remove visual spacing from Chinese messages.
-- Accept only the current theme preference key and format; remove obsolete theme migrations.
+- Accept only the current theme preference key and format; remove obsolete theme migrations. Installations that only contain legacy theme settings return to the automatic theme. Existing glyph-storage migration remains supported.
 
 ## [1.9.3] - 2026-09-12
 
