@@ -81,7 +81,11 @@ test('icon tooltips prefer free space and stay accessible @cross-browser', async
     narrowSettings!.y + narrowSettings!.height + 7,
   )
   await settings.click()
-  await expect(tooltip).toHaveCount(0)
+  // The drawer's focused close button may show its own accessible tooltip.
+  await expect(
+    page.getByRole('tooltip', { name: 'Open settings', exact: true }),
+  ).toHaveCount(0)
+  await expect(settings).not.toHaveAttribute('aria-describedby')
   await expect(page.getByRole('dialog')).toBeVisible()
 })
 
