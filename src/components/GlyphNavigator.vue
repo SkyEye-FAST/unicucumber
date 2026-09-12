@@ -31,15 +31,16 @@
     </div>
     <div
       ref="strip"
+      :id="stripId"
       class="glyph-navigator__strip"
       :aria-busy="loading"
       @wheel="scrollWithWheel"
+      @scroll="updateScrollMetrics"
     >
       <button
         v-for="codePoint in visibleCodePoints"
         :key="codePoint"
         class="glyph-navigator__glyph"
-        data-tooltip
         type="button"
         :data-code-point="formatCodePoint(codePoint)"
         :aria-label="`U+${formatCodePoint(codePoint)}`"
@@ -61,6 +62,15 @@
         <small>{{ formatCodePoint(codePoint) }}</small>
       </button>
     </div>
+    <HorizontalScrollbar
+      class="glyph-navigator__scrollbar"
+      :controls="stripId"
+      :label="t('glyph_navigation.title')"
+      :position="scrollPosition"
+      :viewport-size="viewportSize"
+      :content-size="contentSize"
+      @scroll="setScrollPosition"
+    />
     <div v-if="error" class="glyph-navigator__status" role="status">
       {{ t('glyph_navigation.load_error') }}
       <button class="ui-button ui-button--quiet" type="button" @click="retry">
@@ -74,10 +84,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  useId,
+  watch,
+} from 'vue'
+import { useResizeObserver } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 
 import CustomSelect from '@/components/CustomSelect.vue'
+import HorizontalScrollbar from '@/components/HorizontalScrollbar.vue'
 import PixelPreview from '@/components/GlyphManager/PixelPreview.vue'
 import {
   UNICODE_BLOCKS,
@@ -93,6 +113,22 @@ const { t, locale } = useI18n()
 const pageSize = 32
 const page = ref(0)
 const strip = ref<HTMLElement | null>(null)
+const stripId = useId()
+const scrollPosition = ref(0)
+const viewportSize = ref(0)
+const contentSize = ref(0)
+const updateScrollMetrics = () => {
+  if (!strip.value) return
+  scrollPosition.value = strip.value.scrollLeft
+  viewportSize.value = strip.value.clientWidth
+  contentSize.value = strip.value.scrollWidth
+}
+const setScrollPosition = (position: number) => {
+  if (!strip.value) return
+  strip.value.scrollLeft = position
+  updateScrollMetrics()
+}
+useResizeObserver(strip, updateScrollMetrics)
 const scrollWithWheel = (event: WheelEvent): void => {
   const element = strip.value
   if (!element || event.ctrlKey || event.deltaX || !event.deltaY) return
@@ -177,6 +213,7 @@ watch(visibleCodePoints, async () => {
   strip.value.scrollLeft = active
     ? active.offsetLeft - strip.value.offsetLeft
     : 0
+  updateScrollMetrics()
 })
 
 const loadPage = async (): Promise<void> => {
@@ -299,5 +336,20 @@ onBeforeUnmount(() => {
 .glyph-navigator__status {
   color: var(--text-secondary);
   font-size: 0.875rem;
+}
+.glyph-navigator__scrollbar {
+  display: none;
+}
+@media (min-width: 720px) {
+  .glyph-navigator__strip {
+    scrollbar-width: none;
+  }
+  .glyph-navigator__strip::-webkit-scrollbar {
+    display: none;
+  }
+  .glyph-navigator__scrollbar {
+    display: block;
+    margin-top: 0.25rem;
+  }
 }
 </style>

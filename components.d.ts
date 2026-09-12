@@ -35,6 +35,7 @@ declare module 'vue' {
     GlyphManager: typeof import('./src/components/GlyphManager.vue')['default']
     GlyphNavigator: typeof import('./src/components/GlyphNavigator.vue')['default']
     HexCodeInput: typeof import('./src/components/HexCodeInput.vue')['default']
+    HorizontalScrollbar: typeof import('./src/components/HorizontalScrollbar.vue')['default']
     IdsTree: typeof import('./src/components/GlyphComposer/IdsTree.vue')['default']
     IFa6BrandsGithub: typeof import('~icons/fa6-brands/github')['default']
     ImageImportDialog: typeof import('./src/components/ImageImportDialog.vue')['default']

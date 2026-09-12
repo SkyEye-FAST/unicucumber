@@ -6,6 +6,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Fixed
 
+- Keep the desktop glyph navigator's horizontal scrollbar visible independently of system scrollbar settings and remove redundant glyph hover tooltips.
 - Allow one CSS pixel of browser scroll rounding in editor control visibility regression checks.
 
 ## [1.9.2] - 2026-09-12
