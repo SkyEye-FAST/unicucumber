@@ -4,6 +4,10 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+### Changed
+
+- Update Playwright, Node.js types, Vue ESLint rules, Happy DOM, and TypeScript ESLint development dependencies.
+
 ## [1.8.1] - 2026-09-12
 
 ### Fixed
