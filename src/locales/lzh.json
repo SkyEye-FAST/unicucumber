@@ -9,7 +9,7 @@
     "code_point": "組字碼位",
     "code_point_invalid": "書寫漢字碼位。",
     "component_add": "增{characters}",
-    "component_bounds": "界 {bounds}",
+    "component_bounds": "界{bounds}",
     "component_loading": "方載部件⋯",
     "component_no_results": "部件無相匹者。",
     "component_retry": "復試",
@@ -36,7 +36,7 @@
     "layers": "層",
     "lock": "鑰",
     "lock_layer": "鑰{name}",
-    "new_layer": "圖層 {number}",
+    "new_layer": "圖層{number}",
     "operation": "式",
     "operation_add": "增",
     "operation_intersect": "匯",
@@ -56,7 +56,7 @@
   "dialog": {
     "batch_delete": {
       "confirm": "刪",
-      "message": "誠欲刪所擇 {count} 字形？",
+      "message": "誠欲刪所擇{count}字形？",
       "title": "誠刪之"
     },
     "cancel": "罷",
@@ -131,9 +131,9 @@
   "export": {
     "copy_failed": "入簿未成，且下傳之。",
     "copy_image": "鈔其圖",
-    "download": "下傳 {format}",
-    "download_ready": "{format} 出錄備訖。",
-    "failed": "{format} 出錄未成。",
+    "download": "下傳{format}",
+    "download_ready": "{format}出錄備訖。",
+    "failed": "{format}出錄未成。",
     "filename": "案名",
     "image_copied": "形圖既鈔。",
     "options": "出錄選項",
@@ -147,7 +147,7 @@
   "glyph_editor": {
     "copy_title": "鈔（Ctrl並C）",
     "cut_title": "摘（Ctrl並X）",
-    "invalid_code_point": "書一萬國碼標量，自 U+0000 至 U+10FFFF（代理碼位不含焉）",
+    "invalid_code_point": "書一萬國碼標量，自U+0000至U+10FFFF（代理碼位不含焉）",
     "paste_title": "謄（Ctrl並V）"
   },
   "glyph_manager": {
@@ -162,11 +162,11 @@
     },
     "backup_exported": "字庫備份既錄出。",
     "batch_delete": "群刪",
-    "delete_selected": "刪所擇 {count} 字形",
+    "delete_selected": "刪所擇{count}字形",
     "duplicate": {
       "cancel": "罷",
       "update": "迭新既有字形",
-      "warning": "既有字佔碼位 U+{codePoint} 矣！"
+      "warning": "既有字佔碼位U+{codePoint}矣！"
     },
     "error": {
       "loading_unicode_names": "萬國碼名無以載，猶可憑碼位求索。",
@@ -181,10 +181,10 @@
     "export_failed": "字庫無以錄出。",
     "export_font_files": "字體之案",
     "export_hex": "萬國碼字體範式（.hex）",
-    "export_otf": "OpenType 字體（.otf）",
-    "export_psf": "Linux 控制臺字體（.psf）",
+    "export_otf": "OpenType字體（.otf）",
+    "export_psf": "Linux控制臺字體（.psf）",
     "export_sheet": "位圖表（.png）",
-    "export_ttf": "TrueType 字體（.ttf）",
+    "export_ttf": "TrueType字體（.ttf）",
     "export_woff": "Web Open Font（.woff）",
     "export_woff2": "Web Open Font 2（.woff2）",
     "font_export": {
@@ -201,7 +201,7 @@
           "licenseUrl": "契之網址",
           "manufacturer": "製師",
           "manufacturerUrl": "製師網址",
-          "postScriptName": "PostScript 之名",
+          "postScriptName": "PostScript之名",
           "styleName": "範名",
           "trademark": "商徽",
           "uniqueId": "獨有棨信",
@@ -214,7 +214,7 @@
       "preparing": "方備字體之錄⋯",
       "scope": {
         "full": {
-          "description": "官版主字體之域（U+0000 至 U+FFFF），所纂並存。",
+          "description": "官版主字體之域（U+0000至U+FFFF），所纂並存。",
           "title": "官版主字體"
         },
         "modified": {
@@ -224,7 +224,7 @@
       },
       "scope_label": "字體之域"
     },
-    "font_exported": "{format} 字體之案錄出矣。",
+    "font_exported": "{format}字體之案錄出矣。",
     "glyph": {
       "code_point": "碼位：",
       "delete": "刪",
@@ -235,14 +235,14 @@
     "hex_error_invalid_code_point": "無效萬國碼標量",
     "hex_error_invalid_glyph_data": "形錄之十六進碼，其長須恰爲十六、三十二、四十八、六十四抑八十",
     "hex_error_missing_separator": "碼位抑錄隔符闕",
-    "hex_invalid_count": "{count} 行無效，略而不顧。",
+    "hex_invalid_count": "{count}行無效，略而不顧。",
     "hex_invalid_line": "第{line}行：{reason}",
     "hex_invalid_title": "幾許十六進碼未錄入",
     "import": "閲於萬國碼字體",
     "library": {
       "add_import": "增形與匯入",
       "add_selected_to_manager": "增至司形儀（{count}）",
-      "added_to_manager": "既增 {count} 字形至司形儀。",
+      "added_to_manager": "既增{count}字形至司形儀。",
       "cell_accessible": "{character}，U+{codePoint}，{width}像素字形{states}",
       "clear_search": "清除求索",
       "clear_selection": "清除所擇",
@@ -253,13 +253,13 @@
       },
       "density_label": "字形柵之疏密",
       "entered_fullscreen": "全幕字庫既開。",
-      "entry_description": "遍覽 Unifont 諸形，擇而收入己集。",
+      "entry_description": "遍覽Unifont諸形，擇而收入己集。",
       "exit_fullscreen": "返司形儀",
       "exited_fullscreen": "既返司形儀之側欄。",
       "expand": "開字庫",
       "filtered_count": "{filtered}／{total}",
       "filters": "濾",
-      "glyph_count": "{count} 字形",
+      "glyph_count": "{count}字形",
       "grid_label": "萬國碼字體字庫",
       "inspector_title": "增添／錄入",
       "load_failed": "弗能載既存字形。",
@@ -310,7 +310,7 @@
     "search": "尋以碼位、字符、錄抑或萬國碼名⋯",
     "select_all": "悉擇之",
     "sheet_columns": "列數",
-    "sheet_exported": "位圖表既錄出（{columns} 列，{scale}倍幅）。",
+    "sheet_exported": "位圖表既錄出（{columns}列，{scale}倍幅）。",
     "sheet_scale": "像素尺寸",
     "title": "司形儀",
     "upload": {
@@ -329,7 +329,7 @@
     }
   },
   "glyph_navigation": {
-    "load_error": "Unifont 資料未盡載入，已存字形仍可用。",
+    "load_error": "Unifont資料未盡載入，已存字形仍可用。",
     "next": "後列字形",
     "previous": "前列字形",
     "retry": "重試",
@@ -356,7 +356,7 @@
     "label": "十六進字錄",
     "placeholder": "書十六進字錄（十六、三十二、四十八、六十四、八十位）",
     "ready": "堪用字錄既備。",
-    "width": "{width} 像素"
+    "width": "{width}像素"
   },
   "image_import": {
     "cancel": "罷",
@@ -385,7 +385,7 @@
   "pwa": {
     "apply_update": "旋即迭新",
     "offline": "離綫",
-    "offline_ready": "UniCucumber 既備，離綫無礙。",
+    "offline_ready": "UniCucumber既備，離綫無礙。",
     "online_again": "復聯矣。",
     "registration_failed": "離綫廢矣，不堪啟用。",
     "update_check_failed": "察新未成。俄頃復試之。",
@@ -479,14 +479,14 @@
     "local_font": {
       "active": "本機字體：{name}",
       "import": "錄本機字體",
-      "import_failed": "弗能載之。須擇堪用 TTF、OTF、WOFF、WOFF2 字體。",
+      "import_failed": "弗能載之。須擇堪用TTF、OTF、WOFF、WOFF2字體。",
       "priority_hint": "以此字體爲先；下簿仍作備棧。",
       "remove": "除",
       "remove_failed": "弗能除本機字體既存者。",
       "replace": "替本機字體",
       "restore_failed": "弗能繕本機字體既存者。",
       "session_only": "今雖用此字體，然不能久存。",
-      "supported": "錄入 TTF、OTF、WOFF、WOFF2。所錄字體惟存於斯器。"
+      "supported": "錄入TTF、OTF、WOFF、WOFF2。所錄字體惟存於斯器。"
     },
     "preserve_glyph_library_filters": "擇字後存字庫選限",
     "preserve_glyph_library_filters_hint": "復入字庫時，存所索、所自、層面及區域之限。",
@@ -513,7 +513,7 @@
     "discard_draft": "棄",
     "draft_restore_failed": "嚮稿無以復。",
     "draft_save_failed": "芻稿無以存，離前毋忘備份。",
-    "fallback_warning": "IndexedDB 不堪用。存容或爲之所限。",
+    "fallback_warning": "IndexedDB不堪用。存容或爲之所限。",
     "glyph_save_failed": "無以存字庫。",
     "glyph_saved": "字形存矣。",
     "keep_draft": "畱稿",
@@ -531,7 +531,7 @@
     "live_hint": "君之所纂、形司所改，皆自現於此。",
     "load_failed": "萬國碼字體未能盡數載焉。",
     "loading": "方載字形⋯",
-    "missing": "闕 {count} 字形",
+    "missing": "闕{count}字形",
     "placeholder": "題文一至數行",
     "preview_label": "萬國碼字體預覽：{text}",
     "sample": "寄蜉蝣于天地，渺滄海之一粟。",
@@ -558,7 +558,7 @@
   },
   "workspace": {
     "fit": "適",
-    "grid_label": "{width}×16 像素字柵",
+    "grid_label": "{width}×16像素字柵",
     "label": "纂形之所",
     "reset_view": "復觀",
     "view_controls": "柵觀調適",

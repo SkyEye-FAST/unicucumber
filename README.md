@@ -85,6 +85,10 @@ For commands, project structure, and updating generated Unifont data, see the
 offline operation, and PWA updates, see the [Platform and PWA guide](docs/platform.md).
 Release and version-bump rules are documented in [Versioning](docs/versioning.md).
 
+Chinese and Literary Chinese typography uses CSS `text-autospace: normal`.
+Translations and copied text retain their semantic content without inserted
+visual spaces.
+
 ## License
 
 The project is released under the [GPL v3 License](LICENSE).

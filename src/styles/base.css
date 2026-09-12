@@ -1,3 +1,8 @@
+:lang(zh),
+:lang(lzh) {
+  text-autospace: normal;
+}
+
 :root {
   /* Layout */
   --workspace-max: 72rem;

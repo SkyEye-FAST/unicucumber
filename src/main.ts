@@ -22,7 +22,6 @@ import {
   normalizeLocale,
   type SupportedLocale,
 } from './utils/locale'
-import { formatCjkMixedText } from './utils/cjkSpacing'
 
 const languages = usePreferredLanguages()
 
@@ -37,10 +36,6 @@ const i18n = createI18n({
     'zh-TW': zh_tw,
     lzh: lzh,
   },
-  postTranslation: (translated) =>
-    typeof translated === 'string'
-      ? formatCjkMixedText(translated)
-      : translated,
 })
 
 const updateHtmlLang = (locale: SupportedLocale): void => {

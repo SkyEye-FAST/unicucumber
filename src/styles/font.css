@@ -32,21 +32,21 @@ body {
   font-family: var(--normal-font);
 }
 
-[lang='zh-cn'] body {
+body:lang(zh-cn) {
   --normal-font:
     'Noto Sans SC', 'Noto Sans CJK SC', 'Sarasa UI SC', 'Sarasa Gothic SC',
     'Source Han Sans SC', 'Microsoft YaHei UI', 'Microsoft YaHei',
     'PingFang SC', 'Hiragino Sans GB', system-ui, sans-serif;
 }
 
-[lang='zh-tw'] body {
+body:lang(zh-tw) {
   --normal-font:
     'Noto Sans TC', 'Noto Sans CJK TC', 'Sarasa UI TC', 'Sarasa Gothic TC',
     'Source Han Sans TC', 'Microsoft JhengHei UI', 'Microsoft JhengHei',
     'PingFang TC', system-ui, sans-serif;
 }
 
-[lang='lzh'] body {
+body:lang(lzh) {
   --normal-font:
     'Shanggu Sans', 'Noto Sans TC', 'Noto Sans CJK TC', 'Source Han Sans TC',
     'Microsoft JhengHei UI', 'Microsoft JhengHei', 'PingFang TC',

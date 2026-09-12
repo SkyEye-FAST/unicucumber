@@ -109,7 +109,7 @@ Do not hard-code new user-visible text in components or composables. Add or upda
 - `src/locales/zh-cn.json`
 - `src/locales/zh-tw.json`
 
-Keep placeholders and key structure consistent between locales. Preserve the existing CJK mixed-text formatting path. Run `pnpm check:locales` after locale changes.
+Keep placeholders and key structure consistent between locales. Use CSS `text-autospace: normal` for CJK typography; do not insert visual spaces into translated strings. Run `pnpm check:locales` after locale changes.
 
 ### Generated data and versions
 
