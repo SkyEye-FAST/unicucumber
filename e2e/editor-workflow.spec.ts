@@ -98,6 +98,56 @@ test(
   },
 )
 
+test(
+  'right-drag erasing suppresses captured context menus and stays atomic',
+  { tag: '@cross-browser' },
+  async ({ page }) => {
+    await page.getByRole('button', { name: 'Open settings' }).click()
+    await page.getByRole('combobox', { name: 'Draw mode', exact: true }).click()
+    await page
+      .getByRole('option', { name: 'Left draw, right erase', exact: true })
+      .click()
+    await page.getByRole('button', { name: 'Close settings' }).click()
+
+    const first = await cellCenter(page, 0, 0)
+    const last = await cellCenter(page, 0, 5)
+    await page.mouse.move(first.x, first.y)
+    await page.mouse.down()
+    await page.mouse.move(last.x, last.y, { steps: 5 })
+    await page.mouse.up()
+
+    await page.mouse.move(first.x, first.y)
+    await page.mouse.down({ button: 'right' })
+    await page.mouse.move(last.x, last.y, { steps: 5 })
+    // Exercise the capture target even on engines that emit contextmenu on release.
+    const prevented = await page
+      .locator('.grid-viewport')
+      .evaluate((viewport) => {
+        const event = new MouseEvent('contextmenu', {
+          bubbles: true,
+          cancelable: true,
+          button: 2,
+        })
+        viewport.dispatchEvent(event)
+        return event.defaultPrevented
+      })
+    expect(prevented).toBe(true)
+    await page.mouse.up({ button: 'right' })
+    await expect(page.locator('.grid-viewport')).not.toHaveClass(/interacting/)
+    for (let col = 0; col <= 5; col++) {
+      await expect(
+        page.locator(`[data-row="0"][data-col="${col}"]`),
+      ).not.toHaveClass(/filled/)
+    }
+    await page.getByRole('button', { name: /Undo/i }).last().click()
+    for (let col = 0; col <= 5; col++) {
+      await expect(
+        page.locator(`[data-row="0"][data-col="${col}"]`),
+      ).toHaveClass(/filled/)
+    }
+  },
+)
+
 test('pointer cancellation leaves the next gesture usable', async ({
   page,
 }) => {

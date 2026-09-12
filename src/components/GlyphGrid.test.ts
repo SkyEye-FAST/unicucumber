@@ -70,6 +70,7 @@ const mountGrid = (): VueWrapper => {
 
 const pointerEvent = (pointerId: number, clientX: number, clientY: number) => ({
   button: 0,
+  buttons: 1,
   pointerId,
   pointerType: 'mouse',
   clientX,
@@ -77,6 +78,92 @@ const pointerEvent = (pointerId: number, clientX: number, clientY: number) => ({
 })
 
 describe('GlyphGrid', () => {
+  it('suppresses captured viewport context menus without interrupting right-drag erasing', async () => {
+    const wrapper = mountGrid()
+    await wrapper.setProps({ drawMode: 'doubleButtonDraw' })
+    const viewport = wrapper.get('.grid-viewport')
+    await viewport.trigger('pointerdown', {
+      ...pointerEvent(1, 15, 15),
+      button: 2,
+      buttons: 2,
+    })
+    for (const target of [viewport, wrapper.get('.cell')]) {
+      const menu = new MouseEvent('contextmenu', {
+        bubbles: true,
+        cancelable: true,
+        button: 2,
+      })
+      target.element.dispatchEvent(menu)
+      expect(menu.defaultPrevented).toBe(true)
+    }
+    await viewport.trigger('pointermove', {
+      ...pointerEvent(1, 35, 15),
+      buttons: 2,
+    })
+    expect(wrapper.emitted('command')).toBeUndefined()
+    await viewport.trigger('pointerup', pointerEvent(1, 35, 15))
+    expect(wrapper.emitted('command')).toEqual([
+      [
+        {
+          type: 'applyStroke',
+          value: 0,
+          points: [
+            { row: 0, col: 0 },
+            { row: 0, col: 1 },
+            { row: 0, col: 2 },
+          ],
+        },
+      ],
+    ])
+    await wrapper.setProps({ drawMode: 'singleButtonDraw' })
+    const menu = new MouseEvent('contextmenu', {
+      bubbles: true,
+      cancelable: true,
+    })
+    viewport.element.dispatchEvent(menu)
+    expect(menu.defaultPrevented).toBe(false)
+  })
+
+  it('finishes a missed mouse release without extending the stroke into hover movements', async () => {
+    const wrapper = mountGrid()
+    await wrapper.setProps({ drawMode: 'doubleButtonDraw' })
+    const viewport = wrapper.get('.grid-viewport')
+    await viewport.trigger('pointerdown', {
+      ...pointerEvent(1, 15, 15),
+      button: 2,
+      buttons: 2,
+    })
+    await viewport.trigger('pointermove', {
+      ...pointerEvent(1, 25, 15),
+      buttons: 2,
+    })
+    await viewport.trigger('pointermove', {
+      ...pointerEvent(1, 65, 15),
+      buttons: 0,
+    })
+    await viewport.trigger('pointermove', {
+      ...pointerEvent(1, 75, 15),
+      buttons: 0,
+    })
+    await viewport.trigger('pointerup', pointerEvent(1, 75, 15))
+    expect(viewport.classes()).not.toContain('interacting')
+    await viewport.trigger('pointerdown', pointerEvent(1, 15, 25))
+    await viewport.trigger('pointerup', pointerEvent(1, 15, 25))
+    expect(wrapper.emitted('command')).toEqual([
+      [
+        {
+          type: 'applyStroke',
+          value: 0,
+          points: [
+            { row: 0, col: 0 },
+            { row: 0, col: 1 },
+          ],
+        },
+      ],
+      [{ type: 'applyStroke', value: 1, points: [{ row: 1, col: 0 }] }],
+    ])
+  })
+
   it('keeps the complete grid visible when resetting the mobile view', async () => {
     const wrapper = mount(GlyphGrid, {
       props: {
@@ -254,6 +341,7 @@ describe('GlyphGrid', () => {
     })
     await viewport.trigger('pointermove', {
       button: 0,
+      buttons: 1,
       pointerId: 1,
       pointerType: 'mouse',
       clientX: 45,
