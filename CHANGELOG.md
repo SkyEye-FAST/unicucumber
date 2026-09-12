@@ -4,6 +4,8 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+## [1.9.3] - 2026-09-12
+
 ### Changed
 
 - Reduce redundant viewport/theme test combinations, static translation and styling assertions, and glyph navigation screenshot delays while retaining representative layouts and behavioral regressions.
