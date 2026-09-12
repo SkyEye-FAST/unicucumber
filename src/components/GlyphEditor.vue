@@ -1761,7 +1761,7 @@ const handlePasteStart = (): void => {
   }
 
   .editor-output-stack {
-    /* 64 hexadecimal digits for a 16px glyph, plus input actions and gaps. */
+    /* Match the glyph navigator's width and alignment within the canvas column. */
     width: min(100%, 43rem);
     justify-self: center;
   }
@@ -1804,15 +1804,6 @@ const handlePasteStart = (): void => {
 
   .action-group {
     flex-wrap: nowrap;
-  }
-}
-
-@media (min-width: 720px) and (max-width: 899px) {
-  .editor-output-stack {
-    width: 100%;
-    /* The command rail occupies the second layout column. Compensate for it
-       so the output stays centered under the whole editor, not just canvas. */
-    transform: translateX(calc((var(--control-height) + var(--space-3)) / 2));
   }
 }
 

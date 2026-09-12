@@ -4,6 +4,10 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+### Fixed
+
+- Keep the hexadecimal input and export panel aligned with the glyph navigator on tablets, matching the desktop layout.
+
 ## [1.9.4] - 2026-09-12
 
 ### Changed

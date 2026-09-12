@@ -82,22 +82,16 @@ test.describe('wide editor layout', () => {
       const hex = await getBounds(page, '.hex-code-container')
       const exportPanel = await getBounds(page, '.export-panel')
       const rail = await getBounds(page, '.editor-control-stack')
-      const layout = await getBounds(page, '.editor-layout')
+      const navigator = await getBounds(page, '.glyph-navigator')
       const outputStack = await getBounds(page, '.editor-output-stack')
 
       expect(rail.left).toBeGreaterThanOrEqual(grid.right)
       expect(hex.top).toBeGreaterThanOrEqual(grid.bottom)
       expect(exportPanel.top).toBeGreaterThanOrEqual(hex.bottom)
       expect(exportPanel.right).toBeLessThanOrEqual(viewport.width)
-      if (viewport.width < 900) {
-        expect(
-          Math.abs(
-            (outputStack.left + outputStack.right) / 2 -
-              (layout.left + layout.right) / 2,
-          ),
-        ).toBeLessThanOrEqual(1)
-        expect(outputStack.right).toBeLessThanOrEqual(layout.right + 1)
-        expect(outputStack.width).toBeLessThanOrEqual(43 * 16 + 1)
+      for (const control of [outputStack, hex, exportPanel]) {
+        expect(Math.abs(control.left - navigator.left)).toBeLessThanOrEqual(1)
+        expect(Math.abs(control.right - navigator.right)).toBeLessThanOrEqual(1)
       }
       await expect(page.locator('.editor-actions')).toHaveCSS(
         'flex-direction',
