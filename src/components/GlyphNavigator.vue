@@ -29,7 +29,12 @@
         <i-material-symbols-chevron-right />
       </button>
     </div>
-    <div ref="strip" class="glyph-navigator__strip" :aria-busy="loading">
+    <div
+      ref="strip"
+      class="glyph-navigator__strip"
+      :aria-busy="loading"
+      @wheel="scrollWithWheel"
+    >
       <button
         v-for="codePoint in visibleCodePoints"
         :key="codePoint"
@@ -88,6 +93,23 @@ const { t, locale } = useI18n()
 const pageSize = 32
 const page = ref(0)
 const strip = ref<HTMLElement | null>(null)
+const scrollWithWheel = (event: WheelEvent): void => {
+  const element = strip.value
+  if (!element || event.ctrlKey || event.deltaX || !event.deltaY) return
+  const unit =
+    event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? element.clientWidth : 1
+  const delta = event.deltaY * unit
+  const next = Math.max(
+    0,
+    Math.min(
+      element.scrollWidth - element.clientWidth,
+      element.scrollLeft + delta,
+    ),
+  )
+  if (next === element.scrollLeft) return
+  event.preventDefault()
+  element.scrollLeft = next
+}
 const blockId = ref('basic-latin')
 const catalog = ref<number[]>([])
 const catalogLoading = ref(false)
@@ -227,6 +249,9 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .glyph-navigator {
+  box-sizing: border-box;
+  width: min(100%, 43rem);
+  justify-self: center;
   min-width: 0;
   padding: 0.75rem;
   border: 1px solid var(--border-color);
@@ -242,6 +267,7 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 0.25rem;
   overflow-x: auto;
+  scrollbar-width: auto;
   padding-bottom: 0.25rem;
 }
 .glyph-navigator__glyph {
@@ -273,39 +299,5 @@ onBeforeUnmount(() => {
 .glyph-navigator__status {
   color: var(--text-secondary);
   font-size: 0.875rem;
-}
-
-@media (min-width: 720px) {
-  .glyph-navigator {
-    display: grid;
-    grid-template-columns: minmax(0, 18rem) minmax(0, 1fr);
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0 0.5rem;
-  }
-
-  .glyph-navigator__controls {
-    margin-bottom: 0;
-  }
-
-  .glyph-navigator__strip {
-    padding-bottom: 0;
-    scrollbar-width: none;
-  }
-
-  .glyph-navigator__glyph {
-    min-height: 2.5rem;
-    justify-content: center;
-    padding: 0.125rem;
-  }
-
-  .glyph-navigator__glyph small {
-    display: none;
-  }
-
-  .glyph-navigator__status,
-  .glyph-navigator > p {
-    grid-column: 1 / -1;
-  }
 }
 </style>

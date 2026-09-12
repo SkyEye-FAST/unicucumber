@@ -34,6 +34,18 @@ const waitForSidebarSettled = async (page: Page) => {
     .toBeLessThanOrEqual(0.5)
 }
 
+const expectControlsReachable = async (page: Page) => {
+  // Short screens keep usable controls in normal document flow below the grid.
+  for (const selector of [
+    '.glyph-navigator',
+    '.export-panel',
+    '.copyright-text',
+  ]) {
+    await page.locator(selector).scrollIntoViewIfNeeded()
+    await expect(page.locator(selector)).toBeInViewport({ ratio: 1 })
+  }
+}
+
 test.describe('wide editor layout', () => {
   test.beforeEach(({}, testInfo) => {
     test.skip(
@@ -64,7 +76,6 @@ test.describe('wide editor layout', () => {
       expect(hex.top).toBeGreaterThanOrEqual(grid.bottom)
       expect(exportPanel.top).toBeGreaterThanOrEqual(hex.bottom)
       expect(exportPanel.right).toBeLessThanOrEqual(viewport.width)
-      expect(exportPanel.bottom).toBeLessThanOrEqual(viewport.height)
       if (viewport.width < 900) {
         expect(
           Math.abs(
@@ -85,13 +96,7 @@ test.describe('wide editor layout', () => {
       )
       await expect(page.locator('.tool-buttons')).toHaveCSS('display', 'grid')
 
-      const documentHeight = await page.evaluate(() =>
-        Math.max(
-          document.documentElement.scrollHeight,
-          document.body.scrollHeight,
-        ),
-      )
-      expect(documentHeight).toBeLessThanOrEqual(viewport.height + 1)
+      await expectControlsReachable(page)
     })
   }
 
@@ -239,7 +244,7 @@ test.describe('wide editor layout', () => {
     { width: 1440, height: 900 },
     { width: 1440, height: 1200 },
   ]) {
-    test(`keeps the editor chrome inside ${viewport.width}x${viewport.height}`, async ({
+    test(`keeps editor controls reachable at ${viewport.width}x${viewport.height}`, async ({
       page,
     }) => {
       await loadWideEditor(page, viewport.width, viewport.height)
@@ -255,7 +260,6 @@ test.describe('wide editor layout', () => {
       expect(exportPanel.left).toBeGreaterThanOrEqual(0)
       expect(exportPanel.right).toBeLessThanOrEqual(viewport.width)
       expect(rail.right).toBeLessThanOrEqual(viewport.width)
-      expect(exportPanel.bottom).toBeLessThanOrEqual(viewport.height)
       await expect(page.locator('.editor-actions')).toHaveCSS(
         'flex-direction',
         'column',
@@ -266,13 +270,7 @@ test.describe('wide editor layout', () => {
         'column',
       )
 
-      const documentHeight = await page.evaluate(() =>
-        Math.max(
-          document.documentElement.scrollHeight,
-          document.body.scrollHeight,
-        ),
-      )
-      expect(documentHeight).toBeLessThanOrEqual(viewport.height + 1)
+      await expectControlsReachable(page)
     })
   }
 
@@ -337,14 +335,7 @@ test.describe('wide editor layout', () => {
     expect(resizedGrid.width).toBeLessThan(initialGrid.width)
     expect(resizedExportPanel.left).toBeGreaterThanOrEqual(resizedSidebar.right)
     expect(resizedExportPanel.right).toBeLessThanOrEqual(1440)
-    expect(resizedExportPanel.bottom).toBeLessThanOrEqual(900)
-    const resizedDocumentHeight = await page.evaluate(() =>
-      Math.max(
-        document.documentElement.scrollHeight,
-        document.body.scrollHeight,
-      ),
-    )
-    expect(resizedDocumentHeight).toBeLessThanOrEqual(901)
+    await expectControlsReachable(page)
     await page.screenshot({
       path: join(
         process.env.TEMP ?? testInfo.outputDir,

@@ -136,6 +136,51 @@ test('editor glyph navigation searches blocks and switches glyphs @phone @tablet
   await expect(page.locator('#hexInput')).toHaveValue('FF'.repeat(16))
 })
 
+test('desktop glyph navigation scrolls with a mouse wheel and keeps code points readable @cross-browser', async ({
+  page,
+}, testInfo) => {
+  await seedGlyphs(page, 160)
+  await page.setViewportSize({ width: 1280, height: 720 })
+  await page.goto('/')
+  const navigator = page.getByRole('navigation', { name: 'Browse glyphs' })
+  const strip = navigator.locator('.glyph-navigator__strip')
+  await expect(strip).toHaveAttribute('aria-busy', 'false')
+  await expect(navigator).toBeInViewport({ ratio: 1 })
+  await expect(navigator.locator('small').first()).toBeVisible()
+  expect(
+    await navigator.evaluate(
+      (element) => element.getBoundingClientRect().width,
+    ),
+  ).toBeLessThanOrEqual(688)
+  const moveMouseToStrip = async () => {
+    const bounds = await strip.boundingBox()
+    if (!bounds) throw new Error('Glyph strip is not measurable')
+    await page.mouse.move(bounds.x + 80, bounds.y + 30)
+  }
+  await moveMouseToStrip()
+  const initialPageScroll = await page.evaluate(() => window.scrollY)
+  await page.mouse.wheel(0, 360)
+  await expect
+    .poll(() => strip.evaluate((element) => element.scrollLeft))
+    .toBeGreaterThan(0)
+  expect(await page.evaluate(() => window.scrollY)).toBe(initialPageScroll)
+  await navigator.locator('[data-code-point="0030"]').click()
+  await expect(page.locator('.code-point-input input')).toHaveValue('0030')
+  await strip.evaluate((element) => {
+    element.scrollLeft = element.scrollWidth
+  })
+  await moveMouseToStrip()
+  const edgePageScroll = await page.evaluate(() => window.scrollY)
+  await page.mouse.wheel(0, 200)
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY))
+    .toBeGreaterThan(edgePageScroll)
+  await page.mouse.move(0, 0)
+  await navigator.screenshot({
+    path: testInfo.outputPath('desktop-glyph-navigation.png'),
+  })
+})
+
 const seedIndexedDbGlyphs = async (page: Page, count: number) => {
   await seedGlyphs(page, 0)
   await page.goto('/', { waitUntil: 'domcontentloaded' })

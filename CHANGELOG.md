@@ -4,6 +4,12 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+## [1.9.2] - 2026-09-12
+
+### Fixed
+
+- Restore readable two-row glyph navigation with visible code points and a scrollbar, support horizontal browsing with the mouse wheel, and allow short screens to scroll vertically instead of compressing editor controls.
+
 ## [1.9.1] - 2026-09-12
 
 ### Fixed
