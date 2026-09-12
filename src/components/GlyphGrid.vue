@@ -860,6 +860,16 @@ const handlePointerDown = (event: PointerEvent): void => {
 }
 
 const handlePointerMove = (event: PointerEvent): void => {
+  // A native menu can swallow pointerup. Finish only the observed stroke,
+  // before a subsequent hover movement can extend it.
+  if (
+    event.pointerType === 'mouse' &&
+    event.buttons === 0 &&
+    pointers.has(event.pointerId)
+  ) {
+    finishInteraction(event.pointerId, true)
+    releasePointer(event)
+  }
   if (pointers.has(event.pointerId)) updatePointer(event)
   const state = interaction.value
   if (state.kind === 'idle') {
@@ -1041,10 +1051,8 @@ const handleWheel = (event: WheelEvent): void => {
 }
 
 const handleContextMenu = (event: MouseEvent): void => {
-  if (
-    props.drawMode === 'doubleButtonDraw' &&
-    gridRef.value?.contains(event.target as Node)
-  ) {
+  // Pointer capture retargets events to the viewport, outside gridRef.
+  if (props.drawMode === 'doubleButtonDraw') {
     event.preventDefault()
   }
 }

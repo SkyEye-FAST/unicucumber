@@ -4,6 +4,12 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-09-12
+
+### Fixed
+
+- Prevent the context menu from interrupting right-drag erasing in Safari and recover mouse strokes when a pointer release is missed (#38).
+
 ## [1.8.0] - 2026-09-05
 
 ### Added
