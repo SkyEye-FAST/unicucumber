@@ -7,6 +7,7 @@ export type GridCell = 0 | 1
 export type GlyphWidth = 4 | 8 | 12 | 16 | 20
 export type GridData = GridCell[][]
 export type EditorTool =
+  | 'smartDraw'
   | 'draw'
   | 'erase'
   | 'select'

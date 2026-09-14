@@ -15,6 +15,10 @@
       @click="updateTool(tool.id)"
     >
       <i-material-symbols-draw-outline v-if="tool.id === 'draw'" class="icon" />
+      <i-material-symbols-auto-fix-high
+        v-else-if="tool.id === 'smartDraw'"
+        class="icon"
+      />
       <i-material-symbols-ink-eraser-outline
         v-else-if="tool.id === 'erase'"
         class="icon"
@@ -136,6 +140,7 @@ const { t: $t } = useI18n()
 const overflowRef = ref<HTMLDetailsElement | null>(null)
 
 const primaryTools = [
+  { id: 'smartDraw', label: 'tools.smart_draw', shortcut: 'A' },
   { id: 'draw', label: 'tools.draw', shortcut: 'P' },
   { id: 'erase', label: 'tools.erase', shortcut: 'E' },
   { id: 'select', label: 'tools.select', shortcut: 'S' },

@@ -45,6 +45,7 @@ declare module 'vue' {
     IMaterialSymbolsArrowDownward: typeof import('~icons/material-symbols/arrow-downward')['default']
     IMaterialSymbolsArrowForward: typeof import('~icons/material-symbols/arrow-forward')['default']
     IMaterialSymbolsArrowUpward: typeof import('~icons/material-symbols/arrow-upward')['default']
+    IMaterialSymbolsAutoFixHigh: typeof import('~icons/material-symbols/auto-fix-high')['default']
     IMaterialSymbolsBrightnessAuto: typeof import('~icons/material-symbols/brightness-auto')['default']
     IMaterialSymbolsCenterFocusStrongOutline: typeof import('~icons/material-symbols/center-focus-strong-outline')['default']
     IMaterialSymbolsCheck: typeof import('~icons/material-symbols/check')['default']

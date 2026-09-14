@@ -39,6 +39,41 @@ test.beforeEach(async ({ page }) => {
   await expect(page.locator('.grid-container')).toBeVisible()
 })
 
+test(
+  'Smart brush inherits its starting operation and supports undo',
+  {
+    tag: ['@phone', '@tablet'],
+  },
+  async ({ page }) => {
+    const smartBrush = page
+      .getByRole('button', { name: 'Smart brush', exact: true })
+      .filter({ visible: true })
+    await smartBrush.click()
+    const first = await cellCenter(page, 0, 0)
+    const last = await cellCenter(page, 0, 3)
+    const stroke = async () => {
+      await page.mouse.move(first.x, first.y)
+      await page.mouse.down()
+      await page.mouse.move(last.x, last.y, { steps: 3 })
+      await page.mouse.up()
+    }
+    await stroke()
+    await stroke()
+    for (let col = 0; col <= 3; col++) {
+      await expect(
+        page.locator(`[data-row="0"][data-col="${col}"]`),
+      ).not.toHaveClass(/filled/)
+    }
+    await page.getByRole('button', { name: /Undo/i }).last().click()
+    for (let col = 0; col <= 3; col++) {
+      await expect(
+        page.locator(`[data-row="0"][data-col="${col}"]`),
+      ).toHaveClass(/filled/)
+    }
+    await expect(smartBrush).toHaveClass(/active/)
+  },
+)
+
 test('allows page wheel scrolling while the pointer is over the editor viewport', async ({
   page,
 }, testInfo) => {

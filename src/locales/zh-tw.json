@@ -540,6 +540,7 @@
   },
   "title": "UniCucumber - Unifont網頁編輯器",
   "tools": {
+    "smart_draw": "智慧畫筆",
     "draw": "繪製",
     "erase": "擦除",
     "fill": "油漆桶",

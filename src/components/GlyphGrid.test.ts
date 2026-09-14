@@ -78,6 +78,62 @@ const pointerEvent = (pointerId: number, clientX: number, clientY: number) => ({
 })
 
 describe('GlyphGrid', () => {
+  it.each(['mouse', 'touch', 'pen'])(
+    'locks Smart brush to the starting pixel for %s strokes and resamples the next stroke',
+    async (pointerType) => {
+      const wrapper = mountGrid()
+      const gridData = createGrid(8)
+      gridData[0]![0] = 1
+      gridData[0]![2] = 1
+      await wrapper.setProps({
+        currentTool: 'smartDraw',
+        gridData,
+        drawValue: 0,
+      })
+      const viewport = wrapper.get('.grid-viewport')
+      const event = (x: number) => ({
+        ...pointerEvent(1, x, 15),
+        pointerType,
+        isPrimary: true,
+      })
+
+      await viewport.trigger('pointerdown', event(15))
+      await viewport.trigger('pointermove', event(35))
+      await viewport.trigger('pointermove', event(15))
+      expect(wrapper.emitted('command')).toBeUndefined()
+      await viewport.trigger('pointerup', event(15))
+      await viewport.trigger('pointerdown', event(25))
+      await viewport.trigger('pointermove', event(35))
+      await viewport.trigger('pointerup', event(35))
+
+      expect(wrapper.emitted('command')).toEqual([
+        [
+          {
+            type: 'applyStroke',
+            value: 0,
+            points: [
+              { row: 0, col: 0 },
+              { row: 0, col: 1 },
+              { row: 0, col: 2 },
+            ],
+          },
+        ],
+        [
+          {
+            type: 'applyStroke',
+            value: 1,
+            points: [
+              { row: 0, col: 1 },
+              { row: 0, col: 2 },
+            ],
+          },
+        ],
+      ])
+      expect(gridData[0]!.slice(0, 3)).toEqual([1, 0, 1])
+      wrapper.unmount()
+    },
+  )
+
   it('suppresses captured viewport context menus without interrupting right-drag erasing', async () => {
     const wrapper = mountGrid()
     await wrapper.setProps({ drawMode: 'doubleButtonDraw' })

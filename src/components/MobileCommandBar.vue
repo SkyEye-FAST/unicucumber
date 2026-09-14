@@ -25,6 +25,10 @@
           v-else-if="tool.id === 'erase'"
           class="icon"
         />
+        <i-material-symbols-auto-fix-high
+          v-else-if="tool.id === 'smartDraw'"
+          class="icon"
+        />
         <i-material-symbols-select
           v-else-if="tool.id === 'select'"
           class="icon"
@@ -163,6 +167,7 @@ const emit = defineEmits<{
 const { t: $t } = useI18n()
 const showMore = ref(false)
 const primaryTools = [
+  { id: 'smartDraw', label: 'tools.smart_draw' },
   { id: 'draw', label: 'tools.draw' },
   { id: 'erase', label: 'tools.erase' },
   { id: 'select', label: 'tools.select' },

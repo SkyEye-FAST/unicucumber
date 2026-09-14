@@ -565,7 +565,9 @@ const previewPoints = computed<GridPosition[]>(() => {
   if (
     props.cursorEffect &&
     hoverCell.value &&
-    (props.currentTool === 'draw' || props.currentTool === 'erase')
+    (props.currentTool === 'draw' ||
+      props.currentTool === 'erase' ||
+      props.currentTool === 'smartDraw')
   ) {
     return [hoverCell.value]
   }
@@ -574,6 +576,10 @@ const previewPoints = computed<GridPosition[]>(() => {
 
 const previewValue = computed<GridCell>(() => {
   if (interaction.value.kind === 'drawing') return interaction.value.value
+  if (props.currentTool === 'smartDraw' && hoverCell.value) {
+    const { row, col } = hoverCell.value
+    return props.gridData[row]?.[col] === 1 ? 0 : 1
+  }
   return props.currentTool === 'erase' ? 0 : 1
 })
 
@@ -842,12 +848,16 @@ const handlePointerDown = (event: PointerEvent): void => {
     }
   } else {
     const value: GridCell =
-      props.currentTool === 'erase' ||
-      (props.drawMode === 'doubleButtonDraw' && event.button === 2)
-        ? 0
-        : props.drawValue === 0
+      props.currentTool === 'smartDraw'
+        ? props.gridData[position.row]?.[position.col] === 1
           ? 0
           : 1
+        : props.currentTool === 'erase' ||
+            (props.drawMode === 'doubleButtonDraw' && event.button === 2)
+          ? 0
+          : props.drawValue === 0
+            ? 0
+            : 1
     currentDrawValue.value = value
     interaction.value = {
       kind: 'drawing',

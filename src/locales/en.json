@@ -540,6 +540,7 @@
   },
   "title": "UniCucumber - Unifont Web Editor",
   "tools": {
+    "smart_draw": "Smart brush",
     "draw": "Draw",
     "erase": "Erase",
     "fill": "Flood fill",

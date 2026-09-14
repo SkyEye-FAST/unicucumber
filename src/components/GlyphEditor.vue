@@ -997,23 +997,25 @@ const handleKeydown = (e: KeyboardEvent): void => {
 
   const key = e.key.toLowerCase()
   const shortcutTool: EditorTool | undefined =
-    key === 'p'
-      ? 'draw'
-      : key === 'e'
-        ? 'erase'
-        : key === 's'
-          ? 'select'
-          : key === 'f'
-            ? 'fill'
-            : key === 'l'
-              ? 'line'
-              : key === 'r'
-                ? e.shiftKey
-                  ? 'filledRectangle'
-                  : 'rectangle'
-                : key === 'h'
-                  ? 'pan'
-                  : undefined
+    key === 'a'
+      ? 'smartDraw'
+      : key === 'p'
+        ? 'draw'
+        : key === 'e'
+          ? 'erase'
+          : key === 's'
+            ? 'select'
+            : key === 'f'
+              ? 'fill'
+              : key === 'l'
+                ? 'line'
+                : key === 'r'
+                  ? e.shiftKey
+                    ? 'filledRectangle'
+                    : 'rectangle'
+                  : key === 'h'
+                    ? 'pan'
+                    : undefined
   if (shortcutTool) {
     e.preventDefault()
     selectTool(shortcutTool)
