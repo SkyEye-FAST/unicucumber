@@ -99,6 +99,25 @@ Build when changing the styling toolchain; use the full browser matrix when the
 scope or focused results warrant it. Verify offline behaviour against a production
 preview when relevant, as described in [Platform support](platform.md).
 
+## Keyboard shortcuts
+
+`src/domain/shortcuts.ts` defines editor actions, default bindings, validation,
+and exact modifier matching. `GlyphEditor` dispatches these actions regardless of
+canvas focus; `GlyphGrid` retains only local Escape/Enter interaction handling.
+Inputs, IME composition, and dialogs do not dispatch editor shortcuts. Tool and
+action hints use `useShortcuts` so they reflect the active bindings.
+
+Settings → Keyboard shortcuts records a replacement binding when the user focuses
+a field and presses keys. Bindings can be cleared, conflicts must be resolved
+before assignment, and defaults can be restored. Ctrl and Command use the shared
+`Mod` modifier. Escape, Enter, and Tab retain cancellation, confirmation, and focus
+navigation roles. Browser-reserved combinations are rejected.
+
+The validated `shortcuts` field is additive within the current settings envelope:
+existing settings without it receive defaults without resetting other preferences.
+No glyph or draft schema changes or data migrations are needed. Invalid shortcut
+payloads reset only shortcut bindings. Storage failures retain in-session settings.
+
 ## Tooltips
 
 `AppTooltip` renders one shared tooltip outside clipped panels. Icon controls

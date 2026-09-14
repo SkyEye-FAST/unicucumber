@@ -9,6 +9,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 ### Added
 
 - Add Smart brush (A) to desktop and mobile tools: start on a blank pixel to draw or a filled pixel to erase, keeping that operation throughout the stroke with a single undo entry.
+- Make editor keyboard shortcuts configurable with key recording, conflict detection, unbinding, reset, and local persistence; update shortcut hints dynamically and isolate editing shortcuts from inputs, IME composition, and dialogs.
 
 ### Fixed
 

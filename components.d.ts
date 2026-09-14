@@ -121,6 +121,7 @@ declare module 'vue' {
     PwaStatus: typeof import('./src/components/PwaStatus.vue')['default']
     SearchToolbar: typeof import('./src/components/GlyphManager/SearchToolbar.vue')['default']
     SettingsSidebar: typeof import('./src/components/SettingsSidebar.vue')['default']
+    ShortcutSettings: typeof import('./src/components/ShortcutSettings.vue')['default']
     TextPreview: typeof import('./src/components/TextPreview.vue')['default']
     ToolButtons: typeof import('./src/components/ToolButtons.vue')['default']
     UploadSection: typeof import('./src/components/GlyphManager/UploadSection.vue')['default']

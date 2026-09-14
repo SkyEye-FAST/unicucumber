@@ -1,4 +1,5 @@
 import { ref, watch } from 'vue'
+import { createDefaultShortcuts, parseShortcuts } from '@/domain/shortcuts'
 
 import type {
   DrawMode,
@@ -118,6 +119,7 @@ const createFontStack = (fonts: readonly string[]): string =>
 const defaultFontStack = createFontStack(FONT_LIST)
 
 export const defaultSettings: Readonly<EditorSettings> = {
+  shortcuts: createDefaultShortcuts(),
   glyphWidth: 16,
   drawMode: 'singleButtonDraw',
   alwaysShowMouseCursor: false,
@@ -190,6 +192,7 @@ export const parseSettings = (value: unknown): EditorSettings => {
       : null
 
   return {
+    shortcuts: parseShortcuts(stored.shortcuts),
     glyphWidth: isGlyphWidth(stored.glyphWidth)
       ? stored.glyphWidth
       : defaultSettings.glyphWidth,

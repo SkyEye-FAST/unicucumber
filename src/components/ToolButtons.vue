@@ -12,6 +12,7 @@
       class="tool-button"
       :class="{ active: currentTool === tool.id }"
       :aria-label="$t(tool.label)"
+      :data-tooltip="shortcutTooltip($t(tool.label), tool.id)"
       @click="updateTool(tool.id)"
     >
       <i-material-symbols-draw-outline v-if="tool.id === 'draw'" class="icon" />
@@ -56,7 +57,7 @@
             type="button"
             :class="{ active: currentTool === tool.id }"
             :aria-label="$t(tool.label)"
-            :data-tooltip="`${$t(tool.label)} (${tool.shortcut})`"
+            :data-tooltip="shortcutTooltip($t(tool.label), tool.id)"
             @click="updateTool(tool.id)"
           >
             <i-material-symbols-format-color-fill
@@ -113,6 +114,7 @@ import { useI18n } from 'vue-i18n'
 
 import type { EditorCommand } from '@/types/editor'
 import type { EditorTool } from '@/types/glyph'
+import { useShortcuts } from '@/composables/useShortcuts'
 
 interface Props {
   modelValue: number
@@ -137,26 +139,26 @@ const emit = defineEmits<{
 }>()
 
 const { t: $t } = useI18n()
+const { shortcutTooltip } = useShortcuts()
 const overflowRef = ref<HTMLDetailsElement | null>(null)
 
 const primaryTools = [
-  { id: 'smartDraw', label: 'tools.smart_draw', shortcut: 'A' },
-  { id: 'draw', label: 'tools.draw', shortcut: 'P' },
-  { id: 'erase', label: 'tools.erase', shortcut: 'E' },
-  { id: 'select', label: 'tools.select', shortcut: 'S' },
-  { id: 'pan', label: 'tools.pan', shortcut: 'H' },
-] satisfies Array<{ id: EditorTool; label: string; shortcut: string }>
+  { id: 'smartDraw', label: 'tools.smart_draw' },
+  { id: 'draw', label: 'tools.draw' },
+  { id: 'erase', label: 'tools.erase' },
+  { id: 'select', label: 'tools.select' },
+  { id: 'pan', label: 'tools.pan' },
+] satisfies Array<{ id: EditorTool; label: string }>
 
 const secondaryTools = [
-  { id: 'fill', label: 'tools.fill', shortcut: 'F' },
-  { id: 'line', label: 'tools.line', shortcut: 'L' },
-  { id: 'rectangle', label: 'tools.rectangle', shortcut: 'R' },
+  { id: 'fill', label: 'tools.fill' },
+  { id: 'line', label: 'tools.line' },
+  { id: 'rectangle', label: 'tools.rectangle' },
   {
     id: 'filledRectangle',
     label: 'tools.filled_rectangle',
-    shortcut: 'Shift+R',
   },
-] satisfies Array<{ id: EditorTool; label: string; shortcut: string }>
+] satisfies Array<{ id: EditorTool; label: string }>
 
 const closeOverflow = (restoreFocus = false): void => {
   const overflow = overflowRef.value

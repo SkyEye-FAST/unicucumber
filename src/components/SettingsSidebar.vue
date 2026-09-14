@@ -304,6 +304,13 @@
             </label>
           </section>
 
+          <ShortcutSettings
+            :model-value="settings.shortcuts"
+            @update:model-value="
+              emit('update:settings', { ...settings, shortcuts: $event })
+            "
+          />
+
           <section
             class="settings-section"
             aria-labelledby="settings-workflow-title"
@@ -739,6 +746,7 @@ import { acquireOverlayLock, releaseOverlayLock } from '@/utils/overlayStack'
 import { LOCALE_PREFERENCE_KEY, type SupportedLocale } from '@/utils/locale'
 
 import DialogBox from './DialogBox.vue'
+import ShortcutSettings from './ShortcutSettings.vue'
 
 const props = defineProps<{
   modelValue: boolean

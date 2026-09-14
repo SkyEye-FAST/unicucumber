@@ -187,7 +187,7 @@ test.describe('wide editor layout', () => {
     )
 
     await expect(actionButtons).toHaveCount(5)
-    await expect(toolButtons).toHaveCount(5)
+    await expect(toolButtons).toHaveCount(6)
 
     const tooltip = page.getByRole('tooltip')
     for (const button of [
@@ -199,7 +199,9 @@ test.describe('wide editor layout', () => {
       await expect(button).not.toHaveAttribute('title')
       await button.hover({ force: true })
       await expect(tooltip).toBeVisible()
-      await expect(tooltip).toHaveText(label)
+      await expect(tooltip).toHaveText(
+        (await button.getAttribute('data-tooltip')) ?? label,
+      )
       const buttonBounds = await button.boundingBox()
       const tooltipBounds = await tooltip.boundingBox()
       if (!buttonBounds || !tooltipBounds) {
@@ -218,7 +220,7 @@ test.describe('wide editor layout', () => {
     }
 
     await page.getByRole('button', { name: 'Erase', exact: true }).focus()
-    await expect(tooltip).toHaveText('Erase')
+    await expect(tooltip).toHaveText('Erase (E)')
     await page.keyboard.press('Escape')
     await expect(tooltip).toHaveCount(0)
 

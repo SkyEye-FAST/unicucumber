@@ -1,3 +1,5 @@
+import type { ShortcutBindings } from '@/domain/shortcuts'
+
 export interface Glyph {
   codePoint: string
   hexValue: string
@@ -39,6 +41,7 @@ export interface SelectionRectangle {
 }
 
 export interface EditorSettings {
+  shortcuts: ShortcutBindings
   glyphWidth: GlyphWidth
   drawMode: DrawMode
   alwaysShowMouseCursor: boolean

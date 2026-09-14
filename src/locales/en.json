@@ -109,7 +109,7 @@
       },
       "open_in_zitools": "Open in zi.tools",
       "redo": {
-        "title": "Redo (Ctrl+Y)"
+        "title": "Redo"
       },
       "restore": {
         "button": "Restore saved",
@@ -117,11 +117,11 @@
       },
       "save": {
         "button": "Save glyph",
-        "title": "Save this glyph to the glyph manager (Ctrl+S)"
+        "title": "Save this glyph to the glyph manager"
       },
       "show_encoding_info": "Show Encoding Info",
       "undo": {
-        "title": "Undo (Ctrl+Z)"
+        "title": "Undo"
       }
     }
   },
@@ -145,10 +145,10 @@
     "transparent": "Transparent background"
   },
   "glyph_editor": {
-    "copy_title": "Copy (Ctrl+C)",
-    "cut_title": "Cut (Ctrl+X)",
+    "copy_title": "Copy",
+    "cut_title": "Cut",
     "invalid_code_point": "Enter a Unicode scalar value from U+0000 to U+10FFFF, excluding surrogates.",
-    "paste_title": "Paste (Ctrl+V)"
+    "paste_title": "Paste"
   },
   "glyph_manager": {
     "add": {
@@ -539,6 +539,19 @@
     "title": "Text preview"
   },
   "title": "UniCucumber - Unifont Web Editor",
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "help": "Focus a field and press a key combination to replace its shortcut. Changes save automatically on this device. Ctrl and Command share bindings. Tab moves focus; Escape leaves the field. Escape and Enter retain their cancel/confirm roles. Clear a binding before assigning it to another action.",
+    "unassigned": "Unassigned",
+    "input_label": "Shortcut for {action}",
+    "clear": "Clear shortcut for {action}",
+    "reset": "Restore default shortcuts",
+    "updated": "Shortcut updated: {action}",
+    "restored": "Default shortcuts restored.",
+    "unsupported": "Use a letter, number, arrow, Delete or Backspace, optionally with Ctrl/Command, Alt or Shift. Browser-reserved combinations are unavailable.",
+    "conflict": "Already assigned to {action}. Clear that binding first.",
+    "select_all": "Select all"
+  },
   "tools": {
     "smart_draw": "Smart brush",
     "draw": "Draw",

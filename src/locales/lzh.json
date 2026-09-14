@@ -109,7 +109,7 @@
       },
       "open_in_zitools": "啟於字統網",
       "redo": {
-        "title": "復（Ctrl並Y）"
+        "title": "復"
       },
       "restore": {
         "button": "形繕既存",
@@ -117,11 +117,11 @@
       },
       "save": {
         "button": "存字形",
-        "title": "存此形至司形儀（Ctrl並S）"
+        "title": "存此形至司形儀"
       },
       "show_encoding_info": "示編碼",
       "undo": {
-        "title": "撤（Ctrl並Z）"
+        "title": "撤"
       }
     }
   },
@@ -145,10 +145,10 @@
     "transparent": "通透背幕"
   },
   "glyph_editor": {
-    "copy_title": "鈔（Ctrl並C）",
-    "cut_title": "摘（Ctrl並X）",
+    "copy_title": "鈔",
+    "cut_title": "摘",
     "invalid_code_point": "書一萬國碼標量，自U+0000至U+10FFFF（代理碼位不含焉）",
-    "paste_title": "謄（Ctrl並V）"
+    "paste_title": "謄"
   },
   "glyph_manager": {
     "add": {
@@ -539,6 +539,19 @@
     "title": "預覽"
   },
   "title": "「匯翠」- 纂萬國碼字體",
+  "shortcuts": {
+    "title": "便捷鍵",
+    "help": "聚焦鍵欄，按鍵即更，所更自存於本機。Ctrl與Command同用。Tab移焦，Escape出欄；Escape仍司撤，Enter仍司定。欲易兩鍵，先解舊繫。",
+    "unassigned": "未繫",
+    "input_label": "{action}之鍵",
+    "clear": "解{action}之鍵",
+    "reset": "復初設鍵",
+    "updated": "{action}之鍵既更",
+    "restored": "鍵皆復初。",
+    "unsupported": "可用字母、數字、方向鍵、Delete、Backspace，亦可並Ctrl/Command、Alt或Shift。瀏覽器專鍵不可用。",
+    "conflict": "此鍵已繫{action}，請先解之。",
+    "select_all": "全擇"
+  },
   "tools": {
     "smart_draw": "靈筆",
     "draw": "繪",

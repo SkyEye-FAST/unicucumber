@@ -204,7 +204,7 @@
       <button
         type="button"
         :aria-label="$t('selection.cut')"
-        :title="$t('glyph_editor.cut_title')"
+        :data-tooltip="shortcutTooltip($t('glyph_editor.cut_title'), 'cut')"
         @click="handleCut"
       >
         <i-material-symbols-content-cut class="icon" />
@@ -213,7 +213,7 @@
       <button
         type="button"
         :aria-label="$t('selection.copy')"
-        :title="$t('glyph_editor.copy_title')"
+        :data-tooltip="shortcutTooltip($t('glyph_editor.copy_title'), 'copy')"
         @click="handleCopy"
       >
         <i-material-symbols-content-copy class="icon" />
@@ -295,6 +295,7 @@ import {
 import { useI18n } from 'vue-i18n'
 
 import { useClipboard } from '@/composables/useClipboard'
+import { useShortcuts } from '@/composables/useShortcuts'
 import { extractSelection, linePositions } from '@/domain/grid'
 import type { EditorCommand } from '@/types/editor'
 import type {
@@ -338,6 +339,7 @@ const emit = defineEmits<{
 }>()
 
 const { t: $t } = useI18n()
+const { shortcutTooltip } = useShortcuts()
 const clipboard = useClipboard()
 const viewportRef = ref<HTMLElement | null>(null)
 const gridRef = ref<HTMLElement | null>(null)
@@ -1234,23 +1236,22 @@ const nudgeSelection = (row: number, col: number): void => {
 }
 
 const handleKeyDown = (event: KeyboardEvent): void => {
-  const modifier = event.ctrlKey || event.metaKey
-  const key = event.key.toLowerCase()
-  if (modifier && key === 'c') handleCopy()
-  else if (modifier && key === 'x') handleCut()
-  else if (modifier && key === 'v') handlePaste()
-  else if (modifier && key === 'a') handleSelectAll()
-  else if (key === 'delete' || key === 'backspace') handleDelete()
-  else if (key === 'escape') {
+  if (
+    event.defaultPrevented ||
+    event.isComposing ||
+    event.keyCode === 229 ||
+    event.ctrlKey ||
+    event.metaKey ||
+    event.altKey ||
+    event.shiftKey
+  )
+    return
+  if (event.key === 'Escape') {
     if (clipboard.isPasteMode.value) cancelPaste()
     else if (interaction.value.kind !== 'idle') cancelInteraction()
     else clearSelection()
   } else if (event.key === 'Enter' && clipboard.isPasteMode.value)
     confirmPaste()
-  else if (event.key === 'ArrowUp') nudgeSelection(-1, 0)
-  else if (event.key === 'ArrowDown') nudgeSelection(1, 0)
-  else if (event.key === 'ArrowLeft') nudgeSelection(0, -1)
-  else if (event.key === 'ArrowRight') nudgeSelection(0, 1)
   else return
   event.preventDefault()
   event.stopPropagation()

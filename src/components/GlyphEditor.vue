@@ -126,6 +126,9 @@
               class="action-button icon-only ui-icon-button"
               type="button"
               :aria-label="$t('glyph_editor.cut_title')"
+              :data-tooltip="
+                shortcutTooltip($t('glyph_editor.cut_title'), 'cut')
+              "
               @click="handleCut"
             >
               <i-material-symbols-content-cut class="icon" />
@@ -135,6 +138,9 @@
               class="action-button icon-only ui-icon-button"
               type="button"
               :aria-label="$t('glyph_editor.copy_title')"
+              :data-tooltip="
+                shortcutTooltip($t('glyph_editor.copy_title'), 'copy')
+              "
               @click="handleCopy"
             >
               <i-material-symbols-content-copy class="icon" />
@@ -144,6 +150,9 @@
               class="action-button icon-only ui-icon-button"
               type="button"
               :aria-label="$t('glyph_editor.paste_title')"
+              :data-tooltip="
+                shortcutTooltip($t('glyph_editor.paste_title'), 'paste')
+              "
               @click="handlePaste"
             >
               <i-material-symbols-content-paste class="icon" />
@@ -169,6 +178,16 @@
             </button>
             <button
               class="action-button save-action ui-button ui-button--primary"
+              :data-tooltip="
+                shortcutTooltip(
+                  $t(
+                    currentGlyphIsManaged
+                      ? 'editor.actions.save.title'
+                      : 'editor.actions.add_to_glyphset.title',
+                  ),
+                  'save',
+                )
+              "
               :disabled="!hasUnsavedChanges || isSavingGlyph"
               :aria-label="
                 $t(
@@ -196,6 +215,9 @@
               :disabled="!canUndo"
               type="button"
               :aria-label="$t('editor.actions.undo.title')"
+              :data-tooltip="
+                shortcutTooltip($t('editor.actions.undo.title'), 'undo')
+              "
               @click="handleUndo"
             >
               <i-material-symbols-undo class="icon" />
@@ -205,6 +227,9 @@
               :disabled="!canRedo"
               type="button"
               :aria-label="$t('editor.actions.redo.title')"
+              :data-tooltip="
+                shortcutTooltip($t('editor.actions.redo.title'), 'redo')
+              "
               @click="handleRedo"
             >
               <i-material-symbols-redo class="icon" />
@@ -323,6 +348,12 @@ import { useGlyphLibrary } from '@/composables/useGlyphLibrary'
 import { useLocalPreviewFont } from '@/composables/useLocalPreviewFont'
 import { useNotifications } from '@/composables/useNotifications'
 import { useSettings } from '@/composables/useSettings'
+import { useShortcuts } from '@/composables/useShortcuts'
+import {
+  isShortcutInput,
+  resolveShortcut,
+  toolActions,
+} from '@/domain/shortcuts'
 import { useSidebar } from '@/composables/useSidebar'
 import { registerDraftFlusher } from '@/platform/draftFlush'
 import { shouldPrefetchUnifont, unifontLoader } from '@/services/unifontLoader'
@@ -369,6 +400,7 @@ const { t: $t } = useI18n()
 const { notify } = useNotifications()
 
 const { settings, showSettings } = useSettings()
+const { shortcutTooltip } = useShortcuts()
 const { effectivePreviewFont } = useLocalPreviewFont()
 const browserPreviewFont = effectivePreviewFont(
   () => settings.value.browserPreviewFont,
@@ -923,7 +955,8 @@ const handleGlyphSaved = async (glyph: Glyph): Promise<void> => {
 }
 
 const handleKeydown = (e: KeyboardEvent): void => {
-  const target = e.target as HTMLElement | null
+  if (e.defaultPrevented || e.isComposing || e.keyCode === 229) return
+  if (showSettings.value || showComposition.value || showDialog.value) return
   if (e.key === 'Escape' && showTextPreview.value) {
     e.preventDefault()
     showTextPreview.value = false
@@ -934,91 +967,82 @@ const handleKeydown = (e: KeyboardEvent): void => {
     if (!glyphManagerRef.value?.handleEscape()) handleCloseSidebar()
     return
   }
-  if (target?.matches('input, textarea, [contenteditable="true"]')) return
-  if (e.ctrlKey || e.metaKey) {
-    const key = e.key.toLowerCase()
-    if (key === 'z' && e.shiftKey) {
-      e.preventDefault()
-      handleRedo()
-    } else if (key === 'z') {
-      e.preventDefault()
-      handleUndo()
-    } else if (key === 'y') {
-      e.preventDefault()
-      handleRedo()
-    } else if (key === 'x' && hasSelection.value) {
-      e.preventDefault()
-      handleCut()
-    } else if (key === 'c' && hasSelection.value) {
-      e.preventDefault()
-      handleCopy()
-    } else if (key === 'v') {
-      e.preventDefault()
-      if (hasClipboardData.value) {
-        handlePaste()
-      }
-    } else if (key === 's') {
-      e.preventDefault()
-      void saveCurrentGlyph()
-    } else if (key === 'a') {
-      e.preventDefault()
-      selectTool('select')
-      nextTick(() => gridRef.value?.handleSelectAll())
-    }
-    return
-  }
-
-  if (e.key === 'Delete' || e.key === 'Backspace') {
-    if (hasSelection.value) {
-      e.preventDefault()
-      gridRef.value?.handleDelete()
-    }
-    return
-  }
+  if (showTextPreview.value || isShortcutInput(e.target)) return
   if (e.key === 'Escape') {
     gridRef.value?.cancelPaste()
     clearSelection()
     return
   }
-  if (hasSelection.value && e.key.startsWith('Arrow')) {
-    const offsets: Record<string, [number, number]> = {
-      ArrowUp: [-1, 0],
-      ArrowDown: [1, 0],
-      ArrowLeft: [0, -1],
-      ArrowRight: [0, 1],
-    }
-    const offset = offsets[e.key]
-    if (offset) {
-      e.preventDefault()
-      gridRef.value?.nudgeSelection(...offset)
-    }
+  const action = resolveShortcut(e, settings.value.shortcuts)
+  if (!action) return
+  if (
+    e.repeat &&
+    action !== 'undo' &&
+    action !== 'redo' &&
+    !action.startsWith('move')
+  ) {
+    e.preventDefault()
     return
   }
-
-  const key = e.key.toLowerCase()
-  const shortcutTool: EditorTool | undefined =
-    key === 'a'
-      ? 'smartDraw'
-      : key === 'p'
-        ? 'draw'
-        : key === 'e'
-          ? 'erase'
-          : key === 's'
-            ? 'select'
-            : key === 'f'
-              ? 'fill'
-              : key === 'l'
-                ? 'line'
-                : key === 'r'
-                  ? e.shiftKey
-                    ? 'filledRectangle'
-                    : 'rectangle'
-                  : key === 'h'
-                    ? 'pan'
-                    : undefined
-  if (shortcutTool) {
+  const tool = toolActions.find((candidate) => candidate === action)
+  if (tool) {
     e.preventDefault()
-    selectTool(shortcutTool)
+    selectTool(tool)
+    return
+  }
+  if (
+    [
+      'cut',
+      'copy',
+      'delete',
+      'moveUp',
+      'moveDown',
+      'moveLeft',
+      'moveRight',
+    ].includes(action) &&
+    !hasSelection.value
+  )
+    return
+  e.preventDefault()
+  switch (action) {
+    case 'undo':
+      handleUndo()
+      break
+    case 'redo':
+      handleRedo()
+      break
+    case 'save':
+      void saveCurrentGlyph()
+      break
+    case 'copy':
+      handleCopy()
+      break
+    case 'cut':
+      handleCut()
+      break
+    case 'paste':
+      handlePaste()
+      break
+    case 'selectAll':
+      if (!settings.value.enableSelection) break
+      selectTool('select')
+      nextTick(() => gridRef.value?.handleSelectAll())
+      break
+    case 'delete':
+      gridRef.value?.handleDelete()
+      break
+    case 'moveUp':
+      gridRef.value?.nudgeSelection(-1, 0)
+      break
+    case 'moveDown':
+      gridRef.value?.nudgeSelection(1, 0)
+      break
+    case 'moveLeft':
+      gridRef.value?.nudgeSelection(0, -1)
+      break
+    case 'moveRight':
+      gridRef.value?.nudgeSelection(0, 1)
+      break
   }
 }
 
@@ -1286,6 +1310,7 @@ const handleCompositionSave = async (
 }
 
 const selectTool = (tool: EditorTool): void => {
+  if (tool === 'select' && !settings.value.enableSelection) return
   currentTool.value = tool
   if (tool === 'draw') drawValue.value = 1
   else if (tool === 'erase') drawValue.value = 0

@@ -109,7 +109,7 @@
       },
       "open_in_zitools": "在zi.tools中打开",
       "redo": {
-        "title": "重做（Ctrl+Y）"
+        "title": "重做"
       },
       "restore": {
         "button": "恢复已保存",
@@ -117,11 +117,11 @@
       },
       "save": {
         "button": "保存字形",
-        "title": "保存当前字形到字形管理器（Ctrl+S）"
+        "title": "保存当前字形到字形管理器"
       },
       "show_encoding_info": "显示编码信息",
       "undo": {
-        "title": "撤销（Ctrl+Z）"
+        "title": "撤销"
       }
     }
   },
@@ -145,10 +145,10 @@
     "transparent": "透明背景"
   },
   "glyph_editor": {
-    "copy_title": "复制（Ctrl+C）",
-    "cut_title": "剪切（Ctrl+X）",
+    "copy_title": "复制",
+    "cut_title": "剪切",
     "invalid_code_point": "请输入U+0000至U+10FFFF的Unicode标量值（不含代理码位）。",
-    "paste_title": "粘贴（Ctrl+V）"
+    "paste_title": "粘贴"
   },
   "glyph_manager": {
     "add": {
@@ -539,6 +539,19 @@
     "title": "文字预览"
   },
   "title": "UniCucumber - Unifont网页编辑器",
+  "shortcuts": {
+    "title": "键盘快捷键",
+    "help": "聚焦输入框后按下组合键即可替换，修改会自动保存到本机。Ctrl与Command共用绑定。Tab切换焦点，Escape退出输入框；Escape和Enter仍用于取消和确认。若要交换快捷键，请先清除原绑定。",
+    "unassigned": "未设置",
+    "input_label": "{action}的快捷键",
+    "clear": "清除{action}的快捷键",
+    "reset": "恢复默认快捷键",
+    "updated": "已更新{action}的快捷键",
+    "restored": "已恢复默认快捷键。",
+    "unsupported": "请使用字母、数字、方向键、Delete或Backspace，可搭配Ctrl/Command、Alt或Shift。不支持浏览器保留的组合键。",
+    "conflict": "此快捷键已分配给{action}，请先清除该绑定。",
+    "select_all": "全选"
+  },
   "tools": {
     "smart_draw": "智能画笔",
     "draw": "绘制",

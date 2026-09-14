@@ -9,6 +9,32 @@ import {
 } from './useSettings'
 
 describe('settings parsing and baseline reset', () => {
+  it('adds shortcut defaults without resetting existing settings and validates custom bindings', () => {
+    const envelope = {
+      version: SETTINGS_VERSION,
+      baseline: SETTINGS_BASELINE,
+      glyphWidth: 8,
+      showBorder: false,
+    }
+    expect(parseSettings(envelope)).toMatchObject({
+      glyphWidth: 8,
+      showBorder: false,
+      shortcuts: defaultSettings.shortcuts,
+    })
+    const shortcuts = { ...defaultSettings.shortcuts, draw: ['Q'], erase: [] }
+    expect(parseSettings({ ...envelope, shortcuts })).toMatchObject({
+      shortcuts,
+      glyphWidth: 8,
+      showBorder: false,
+    })
+    expect(
+      parseSettings({ ...envelope, shortcuts: { draw: ['E'] } }),
+    ).toMatchObject({
+      glyphWidth: 8,
+      showBorder: false,
+      shortcuts: defaultSettings.shortcuts,
+    })
+  })
   it('keeps valid persisted values and supplies defaults for missing settings', () => {
     expect(
       parseSettings({
