@@ -38,12 +38,15 @@ for (const locale of ['en', 'zh-CN']) {
             }
           }),
         )
+      // WebKit's fractional flex sizing can put the last edge at 320.03125px
+      // on Linux. Allow CSS-pixel rounding at viewport edges only.
+      const viewportTolerance = 1
       for (const label of labels) {
         expect(label.lines).toBe(1)
         expect(label.left).toBeGreaterThanOrEqual(label.buttonLeft)
         expect(label.right).toBeLessThanOrEqual(label.buttonRight)
-        expect(label.buttonLeft).toBeGreaterThanOrEqual(0)
-        expect(label.buttonRight).toBeLessThanOrEqual(320)
+        expect(label.buttonLeft).toBeGreaterThanOrEqual(-viewportTolerance)
+        expect(label.buttonRight).toBeLessThanOrEqual(320 + viewportTolerance)
         expect(label.width).toBeGreaterThanOrEqual(44)
       }
       await page.screenshot({ path: testInfo.outputPath('mobile-toolbar.png') })

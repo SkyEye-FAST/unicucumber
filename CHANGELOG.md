@@ -4,6 +4,10 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+### Fixed
+
+- Allow subpixel viewport-edge rounding in the mobile toolbar browser test so Linux WebKit does not fail on a 0.03125px flex-layout difference.
+
 ## [1.10.1] - 2026-09-15
 
 ### Fixed
