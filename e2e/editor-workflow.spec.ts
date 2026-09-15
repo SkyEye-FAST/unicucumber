@@ -467,15 +467,8 @@ test(
       .getByRole('button', { name: /Copy/ })
     await expect(copySelection).toBeVisible()
     await copySelection.dispatchEvent('click')
-    const primaryPaste = page.locator(
-      '.mobile-command-bar > .toolbar-action--paste',
-    )
-    if (await primaryPaste.isVisible()) {
-      await primaryPaste.click()
-    } else {
-      await page.getByRole('button', { name: 'More', exact: true }).click()
-      await page.locator('.more-rail .more-action--paste').click()
-    }
+    await page.getByRole('button', { name: 'More', exact: true }).click()
+    await page.locator('.more-rail .more-action--paste').click()
     const pasteToolbar = page.locator('.paste-toolbar')
     await expect(pasteToolbar).toBeVisible()
     await expect(

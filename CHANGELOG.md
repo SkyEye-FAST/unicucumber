@@ -4,6 +4,12 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+## [1.10.1] - 2026-09-15
+
+### Fixed
+
+- Move mobile Paste and Pan actions into More and keep primary tool labels on one line, giving Smart brush sufficient space on narrow screens.
+
 ## [1.10.0] - 2026-09-14
 
 ### Added

@@ -29,22 +29,8 @@
           v-else-if="tool.id === 'smartDraw'"
           class="icon"
         />
-        <i-material-symbols-select
-          v-else-if="tool.id === 'select'"
-          class="icon"
-        />
-        <i-material-symbols-pan-tool-outline v-else class="icon" />
+        <i-material-symbols-select v-else class="icon" />
         <span>{{ $t(tool.label) }}</span>
-      </button>
-      <button
-        class="toolbar-action toolbar-action--paste"
-        type="button"
-        :disabled="!hasClipboardData"
-        :aria-label="$t('selection.confirm_paste')"
-        @click="emit('action', 'paste')"
-      >
-        <i-material-symbols-content-paste class="icon" />
-        <span>{{ $t('selection.confirm_paste') }}</span>
       </button>
       <button
         class="more-toggle"
@@ -92,6 +78,10 @@
           />
           <i-material-symbols-rectangle
             v-else-if="tool.id === 'filledRectangle'"
+            class="icon"
+          />
+          <i-material-symbols-pan-tool-outline
+            v-else-if="tool.id === 'pan'"
             class="icon"
           />
           <span>{{ $t(tool.label) }}</span>
@@ -171,9 +161,9 @@ const primaryTools = [
   { id: 'draw', label: 'tools.draw' },
   { id: 'erase', label: 'tools.erase' },
   { id: 'select', label: 'tools.select' },
-  { id: 'pan', label: 'tools.pan' },
 ] satisfies Array<{ id: EditorTool; label: string }>
 const secondaryTools = [
+  { id: 'pan', label: 'tools.pan' },
   { id: 'fill', label: 'tools.fill' },
   { id: 'line', label: 'tools.line' },
   { id: 'rectangle', label: 'tools.rectangle' },
@@ -236,8 +226,12 @@ const chooseAction = (action: MobileAction): void => {
     color: white;
   }
 
-  .mobile-command-bar > button.toolbar-action--paste {
-    display: none;
+  .mobile-command-bar > button span {
+    white-space: nowrap;
+  }
+
+  .mobile-command-bar > .toolbar-tool--smartDraw {
+    flex-basis: max-content;
   }
 
   .mobile-command-bar > button:disabled {
@@ -320,16 +314,6 @@ const chooseAction = (action: MobileAction): void => {
 
   .vertical {
     rotate: 90deg;
-  }
-}
-
-@media (min-width: 360px) and (max-width: 719px) {
-  .mobile-command-bar > button.toolbar-action--paste {
-    display: flex;
-  }
-
-  .more-action--paste {
-    display: none;
   }
 }
 
