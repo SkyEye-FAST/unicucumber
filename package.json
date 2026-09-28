@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@floating-ui/dom": "^1.8.0",
-    "@vueuse/core": "^14.4.0",
+    "@vueuse/core": "^15.0.0",
     "buffer": "^6.0.3",
     "iconv-lite": "^0.7.3",
     "opentype.js": "^2.0.0",
