@@ -4,6 +4,12 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+### Changed
+
+- Update Unifont lookup data and chunks to 18.0.01.
+- Update production dependencies (@vueuse/core to 15.0.0, unicode-name to 1.2.0, vue to 3.5.43, and vue-i18n to 11.4.12) and development toolchain dependencies to current releases.
+- Allow configuring download timeout in `scripts/update-unifont.js` via `UNIFONT_TIMEOUT_MS` with a 120-second default.
+
 ### Fixed
 
 - Allow subpixel viewport-edge rounding in the mobile toolbar browser test so Linux WebKit does not fail on a 0.03125px flex-layout difference.

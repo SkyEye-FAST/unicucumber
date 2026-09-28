@@ -16,7 +16,7 @@ const scriptDirectory = dirname(fileURLToPath(import.meta.url))
 const publicDirectory = join(scriptDirectory, '..', 'public')
 const outputFile = join(publicDirectory, 'unifont-map.json')
 const chunksDirectory = join(publicDirectory, 'unifont')
-const timeoutMs = 30_000
+const timeoutMs = Number(process.env.UNIFONT_TIMEOUT_MS) || 120_000
 
 const fetchWithTimeout = async (url) => {
   const signal = AbortSignal.timeout(timeoutMs)
