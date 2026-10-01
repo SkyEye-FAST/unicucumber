@@ -27,8 +27,8 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
       unicode-name:
-        specifier: ^1.2.0
-        version: 1.2.0
+        specifier: ^1.2.1
+        version: 1.2.1
       vue:
         specifier: ^3.5.43
         version: 3.5.43(typescript@6.0.3)
@@ -3741,8 +3741,8 @@ packages:
     resolution: {integrity: sha512-JQ84qTuMg4nVkx8ga4A16a1epI9H6uTXAknqxkGF/aFfRLw1xC/Bp24HNLaZhHSkWd3+84t8iXnp1J0kYcZHhg==}
     engines: {node: '>=4'}
 
-  unicode-name@1.2.0:
-    resolution: {integrity: sha512-KQ+8ieBK4JxeBec9aFSw3gHk6QygoRcB0fJBwvAu7Y90sM5cOdDUvN4ehwDVxdI3TJkx+bVX9Gsrm0SK4ooI7w==}
+  unicode-name@1.2.1:
+    resolution: {integrity: sha512-mBLEl7YUDg1wggSIwD+kDmMi6PwI4erzDFXbykx/ILi8fkfrRE4/ZFiN6J2sgF3UtLrvtQFHY73ynwU+SD8AAQ==}
     engines: {node: '>=18.20'}
 
   unicode-property-aliases-ecmascript@2.2.0:
@@ -8051,7 +8051,7 @@ snapshots:
 
   unicode-match-property-value-ecmascript@2.2.1: {}
 
-  unicode-name@1.2.0: {}
+  unicode-name@1.2.1: {}
 
   unicode-property-aliases-ecmascript@2.2.0: {}
 
