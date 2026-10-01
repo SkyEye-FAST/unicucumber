@@ -3,11 +3,11 @@
     "add_blank": "增空層",
     "add_first_layer": "增首層",
     "apply_code_point": "施行",
-    "canvas": "畫幅",
+    "canvas": "卷",
     "canvas_dimensions": "橫縱十六",
     "close": "關組字坊",
     "code_point": "組字碼位",
-    "code_point_invalid": "書寫漢字碼位。",
+    "code_point_invalid": "書漢字碼位。",
     "component_add": "增{characters}",
     "component_bounds": "界{bounds}",
     "component_loading": "方載部件⋯",
@@ -17,7 +17,7 @@
     "component_search_error": "弗能載部件之錄。",
     "component_search_placeholder": "字符抑碼位",
     "components": "部件",
-    "current_glyph": "方今字形",
+    "current_glyph": "所纂之形",
     "delete_layer": "刪{name}",
     "discard": "棄芻稿",
     "draft_fallback_warning": "組字芻稿方用備存。",
@@ -57,13 +57,13 @@
     "batch_delete": {
       "confirm": "刪",
       "message": "誠欲刪所擇{count}字形？",
-      "title": "誠刪之"
+      "title": "刪形審定"
     },
     "cancel": "罷",
     "clear_confirm": {
       "confirm": "清",
       "message": "誠欲清其柵乎？",
-      "title": "誠清之"
+      "title": "清柵審定"
     },
     "confirm": "然",
     "dimension_error": {
@@ -88,7 +88,7 @@
     "select_all": "悉擇之",
     "settings_reset": {
       "confirm": "重設",
-      "message": "誠欲悉重設如預設？",
+      "message": "誠欲悉重設如豫設？",
       "title": "重設置設"
     },
     "unsaved_changes": {
@@ -113,11 +113,11 @@
       },
       "restore": {
         "button": "形繕既存",
-        "title": "繕此形如初"
+        "title": "繕諸如初"
       },
       "save": {
         "button": "存字形",
-        "title": "存此形至司形儀"
+        "title": "存諸司形儀"
       },
       "show_encoding_info": "示編碼",
       "undo": {
@@ -157,7 +157,7 @@
       "clear_button": "清",
       "code_point": "書萬國碼位",
       "hex_value": "書十六進形錄（十六、三十二、四十八、六十四抑八十位）",
-      "preview": "預覽字形",
+      "preview": "豫覽字形",
       "update_button": "迭新字形"
     },
     "backup_exported": "字庫備份既錄出。",
@@ -240,7 +240,7 @@
     "hex_invalid_title": "幾許十六進碼未錄入",
     "import": "閲於萬國碼字體",
     "library": {
-      "add_import": "增形與匯入",
+      "add_import": "增錄",
       "add_selected_to_manager": "增至司形儀（{count}）",
       "added_to_manager": "既增{count}字形至司形儀。",
       "cell_accessible": "{character}，U+{codePoint}，{width}像素字形{states}",
@@ -253,7 +253,7 @@
       },
       "density_label": "字形柵之疏密",
       "entered_fullscreen": "全幕字庫既開。",
-      "entry_description": "遍覽Unifont諸形，擇而收入己集。",
+      "entry_description": "遍覽萬國碼字體諸形，擇而收入爾集。",
       "exit_fullscreen": "返司形儀",
       "exited_fullscreen": "既返司形儀之側欄。",
       "expand": "開字庫",
@@ -261,7 +261,7 @@
       "filters": "濾",
       "glyph_count": "{count}字形",
       "grid_label": "萬國碼字體字庫",
-      "inspector_title": "增添／錄入",
+      "inspector_title": "增／錄",
       "load_failed": "弗能載既存字形。",
       "loading": "方載既存字形⋯",
       "loading_unifont": "方載萬國碼字庫⋯",
@@ -329,9 +329,9 @@
     }
   },
   "glyph_navigation": {
-    "load_error": "Unifont資料未盡載入，已存字形仍可用。",
-    "next": "後列字形",
-    "previous": "前列字形",
+    "load_error": "萬國碼字體之錄未能盡數載焉，既存字形猶可用。",
+    "next": "次列",
+    "previous": "嚮列",
     "retry": "重試",
     "title": "覽字形"
   },
@@ -369,7 +369,7 @@
     "loading": "方載圖⋯",
     "mode": "法式",
     "prepared": "既化圖式，書碼位以成哉。",
-    "preview": "所化字形預覽",
+    "preview": "所化字形豫覽",
     "target_width": "字幅",
     "threshold": "黑色之閾",
     "title": "化圖爲字",
@@ -385,12 +385,12 @@
   "pwa": {
     "apply_update": "旋即迭新",
     "offline": "離綫",
-    "offline_ready": "UniCucumber既備，離綫無礙。",
+    "offline_ready": "「匯翠」既備，離綫無礙。",
     "online_again": "復聯矣。",
     "registration_failed": "離綫廢矣，不堪啟用。",
     "update_check_failed": "察新未成。俄頃復試之。",
     "update_check_offline": "查閲迭新，須聯網在先。",
-    "update_check_unavailable": "安裝正器，乃可察新。",
+    "update_check_unavailable": "安裝正器，方可察新。",
     "update_failed": "芻稿難存，故迭新既罷。",
     "update_not_found": "既爲新版焉。",
     "update_ready": "迭新之際，芻稿自存。",
@@ -409,7 +409,7 @@
     "move_left": "左",
     "move_right": "右",
     "move_up": "上",
-    "paste_actions": "謄貼預覽"
+    "paste_actions": "謄貼豫覽"
   },
   "settings": {
     "always_show_mouse_cursor": "恆示光標",
@@ -439,13 +439,13 @@
       "single_button": "左擊繪除"
     },
     "enable_selection": "啟擇術",
-    "export_defaults": "錄出預設",
+    "export_defaults": "錄出豫設",
     "export_scale": "圖幅",
     "export_transparent": "通透背幕",
     "font_edit": {
       "cancel": "罷",
       "save": "存",
-      "title": "纂預覽字體"
+      "title": "纂豫覽字體"
     },
     "glyph_colors": {
       "background": "背幕",
@@ -453,7 +453,7 @@
       "foreground": "前幕",
       "input_label": "{theme}式{color}",
       "label": "字色",
-      "restore_defaults": "回復預設"
+      "restore_defaults": "回復豫設"
     },
     "glyph_library_density": "字庫疏密",
     "glyph_manager_push_editor": "示纂具於司形儀之側",
@@ -469,7 +469,7 @@
       "8px": "八像素",
       "label": "字寬"
     },
-    "image_import_defaults": "圖錄預設",
+    "image_import_defaults": "圖錄豫設",
     "image_import_mode": "法式",
     "image_import_threshold": "黑色之閾",
     "image_import_transparent_white": "視空爲白",
@@ -488,13 +488,13 @@
       "session_only": "今雖用此字體，然不能久存。",
       "supported": "錄入TTF、OTF、WOFF、WOFF2。所錄字體惟存於斯器。"
     },
-    "preserve_glyph_library_filters": "擇字後存字庫選限",
-    "preserve_glyph_library_filters_hint": "復入字庫時，存所索、所自、層面及區域之限。",
+    "preserve_glyph_library_filters": "擇字後存字庫之濾",
+    "preserve_glyph_library_filters_hint": "復入字庫時，存所索、所自、層面及板面之限。",
     "reset": "重設",
     "sections": {
       "canvas": "卷工",
       "general": "常",
-      "glyph_preview": "預覽暨字庫",
+      "glyph_preview": "豫覽暨字庫",
       "import_export": "錄",
       "safety": "安虞",
       "updates": "迭新",
@@ -524,36 +524,36 @@
     "status_unsaved": "未存"
   },
   "text_preview": {
-    "close": "關預覽",
-    "empty": "書文以預覽之。",
+    "close": "關豫覽",
+    "empty": "書文以豫覽之。",
     "hint": "據現存萬國碼點陣字形所成也。",
-    "input_label": "預覽",
+    "input_label": "豫覽",
     "live_hint": "君之所纂、形司所改，皆自現於此。",
     "load_failed": "萬國碼字體未能盡數載焉。",
     "loading": "方載字形⋯",
     "missing": "闕{count}字形",
     "placeholder": "題文一至數行",
-    "preview_label": "萬國碼字體預覽：{text}",
-    "sample": "寄蜉蝣于天地，渺滄海之一粟。",
+    "preview_label": "萬國碼字體豫覽：{text}",
+    "sample": "寄蜉蝣於天地，渺滄海之一粟。",
     "scale": "尺寸",
-    "title": "預覽"
+    "title": "豫覽"
   },
   "title": "「匯翠」- 纂萬國碼字體",
   "shortcuts": {
-    "title": "便捷鍵",
-    "help": "聚焦鍵欄，按鍵即更，所更自存於本機。Ctrl與Command同用。Tab移焦，Escape出欄；Escape仍司撤，Enter仍司定。欲易兩鍵，先解舊繫。",
+    "title": "捷鍵",
+    "help": "尋一鍵欄，撳鍵即更，所更者自存本機。Ctrl與Command同用。Tab移欄，Escape出欄；Escape仍司撤，Enter仍司定。欲易兩鍵，先解舊繫。",
     "unassigned": "未繫",
     "input_label": "{action}之鍵",
     "clear": "解{action}之鍵",
-    "reset": "復初設鍵",
+    "reset": "繕如豫設",
     "updated": "{action}之鍵既更",
-    "restored": "鍵皆復初。",
-    "unsupported": "可用字母、數字、方向鍵、Delete、Backspace，亦可並Ctrl/Command、Alt或Shift。瀏覽器專鍵不可用。",
+    "restored": "鍵悉復初矣。",
+    "unsupported": "可用字母、數字、矢鍵、Delete、Backspace，亦可並Ctrl/Command、Alt抑Shift。瀏覽器專鍵不可用。",
     "conflict": "此鍵已繫{action}，請先解之。",
-    "select_all": "全擇"
+    "select_all": "溥擇"
   },
   "tools": {
-    "smart_draw": "靈筆",
+    "smart_draw": "妙筆",
     "draw": "繪",
     "erase": "削",
     "fill": "漆",
