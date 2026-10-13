@@ -107,15 +107,6 @@
           :glyphs="glyphs"
           @open="handleGlyphEdit"
         />
-        <div class="editor-output-stack">
-          <HexCodeInput :hex-code="hexCode" @apply="applyHexCode" />
-          <DownloadButtons
-            v-model:export-scale="settings.exportScale"
-            v-model:export-transparent="settings.exportTransparent"
-            :grid-data="gridData"
-            :codepoint="currentCodePoint"
-          />
-        </div>
       </section>
 
       <aside class="editor-control-stack">
@@ -247,6 +238,15 @@
           @update:model-value="updateDrawValue"
         />
       </aside>
+      <div class="editor-output-stack">
+        <HexCodeInput :hex-code="hexCode" @apply="applyHexCode" />
+        <DownloadButtons
+          v-model:export-scale="settings.exportScale"
+          v-model:export-transparent="settings.exportTransparent"
+          :grid-data="gridData"
+          :codepoint="currentCodePoint"
+        />
+      </div>
     </main>
 
     <Transition name="glyph-sidebar">
@@ -1674,6 +1674,10 @@ const handlePasteStart = (): void => {
     order: 2;
   }
 
+  .editor-output-stack {
+    order: 3;
+  }
+
   .restored-draft-notice {
     grid-template-columns: auto minmax(0, 1fr);
     gap: var(--space-2);
@@ -1789,6 +1793,8 @@ const handlePasteStart = (): void => {
 
   .editor-output-stack {
     /* Match the glyph navigator's width and alignment within the canvas column. */
+    grid-column: 1;
+    grid-row: 2;
     width: min(100%, 43rem);
     justify-self: center;
   }

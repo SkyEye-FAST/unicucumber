@@ -1,6 +1,6 @@
 <template>
   <section
-    class="export-panel tw:box-border tw:grid tw:w-full tw:gap-2 tw:p-3"
+    class="export-panel tw:box-border tw:grid tw:w-full tw:gap-2 tw:p-2"
     :aria-label="$t('export.title')"
   >
     <div
@@ -250,7 +250,7 @@ const shareImage = async (): Promise<void> => {
 
 <style scoped>
 .export-panel {
-  margin: 0.35rem 0 0;
+  margin: 0;
   border-top: 1px solid var(--border-color);
   border-bottom: 1px solid var(--border-color);
   background: var(--background-light);

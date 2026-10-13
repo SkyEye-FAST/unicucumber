@@ -1598,35 +1598,6 @@ defineExpose({
   }
 }
 
-@media (min-width: 720px) {
-  .grid-viewport {
-    /* Keep a complete fitted grid on short desktop and tablet viewports.
-       Navigation and output controls may continue below the fold. */
-    min-height: max(160px, min(260px, calc(100dvh - 37.5rem)));
-    max-height: max(160px, calc(100dvh - 37.5rem));
-  }
-}
-
-@media (min-width: 1200px) and (min-height: 1000px) {
-  .grid-viewport {
-    /* Taller desktop screens have enough room for the editor chrome and the
-       default-size grid. Use the measured chrome budget instead of the compact
-       viewport reserve so a spacious screen does not show a tiny glyph grid. */
-    min-height: max(260px, min(510px, calc(100dvh - 24rem)));
-    max-height: max(510px, calc(100dvh - 24rem));
-  }
-}
-
-@media (min-width: 720px) and (min-height: 800px) and (max-height: 899px) {
-  .grid-viewport {
-    /* On large desktop windows the grid remains the primary vertical flow.
-       Let fit mode use its natural height so the 16×16 canvas can retain the
-       readable 30px cells; secondary panels may continue below the fold. */
-    min-height: 260px;
-    max-height: none;
-  }
-}
-
 @media (max-width: 719px) {
   .workspace {
     width: 100%;

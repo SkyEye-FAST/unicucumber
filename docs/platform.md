@@ -6,6 +6,9 @@
   use the contextual controls to nudge or paste.
 - Two fingers zoom and pan without drawing. The Pan tool provides explicit
   one-finger panning, and Fit/reset restores a predictable viewport.
+- Desktop grids fit the available width without shrinking to make room for
+  secondary panels; scroll the page to reach navigation and export. On phones,
+  save, clear, undo, and redo appear before the export panel.
 - A pen behaves as a precise pointer; active pen input suppresses accidental
   palm-touch drawing.
 - Copy always uses the in-session editor clipboard, which survives tool changes and

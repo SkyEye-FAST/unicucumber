@@ -6,6 +6,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Changed
 
+- Keep the desktop editor canvas at a readable size with scrollable secondary controls, place mobile save and history actions before export, and reduce export panel spacing (#49).
 - Update unicode-name and Vue I18n, plus the icon data, Node.js types, linting, Vite, and Vue type-checking dependencies (#47, #48).
 - Refine Literary Chinese translations for editor tools, glyph navigation, settings, and preview messages (#44).
 - Update Unifont lookup data and chunks to 18.0.01.
