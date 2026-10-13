@@ -1175,6 +1175,12 @@ const confirmReset = (): void => {
 
 .settings-close {
   flex: none;
+  width: var(--control-height);
+  height: var(--control-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
   color: var(--text-secondary);
 }
 
@@ -1187,6 +1193,8 @@ const confirmReset = (): void => {
 .settings-content {
   padding: 0 var(--space-6) max(var(--space-6), env(safe-area-inset-bottom));
   scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 /* Section hierarchy and shared field typography. */
@@ -1248,9 +1256,15 @@ const confirmReset = (): void => {
 }
 
 .settings-field--inline {
-  grid-template-columns: minmax(0, 1fr) minmax(8.75rem, 10.5rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-3);
+}
+
+.settings-field--inline :deep(.custom-select) {
+  min-width: 8rem;
+  max-width: 12.5rem;
 }
 
 /* Theme-aware glyph colors and native color controls. */
@@ -1280,6 +1294,7 @@ const confirmReset = (): void => {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   background: var(--background-base);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .glyph-color-theme-header {
@@ -1296,6 +1311,7 @@ const confirmReset = (): void => {
   overflow: hidden;
   border: 1px solid var(--glyph-preview-border);
   border-radius: var(--radius-sm);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
 .glyph-color-sample::before {
@@ -1322,6 +1338,14 @@ const confirmReset = (): void => {
   border-radius: var(--radius-sm);
   background: var(--input-background);
   cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+
+.glyph-color-input:hover {
+  border-color: var(--border-hover);
+  transform: scale(1.04);
 }
 
 .glyph-color-input::-webkit-color-swatch-wrapper {
@@ -1341,7 +1365,12 @@ const confirmReset = (): void => {
 .glyph-color-value {
   color: var(--text-secondary);
   font-family: var(--monospace-font);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  background: color-mix(in srgb, var(--text-color) 5%, transparent);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
 }
 
 .settings-version {
@@ -1355,6 +1384,7 @@ const confirmReset = (): void => {
 .update-check-button {
   width: 100%;
   margin-top: var(--space-3);
+  min-height: var(--control-height);
 }
 
 .settings-field :deep(.custom-select),
@@ -1373,15 +1403,33 @@ const confirmReset = (): void => {
 }
 
 .settings-number-input {
+  width: 5.5rem;
   min-height: var(--control-height);
-  padding: 0.4rem 0.7rem;
+  padding: 0.4rem 0.6rem;
+  text-align: center;
   font: inherit;
+  font-family: var(--monospace-font);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+  justify-self: end;
 }
 
 /* Switch and appearance controls keep their state rules together. */
 .settings-check-row {
-  min-height: 2.35rem;
+  min-height: 2.875rem;
+  padding: var(--space-1) var(--space-2);
+  margin-inline: calc(var(--space-2) * -1);
+  border-radius: var(--radius-sm);
   cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.settings-check-row:hover {
+  background-color: color-mix(in srgb, var(--text-color) 4%, transparent);
+}
+
+.settings-check-row:active {
+  background-color: color-mix(in srgb, var(--text-color) 8%, transparent);
 }
 
 .settings-check-row input[type='checkbox'] {
@@ -1446,19 +1494,17 @@ const confirmReset = (): void => {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   overflow: hidden;
-  border: 1px solid var(--input-border);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  background: var(--input-background);
+  background: var(--background-base);
+  padding: 3px;
+  gap: 3px;
 }
 
 .appearance-choice {
   position: relative;
   min-width: 0;
   cursor: pointer;
-}
-
-.appearance-choice + .appearance-choice {
-  border-left: 1px solid var(--input-border);
 }
 
 .appearance-choice input {
@@ -1473,18 +1519,23 @@ const confirmReset = (): void => {
 }
 
 .appearance-option {
-  min-height: 2.8rem;
+  min-height: 2.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
   padding: var(--space-2) 0.25rem;
   box-sizing: border-box;
+  border-radius: calc(var(--radius-md) - 3px);
   color: var(--text-secondary);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1;
   text-align: center;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .appearance-icon {
@@ -1494,12 +1545,13 @@ const confirmReset = (): void => {
 
 .appearance-choice:hover .appearance-option {
   background: var(--background-hover);
+  color: var(--text-color);
 }
 
 .appearance-choice input:checked + .appearance-option {
-  box-shadow: inset 0 0 0 2px var(--primary-color);
-  background: color-mix(in srgb, var(--primary-color) 12%, transparent);
-  color: var(--text-color);
+  background: var(--background-light);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  color: var(--primary-color);
   font-weight: 750;
 }
 
@@ -1511,15 +1563,17 @@ const confirmReset = (): void => {
   position: relative;
   z-index: 1;
   outline: 2px solid var(--focus-ring);
-  outline-offset: -3px;
+  outline-offset: 1px;
 }
 
 /* Font editor and footer actions. */
 .font-button {
   width: 100%;
   min-width: 0;
+  min-height: var(--control-height);
   justify-content: space-between;
   padding-inline: var(--space-3);
+  border-radius: var(--radius-sm);
   font-weight: 500;
   text-align: left;
 }
@@ -1531,9 +1585,15 @@ const confirmReset = (): void => {
   font-family: var(--monospace-font);
   font-size: 0.8rem;
   line-height: 1.45;
+  border-radius: var(--radius-sm);
+}
+
+.local-font-actions {
+  gap: var(--space-2);
 }
 
 .local-font-actions .ui-button {
+  min-height: var(--control-height-compact);
   min-width: 0;
 }
 
@@ -1558,17 +1618,40 @@ const confirmReset = (): void => {
   line-height: 1.4;
 }
 
+.settings-footer {
+  border-top: 1px solid var(--border-color);
+  padding-top: var(--space-4);
+}
+
 .settings-footer-action {
   width: 100%;
+  min-height: var(--control-height);
   justify-content: flex-start;
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-sm);
   border-color: transparent;
   color: var(--text-color);
   text-align: left;
   text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
 }
 
 .settings-footer-action .settings-icon {
   color: var(--primary-color);
+  margin-right: 0.25rem;
+}
+
+.settings-footer-action.reset-button:hover {
+  color: var(--danger-color);
+  background: color-mix(in srgb, var(--danger-color) 8%, transparent);
+}
+
+.settings-footer-action.reset-button:hover .settings-icon {
+  color: var(--danger-color);
 }
 
 /* Drawer motion and responsive adjustments. */
@@ -1617,8 +1700,7 @@ const confirmReset = (): void => {
 
 @media (max-width: 719px) {
   .settings-sidebar {
-    inset-inline-start: 0;
-    inset-inline-end: auto;
+    inset: 0;
     width: 100vw;
     border-left: 0;
     box-shadow: none;
@@ -1626,31 +1708,66 @@ const confirmReset = (): void => {
 
   .settings-header {
     min-height: 3.5rem;
+    padding-top: max(var(--space-3), env(safe-area-inset-top));
     padding-right: max(var(--space-3), env(safe-area-inset-right));
+    padding-bottom: var(--space-3);
     padding-left: max(var(--space-4), env(safe-area-inset-left));
   }
 
   .settings-header h2 {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
+  }
+
+  .settings-close {
+    width: 2.75rem;
+    height: 2.75rem;
   }
 
   .settings-content {
+    padding-top: var(--space-2);
     padding-right: max(var(--space-4), env(safe-area-inset-right));
+    padding-bottom: calc(
+      var(--space-6) + env(safe-area-inset-bottom, 0px) + 1.5rem
+    );
     padding-left: max(var(--space-4), env(safe-area-inset-left));
   }
 
+  .settings-content > .settings-section:first-child {
+    margin-top: var(--space-3);
+  }
+
   .settings-field--inline {
-    grid-template-columns: minmax(0, 1fr) minmax(8.25rem, 10rem);
+    gap: var(--space-2);
+  }
+
+  .settings-field--inline :deep(.custom-select) {
+    min-width: 7.25rem;
+    max-width: min(10.5rem, 48vw);
+  }
+
+  .settings-number-input {
+    width: 5rem;
   }
 
   .appearance-option {
-    min-height: var(--control-height);
+    min-height: 3.25rem;
     flex-direction: column;
-    gap: 0.2rem;
+    gap: 0.25rem;
+    font-size: 0.775rem;
+  }
+
+  .appearance-icon {
+    font-size: 1.25rem;
   }
 
   .glyph-color-themes {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .local-font-actions .ui-button {
+    flex: 1 1 auto;
+    justify-content: center;
+    min-height: var(--control-height);
   }
 }
 

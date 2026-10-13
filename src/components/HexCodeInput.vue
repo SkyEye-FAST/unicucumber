@@ -154,6 +154,15 @@ const copyHex = async (): Promise<void> => {
 </script>
 
 <style scoped>
+.hex-code-container {
+  box-sizing: border-box;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--background-light);
+  box-shadow: 0 1px 3px var(--shadow-color);
+  padding: var(--space-3);
+}
+
 .hex-field-label {
   color: var(--text-color);
   font-size: 0.8rem;

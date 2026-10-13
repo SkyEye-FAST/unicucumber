@@ -1,44 +1,62 @@
 <template>
   <details class="shortcut-settings">
-    <summary>{{ $t('shortcuts.title') }}</summary>
-    <p class="shortcut-help">{{ $t('shortcuts.help') }}</p>
-    <p role="status" aria-live="polite" class="shortcut-message">
-      {{ message }}
-    </p>
-    <div v-for="action in shortcutActions" :key="action" class="shortcut-row">
-      <label :for="`shortcut-${action}`">{{
-        $t(shortcutDefinitions[action].label)
-      }}</label>
-      <input
-        :id="`shortcut-${action}`"
-        :value="formatShortcut(modelValue[action], apple)"
-        :placeholder="$t('shortcuts.unassigned')"
-        readonly
-        autocomplete="off"
-        :aria-label="
-          $t('shortcuts.input_label', {
-            action: $t(shortcutDefinitions[action].label),
-          })
-        "
-        @keydown="record(action, $event)"
+    <summary class="shortcut-summary">
+      <span class="shortcut-summary-title">{{ $t('shortcuts.title') }}</span>
+      <i-material-symbols-keyboard-arrow-down
+        class="shortcut-summary-chevron"
+        aria-hidden="true"
       />
+    </summary>
+    <div class="shortcut-body">
+      <p class="shortcut-help">{{ $t('shortcuts.help') }}</p>
+      <p role="status" aria-live="polite" class="shortcut-message">
+        {{ message }}
+      </p>
+      <div v-for="action in shortcutActions" :key="action" class="shortcut-row">
+        <label :for="`shortcut-${action}`">{{
+          $t(shortcutDefinitions[action].label)
+        }}</label>
+        <div class="shortcut-input-group">
+          <input
+            :id="`shortcut-${action}`"
+            :value="formatShortcut(modelValue[action], apple)"
+            :placeholder="$t('shortcuts.unassigned')"
+            readonly
+            autocomplete="off"
+            :aria-label="
+              $t('shortcuts.input_label', {
+                action: $t(shortcutDefinitions[action].label),
+              })
+            "
+            @keydown="record(action, $event)"
+          />
+          <button
+            type="button"
+            class="ui-icon-button shortcut-clear"
+            :aria-label="
+              $t('shortcuts.clear', {
+                action: $t(shortcutDefinitions[action].label),
+              })
+            "
+            :disabled="!modelValue[action].length"
+            @click="setBinding(action, [])"
+          >
+            <i-material-symbols-close />
+          </button>
+        </div>
+      </div>
       <button
         type="button"
-        class="ui-icon-button"
-        :aria-label="
-          $t('shortcuts.clear', {
-            action: $t(shortcutDefinitions[action].label),
-          })
-        "
-        :disabled="!modelValue[action].length"
-        @click="setBinding(action, [])"
+        class="ui-button ui-button--quiet shortcut-reset"
+        @click="reset"
       >
-        <i-material-symbols-close />
+        <i-material-symbols-restart-alt
+          class="shortcut-icon"
+          aria-hidden="true"
+        />
+        {{ $t('shortcuts.reset') }}
       </button>
     </div>
-    <button type="button" class="ui-button" @click="reset">
-      {{ $t('shortcuts.reset') }}
-    </button>
   </details>
 </template>
 
@@ -101,48 +119,164 @@ const reset = (): void => {
 
 <style scoped>
 .shortcut-settings {
-  margin-block: 1rem;
-  border-block: 1px solid var(--border-color);
-  padding-block: 1rem;
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-4) 0;
+  border: 0;
+  border-bottom: 1px solid var(--border-color);
 }
-summary {
+
+.shortcut-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
   cursor: pointer;
-  font-weight: 600;
+  padding: var(--space-1) 0;
+  color: var(--text-color);
+  font-size: 0.9375rem;
+  font-weight: 750;
+  line-height: 1.25;
+  user-select: none;
+  list-style: none;
 }
-.shortcut-help,
-.shortcut-message {
-  font-size: 0.85rem;
-  line-height: 1.5;
+
+.shortcut-summary::-webkit-details-marker {
+  display: none;
 }
+
+.shortcut-summary-chevron {
+  flex: none;
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.shortcut-settings[open] .shortcut-summary-chevron {
+  transform: rotate(180deg);
+}
+
+.shortcut-body {
+  padding-top: var(--space-2);
+}
+
+.shortcut-help {
+  margin: 0 0 var(--space-2);
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
 .shortcut-message {
+  min-height: 1.25rem;
+  margin: 0 0 var(--space-2);
   color: var(--primary-color);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.4;
 }
+
 .shortcut-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) 44px;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 0.4rem;
-  margin-block: 0.5rem;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
 }
+
 .shortcut-row label {
-  font-size: 0.85rem;
+  color: var(--text-color);
+  font-size: 0.8125rem;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
+
+.shortcut-input-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
 .shortcut-row input {
   box-sizing: border-box;
-  min-width: 0;
-  width: 100%;
-  min-height: 44px;
-  padding: 0.4rem;
-  border: 1px solid var(--border-color);
+  width: 9rem;
+  min-height: var(--control-height-compact);
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--input-border);
   border-radius: var(--radius-sm);
+  background: var(--input-background);
   color: var(--text-color);
-  background: var(--background-base);
-  font: inherit;
-  font-size: 0.8rem;
+  font-family: var(--monospace-font);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.04em;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
+
+.shortcut-row input:focus {
+  border-color: var(--primary-color);
+}
+
 .shortcut-row input:focus-visible {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.shortcut-clear {
+  flex: none;
+  width: var(--control-height-compact);
+  height: var(--control-height-compact);
+}
+
+.shortcut-reset {
+  width: 100%;
+  margin-top: var(--space-3);
+  min-height: var(--control-height);
+  justify-content: center;
+  gap: var(--space-1);
+  font-size: 0.8125rem;
+}
+
+.shortcut-icon {
+  font-size: 1.15rem;
+}
+
+@media (max-width: 520px) {
+  .shortcut-row {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+    padding: var(--space-2) 0;
+    border-bottom: 1px dashed
+      color-mix(in srgb, var(--border-color) 50%, transparent);
+  }
+
+  .shortcut-row:last-of-type {
+    border-bottom: none;
+  }
+
+  .shortcut-row label {
+    font-size: 0.8125rem;
+    font-weight: 650;
+  }
+
+  .shortcut-input-group {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--control-height);
+    gap: var(--space-2);
+  }
+
+  .shortcut-row input {
+    width: 100%;
+    min-height: var(--control-height);
+    font-size: 0.85rem;
+  }
+
+  .shortcut-clear {
+    width: var(--control-height);
+    height: var(--control-height);
+  }
 }
 </style>

@@ -250,10 +250,13 @@ const shareImage = async (): Promise<void> => {
 
 <style scoped>
 .export-panel {
+  box-sizing: border-box;
   margin: 0;
-  border-top: 1px solid var(--border-color);
-  border-bottom: 1px solid var(--border-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
   background: var(--background-light);
+  box-shadow: 0 1px 3px var(--shadow-color);
+  padding: var(--space-3);
 }
 
 .filename-preview {
@@ -367,12 +370,6 @@ const shareImage = async (): Promise<void> => {
 }
 
 @media (max-width: 519px) {
-  .export-panel {
-    margin-inline: calc(-1 * var(--space-2));
-    width: calc(100% + (2 * var(--space-2)));
-    padding-inline: var(--space-2);
-  }
-
   .utility-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

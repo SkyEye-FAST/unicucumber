@@ -18,6 +18,7 @@
         type="button"
         :disabled="disabled || !validPixels"
         :aria-label="$t('composition.shift_left', { pixels })"
+        :title="$t('composition.shift_left', { pixels })"
         @click="shift(-1, 0)"
       >
         <i-material-symbols-arrow-back aria-hidden="true" />
@@ -27,6 +28,7 @@
         type="button"
         :disabled="disabled || !validPixels"
         :aria-label="$t('composition.shift_up', { pixels })"
+        :title="$t('composition.shift_up', { pixels })"
         @click="shift(0, -1)"
       >
         <i-material-symbols-arrow-upward aria-hidden="true" />
@@ -36,6 +38,7 @@
         type="button"
         :disabled="disabled || !validPixels"
         :aria-label="$t('composition.shift_down', { pixels })"
+        :title="$t('composition.shift_down', { pixels })"
         @click="shift(0, 1)"
       >
         <i-material-symbols-arrow-downward aria-hidden="true" />
@@ -45,6 +48,7 @@
         type="button"
         :disabled="disabled || !validPixels"
         :aria-label="$t('composition.shift_right', { pixels })"
+        :title="$t('composition.shift_right', { pixels })"
         @click="shift(1, 0)"
       >
         <i-material-symbols-arrow-forward aria-hidden="true" />
@@ -81,9 +85,22 @@ const shift = (dx: number, dy: number): void => {
   box-sizing: border-box;
   width: 100%;
   min-height: var(--control-height);
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--input-background);
+  color: var(--text-color);
+  font-family: var(--monospace-font);
+}
+.layer-shift input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--primary-color) 35%, transparent);
 }
 .layer-shift button {
-  min-width: 2.75rem;
-  min-height: 2.75rem;
+  flex: 1;
+  min-width: 0;
+  min-height: var(--control-height);
 }
 </style>
