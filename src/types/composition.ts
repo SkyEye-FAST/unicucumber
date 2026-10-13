@@ -34,7 +34,12 @@ export interface CompositionDataManifest {
 export interface CompositionComponentSummary {
   id: string
   characters: string[]
-  bounds: [left: number, top: number, right: number, bottom: number]
+  bounds: [
+    left: number,
+    top: number,
+    rightExclusive: number,
+    bottomExclusive: number,
+  ]
   chunk: string
 }
 

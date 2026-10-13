@@ -32,14 +32,13 @@
       <span class="tw:text-[1.2rem] tw:font-[650]">{{
         displayCharacters
       }}</span>
-      <span
-        class="tw:wrap-anywhere tw:text-[0.75rem] tw:text-muted tw:tabular-nums"
-        >{{ component.id }}</span
-      >
       <span class="tw:wrap-anywhere tw:text-[0.75rem] tw:text-muted">
         {{
           $t('composition.component_bounds', {
-            bounds: component.bounds.join(', '),
+            width: component.bounds[2] - component.bounds[0],
+            height: component.bounds[3] - component.bounds[1],
+            x: component.bounds[2],
+            y: component.bounds[3],
           })
         }}
       </span>

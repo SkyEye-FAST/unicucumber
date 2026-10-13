@@ -184,6 +184,7 @@
               @set-locked="setLocked"
               @remove="removeLayer"
               @add-blank="addBlankLayer"
+              @move="moveSelectedLayer"
             />
           </div>
 

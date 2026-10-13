@@ -32,6 +32,7 @@
         @set-visibility="(visible) => $emit('setVisibility', layer.id, visible)"
         @set-locked="(locked) => $emit('setLocked', layer.id, locked)"
         @remove="$emit('remove', layer.id)"
+        @move="(dx, dy) => $emit('move', dx, dy)"
       />
     </div>
     <div
@@ -80,6 +81,7 @@ defineEmits<{
   setLocked: [layerId: string, locked: boolean]
   remove: [layerId: string]
   addBlank: []
+  move: [dx: number, dy: number]
 }>()
 
 const { t: $t } = useI18n()

@@ -167,6 +167,68 @@ test('restores an unfinished composition draft after reload', async ({
 })
 
 test(
+  'shifts a selected component by a chosen distance with atomic undo',
+  {
+    tag: ['@cross-browser', '@phone', '@tablet'],
+  },
+  async ({ page }) => {
+    await installCompositionFixture(page)
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+    await openComposition(page)
+    const tabs = page.locator('.composition-mobile-tabs')
+    if (await tabs.isVisible())
+      await tabs
+        .getByRole('button', { name: 'Components', exact: true })
+        .click()
+    const component = page.getByTestId(`composition-component-${COMPONENT_ID}`)
+    await expect(component).toContainText(
+      'Width 1, height 1, bottom right (1, 1)',
+    )
+    await expect(component).not.toContainText(COMPONENT_ID)
+    await searchAndAddFixtureComponent(page)
+    if (await tabs.isVisible())
+      await tabs.getByRole('button', { name: 'Layers', exact: true }).click()
+    const selected = page.getByTestId(
+      `composition-layer-component-${COMPONENT_ID}-1-select`,
+    )
+    const distance = page.getByRole('spinbutton', {
+      name: 'Shift distance (pixels)',
+      exact: true,
+    })
+    await distance.fill('3')
+    await page
+      .getByRole('button', { name: 'Move right 3 pixels', exact: true })
+      .click()
+    await page
+      .getByRole('button', { name: 'Move down 3 pixels', exact: true })
+      .click()
+    await expect(selected).toContainText('3, 3')
+    await page
+      .getByRole('button', { name: 'Undo composition action', exact: true })
+      .click()
+    await expect(selected).toContainText('3, 0')
+    await page
+      .getByRole('button', { name: 'Redo composition action', exact: true })
+      .click()
+    await expect(selected).toContainText('3, 3')
+    await page
+      .getByTestId(`composition-layer-component-${COMPONENT_ID}-1-lock`)
+      .click()
+    await expect(distance).toBeDisabled()
+    await expect(
+      page.getByRole('button', { name: 'Move right 3 pixels', exact: true }),
+    ).toBeDisabled()
+    if (await tabs.isVisible())
+      await tabs.getByRole('button', { name: 'Canvas', exact: true }).click()
+    const canvas = page.getByTestId('composition-canvas')
+    const pixels = canvas.locator('.canvas-pixel').filter({ visible: true })
+    await expect(pixels).toHaveCount(1)
+    await expect(pixels).toHaveAttribute('x', '3')
+    await expect(pixels).toHaveAttribute('y', '3')
+  },
+)
+
+test(
   'uses mobile tabs without overflowing the viewport',
   { tag: '@phone' },
   async ({ page }, testInfo) => {

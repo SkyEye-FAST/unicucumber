@@ -15,6 +15,10 @@
   Previous/next character opens the adjacent available glyph in Unicode order,
   across block boundaries, with saved edits taking priority over Unifont data.
   Opening another glyph asks for confirmation when the current glyph is unsaved.
+- Composition component details show width, height, and the bounding box's
+  exclusive bottom-right corner measured from the canvas's top-left origin.
+  Select an unlocked layer in Layers to shift it left, right, up, or down by a
+  positive whole number of pixels; each button press is one undoable action.
 - A pen behaves as a precise pointer; active pen input suppresses accidental
   palm-touch drawing.
 - Copy always uses the in-session editor clipboard, which survives tool changes and

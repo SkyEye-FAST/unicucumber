@@ -6,6 +6,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Changed
 
+- Replace internal component hashes and raw bounds with dimensions and bottom-right coordinates, and add undoable layer shifts by a chosen pixel distance (#49).
 - Allow typing a character directly in the editor preview and navigating to the previous or next available character, retaining unsaved-edit confirmation (#49).
 - Keep the desktop editor canvas at a readable size with scrollable secondary controls, place mobile save and history actions before export, and reduce export panel spacing (#49).
 - Update unicode-name and Vue I18n, plus the icon data, Node.js types, linting, Vite, and Vue type-checking dependencies (#47, #48).

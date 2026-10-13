@@ -18,6 +18,7 @@ declare module 'vue' {
     CompositionIdsGuide: typeof import('./src/components/GlyphComposer/CompositionIdsGuide.vue')['default']
     CompositionLayerItem: typeof import('./src/components/GlyphComposer/CompositionLayerItem.vue')['default']
     CompositionLayerPanel: typeof import('./src/components/GlyphComposer/CompositionLayerPanel.vue')['default']
+    CompositionLayerShift: typeof import('./src/components/GlyphComposer/CompositionLayerShift.vue')['default']
     CompositionToolbar: typeof import('./src/components/GlyphComposer/CompositionToolbar.vue')['default']
     CustomSelect: typeof import('./src/components/CustomSelect.vue')['default']
     DialogBox: typeof import('./src/components/DialogBox.vue')['default']

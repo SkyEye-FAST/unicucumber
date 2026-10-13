@@ -96,11 +96,17 @@
         </option>
       </select>
     </label>
+    <CompositionLayerShift
+      v-if="selected"
+      :disabled="layer.locked"
+      @move="(dx, dy) => $emit('move', dx, dy)"
+    />
   </article>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import CompositionLayerShift from './CompositionLayerShift.vue'
 
 import type {
   CompositionLayer,
@@ -118,6 +124,7 @@ const emit = defineEmits<{
   setVisibility: [visible: boolean]
   setLocked: [locked: boolean]
   remove: []
+  move: [dx: number, dy: number]
 }>()
 
 const { t: $t } = useI18n()
