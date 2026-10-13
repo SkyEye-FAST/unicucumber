@@ -29,6 +29,26 @@
         <i-material-symbols-chevron-right />
       </button>
     </div>
+    <div class="glyph-navigator__character-controls">
+      <button
+        class="ui-button ui-button--quiet"
+        type="button"
+        :disabled="previousCodePoint === null || navigating"
+        @click="openAdjacent(previousCodePoint)"
+      >
+        <i-material-symbols-chevron-left />
+        {{ t('glyph_navigation.previous_character') }}
+      </button>
+      <button
+        class="ui-button ui-button--quiet"
+        type="button"
+        :disabled="nextCodePoint === null || navigating"
+        @click="openAdjacent(nextCodePoint)"
+      >
+        {{ t('glyph_navigation.next_character') }}
+        <i-material-symbols-chevron-right />
+      </button>
+    </div>
     <div
       ref="strip"
       :id="stripId"
@@ -152,9 +172,13 @@ const catalogLoading = ref(false)
 const catalogError = ref(false)
 const glyphsLoading = ref(false)
 const glyphsError = ref(false)
+const navigating = ref(false)
+const navigationError = ref(false)
 const resolvedGlyphs = ref(new Map<number, string>())
 const loading = computed(() => catalogLoading.value || glyphsLoading.value)
-const error = computed(() => catalogError.value || glyphsError.value)
+const error = computed(
+  () => catalogError.value || glyphsError.value || navigationError.value,
+)
 let generation = 0
 let disposed = false
 
@@ -179,11 +203,31 @@ const savedGlyphs = computed(
       ]),
     ),
 )
+const orderedCodePoints = computed(() =>
+  [...new Set([...catalog.value, ...savedGlyphs.value.keys()])].sort(
+    (a, b) => a - b,
+  ),
+)
+const previousCodePoint = computed(() => {
+  const active = Number.parseInt(props.activeCodePoint, 16)
+  let previous: number | null = null
+  for (const value of orderedCodePoints.value) {
+    if (value >= active) break
+    previous = value
+  }
+  return previous
+})
+const nextCodePoint = computed(
+  () =>
+    orderedCodePoints.value.find(
+      (value) => value > Number.parseInt(props.activeCodePoint, 16),
+    ) ?? null,
+)
 const codePoints = computed(() => {
   const block = UNICODE_BLOCKS.find((item) => item.id === blockId.value)!
-  return [...new Set([...catalog.value, ...savedGlyphs.value.keys()])]
-    .filter((value) => value >= block.start && value <= block.end)
-    .sort((a, b) => a - b)
+  return orderedCodePoints.value.filter(
+    (value) => value >= block.start && value <= block.end,
+  )
 })
 const visibleCodePoints = computed(() =>
   codePoints.value.slice(page.value * pageSize, (page.value + 1) * pageSize),
@@ -205,7 +249,14 @@ const revealActive = (): void => {
     Math.floor(codePoints.value.indexOf(active) / pageSize),
   )
 }
-watch(() => props.activeCodePoint, revealActive, { immediate: true })
+watch(
+  () => props.activeCodePoint,
+  () => {
+    navigationError.value = false
+    revealActive()
+  },
+  { immediate: true },
+)
 watch(visibleCodePoints, async () => {
   await nextTick()
   if (!strip.value) return
@@ -267,6 +318,7 @@ const loadCatalog = async (): Promise<void> => {
   }
 }
 const retry = async (): Promise<void> => {
+  navigationError.value = false
   if (catalogError.value) await loadCatalog()
   if (!disposed) await loadPage()
 }
@@ -274,6 +326,29 @@ const openGlyph = (codePoint: number): void => {
   const hexValue = resolvedGlyphs.value.get(codePoint)
   if (hexValue)
     emit('open', hexValue, { codePoint: formatCodePoint(codePoint), hexValue })
+}
+const openAdjacent = async (codePoint: number | null): Promise<void> => {
+  if (codePoint === null || navigating.value) return
+  const active = props.activeCodePoint
+  navigating.value = true
+  navigationError.value = false
+  try {
+    const hexValue =
+      savedGlyphs.value.get(codePoint) ??
+      (await unifontLoader.getGlyph(codePoint))
+    if (!hexValue) throw new Error('Missing Unifont glyph')
+    if (!disposed && active === props.activeCodePoint) {
+      emit('open', hexValue, {
+        codePoint: formatCodePoint(codePoint),
+        hexValue,
+      })
+    }
+  } catch {
+    if (!disposed && active === props.activeCodePoint)
+      navigationError.value = true
+  } finally {
+    navigating.value = false
+  }
 }
 onMounted(() => {
   void loadCatalog()
@@ -306,6 +381,12 @@ onBeforeUnmount(() => {
   overflow-x: auto;
   scrollbar-width: auto;
   padding-bottom: 0.25rem;
+}
+.glyph-navigator__character-controls {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 .glyph-navigator__glyph {
   display: flex;

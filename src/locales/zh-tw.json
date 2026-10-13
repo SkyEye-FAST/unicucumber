@@ -145,6 +145,7 @@
     "transparent": "透明背景"
   },
   "glyph_editor": {
+    "invalid_character": "請輸入一個Unicode字元。",
     "copy_title": "複製",
     "cut_title": "剪下",
     "invalid_code_point": "請輸入U+0000至U+10FFFF的Unicode純量值（不含代理碼位）。",
@@ -329,6 +330,8 @@
     }
   },
   "glyph_navigation": {
+    "next_character": "下一個字元",
+    "previous_character": "上一個字元",
     "load_error": "部分Unifont資料載入失敗，仍可使用已儲存的字形。",
     "next": "下一組字形",
     "previous": "上一組字形",

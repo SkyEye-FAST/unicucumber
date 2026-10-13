@@ -145,6 +145,7 @@
     "transparent": "Transparent background"
   },
   "glyph_editor": {
+    "invalid_character": "Enter exactly one Unicode character.",
     "copy_title": "Copy",
     "cut_title": "Cut",
     "invalid_code_point": "Enter a Unicode scalar value from U+0000 to U+10FFFF, excluding surrogates.",
@@ -329,6 +330,8 @@
     }
   },
   "glyph_navigation": {
+    "next_character": "Next character",
+    "previous_character": "Previous character",
     "load_error": "Some Unifont data could not be loaded. Saved glyphs are still available.",
     "next": "Next glyphs",
     "previous": "Previous glyphs",

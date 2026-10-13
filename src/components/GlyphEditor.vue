@@ -101,12 +101,6 @@
             />
           </template>
         </GlyphGrid>
-        <GlyphNavigator
-          v-show="!isGlyphLibraryExpanded"
-          :active-code-point="currentCodePoint"
-          :glyphs="glyphs"
-          @open="handleGlyphEdit"
-        />
       </section>
 
       <aside class="editor-control-stack">
@@ -238,6 +232,12 @@
           @update:model-value="updateDrawValue"
         />
       </aside>
+      <GlyphNavigator
+        v-show="!isGlyphLibraryExpanded"
+        :active-code-point="currentCodePoint"
+        :glyphs="glyphs"
+        @open="handleGlyphEdit"
+      />
       <div class="editor-output-stack">
         <HexCodeInput :hex-code="hexCode" @apply="applyHexCode" />
         <DownloadButtons
@@ -1675,6 +1675,10 @@ const handlePasteStart = (): void => {
   }
 
   .editor-output-stack {
+    order: 4;
+  }
+
+  .glyph-navigator {
     order: 3;
   }
 
@@ -1794,9 +1798,14 @@ const handlePasteStart = (): void => {
   .editor-output-stack {
     /* Match the glyph navigator's width and alignment within the canvas column. */
     grid-column: 1;
-    grid-row: 2;
+    grid-row: 3;
     width: min(100%, 43rem);
     justify-self: center;
+  }
+
+  .glyph-navigator {
+    grid-column: 1;
+    grid-row: 2;
   }
 
   .editor-control-stack {

@@ -8,7 +8,13 @@
   one-finger panning, and Fit/reset restores a predictable viewport.
 - Desktop grids fit the available width without shrinking to make room for
   secondary panels; scroll the page to reach navigation and export. On phones,
-  save, clear, undo, and redo appear before the export panel.
+  save, clear, undo, and redo appear immediately below the canvas, before glyph
+  navigation and export.
+- Type one Unicode character in the character preview and confirm with Enter or
+  blur to change the current glyph's code point without changing its pixels.
+  Previous/next character opens the adjacent available glyph in Unicode order,
+  across block boundaries, with saved edits taking priority over Unifont data.
+  Opening another glyph asks for confirmation when the current glyph is unsaved.
 - A pen behaves as a precise pointer; active pen input suppresses accidental
   palm-touch drawing.
 - Copy always uses the in-session editor clipboard, which survives tool changes and

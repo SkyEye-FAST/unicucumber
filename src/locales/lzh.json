@@ -145,6 +145,7 @@
     "transparent": "通透背幕"
   },
   "glyph_editor": {
+    "invalid_character": "書一萬國碼文符。",
     "copy_title": "鈔",
     "cut_title": "摘",
     "invalid_code_point": "書一萬國碼標量，自U+0000至U+10FFFF（代理碼位不含焉）",
@@ -329,6 +330,8 @@
     }
   },
   "glyph_navigation": {
+    "next_character": "次字",
+    "previous_character": "前字",
     "load_error": "萬國碼字體之錄未能盡數載焉，既存字形猶可用。",
     "next": "次列",
     "previous": "嚮列",

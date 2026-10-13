@@ -31,6 +31,7 @@
           autocomplete="off"
           autocorrect="off"
           spellcheck="false"
+          :aria-label="$t('glyph_manager.add.code_point')"
           :aria-invalid="codePointError !== null"
           :aria-describedby="codePointError ? 'codePointError' : undefined"
           @input="handleInput"
@@ -45,9 +46,22 @@
           :width="width"
           display-mode="editor"
         />
-        <span class="unicode-char" :style="previewStyle">
-          {{ previewCharacter }}
-        </span>
+        <input
+          v-model="localCharacter"
+          class="unicode-char"
+          :style="previewStyle"
+          :aria-label="$t('glyph_manager.add.character')"
+          :aria-invalid="characterError !== null"
+          :aria-describedby="characterError ? 'characterError' : undefined"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          @compositionstart="characterComposing = true"
+          @compositionend="finishCharacterComposition"
+          @blur="commitCharacter"
+          @keydown.enter="commitCharacter"
+          @keydown.escape.prevent="localCharacter = previewCharacter"
+        />
         <span class="glyph-width">{{ $t('hex_input.width', { width }) }}</span>
       </div>
       <span
@@ -87,6 +101,14 @@
     >
       {{ codePointError }}
     </span>
+    <span
+      v-if="characterError"
+      id="characterError"
+      class="code-point-error"
+      aria-live="polite"
+    >
+      {{ characterError }}
+    </span>
 
     <Transition name="slide">
       <div v-if="showingEncodingInfo" class="encoding-info-panel">
@@ -117,6 +139,7 @@ import { useI18n } from 'vue-i18n'
 import {
   characterFromCodePoint,
   isCJKChar,
+  isUnicodeScalarValue,
   normalizeCodePointHex,
 } from '@/utils/charUtils'
 import { useToggle } from '@vueuse/core'
@@ -200,6 +223,48 @@ const previewStyle = computed(() => ({
 const previewCharacter = computed(
   () => characterFromCodePoint(parseInt(props.modelValue || '0000', 16)) ?? '�',
 )
+const localCharacter = ref(previewCharacter.value)
+const characterComposing = ref(false)
+let commitAfterComposition = false
+const characterCodePoint = computed(() => {
+  const characters = Array.from(localCharacter.value)
+  const codePoint = characters[0]?.codePointAt(0)
+  return characters.length === 1 &&
+    codePoint !== undefined &&
+    isUnicodeScalarValue(codePoint)
+    ? codePoint
+    : null
+})
+const characterError = computed(() =>
+  characterCodePoint.value === null
+    ? $t('glyph_editor.invalid_character')
+    : null,
+)
+watch(previewCharacter, (character) => {
+  localCharacter.value = character
+})
+const commitCharacter = (event: Event): void => {
+  if (characterComposing.value) {
+    if (event.type === 'blur') commitAfterComposition = true
+    return
+  }
+  if (event instanceof KeyboardEvent) {
+    if (event.isComposing || event.keyCode === 229) return
+    event.preventDefault()
+  }
+  const codePoint = characterCodePoint.value
+  if (codePoint === null) return
+  const normalized = normalizeCodePointHex(codePoint.toString(16))!
+  if (normalized !== props.modelValue) emit('update:model-value', normalized)
+}
+const finishCharacterComposition = (event: CompositionEvent): void => {
+  characterComposing.value = false
+  localCharacter.value = (event.target as HTMLInputElement).value
+  if (commitAfterComposition) {
+    commitAfterComposition = false
+    commitCharacter(event)
+  }
+}
 
 const ziToolsUrl = computed(() => {
   const codePoint = parseInt(props.modelValue || '0000', 16)
@@ -341,7 +406,9 @@ const encodingInfo = computed(() => {
 }
 
 .unicode-char {
-  min-width: 1.5rem;
+  box-sizing: border-box;
+  width: 2.5rem;
+  min-width: 0;
   padding: 0.1rem 0.2rem;
   border: 1px solid var(--glyph-preview-border);
   border-radius: 2px;

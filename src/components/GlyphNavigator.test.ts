@@ -97,4 +97,86 @@ describe('GlyphNavigator', () => {
     ])
     wrapper.unmount()
   })
+
+  it('opens adjacent characters across pages and blocks, preferring saved edits', async () => {
+    vi.mocked(unifontLoader.loadCatalogCodePoints).mockResolvedValue([
+      0x41, 0x100, 0x20000,
+    ])
+    const wrapper = mountNavigator([{ codePoint: '0100', hexValue: savedHex }])
+    await flushPromises()
+    await wrapper
+      .get('.glyph-navigator__character-controls button:last-child')
+      .trigger('click')
+    await flushPromises()
+    expect(wrapper.emitted('open')).toEqual([
+      [savedHex, { codePoint: '0100', hexValue: savedHex }],
+    ])
+    expect(unifontLoader.getGlyph).not.toHaveBeenCalledWith(0x100)
+    await wrapper.setProps({ activeCodePoint: '0100' })
+    await flushPromises()
+    await wrapper
+      .get('.glyph-navigator__character-controls button:last-child')
+      .trigger('click')
+    await flushPromises()
+    expect(wrapper.emitted('open')?.at(-1)).toEqual([
+      hex,
+      { codePoint: '20000', hexValue: hex },
+    ])
+    await wrapper.setProps({ activeCodePoint: '20000' })
+    await flushPromises()
+    expect(
+      wrapper
+        .get('.glyph-navigator__character-controls button:last-child')
+        .attributes('disabled'),
+    ).toBeDefined()
+    await wrapper
+      .get('.glyph-navigator__character-controls button:first-child')
+      .trigger('click')
+    await flushPromises()
+    expect(wrapper.emitted('open')?.at(-1)).toEqual([
+      savedHex,
+      { codePoint: '0100', hexValue: savedHex },
+    ])
+    wrapper.unmount()
+  })
+
+  it('keeps the current glyph when adjacent loading fails or a response becomes stale', async () => {
+    vi.mocked(unifontLoader.loadCatalogCodePoints).mockResolvedValue([
+      0x41, 0x100,
+    ])
+    const wrapper = mountNavigator()
+    await flushPromises()
+    vi.mocked(unifontLoader.getGlyph).mockRejectedValueOnce(
+      new Error('offline'),
+    )
+    await wrapper
+      .get('.glyph-navigator__character-controls button:last-child')
+      .trigger('click')
+    await flushPromises()
+    expect(wrapper.emitted('open')).toBeUndefined()
+    expect(wrapper.get('[role="status"]').text()).toContain(
+      'Saved glyphs are still available',
+    )
+    await wrapper
+      .get('.glyph-navigator__character-controls button:last-child')
+      .trigger('click')
+    await flushPromises()
+    expect(wrapper.emitted('open')).toHaveLength(1)
+    expect(wrapper.find('[role="status"]').exists()).toBe(false)
+    let resolve: ((value: string) => void) | undefined
+    vi.mocked(unifontLoader.getGlyph).mockImplementationOnce(
+      () =>
+        new Promise((done) => {
+          resolve = done
+        }),
+    )
+    await wrapper
+      .get('.glyph-navigator__character-controls button:last-child')
+      .trigger('click')
+    await wrapper.setProps({ activeCodePoint: '0042' })
+    resolve?.(hex)
+    await flushPromises()
+    expect(wrapper.emitted('open')).toHaveLength(1)
+    wrapper.unmount()
+  })
 })
