@@ -188,6 +188,19 @@
     "export_failed": "字庫無以錄出。",
     "export_font_files": "字體之案",
     "export_hex": "萬國碼字體範式（.hex）",
+    "batch_export": {
+      "scope_label": "群錄之域",
+      "scope": {
+        "saved": "已存字形",
+        "selected": "已擇字形",
+        "filtered": "篩得之形",
+        "characters": "文符之列"
+      },
+      "characters": "欲錄之文符",
+      "archive": "{format}形圖（.zip）",
+      "preparing": "方備字形之錄……",
+      "exported": "已錄{count}字形。"
+    },
     "export_otf": "OpenType字體（.otf）",
     "export_psf": "Linux控制臺字體（.psf）",
     "export_sheet": "位圖表（.png）",

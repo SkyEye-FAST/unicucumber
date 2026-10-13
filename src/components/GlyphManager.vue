@@ -56,7 +56,10 @@
       v-model:font-metadata="activeFontMetadata"
       v-model:search-query="searchQuery"
       :font-export-busy="fontExportBusy"
-      @export="exportToHex"
+      :batch-export-busy="batchExportBusy"
+      :saved-count="props.glyphs.length"
+      :filtered-count="filteredGlyphs.length"
+      @batch-export="exportBatch"
       @font="exportFont"
       @backup="exportBackup"
       @reset-font-metadata="resetFontMetadata"
@@ -69,6 +72,8 @@
       :density="settings.glyphLibraryDensity"
       v-model:export-scope="fontExportScope"
       :filtered-count="filteredGlyphs.length"
+      :batch-export-busy="batchExportBusy"
+      :saved-count="props.glyphs.length"
       :font-export-busy="fontExportBusy"
       v-model:font-metadata="activeFontMetadata"
       v-model:source-filter="sourceFilter"
@@ -85,7 +90,7 @@
       @collapse="collapseLibrary"
       @clear-selection="clearSelection"
       @delete-selected="handleBatchDelete(selectedManagedCodePoints)"
-      @export="exportToHex"
+      @batch-export="exportBatch"
       @font="exportFont"
       @reset-font-metadata="resetFontMetadata"
       @select-filtered="selectFilteredGlyphs"
@@ -267,6 +272,12 @@ import type {
 import { normalizeCodePointHex } from '@/utils/charUtils'
 import { canvasToBlob } from '@/utils/exportUtils'
 import {
+  characterListCodePoints,
+  createGlyphArchive,
+  createHexExport,
+  type BatchExportRequest,
+} from '@/utils/batchExport'
+import {
   createBdfFont,
   createFontExportMetadata,
   createOfficialUnifontMetadata,
@@ -333,6 +344,7 @@ const unifontBaselineHex = shallowRef<Record<string, string | null>>({})
 const catalogLoading = ref(false)
 const catalogError = shallowRef<Error | null>(null)
 const fontExportBusy = ref(false)
+const batchExportBusy = ref(false)
 const fontExportScope = ref<FontExportScope>('full')
 const unifontVersion =
   (import.meta.env.VITE_UNIFONT_VERSION as string | undefined) || '17.0.05'
@@ -708,15 +720,6 @@ const normalizeCodePoint = (input: string): string => {
 const normalizeCodePointForStorage = (input: string): string | null =>
   normalizeCodePointHex(normalizeCodePoint(input))
 
-const normalizeCodePointForExport = (codePoint: string): string => {
-  if (codePoint.length < 4) {
-    return codePoint.padStart(4, '0')
-  } else if (codePoint.length === 5) {
-    return '0' + codePoint
-  }
-  return codePoint
-}
-
 const saveGlyphsToStorage = async (glyphs: Glyph[]): Promise<boolean> => {
   try {
     await props.onGlyphChange(glyphs)
@@ -1068,39 +1071,62 @@ const handleLibraryOpen = async (glyph: Glyph): Promise<void> => {
   await handleEditInGrid(resolved)
 }
 
-const exportToHex = (): void => {
-  const hexContent = [...props.glyphs]
-    .sort((a, b) => {
-      const codePointA = parseInt(a.codePoint, 16)
-      const codePointB = parseInt(b.codePoint, 16)
-      return codePointA - codePointB
+const exportBatch = async (request: BatchExportRequest): Promise<void> => {
+  if (batchExportBusy.value) return
+  batchExportBusy.value = true
+  try {
+    // Snapshot the scope and saved overrides before any asynchronous loading.
+    const saved = new Map(
+      props.glyphs.map((glyph) => [
+        formatGlyphCodePoint(glyph.codePoint),
+        { ...glyph },
+      ]),
+    )
+    const codePoints =
+      request.scope === 'characters'
+        ? characterListCodePoints(request.characters)
+        : request.scope === 'selected'
+          ? [...selectedCodePoints.value]
+          : (request.scope === 'filtered'
+              ? filteredGlyphs.value
+              : props.glyphs
+            ).map((glyph) => formatGlyphCodePoint(glyph.codePoint))
+    const glyphs: Glyph[] = []
+    for (let index = 0; index < codePoints.length; index += 50) {
+      const batch = await Promise.all(
+        codePoints.slice(index, index + 50).map(async (codePoint) => {
+          const override = saved.get(codePoint)
+          if (override) return override
+          const hexValue = await unifontLoader.getGlyph(
+            Number.parseInt(codePoint, 16),
+          )
+          if (!hexValue) throw new Error(`Missing export glyph U+${codePoint}`)
+          return { codePoint, hexValue }
+        }),
+      )
+      glyphs.push(...batch)
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 0))
+    }
+    const blob =
+      request.format === 'hex'
+        ? new Blob([createHexExport(glyphs)], { type: 'text/plain' })
+        : await createGlyphArchive(glyphs, request.format, request)
+    downloadBlob(
+      blob,
+      `unicucumber-${request.scope}-${Date.now()}.${request.format === 'hex' ? 'hex' : `${request.format}.zip`}`,
+    )
+    notify({
+      tone: 'success',
+      message: $t('glyph_manager.batch_export.exported', {
+        count: glyphs.length,
+      }),
     })
-    .map((glyph) => {
-      const codePoint = normalizeCodePointForExport(glyph.codePoint)
-      return `${codePoint}:${glyph.hexValue}`
-    })
-    .join('\n')
-
-  const blob = new Blob([hexContent], { type: 'text/plain' })
-  const url = URL.createObjectURL(blob)
-
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
-  const hours = String(now.getHours()).padStart(2, '0')
-  const minutes = String(now.getMinutes()).padStart(2, '0')
-  const seconds = String(now.getSeconds()).padStart(2, '0')
-  const timestamp = `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`
-  const filename = `glyphs_unicucumber_${timestamp}.hex`
-
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Unable to export glyph batch.', error)
+    notify({ tone: 'error', message: $t('glyph_manager.export_failed') })
+  } finally {
+    batchExportBusy.value = false
+  }
 }
 
 const downloadBlob = (blob: Blob, filename: string): void => {

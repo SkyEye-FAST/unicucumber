@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppTooltip: typeof import('./src/components/AppTooltip.vue')['default']
+    BatchExportOptions: typeof import('./src/components/GlyphManager/BatchExportOptions.vue')['default']
     ComponentBrowser: typeof import('./src/components/GlyphComposer/ComponentBrowser.vue')['default']
     ComponentCard: typeof import('./src/components/GlyphComposer/ComponentCard.vue')['default']
     CompositionCanvas: typeof import('./src/components/GlyphComposer/CompositionCanvas.vue')['default']

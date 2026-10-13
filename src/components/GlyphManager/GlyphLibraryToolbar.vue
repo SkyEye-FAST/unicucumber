@@ -170,9 +170,13 @@
           >
             {{ $t('glyph_manager.export_data_files') }}
           </p>
-          <button type="button" @click="exportHex">
-            {{ $t('glyph_manager.export_hex') }}
-          </button>
+          <BatchExportOptions
+            :busy="batchExportBusy"
+            :saved-count="savedCount"
+            :selected-count="selectedCount"
+            :filtered-count="filteredCount"
+            @export="$emit('batch-export', $event)"
+          />
           <button type="button" @click="exportBackup">
             {{ $t('glyph_manager.export_backup') }}
           </button>
@@ -291,10 +295,14 @@ import type {
 import type { FontExportMetadata, FontExportScope } from '@/utils/fontExport'
 
 import FontExportOptions from './FontExportOptions.vue'
+import BatchExportOptions from './BatchExportOptions.vue'
+import type { BatchExportRequest } from '@/utils/batchExport'
 
 const { t: $t, locale } = useI18n()
 
 const props = defineProps<{
+  batchExportBusy: boolean
+  savedCount: number
   density: GlyphLibraryDensity
   exportScope: FontExportScope
   filteredCount: number
@@ -318,7 +326,7 @@ const emit = defineEmits<{
   collapse: []
   'clear-selection': []
   'delete-selected': []
-  export: []
+  'batch-export': [request: BatchExportRequest]
   font: [format: 'otf' | 'ttf' | 'woff' | 'woff2' | 'bdf' | 'psf']
   'reset-font-metadata': []
   'select-filtered': []
@@ -419,10 +427,6 @@ const updateUnicodeBlock = (value: string | number): void => {
 
 const closeExportMenu = (): void => {
   exportMenuOpen.value = false
-}
-const exportHex = (): void => {
-  emit('export')
-  closeExportMenu()
 }
 const exportBackup = (): void => {
   emit('backup')

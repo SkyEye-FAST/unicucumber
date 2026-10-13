@@ -29,9 +29,12 @@
         <p class="export-options__group export-options__group--data">
           {{ $t('glyph_manager.export_data_files') }}
         </p>
-        <button type="button" @click="$emit('export')">
-          {{ $t('glyph_manager.export_hex') }}
-        </button>
+        <BatchExportOptions
+          :busy="batchExportBusy"
+          :saved-count="savedCount"
+          :filtered-count="filteredCount"
+          @export="$emit('batch-export', $event)"
+        />
         <button type="button" @click="$emit('backup')">
           {{ $t('glyph_manager.export_backup') }}
         </button>
@@ -73,10 +76,15 @@ import CustomSelect, {
 import type { FontExportMetadata, FontExportScope } from '@/utils/fontExport'
 
 import FontExportOptions from './FontExportOptions.vue'
+import BatchExportOptions from './BatchExportOptions.vue'
+import type { BatchExportRequest } from '@/utils/batchExport'
 
 const { t: $t } = useI18n()
 
 defineProps<{
+  batchExportBusy: boolean
+  savedCount: number
+  filteredCount: number
   exportScope: FontExportScope
   fontExportBusy: boolean
   fontMetadata: FontExportMetadata
@@ -85,7 +93,7 @@ defineProps<{
 
 defineEmits<{
   'update:searchQuery': [value: string]
-  export: []
+  'batch-export': [request: BatchExportRequest]
   backup: []
   font: [format: 'otf' | 'ttf' | 'woff' | 'woff2' | 'bdf' | 'psf']
   'reset-font-metadata': []

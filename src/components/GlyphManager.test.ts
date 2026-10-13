@@ -8,6 +8,7 @@ import type { Glyph } from '@/types/glyph'
 import { flushPromises, mount } from '@vue/test-utils'
 
 import GlyphManager from './GlyphManager.vue'
+import BatchExportOptions from './GlyphManager/BatchExportOptions.vue'
 import FontExportOptions from './GlyphManager/FontExportOptions.vue'
 import GlyphLibraryToolbar from './GlyphManager/GlyphLibraryToolbar.vue'
 import SearchToolbar from './GlyphManager/SearchToolbar.vue'
@@ -175,6 +176,87 @@ const mountManager = (overrides: Record<string, unknown> = {}) => {
 }
 
 describe('GlyphManager full-screen state', () => {
+  it.each([
+    ['saved', '', ['0041', '0042']],
+    ['filtered', '', ['0041']],
+    ['characters', 'CAC𠀀', ['0041', '0043', '020000']],
+  ] as const)(
+    'exports the %s scope with saved overrides and on-demand Unifont data',
+    async (scope, characters, expected) => {
+      unifont.setGlyphs([
+        ...glyphs,
+        { codePoint: '0043', hexValue: 'CC'.repeat(16) },
+        { codePoint: '20000', hexValue: '33'.repeat(32) },
+      ])
+      const wrapper = mountManager({
+        glyphs: [{ codePoint: '0041', hexValue: 'FF'.repeat(16) }, glyphs[0]!],
+      })
+      await wrapper.get('.search-input').setValue('0041')
+      await wrapper.findComponent(BatchExportOptions).vm.$emit('export', {
+        scope,
+        format: 'hex',
+        characters,
+        scale: 1,
+        transparent: false,
+      })
+      await vi.waitFor(() =>
+        expect(URL.createObjectURL).toHaveBeenCalledTimes(1),
+      )
+      const blob = vi.mocked(URL.createObjectURL).mock.calls[0]![0] as Blob
+      const lines = (await blob.text()).split('\n')
+      expect(lines.map((line) => line.split(':')[0])).toEqual(expected)
+      expect(lines[0]).toBe(`0041:${'FF'.repeat(16)}`)
+      wrapper.unmount()
+    },
+  )
+
+  it('exports only the selected saved and catalog glyphs', async () => {
+    unifont.setGlyphs([
+      ...glyphs,
+      { codePoint: '0043', hexValue: 'CC'.repeat(16) },
+    ])
+    const wrapper = mountManager()
+    await wrapper.get('.glyph-manager-expand').trigger('click')
+    await flushPromises()
+    await wrapper.get('.library-selection-toggle').trigger('click')
+    await wrapper.get('[data-code-point="0042"]').trigger('click')
+    await wrapper.get('[data-code-point="0043"]').trigger('click')
+    await wrapper.findComponent(BatchExportOptions).vm.$emit('export', {
+      scope: 'selected',
+      format: 'hex',
+      characters: '',
+      scale: 1,
+      transparent: false,
+    })
+    await vi.waitFor(() => expect(URL.createObjectURL).toHaveBeenCalledTimes(1))
+    const blob = vi.mocked(URL.createObjectURL).mock.calls[0]![0] as Blob
+    expect(await blob.text()).toBe(
+      `0042:${'55'.repeat(32)}\n0043:${'CC'.repeat(16)}`,
+    )
+    wrapper.unmount()
+  })
+
+  it('reports unavailable characters without downloading an incomplete batch and clears busy state', async () => {
+    const errorLog = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const wrapper = mountManager()
+    try {
+      const options = wrapper.findComponent(BatchExportOptions)
+      await options.vm.$emit('export', {
+        scope: 'characters',
+        format: 'hex',
+        characters: 'AC',
+        scale: 1,
+        transparent: false,
+      })
+      await vi.waitFor(() => expect(errorLog).toHaveBeenCalled())
+      expect(URL.createObjectURL).not.toHaveBeenCalled()
+      expect(options.props('busy')).toBe(false)
+    } finally {
+      wrapper.unmount()
+      errorLog.mockRestore()
+    }
+  })
+
   it('opens the compact add/import tools by default on desktop', async () => {
     const wrapper = mountManager()
     await flushPromises()

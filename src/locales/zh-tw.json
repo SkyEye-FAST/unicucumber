@@ -188,6 +188,19 @@
     "export_failed": "無法匯出字形庫。",
     "export_font_files": "字型檔案",
     "export_hex": "Unifont字形（.hex）",
+    "batch_export": {
+      "scope_label": "批次匯出範圍",
+      "scope": {
+        "saved": "已儲存字形",
+        "selected": "已選字形",
+        "filtered": "篩選結果",
+        "characters": "字元清單"
+      },
+      "characters": "要匯出的字元",
+      "archive": "{format}圖像（.zip）",
+      "preparing": "正在準備字形匯出……",
+      "exported": "已匯出{count}個字形。"
+    },
     "export_otf": "OpenType字型（.otf）",
     "export_psf": "Linux主控台字型（.psf）",
     "export_sheet": "點陣圖表（.png）",

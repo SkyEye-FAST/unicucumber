@@ -188,6 +188,19 @@
     "export_failed": "The glyph library could not be exported.",
     "export_font_files": "Font files",
     "export_hex": "Unifont glyphs (.hex)",
+    "batch_export": {
+      "scope_label": "Batch export scope",
+      "scope": {
+        "saved": "Saved glyphs",
+        "selected": "Selected glyphs",
+        "filtered": "Filtered glyphs",
+        "characters": "Character list"
+      },
+      "characters": "Characters to export",
+      "archive": "{format} images (.zip)",
+      "preparing": "Preparing glyph export...",
+      "exported": "Exported {count} glyphs."
+    },
     "export_otf": "OpenType font (.otf)",
     "export_psf": "Linux console font (.psf)",
     "export_sheet": "Bitmap sheet (.png)",

@@ -4,6 +4,10 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+### Added
+
+- Export saved, selected, filtered, or pasted character lists as HEX or zipped SVG/PNG files (#50).
+
 ### Changed
 
 - Remove redundant layout, animation, static-rendering, and screenshot-only test checks while retaining editing, persistence, accessibility, and platform regression coverage.

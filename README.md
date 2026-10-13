@@ -42,6 +42,7 @@ You can try the demo at the following links:
   - [x] Import `.hex` files and images through file selection, drag and drop, or image clipboard paste
   - [x] Prepare images with fit/crop, threshold, invert, and transparency controls
   - [x] Export multiple glyphs as `.hex`, versioned JSON backups, or configurable PNG bitmap sheets
+  - [x] Batch-export saved, selected, filtered, or pasted character lists as `.hex` or individual SVG/PNG files in ZIP archives
   - [x] Export multiple glyphs as OTF, TTF, WOFF, WOFF2, BDF, or PSF files
   - [x] Choose full or modified glyph scopes and edit/reset font metadata before exporting
 - Draft safety and persistence
