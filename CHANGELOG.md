@@ -4,9 +4,12 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+## [1.11.0] - 2026-10-13
+
 ### Changed
 
 - Replace internal component hashes and raw bounds with dimensions and bottom-right coordinates, and add undoable layer shifts by a chosen pixel distance (#49).
+- Streamline glyph and page navigation into 4 standalone icon buttons (`<<`, `<`, `>`, `>>`), stabilize editor grid cell size and height when switching between glyph widths (such as 16px and 8px), start editor sessions with an unselected state instead of defaulting to U+0000, polish character input and document status visual affordances, unify bottom panel card styling, and optimize the settings drawer for mobile viewports with responsive touch ergonomics and refined control alignment (#49).
 - Allow typing a character directly in the editor preview and navigating to the previous or next available character, retaining unsaved-edit confirmation (#49).
 - Keep the desktop editor canvas at a readable size with scrollable secondary controls, place mobile save and history actions before export, and reduce export panel spacing (#49).
 - Update unicode-name and Vue I18n, plus the icon data, Node.js types, linting, Vite, and Vue type-checking dependencies (#47, #48).
