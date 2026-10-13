@@ -100,7 +100,6 @@ const runAction = (notification: AppNotification): void => {
   box-sizing: border-box;
   padding: var(--space-2);
   border: 1px solid var(--border-color);
-  border-left: 3px solid var(--info-color);
   border-radius: var(--radius-md);
   background: var(--dialog-background);
   color: var(--text-color);
@@ -109,16 +108,32 @@ const runAction = (notification: AppNotification): void => {
   pointer-events: none;
 }
 
+.notification.info {
+  border-color: color-mix(in srgb, var(--info-color) 45%, var(--border-color));
+}
+
 .notification.success {
-  border-left-color: var(--primary-color);
+  border-color: color-mix(
+    in srgb,
+    var(--primary-color) 45%,
+    var(--border-color)
+  );
 }
 
 .notification.warning {
-  border-left-color: var(--warning-color);
+  border-color: color-mix(
+    in srgb,
+    var(--warning-color) 45%,
+    var(--border-color)
+  );
 }
 
 .notification.error {
-  border-left-color: var(--danger-color);
+  border-color: color-mix(
+    in srgb,
+    var(--danger-color) 45%,
+    var(--border-color)
+  );
 }
 
 .notification--update {
@@ -128,7 +143,6 @@ const runAction = (notification: AppNotification): void => {
     var(--primary-color) 45%,
     var(--dialog-border)
   );
-  border-left-color: var(--primary-color);
   background: color-mix(
     in srgb,
     var(--dialog-background) 94%,

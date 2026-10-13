@@ -140,7 +140,6 @@ onBeforeUnmount(() => {
   padding: var(--space-2) var(--space-3);
   border: 1px solid
     color-mix(in srgb, var(--warning-color) 45%, var(--dialog-border));
-  border-left: 3px solid var(--warning-color);
   border-radius: var(--radius-md);
   background: var(--dialog-background);
   color: var(--text-color);

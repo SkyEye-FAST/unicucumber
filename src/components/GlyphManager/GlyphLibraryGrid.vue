@@ -840,24 +840,13 @@ defineExpose({
   outline-offset: -2px;
 }
 
-.glyph-library-cell.is-active::before {
-  content: '';
-  position: absolute;
-  z-index: 2;
-  inset-block: 0;
-  inset-inline-start: 0;
-  width: 3px;
-  background: var(--primary-color);
-}
-
 .glyph-library-cell.is-active {
   background: color-mix(
     in srgb,
-    var(--primary-color) 6%,
+    var(--primary-color) 8%,
     var(--background-light)
   );
-  box-shadow: inset 0 0 0 1px
-    color-mix(in srgb, var(--primary-color) 60%, var(--border-color));
+  box-shadow: inset 0 0 0 2px var(--primary-color);
 }
 
 .glyph-library-cell.is-selected {
@@ -876,8 +865,11 @@ defineExpose({
 }
 
 .glyph-library-cell.is-modified:not(.is-selected) {
-  box-shadow: inset 0 -2px
-    color-mix(in srgb, var(--primary-color) 70%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--primary-color) 4%,
+    var(--background-light)
+  );
 }
 
 .selection-marker {

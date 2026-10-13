@@ -1372,8 +1372,7 @@ const handlePasteStart = (): void => {
   gap: var(--space-3);
   padding: 0.5rem 0.55rem 0.5rem 0.75rem;
   border: 1px solid
-    color-mix(in srgb, var(--primary-color) 24%, var(--border-color));
-  border-left: 3px solid var(--primary-color);
+    color-mix(in srgb, var(--primary-color) 35%, var(--border-color));
   border-radius: var(--radius-md);
   background: color-mix(
     in srgb,
