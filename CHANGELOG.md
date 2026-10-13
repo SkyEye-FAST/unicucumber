@@ -11,6 +11,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Changed
 
+- Optimize the Glyph Manager export menu layout for desktop and mobile viewports with segmented batch export controls, group sheet export options, replace left and bottom accent stripe box styles with unified borders, use fullwidth parentheses in Chinese locales for block names and metadata summaries, and retain the interval dot in Unicode plane names.
 - Remove redundant layout, animation, static-rendering, and screenshot-only test checks while retaining editing, persistence, accessibility, and platform regression coverage.
 
 ### Fixed

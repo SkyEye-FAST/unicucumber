@@ -33,7 +33,7 @@
       <summary>
         <span>
           <strong>{{ $t('glyph_manager.font_export.metadata.title') }}</strong>
-          <small>{{ metadata.familyName }} · {{ metadata.version }}</small>
+          <small v-if="metadataSummary">{{ metadataSummary }}</small>
         </span>
         <i-material-symbols-keyboard-arrow-down
           class="font-metadata__chevron"
@@ -100,17 +100,28 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { isChineseLocale } from '@/utils/locale'
 import type { FontExportMetadata, FontExportScope } from '@/utils/fontExport'
 
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 
 const props = defineProps<{
   busy: boolean
   metadata: FontExportMetadata
   scope: FontExportScope
 }>()
+
+const metadataSummary = computed(() => {
+  if (props.metadata.familyName && props.metadata.version) {
+    return isChineseLocale(locale.value)
+      ? `${props.metadata.familyName}（${props.metadata.version}）`
+      : `${props.metadata.familyName} (${props.metadata.version})`
+  }
+  return props.metadata.familyName || props.metadata.version || ''
+})
 
 const emit = defineEmits<{
   font: [format: 'otf' | 'ttf' | 'woff' | 'woff2' | 'bdf' | 'psf']
@@ -214,17 +225,14 @@ const updateMetadata = (
 }
 
 .font-export-scope label.is-selected {
-  border-color: color-mix(
-    in srgb,
-    var(--primary-color) 65%,
-    var(--border-color)
-  );
+  border-color: var(--primary-color);
   background: color-mix(
     in srgb,
-    var(--primary-color) 9%,
+    var(--primary-color) 10%,
     var(--background-light)
   );
-  box-shadow: inset 0 -2px var(--primary-color);
+  box-shadow: 0 0 0 1px
+    color-mix(in srgb, var(--primary-color) 35%, transparent);
 }
 
 .font-export-scope input {

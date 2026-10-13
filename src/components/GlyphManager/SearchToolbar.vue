@@ -11,17 +11,18 @@
         "
       />
     </div>
-    <details class="export-menu">
+    <details ref="exportDropdownRef" class="export-menu">
       <summary class="btn-export">
         <i-material-symbols-file-download class="icon" />
         {{ $t('glyph_manager.export') }}
       </summary>
+      <div class="export-backdrop" @click="closeDropdown" />
       <div class="export-options">
         <FontExportOptions
           :busy="fontExportBusy"
           :metadata="fontMetadata"
           :scope="exportScope"
-          @font="$emit('font', $event)"
+          @font="handleFontExport($event)"
           @reset-metadata="$emit('reset-font-metadata')"
           @update:metadata="$emit('update:fontMetadata', $event)"
           @update:scope="$emit('update:exportScope', $event)"
@@ -33,33 +34,40 @@
           :busy="batchExportBusy"
           :saved-count="savedCount"
           :filtered-count="filteredCount"
-          @export="$emit('batch-export', $event)"
+          @export="handleBatchExport($event)"
         />
-        <button type="button" @click="$emit('backup')">
-          {{ $t('glyph_manager.export_backup') }}
+        <button type="button" class="export-item-btn" @click="handleBackup">
+          <span class="export-item-btn__content">
+            <i-material-symbols-download aria-hidden="true" />
+            <span>{{ $t('glyph_manager.export_backup') }}</span>
+          </span>
         </button>
-        <button
-          type="button"
-          @click="$emit('sheet', { columns: sheetColumns, scale: sheetScale })"
-        >
-          {{ $t('glyph_manager.export_sheet') }}
-        </button>
-        <label>
-          {{ $t('glyph_manager.sheet_columns') }}
-          <CustomSelect
-            v-model="sheetColumns"
-            :ariaLabel="$t('glyph_manager.sheet_columns')"
-            :options="sheetColumnOptions"
-          />
-        </label>
-        <label>
-          {{ $t('glyph_manager.sheet_scale') }}
-          <CustomSelect
-            v-model="sheetScale"
-            :ariaLabel="$t('glyph_manager.sheet_scale')"
-            :options="sheetScaleOptions"
-          />
-        </label>
+        <div class="export-sheet-group">
+          <button type="button" class="export-item-btn" @click="handleSheet">
+            <span class="export-item-btn__content">
+              <i-material-symbols-download aria-hidden="true" />
+              <span>{{ $t('glyph_manager.export_sheet') }}</span>
+            </span>
+          </button>
+          <div class="export-sheet-options">
+            <label>
+              <span>{{ $t('glyph_manager.sheet_columns') }}</span>
+              <CustomSelect
+                v-model="sheetColumns"
+                :ariaLabel="$t('glyph_manager.sheet_columns')"
+                :options="sheetColumnOptions"
+              />
+            </label>
+            <label>
+              <span>{{ $t('glyph_manager.sheet_scale') }}</span>
+              <CustomSelect
+                v-model="sheetScale"
+                :ariaLabel="$t('glyph_manager.sheet_scale')"
+                :options="sheetScaleOptions"
+              />
+            </label>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -91,7 +99,7 @@ defineProps<{
   searchQuery?: string
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   'update:searchQuery': [value: string]
   'batch-export': [request: BatchExportRequest]
   backup: []
@@ -101,6 +109,30 @@ defineEmits<{
   'update:exportScope': [value: FontExportScope]
   'update:fontMetadata': [value: FontExportMetadata]
 }>()
+
+const exportDropdownRef = ref<HTMLDetailsElement | null>(null)
+const closeDropdown = (): void => {
+  if (exportDropdownRef.value) {
+    exportDropdownRef.value.open = false
+  }
+}
+const handleFontExport = (
+  format: 'otf' | 'ttf' | 'woff' | 'woff2' | 'bdf' | 'psf',
+): void => {
+  emit('font', format)
+  closeDropdown()
+}
+const handleBatchExport = (request: BatchExportRequest): void => {
+  emit('batch-export', request)
+}
+const handleBackup = (): void => {
+  emit('backup')
+  closeDropdown()
+}
+const handleSheet = (): void => {
+  emit('sheet', { columns: sheetColumns.value, scale: sheetScale.value })
+  closeDropdown()
+}
 
 const sheetColumns = ref(16)
 const sheetScale = ref(2)
@@ -179,6 +211,10 @@ const sheetScaleOptions: CustomSelectOption[] = [
   display: none;
 }
 
+.export-backdrop {
+  display: none;
+}
+
 .export-options {
   position: absolute;
   z-index: 5;
@@ -211,6 +247,31 @@ const sheetScaleOptions: CustomSelectOption[] = [
   font-size: 0.8125rem;
   line-height: 1.25;
   text-align: left;
+}
+
+.export-item-btn__content {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.export-sheet-group {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.export-sheet-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  padding: 0.15rem 0.55rem 0.35rem;
+}
+
+.export-sheet-options label {
+  min-height: 2rem;
+  padding-inline: 0;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
 }
 
 .export-options__group {
@@ -273,6 +334,27 @@ const sheetScaleOptions: CustomSelectOption[] = [
   .btn-export {
     padding-inline: 0.65rem;
     font-size: 0.82rem;
+  }
+
+  .export-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 18;
+    background: color-mix(in srgb, var(--modal-overlay) 45%, transparent);
+  }
+
+  .export-options {
+    position: fixed;
+    inset-block-start: auto;
+    inset-block-end: max(0.5rem, env(safe-area-inset-bottom));
+    inset-inline: 0.5rem;
+    z-index: 20;
+    width: auto;
+    max-width: none;
+    max-height: min(80dvh, calc(100dvh - 3.5rem));
+    border-radius: var(--radius-lg);
+    box-shadow: 0 12px 32px var(--shadow-color);
   }
 }
 

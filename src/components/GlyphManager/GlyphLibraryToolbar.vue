@@ -152,6 +152,11 @@
           <span>{{ $t('glyph_manager.export') }}</span>
         </button>
         <div
+          v-if="exportMenuOpen"
+          class="library-export-backdrop"
+          @click="closeExportMenu"
+        />
+        <div
           v-show="exportMenuOpen"
           id="glyph-library-export-options"
           class="library-export-options tw:box-border tw:grid tw:gap-px tw:overflow-y-auto tw:overscroll-contain"
@@ -177,30 +182,48 @@
             :filtered-count="filteredCount"
             @export="$emit('batch-export', $event)"
           />
-          <button type="button" @click="exportBackup">
-            {{ $t('glyph_manager.export_backup') }}
+          <button
+            type="button"
+            class="library-export-item-btn"
+            @click="exportBackup"
+          >
+            <span class="library-export-item-btn__content">
+              <i-material-symbols-download aria-hidden="true" />
+              <span>{{ $t('glyph_manager.export_backup') }}</span>
+            </span>
           </button>
-          <button type="button" @click="exportSheet">
-            {{ $t('glyph_manager.export_sheet') }}
-          </button>
-          <label>
-            {{ $t('glyph_manager.sheet_columns') }}
-            <CustomSelect
-              v-model="sheetColumns"
-              :ariaLabel="$t('glyph_manager.sheet_columns')"
-              :options="sheetColumnOptions"
-              mobile-modal
-            />
-          </label>
-          <label>
-            {{ $t('glyph_manager.sheet_scale') }}
-            <CustomSelect
-              v-model="sheetScale"
-              :ariaLabel="$t('glyph_manager.sheet_scale')"
-              :options="sheetScaleOptions"
-              mobile-modal
-            />
-          </label>
+          <div class="library-export-sheet-group">
+            <button
+              type="button"
+              class="library-export-item-btn"
+              @click="exportSheet"
+            >
+              <span class="library-export-item-btn__content">
+                <i-material-symbols-download aria-hidden="true" />
+                <span>{{ $t('glyph_manager.export_sheet') }}</span>
+              </span>
+            </button>
+            <div class="library-export-sheet-options">
+              <label>
+                <span>{{ $t('glyph_manager.sheet_columns') }}</span>
+                <CustomSelect
+                  v-model="sheetColumns"
+                  :ariaLabel="$t('glyph_manager.sheet_columns')"
+                  :options="sheetColumnOptions"
+                  mobile-modal
+                />
+              </label>
+              <label>
+                <span>{{ $t('glyph_manager.sheet_scale') }}</span>
+                <CustomSelect
+                  v-model="sheetScale"
+                  :ariaLabel="$t('glyph_manager.sheet_scale')"
+                  :options="sheetScaleOptions"
+                  mobile-modal
+                />
+              </label>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -403,7 +426,7 @@ const formatCodePoint = (value: number): string =>
   value.toString(16).toUpperCase().padStart(4, '0')
 const blockLabel = (block: UnicodeBlock): string => {
   const localized = getUnicodeBlockNameForLocale(locale.value, block.id)
-  const name = localized ? `${localized} · ${block.name}` : block.name
+  const name = localized ? `${localized}（${block.name}）` : block.name
   return `${name}  U+${formatCodePoint(block.start)}–U+${formatCodePoint(block.end)}`
 }
 const unicodeBlockOptions = computed<CustomSelectOption[]>(() => [
@@ -618,7 +641,6 @@ const exportSheet = (): void => {
     var(--background-light)
   );
   color: var(--primary-darker);
-  box-shadow: inset 0 -2px var(--primary-color);
 }
 
 [data-theme='dark'] .library-action.is-active {
@@ -633,6 +655,10 @@ const exportSheet = (): void => {
     var(--background-light)
   );
   color: var(--text-primary);
+}
+
+.library-export-backdrop {
+  display: none;
 }
 
 /* Export popover and nested-select stacking. */
@@ -665,6 +691,35 @@ const exportSheet = (): void => {
   font-size: 0.75rem;
   line-height: 1.25;
   text-align: start;
+}
+
+.library-export-item-btn {
+  width: 100%;
+}
+
+.library-export-item-btn__content {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.library-export-sheet-group {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.library-export-sheet-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  padding: 0.15rem 0.6rem 0.35rem;
+}
+
+.library-export-sheet-options label {
+  min-height: 2rem;
+  padding-inline: 0;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
 }
 
 .library-export-options__group {
@@ -890,9 +945,25 @@ const exportSheet = (): void => {
     flex-wrap: wrap;
   }
 
+  .library-export-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 28;
+    background: color-mix(in srgb, var(--modal-overlay) 45%, transparent);
+  }
+
   .library-export-options {
-    inset-inline-start: 0;
-    inset-inline-end: auto;
+    position: fixed;
+    inset-block-start: auto;
+    inset-block-end: max(0.5rem, env(safe-area-inset-bottom));
+    inset-inline: 0.5rem;
+    z-index: 30;
+    width: auto;
+    max-width: none;
+    max-height: min(80dvh, calc(100dvh - 3.5rem));
+    border-radius: var(--radius-lg);
+    box-shadow: 0 12px 32px var(--shadow-color);
   }
 
   .library-toolbar__buttons {
