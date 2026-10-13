@@ -21,6 +21,12 @@ describe('editor shortcuts', () => {
     expect(resolve('R', { shiftKey: true })).toBe('filledRectangle')
     expect(resolve('p', { altKey: true })).toBeUndefined()
     expect(resolve('P', { shiftKey: true })).toBeUndefined()
+    expect(resolve('[', { ctrlKey: true })).toBe('previousCharacter')
+    expect(resolve(']', { ctrlKey: true })).toBe('nextCharacter')
+    expect(resolve('[', { metaKey: true })).toBe('previousCharacter')
+    expect(resolve(']', { metaKey: true })).toBe('nextCharacter')
+    expect(resolve('[')).toBeUndefined()
+    expect(resolve(']', { ctrlKey: true, shiftKey: true })).toBeUndefined()
   })
 
   it('ignores composition, AltGraph and reserved keys', () => {

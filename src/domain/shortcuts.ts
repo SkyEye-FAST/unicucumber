@@ -13,6 +13,11 @@ export const shortcutDefinitions = {
   undo: { label: 'editor.actions.undo.title', keys: ['Mod+Z'] },
   redo: { label: 'editor.actions.redo.title', keys: ['Mod+Shift+Z', 'Mod+Y'] },
   save: { label: 'editor.actions.save.button', keys: ['Mod+S'] },
+  previousCharacter: {
+    label: 'glyph_navigation.previous_character',
+    keys: ['Mod+['],
+  },
+  nextCharacter: { label: 'glyph_navigation.next_character', keys: ['Mod+]'] },
   copy: { label: 'selection.copy', keys: ['Mod+C'] },
   cut: { label: 'selection.cut', keys: ['Mod+X'] },
   paste: { label: 'glyph_editor.paste_title', keys: ['Mod+V'] },
@@ -51,7 +56,7 @@ export const createDefaultShortcuts = (): ShortcutBindings =>
 
 export const isValidShortcut = (value: unknown): value is string =>
   typeof value === 'string' &&
-  /^(Mod\+)?(Alt\+)?(Shift\+)?([A-Z0-9]|ArrowUp|ArrowDown|ArrowLeft|ArrowRight|Delete|Backspace)$/.test(
+  /^(Mod\+)?(Alt\+)?(Shift\+)?([A-Z0-9\[\]]|ArrowUp|ArrowDown|ArrowLeft|ArrowRight|Delete|Backspace)$/.test(
     value,
   ) &&
   !/^Mod\+(Shift\+)?[RWTNLQ]$/.test(value)

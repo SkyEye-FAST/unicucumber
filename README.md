@@ -29,7 +29,7 @@ You can try the demo at the following links:
   - [x] Pointer Events editing for mouse, touch, and pen, including pinch zoom and two-finger pan
   - [x] Pencil, eraser, fill, line, rectangle, selection, transforms, and grid shifting tools
   - [x] Select, move, nudge, cut, copy, paste preview, duplicate, delete, undo, and redo
-  - [x] Keyboard shortcuts, zoom controls, fit-to-screen, and optional cursor previews
+  - [x] Configurable keyboard shortcuts, including Ctrl+[ / Ctrl+] (Command on macOS) for previous/next character, zoom controls, fit-to-screen, and optional cursor previews
   - [x] Text preview using the current glyphs and the bundled Unifont catalog
 - Glyph library and Unicode
   - [x] Manage multiple glyphs with search by code point, character, bitmap data, or Unicode name

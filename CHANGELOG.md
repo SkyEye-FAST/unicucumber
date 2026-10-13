@@ -7,6 +7,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 ### Added
 
 - Export saved, selected, filtered, or pasted character lists as HEX or zipped SVG/PNG files (#50).
+- Add configurable Ctrl+[ / Ctrl+] shortcuts for previous/next character navigation, retaining unsaved-edit confirmation (#50).
 
 ### Changed
 

@@ -126,6 +126,7 @@ import {
 } from 'vue'
 import { useResizeObserver } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
+import { useShortcuts } from '@/composables/useShortcuts'
 
 import CustomSelect from '@/components/CustomSelect.vue'
 import HorizontalScrollbar from '@/components/HorizontalScrollbar.vue'
@@ -141,6 +142,7 @@ import { getGlyphWidthFromHex } from '@/utils/hexUtils'
 const props = defineProps<{ activeCodePoint: string; glyphs: Glyph[] }>()
 const emit = defineEmits<{ open: [hexValue: string, glyph: Glyph] }>()
 const { t, locale } = useI18n()
+const { shortcutTooltip } = useShortcuts()
 const pageSize = 32
 const page = ref(0)
 const strip = ref<HTMLElement | null>(null)
@@ -237,14 +239,20 @@ const nextCodePoint = computed(() => {
   return orderedCodePoints.value.find((value) => value > active) ?? null
 })
 const previousCharacterTooltip = computed(() =>
-  previousCodePoint.value !== null
-    ? `${t('glyph_navigation.previous_character')} (U+${formatCodePoint(previousCodePoint.value)})`
-    : t('glyph_navigation.previous_character'),
+  shortcutTooltip(
+    previousCodePoint.value !== null
+      ? `${t('glyph_navigation.previous_character')} (U+${formatCodePoint(previousCodePoint.value)})`
+      : t('glyph_navigation.previous_character'),
+    'previousCharacter',
+  ),
 )
 const nextCharacterTooltip = computed(() =>
-  nextCodePoint.value !== null
-    ? `${t('glyph_navigation.next_character')} (U+${formatCodePoint(nextCodePoint.value)})`
-    : t('glyph_navigation.next_character'),
+  shortcutTooltip(
+    nextCodePoint.value !== null
+      ? `${t('glyph_navigation.next_character')} (U+${formatCodePoint(nextCodePoint.value)})`
+      : t('glyph_navigation.next_character'),
+    'nextCharacter',
+  ),
 )
 const codePoints = computed(() => {
   const block = UNICODE_BLOCKS.find((item) => item.id === blockId.value)!
@@ -375,6 +383,11 @@ const openAdjacent = async (codePoint: number | null): Promise<void> => {
     navigating.value = false
   }
 }
+defineExpose({
+  previousCharacter: () => openAdjacent(previousCodePoint.value),
+  nextCharacter: () => openAdjacent(nextCodePoint.value),
+})
+
 onMounted(() => {
   void loadCatalog()
 })

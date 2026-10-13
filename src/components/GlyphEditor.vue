@@ -235,6 +235,7 @@
         />
       </aside>
       <GlyphNavigator
+        ref="glyphNavigatorRef"
         v-show="!isGlyphLibraryExpanded"
         :active-code-point="currentCodePoint"
         :glyphs="glyphs"
@@ -454,6 +455,7 @@ const compositionFocusTarget = ref<HTMLElement | null>(null)
 const settingsFocusTarget = ref<HTMLElement | null>(null)
 const textPreviewFocusTarget = ref<HTMLElement | null>(null)
 const glyphManagerRef = ref<{ handleEscape: () => boolean } | null>(null)
+const glyphNavigatorRef = ref<InstanceType<typeof GlyphNavigator> | null>(null)
 
 watch(
   [isSidebarActive, isGlyphLibraryExpanded, isNarrowSidebar],
@@ -1007,6 +1009,14 @@ const handleKeydown = (e: KeyboardEvent): void => {
     return
   e.preventDefault()
   switch (action) {
+    case 'previousCharacter':
+      if (!isGlyphLibraryExpanded.value)
+        void glyphNavigatorRef.value?.previousCharacter()
+      break
+    case 'nextCharacter':
+      if (!isGlyphLibraryExpanded.value)
+        void glyphNavigatorRef.value?.nextCharacter()
+      break
     case 'undo':
       handleUndo()
       break
