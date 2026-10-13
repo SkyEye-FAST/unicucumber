@@ -522,4 +522,27 @@ describe('GlyphGrid', () => {
     })
     expect(wrapper.emitted('command')).toBeUndefined()
   })
+
+  it('maintains consistent cell size and height when switching between 16-pixel and 8-pixel widths in fit mode', async () => {
+    const wrapper = mountGrid()
+    await wrapper.setProps({ gridData: createGrid(16) })
+    const grid16 = wrapper.get('.grid-container')
+    const cellSize16 = (grid16.element as HTMLElement).style.getPropertyValue(
+      '--cell-size',
+    )
+    const viewport16 = (wrapper.get('.grid-viewport').element as HTMLElement)
+      .style.height
+
+    await wrapper.setProps({ gridData: createGrid(8) })
+    const grid8 = wrapper.get('.grid-container')
+    const cellSize8 = (grid8.element as HTMLElement).style.getPropertyValue(
+      '--cell-size',
+    )
+    const viewport8 = (wrapper.get('.grid-viewport').element as HTMLElement)
+      .style.height
+
+    expect(cellSize8).toBe(cellSize16)
+    expect(viewport8).toBe(viewport16)
+    wrapper.unmount()
+  })
 })

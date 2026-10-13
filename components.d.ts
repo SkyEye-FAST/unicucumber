@@ -85,6 +85,8 @@ declare module 'vue' {
     IMaterialSymbolsInvertColors: typeof import('~icons/material-symbols/invert-colors')['default']
     IMaterialSymbolsKeyboardArrowDown: typeof import('~icons/material-symbols/keyboard-arrow-down')['default']
     IMaterialSymbolsKeyboardArrowUp: typeof import('~icons/material-symbols/keyboard-arrow-up')['default']
+    IMaterialSymbolsKeyboardDoubleArrowLeft: typeof import('~icons/material-symbols/keyboard-double-arrow-left')['default']
+    IMaterialSymbolsKeyboardDoubleArrowRight: typeof import('~icons/material-symbols/keyboard-double-arrow-right')['default']
     IMaterialSymbolsLayersOutline: typeof import('~icons/material-symbols/layers-outline')['default']
     IMaterialSymbolsLightMode: typeof import('~icons/material-symbols/light-mode')['default']
     IMaterialSymbolsLockOpenOutline: typeof import('~icons/material-symbols/lock-open-outline')['default']

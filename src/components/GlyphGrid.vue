@@ -643,11 +643,15 @@ const calculateFitCellSize = (): number => {
   const minimumCellSize = Number.isFinite(configuredMaxHeight)
     ? MIN_FIT_CELL_SIZE
     : MIN_CELL_SIZE
+  // Use a standard reference width of at least 16 columns so narrower glyphs
+  // (e.g. 8-pixel half-width) maintain the same cell size and viewport height
+  // as full-width (16-pixel) glyphs without jumping in height.
+  const referenceWidth = Math.max(16, gridWidth.value)
   return Math.max(
     minimumCellSize,
     Math.min(
       DEFAULT_CELL_SIZE,
-      Math.floor(availableWidth / (gridWidth.value + 1)),
+      Math.floor(availableWidth / (referenceWidth + 1)),
       Math.floor(availableHeight / (props.gridData.length + 1)),
     ),
   )

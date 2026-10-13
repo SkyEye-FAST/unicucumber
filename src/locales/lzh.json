@@ -336,11 +336,11 @@
     }
   },
   "glyph_navigation": {
-    "next_character": "次字",
-    "previous_character": "前字",
     "load_error": "萬國碼字體之錄未能盡數載焉，既存字形猶可用。",
     "next": "次列",
+    "next_character": "次字",
     "previous": "嚮列",
+    "previous_character": "前字",
     "retry": "重試",
     "title": "覽字形"
   },

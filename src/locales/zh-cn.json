@@ -336,11 +336,11 @@
     }
   },
   "glyph_navigation": {
-    "next_character": "下一个字符",
-    "previous_character": "上一个字符",
     "load_error": "部分Unifont数据加载失败，仍可使用已保存的字形。",
     "next": "下一组字形",
+    "next_character": "下一个字符",
     "previous": "上一组字形",
+    "previous_character": "上一个字符",
     "retry": "重试",
     "title": "浏览字形"
   },

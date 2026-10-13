@@ -336,11 +336,11 @@
     }
   },
   "glyph_navigation": {
-    "next_character": "Next character",
-    "previous_character": "Previous character",
     "load_error": "Some Unifont data could not be loaded. Saved glyphs are still available.",
     "next": "Next glyphs",
+    "next_character": "Next character",
     "previous": "Previous glyphs",
+    "previous_character": "Previous character",
     "retry": "Retry",
     "title": "Browse glyphs"
   },

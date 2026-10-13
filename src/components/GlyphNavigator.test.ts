@@ -104,9 +104,7 @@ describe('GlyphNavigator', () => {
     ])
     const wrapper = mountNavigator([{ codePoint: '0100', hexValue: savedHex }])
     await flushPromises()
-    await wrapper
-      .get('.glyph-navigator__character-controls button:last-child')
-      .trigger('click')
+    await wrapper.get('.glyph-navigator__btn--next-char').trigger('click')
     await flushPromises()
     expect(wrapper.emitted('open')).toEqual([
       [savedHex, { codePoint: '0100', hexValue: savedHex }],
@@ -114,9 +112,7 @@ describe('GlyphNavigator', () => {
     expect(unifontLoader.getGlyph).not.toHaveBeenCalledWith(0x100)
     await wrapper.setProps({ activeCodePoint: '0100' })
     await flushPromises()
-    await wrapper
-      .get('.glyph-navigator__character-controls button:last-child')
-      .trigger('click')
+    await wrapper.get('.glyph-navigator__btn--next-char').trigger('click')
     await flushPromises()
     expect(wrapper.emitted('open')?.at(-1)).toEqual([
       hex,
@@ -125,13 +121,9 @@ describe('GlyphNavigator', () => {
     await wrapper.setProps({ activeCodePoint: '20000' })
     await flushPromises()
     expect(
-      wrapper
-        .get('.glyph-navigator__character-controls button:last-child')
-        .attributes('disabled'),
+      wrapper.get('.glyph-navigator__btn--next-char').attributes('disabled'),
     ).toBeDefined()
-    await wrapper
-      .get('.glyph-navigator__character-controls button:first-child')
-      .trigger('click')
+    await wrapper.get('.glyph-navigator__btn--prev-char').trigger('click')
     await flushPromises()
     expect(wrapper.emitted('open')?.at(-1)).toEqual([
       savedHex,
@@ -149,17 +141,13 @@ describe('GlyphNavigator', () => {
     vi.mocked(unifontLoader.getGlyph).mockRejectedValueOnce(
       new Error('offline'),
     )
-    await wrapper
-      .get('.glyph-navigator__character-controls button:last-child')
-      .trigger('click')
+    await wrapper.get('.glyph-navigator__btn--next-char').trigger('click')
     await flushPromises()
     expect(wrapper.emitted('open')).toBeUndefined()
     expect(wrapper.get('[role="status"]').text()).toContain(
       'Saved glyphs are still available',
     )
-    await wrapper
-      .get('.glyph-navigator__character-controls button:last-child')
-      .trigger('click')
+    await wrapper.get('.glyph-navigator__btn--next-char').trigger('click')
     await flushPromises()
     expect(wrapper.emitted('open')).toHaveLength(1)
     expect(wrapper.find('[role="status"]').exists()).toBe(false)
@@ -170,13 +158,35 @@ describe('GlyphNavigator', () => {
           resolve = done
         }),
     )
-    await wrapper
-      .get('.glyph-navigator__character-controls button:last-child')
-      .trigger('click')
+    await wrapper.get('.glyph-navigator__btn--next-char').trigger('click')
     await wrapper.setProps({ activeCodePoint: '0042' })
     resolve?.(hex)
     await flushPromises()
     expect(wrapper.emitted('open')).toHaveLength(1)
+    wrapper.unmount()
+  })
+
+  it('highlights no glyph and disables character navigation buttons when activeCodePoint is empty', async () => {
+    vi.mocked(unifontLoader.loadCatalogCodePoints).mockResolvedValue([
+      0x41, 0x42,
+    ])
+    const wrapper = mount(GlyphNavigator, {
+      props: { activeCodePoint: '', glyphs: [] },
+      global: {
+        plugins: [
+          createI18n({ legacy: false, locale: 'en', messages: { en } }),
+        ],
+        stubs: { PixelPreview: true, CustomSelect: true },
+      },
+    })
+    await flushPromises()
+    expect(wrapper.findAll('[aria-current="true"]')).toHaveLength(0)
+    expect(
+      wrapper.get('.glyph-navigator__btn--prev-char').attributes('disabled'),
+    ).toBeDefined()
+    expect(
+      wrapper.get('.glyph-navigator__btn--next-char').attributes('disabled'),
+    ).toBeDefined()
     wrapper.unmount()
   })
 })

@@ -2,6 +2,7 @@
   <nav class="glyph-navigator" :aria-label="t('glyph_navigation.title')">
     <div class="glyph-navigator__controls">
       <CustomSelect
+        class="glyph-navigator__select"
         :model-value="blockId"
         :ariaLabel="t('glyph_manager.library.unicode_block_label')"
         :empty-label="t('glyph_manager.library.no_matches')"
@@ -10,44 +11,52 @@
         mobile-modal
         @update:model-value="selectBlock"
       />
-      <button
-        class="ui-icon-button"
-        type="button"
-        :disabled="page === 0"
-        :aria-label="t('glyph_navigation.previous')"
-        @click="page -= 1"
+      <div
+        class="glyph-navigator__nav-buttons"
+        role="group"
+        :aria-label="t('glyph_navigation.title')"
       >
-        <i-material-symbols-chevron-left />
-      </button>
-      <button
-        class="ui-icon-button"
-        type="button"
-        :disabled="(page + 1) * pageSize >= codePoints.length"
-        :aria-label="t('glyph_navigation.next')"
-        @click="page += 1"
-      >
-        <i-material-symbols-chevron-right />
-      </button>
-    </div>
-    <div class="glyph-navigator__character-controls">
-      <button
-        class="ui-button ui-button--quiet"
-        type="button"
-        :disabled="previousCodePoint === null || navigating"
-        @click="openAdjacent(previousCodePoint)"
-      >
-        <i-material-symbols-chevron-left />
-        {{ t('glyph_navigation.previous_character') }}
-      </button>
-      <button
-        class="ui-button ui-button--quiet"
-        type="button"
-        :disabled="nextCodePoint === null || navigating"
-        @click="openAdjacent(nextCodePoint)"
-      >
-        {{ t('glyph_navigation.next_character') }}
-        <i-material-symbols-chevron-right />
-      </button>
+        <button
+          class="ui-icon-button glyph-navigator__btn--prev-page"
+          type="button"
+          :disabled="page === 0"
+          :aria-label="t('glyph_navigation.previous')"
+          :title="t('glyph_navigation.previous')"
+          @click="page -= 1"
+        >
+          <i-material-symbols-keyboard-double-arrow-left />
+        </button>
+        <button
+          class="ui-icon-button glyph-navigator__btn--prev-char"
+          type="button"
+          :disabled="previousCodePoint === null || navigating"
+          :aria-label="t('glyph_navigation.previous_character')"
+          :title="previousCharacterTooltip"
+          @click="openAdjacent(previousCodePoint)"
+        >
+          <i-material-symbols-chevron-left />
+        </button>
+        <button
+          class="ui-icon-button glyph-navigator__btn--next-char"
+          type="button"
+          :disabled="nextCodePoint === null || navigating"
+          :aria-label="t('glyph_navigation.next_character')"
+          :title="nextCharacterTooltip"
+          @click="openAdjacent(nextCodePoint)"
+        >
+          <i-material-symbols-chevron-right />
+        </button>
+        <button
+          class="ui-icon-button glyph-navigator__btn--next-page"
+          type="button"
+          :disabled="(page + 1) * pageSize >= codePoints.length"
+          :aria-label="t('glyph_navigation.next')"
+          :title="t('glyph_navigation.next')"
+          @click="page += 1"
+        >
+          <i-material-symbols-keyboard-double-arrow-right />
+        </button>
+      </div>
     </div>
     <div
       ref="strip"
@@ -65,7 +74,9 @@
         :data-code-point="formatCodePoint(codePoint)"
         :aria-label="`U+${formatCodePoint(codePoint)}`"
         :aria-current="
-          formatCodePoint(codePoint) === activeCodePoint ? 'true' : undefined
+          activeCodePoint && formatCodePoint(codePoint) === activeCodePoint
+            ? 'true'
+            : undefined
         "
         :disabled="!resolvedGlyphs.has(codePoint)"
         @click="openGlyph(codePoint)"
@@ -209,7 +220,9 @@ const orderedCodePoints = computed(() =>
   ),
 )
 const previousCodePoint = computed(() => {
+  if (!props.activeCodePoint) return null
   const active = Number.parseInt(props.activeCodePoint, 16)
+  if (Number.isNaN(active)) return null
   let previous: number | null = null
   for (const value of orderedCodePoints.value) {
     if (value >= active) break
@@ -217,11 +230,21 @@ const previousCodePoint = computed(() => {
   }
   return previous
 })
-const nextCodePoint = computed(
-  () =>
-    orderedCodePoints.value.find(
-      (value) => value > Number.parseInt(props.activeCodePoint, 16),
-    ) ?? null,
+const nextCodePoint = computed(() => {
+  if (!props.activeCodePoint) return null
+  const active = Number.parseInt(props.activeCodePoint, 16)
+  if (Number.isNaN(active)) return null
+  return orderedCodePoints.value.find((value) => value > active) ?? null
+})
+const previousCharacterTooltip = computed(() =>
+  previousCodePoint.value !== null
+    ? `${t('glyph_navigation.previous_character')} (U+${formatCodePoint(previousCodePoint.value)})`
+    : t('glyph_navigation.previous_character'),
+)
+const nextCharacterTooltip = computed(() =>
+  nextCodePoint.value !== null
+    ? `${t('glyph_navigation.next_character')} (U+${formatCodePoint(nextCodePoint.value)})`
+    : t('glyph_navigation.next_character'),
 )
 const codePoints = computed(() => {
   const block = UNICODE_BLOCKS.find((item) => item.id === blockId.value)!
@@ -238,7 +261,9 @@ const selectBlock = (value: string | number): void => {
   page.value = 0
 }
 const revealActive = (): void => {
+  if (!props.activeCodePoint) return
   const active = Number.parseInt(props.activeCodePoint, 16)
+  if (Number.isNaN(active)) return
   const block = UNICODE_BLOCKS.find(
     (item) => active >= item.start && active <= item.end,
   )
@@ -365,61 +390,141 @@ onBeforeUnmount(() => {
   width: min(100%, 43rem);
   justify-self: center;
   min-width: 0;
-  padding: 0.75rem;
+  padding: var(--space-3);
   border: 1px solid var(--border-color);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-md);
+  background: var(--background-light);
+  box-shadow: 0 1px 3px var(--shadow-color);
 }
 .glyph-navigator__controls {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  min-width: 0;
+}
+.glyph-navigator__select {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.glyph-navigator__nav-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex: none;
+}
+.glyph-navigator__nav-buttons .ui-icon-button {
+  width: var(--control-height);
+  min-width: var(--control-height);
+  height: var(--control-height);
+  min-height: var(--control-height);
+  border: 1px solid var(--border-color);
+  background: var(--input-background);
+  border-radius: var(--radius-sm);
+  color: var(--text-color);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+.glyph-navigator__nav-buttons .ui-icon-button:hover:not(:disabled) {
+  border-color: var(--border-hover);
+  background: var(--background-hover);
+  color: var(--primary-color);
+}
+.glyph-navigator__nav-buttons .ui-icon-button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 .glyph-navigator__strip {
   display: flex;
-  gap: 0.25rem;
+  gap: 0.375rem;
   overflow-x: auto;
   scrollbar-width: auto;
-  padding-bottom: 0.25rem;
-}
-.glyph-navigator__character-controls {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  padding: 0.25rem 0.15rem 0.5rem;
 }
 .glyph-navigator__glyph {
   display: flex;
-  flex: 0 0 3.5rem;
-  min-height: 4rem;
+  flex: 0 0 3.75rem;
+  min-height: 4.25rem;
   align-items: center;
   justify-content: space-between;
   flex-direction: column;
-  padding: 0.25rem;
+  padding: 0.35rem 0.25rem 0.3rem;
   border: 1px solid var(--border-color);
-  border-radius: 0.25rem;
+  border-radius: var(--radius-sm);
   color: var(--text-color);
   background: var(--input-background);
   cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+.glyph-navigator__glyph:hover:not(:disabled):not([aria-current='true']) {
+  border-color: var(--border-hover);
+  background: var(--background-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 6px var(--shadow-color);
 }
 .glyph-navigator__glyph[aria-current='true'] {
   border-color: var(--primary-color);
-  box-shadow: inset 0 0 0 1px var(--primary-color);
+  background: color-mix(
+    in srgb,
+    var(--primary-color) 8%,
+    var(--input-background)
+  );
+  box-shadow:
+    0 0 0 1px var(--primary-color),
+    0 2px 6px color-mix(in srgb, var(--primary-color) 20%, transparent);
+  transform: translateY(-1px);
 }
 .glyph-navigator__glyph:disabled {
-  opacity: 0.5;
-  cursor: default;
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 .glyph-navigator__glyph small {
   font-family: var(--monospace-font);
-  font-size: 0.65rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+}
+.glyph-navigator__glyph[aria-current='true'] small {
+  color: var(--primary-color);
 }
 .glyph-navigator__status {
   color: var(--text-secondary);
   font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
 }
 .glyph-navigator__scrollbar {
   display: none;
+}
+@media (max-width: 540px) {
+  .glyph-navigator__controls {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .glyph-navigator__select {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+  .glyph-navigator__nav-buttons {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-2);
+  }
+  .glyph-navigator__nav-buttons .ui-icon-button {
+    width: 100%;
+    min-width: 0;
+    height: var(--control-height);
+  }
 }
 @media (min-width: 720px) {
   .glyph-navigator__strip {
