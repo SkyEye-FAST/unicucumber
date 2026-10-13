@@ -173,7 +173,9 @@
                   'save',
                 )
               "
-              :disabled="!hasUnsavedChanges || isSavingGlyph"
+              :disabled="
+                !hasUnsavedChanges || !currentCodePoint || isSavingGlyph
+              "
               :aria-label="
                 $t(
                   currentGlyphIsManaged
@@ -921,7 +923,7 @@ const discardRestoredDraft = async (): Promise<void> => {
   await glyphRepository.deleteDraft()
   editorDocument.load(
     {
-      codePoint: '0000',
+      codePoint: '',
       width: settings.value.glyphWidth,
       activeGlyphId: null,
     },
@@ -1073,7 +1075,13 @@ const beginGlyphLibraryLoad = (): void => {
 }
 
 const saveCurrentGlyph = async (): Promise<void> => {
-  if (!hasUnsavedChanges.value || isSavingGlyph.value) return
+  if (
+    !hasUnsavedChanges.value ||
+    !currentCodePoint.value ||
+    isSavingGlyph.value
+  ) {
+    return
+  }
 
   isSavingGlyph.value = true
   const glyph: Glyph = {

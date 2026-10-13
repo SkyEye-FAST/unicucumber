@@ -124,7 +124,9 @@ const validateSnapshot = (value: unknown): EditorDocumentSnapshot | null => {
   const candidate = value as Partial<EditorDocumentSnapshot>
   const codePoint =
     typeof candidate.codePoint === 'string'
-      ? normalizeCodePointHex(candidate.codePoint)
+      ? candidate.codePoint.trim() === ''
+        ? ''
+        : normalizeCodePointHex(candidate.codePoint)
       : null
   if (
     codePoint === null ||

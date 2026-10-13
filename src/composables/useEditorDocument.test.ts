@@ -58,4 +58,17 @@ describe('useEditorDocument', () => {
     expect(editor.width.value).toBe(20)
     expect(editor.grid.value[0]).toHaveLength(20)
   })
+
+  it('defaults to an empty code point and allows clearing or updating code point', () => {
+    const editor = useEditorDocument()
+    expect(editor.codePoint.value).toBe('')
+
+    expect(editor.execute({ type: 'setCodePoint', codePoint: '0041' })).toBe(
+      true,
+    )
+    expect(editor.codePoint.value).toBe('0041')
+
+    expect(editor.execute({ type: 'setCodePoint', codePoint: '' })).toBe(true)
+    expect(editor.codePoint.value).toBe('')
+  })
 })

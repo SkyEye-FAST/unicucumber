@@ -66,7 +66,7 @@ export function useEditorDocument(
   const initialWidth = initial.grid?.[0]?.length ?? initial.width ?? 16
   const width = ref<GlyphWidth>(isGlyphWidth(initialWidth) ? initialWidth : 16)
   const codePoint = ref(
-    normalizeCodePointHex(initial.codePoint ?? '0000') ?? '0000',
+    initial.codePoint ? (normalizeCodePointHex(initial.codePoint) ?? '') : '',
   )
   const grid = ref<GridData>(
     initial.grid ? deepCloneGrid(initial.grid) : createGrid(width.value),
@@ -118,8 +118,11 @@ export function useEditorDocument(
     const nextWidth =
       document.grid?.[0]?.length ?? document.width ?? width.value
     const normalizedWidth: GlyphWidth = isGlyphWidth(nextWidth) ? nextWidth : 16
-    const normalizedCodePoint =
-      normalizeCodePointHex(document.codePoint ?? codePoint.value) ?? '0000'
+    const rawCodePoint =
+      document.codePoint !== undefined ? document.codePoint : codePoint.value
+    const normalizedCodePoint = rawCodePoint
+      ? (normalizeCodePointHex(rawCodePoint) ?? '')
+      : ''
     const next: EditorDocumentSnapshot = {
       codePoint: normalizedCodePoint,
       width: normalizedWidth,
@@ -147,7 +150,10 @@ export function useEditorDocument(
     let next = current
 
     if (command.type === 'setCodePoint') {
-      const normalized = normalizeCodePointHex(command.codePoint)
+      const normalized =
+        command.codePoint.trim() === ''
+          ? ''
+          : normalizeCodePointHex(command.codePoint)
       if (normalized === null || normalized === current.codePoint) return false
       next = { ...current, codePoint: normalized }
     } else {

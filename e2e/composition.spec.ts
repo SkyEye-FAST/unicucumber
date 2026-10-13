@@ -372,5 +372,5 @@ test('keeps composition code point independent from a non-CJK editor glyph', asy
   await expect(page.getByRole('dialog')).toBeVisible()
   await expect(page.getByTestId('composition-code-point')).toHaveValue('4E00')
   await page.keyboard.press('Escape')
-  await expect(page.locator('.code-point-input input')).toHaveValue('0000')
+  await expect(page.locator('.code-point-input input')).toHaveValue('')
 })

@@ -74,6 +74,11 @@ describe('glyph repository', () => {
         },
       }),
     ).toBeNull()
+    const emptyDraft = {
+      ...storedDraft,
+      snapshot: { ...snapshot, codePoint: '' },
+    }
+    expect(validateDraft(emptyDraft)).toEqual(emptyDraft)
     const repository = new IndexedDbGlyphRepository(
       new IDBFactory(),
       localStorage,

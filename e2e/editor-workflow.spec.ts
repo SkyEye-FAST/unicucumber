@@ -360,6 +360,8 @@ test('undoing back to the saved document removes the stale autosaved draft', asy
 test('Add to glyph set persists the editor glyph to the glyph manager', async ({
   page,
 }) => {
+  await page.locator('.code-point-input input').fill('0041')
+  await page.locator('.code-point-input input').press('Enter')
   const cell = await cellCenter(page, 0, 0)
   await page.mouse.click(cell.x, cell.y)
   await expect(page.locator('.document-status')).toHaveText(/Unsaved/i)
@@ -396,7 +398,7 @@ test('Add to glyph set persists the editor glyph to the glyph manager', async ({
   )
   expect(savedGlyphs).toEqual([
     {
-      codePoint: '0000',
+      codePoint: '0041',
       hexValue: `8${'0'.repeat(63)}`,
     },
   ])
@@ -419,7 +421,7 @@ test('empty autosaved drafts restore without showing the restore notice', async 
             schemaVersion: 1,
             updatedAt: Date.now(),
             snapshot: {
-              codePoint: '0000',
+              codePoint: '',
               width: 16,
               grid: Array.from({ length: 16 }, () => Array(16).fill(0)),
               activeGlyphId: null,

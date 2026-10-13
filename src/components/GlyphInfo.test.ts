@@ -69,4 +69,35 @@ describe('GlyphInfo character input', () => {
     expect(wrapper.emitted('update:model-value')).toEqual([['4E2D']])
     wrapper.unmount()
   })
+
+  it('renders clean inputs and disables encoding info button when modelValue is empty', () => {
+    const wrapper = mount(GlyphInfo, {
+      props: {
+        modelValue: '',
+        hexValue: '00'.repeat(32),
+        width: 16,
+        browserPreviewFont: 'sans-serif',
+        saveStatus: 'saved',
+        saveStatusLabel: 'Saved',
+      },
+      global: {
+        plugins: [
+          createI18n({ legacy: false, locale: 'en', messages: { en } }),
+        ],
+        stubs: { PixelPreview: true },
+      },
+    })
+    const codePointInput = wrapper.get<HTMLInputElement>(
+      '.code-point-input input',
+    )
+    const charInput = wrapper.get<HTMLInputElement>('.unicode-char')
+    const infoBtn = wrapper.get('button.encoding-info-btn')
+
+    expect(codePointInput.element.value).toBe('')
+    expect(codePointInput.attributes('aria-invalid')).toBe('false')
+    expect(charInput.element.value).toBe('')
+    expect(charInput.attributes('aria-invalid')).toBe('false')
+    expect(infoBtn.attributes('disabled')).toBeDefined()
+    wrapper.unmount()
+  })
 })

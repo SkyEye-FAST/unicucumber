@@ -15,6 +15,7 @@
         class="encoding-info-btn ui-icon-button"
         type="button"
         :title="$t('editor.actions.show_encoding_info')"
+        :disabled="!props.modelValue"
         :class="{ active: showingEncodingInfo }"
         @click="toggleEncodingInfo()"
       >
@@ -50,6 +51,7 @@
           v-model="localCharacter"
           class="unicode-char"
           :style="previewStyle"
+          :title="$t('glyph_manager.add.character')"
           :aria-label="$t('glyph_manager.add.character')"
           :aria-invalid="characterError !== null"
           :aria-describedby="characterError ? 'characterError' : undefined"
@@ -220,9 +222,13 @@ const previewStyle = computed(() => ({
   fontFamily: props.browserPreviewFont,
 }))
 
-const previewCharacter = computed(
-  () => characterFromCodePoint(parseInt(props.modelValue || '0000', 16)) ?? '�',
-)
+const previewCharacter = computed(() => {
+  if (!props.modelValue) return ''
+  const codePoint = parseInt(props.modelValue, 16)
+  return Number.isNaN(codePoint)
+    ? ''
+    : (characterFromCodePoint(codePoint) ?? '')
+})
 const localCharacter = ref(previewCharacter.value)
 const characterComposing = ref(false)
 let commitAfterComposition = false
@@ -235,11 +241,12 @@ const characterCodePoint = computed(() => {
     ? codePoint
     : null
 })
-const characterError = computed(() =>
-  characterCodePoint.value === null
+const characterError = computed(() => {
+  if (localCharacter.value === previewCharacter.value) return null
+  return characterCodePoint.value === null
     ? $t('glyph_editor.invalid_character')
-    : null,
-)
+    : null
+})
 watch(previewCharacter, (character) => {
   localCharacter.value = character
 })
@@ -267,13 +274,15 @@ const finishCharacterComposition = (event: CompositionEvent): void => {
 }
 
 const ziToolsUrl = computed(() => {
-  const codePoint = parseInt(props.modelValue || '0000', 16)
+  if (!props.modelValue) return ''
+  const codePoint = parseInt(props.modelValue, 16)
   const char = characterFromCodePoint(codePoint) ?? ''
   return `https://zi.tools/zi/${char}`
 })
 
 const showZiToolsLink = computed(() => {
-  const codePoint = parseInt(props.modelValue || '0000', 16)
+  if (!props.modelValue) return false
+  const codePoint = parseInt(props.modelValue, 16)
   const char = characterFromCodePoint(codePoint)
   if (char === null) return false
   return isCJKChar(char)
@@ -345,29 +354,31 @@ async function ensureUnicodeNameFor(codePoint: number) {
 }
 
 const unicodeNameStr = computed(() => {
-  const codePoint = parseInt(props.modelValue || '0000', 16)
+  if (!props.modelValue) return '—'
+  const codePoint = parseInt(props.modelValue, 16)
   const cached = unicodeNameCache.value[codePoint]
   if (cached !== undefined) return cached
   return showingEncodingInfo.value ? 'Loading…' : '—'
 })
 
 watch(showingEncodingInfo, async (v) => {
-  if (!v) return
-  const codePoint = parseInt(props.modelValue || '0000', 16)
+  if (!v || !props.modelValue) return
+  const codePoint = parseInt(props.modelValue, 16)
   await Promise.all([ensureUnicodeNameFor(codePoint), loadIconvLite()])
 })
 
 watch(
   () => props.modelValue,
   async (val) => {
-    if (!showingEncodingInfo.value) return
-    const codePoint = parseInt(val || '0000', 16)
+    if (!showingEncodingInfo.value || !val) return
+    const codePoint = parseInt(val, 16)
     await ensureUnicodeNameFor(codePoint)
   },
 )
 
 const encodingInfo = computed(() => {
-  const codePoint = parseInt(props.modelValue || '0000', 16)
+  if (!props.modelValue) return {}
+  const codePoint = parseInt(props.modelValue, 16)
   const char = characterFromCodePoint(codePoint)
   if (char === null) return {}
 
@@ -411,12 +422,26 @@ const encodingInfo = computed(() => {
   min-width: 0;
   padding: 0.1rem 0.2rem;
   border: 1px solid var(--glyph-preview-border);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   background: var(--glyph-background-color);
   color: var(--glyph-foreground-color);
   font-size: 1.6rem;
   text-align: center;
-  transition: none !important;
+  cursor: text;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.unicode-char:hover {
+  border-color: var(--border-hover);
+}
+
+.unicode-char:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--primary-color) 35%, transparent);
 }
 
 .glyph-width {
@@ -434,9 +459,13 @@ const encodingInfo = computed(() => {
   font-size: 1.05rem;
   font-weight: 600;
   background: var(--background-hover);
-  border: 1px solid transparent;
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
-  padding: 0.15rem 0.3rem;
+  padding: 0.15rem 0.35rem;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
 }
 
 .code-point-input span {
@@ -458,6 +487,8 @@ const encodingInfo = computed(() => {
 .code-point-input:focus-within {
   border-color: var(--primary-color);
   background: var(--input-background);
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--primary-color) 35%, transparent);
 }
 
 .code-point-input input[aria-invalid='true'] {
@@ -578,29 +609,44 @@ code.encoding-value {
   min-width: 0;
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.35rem;
   margin-inline-start: auto;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border-color);
+  background: var(--background-hover);
   color: var(--text-secondary);
   font-size: 0.75rem;
+  font-weight: 500;
   white-space: nowrap;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .document-status.saved {
-  opacity: 0.72;
+  opacity: 0.85;
 }
 
 .document-status.saving,
 .document-status.unsaved {
   color: var(--warning-text);
+  background: var(--warning-background);
+  border-color: var(--warning-border);
 }
 
 [data-theme='dark'] .document-status.saving,
 [data-theme='dark'] .document-status.unsaved {
   color: #f3bf46;
+  background: color-mix(in srgb, #f3bf46 12%, transparent);
+  border-color: color-mix(in srgb, #f3bf46 30%, transparent);
 }
 
 .document-status.error {
   color: var(--danger-color);
+  background: color-mix(in srgb, var(--danger-color) 10%, transparent);
+  border-color: color-mix(in srgb, var(--danger-color) 30%, transparent);
   font-weight: 600;
 }
 
