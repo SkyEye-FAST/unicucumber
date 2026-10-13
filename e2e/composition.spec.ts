@@ -229,7 +229,7 @@ test(
 )
 
 test(
-  'uses mobile tabs without overflowing the viewport',
+  'switches mobile tabs to add and remove composition layers',
   { tag: '@phone' },
   async ({ page }, testInfo) => {
     test.skip(!testInfo.project.name.includes('phone'), 'phone workflow')
@@ -241,10 +241,6 @@ test(
     await expect(tabs).toBeVisible()
     const confirmCodePoint = page.getByTestId('composition-code-point-confirm')
     await expect(confirmCodePoint).toBeVisible()
-    const codePointFontSize = await page
-      .getByTestId('composition-code-point')
-      .evaluate((input) => Number.parseFloat(getComputedStyle(input).fontSize))
-    expect(codePointFontSize).toBeGreaterThanOrEqual(16)
     await page.getByTestId('composition-code-point').fill('4e00')
     await expect(page.getByTestId('composition-code-point')).toHaveValue('4E00')
     await confirmCodePoint.click()
@@ -263,38 +259,6 @@ test(
       page.getByTestId('composition-layer-blank-1-select'),
     ).toHaveCount(0)
     await expect(page.getByTestId('composition-save')).toBeInViewport()
-
-    const toolbarButtons = page.locator('.composition-toolbar .ui-button')
-    await expect(toolbarButtons).toHaveCount(5)
-    const toolbarButtonBoxes = await toolbarButtons.evaluateAll((buttons) =>
-      buttons.map((button) => {
-        const box = button.getBoundingClientRect()
-        return {
-          width: Math.round(box.width),
-          height: Math.round(box.height),
-          top: Math.round(box.top),
-        }
-      }),
-    )
-    expect(new Set(toolbarButtonBoxes.map(({ top }) => top)).size).toBe(2)
-    expect(
-      new Set(toolbarButtonBoxes.slice(0, 2).map(({ width }) => width)).size,
-    ).toBe(1)
-    expect(toolbarButtonBoxes[2]?.width).toBe(toolbarButtonBoxes[3]?.width)
-    expect(toolbarButtonBoxes[4]?.width).toBeGreaterThan(
-      toolbarButtonBoxes[3]?.width ?? 0,
-    )
-    expect(
-      Math.min(...toolbarButtonBoxes.map(({ height }) => height)),
-    ).toBeGreaterThanOrEqual(60)
-
-    const metrics = await page.evaluate(() => ({
-      width: document.documentElement.scrollWidth,
-      viewport: document.documentElement.clientWidth,
-      bodyOverflow: document.body.style.overflow,
-    }))
-    expect(metrics.width).toBeLessThanOrEqual(metrics.viewport)
-    expect(metrics.bodyOverflow).toBe('hidden')
   },
 )
 

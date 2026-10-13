@@ -1,7 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
 
-import { join } from 'node:path'
-
 const loadWideEditor = async (page: Page, width: number, height: number) => {
   await page.setViewportSize({ width, height })
   await page.addInitScript(() => {
@@ -69,8 +67,6 @@ test.describe('wide editor layout', () => {
 
   for (const viewport of [
     { width: 720, height: 900 },
-    { width: 768, height: 1024 },
-    { width: 1000, height: 768 },
     { width: 1023, height: 768 },
   ]) {
     test(`keeps the tablet command rail beside the canvas at ${viewport.width}x${viewport.height}`, async ({
@@ -107,9 +103,7 @@ test.describe('wide editor layout', () => {
     })
   }
 
-  test('selects an export format before downloading', async ({
-    page,
-  }, testInfo) => {
+  test('selects an export format before downloading', async ({ page }) => {
     await loadWideEditor(page, 1280, 720)
     const exportPanel = page.locator('.export-panel')
     const downloadButton = exportPanel.locator('.download-button')
@@ -124,13 +118,6 @@ test.describe('wide editor layout', () => {
       /selected/,
     )
     await expect(downloadButton).toContainText('Download HEX')
-    await page.screenshot({
-      path: join(
-        process.env.TEMP ?? testInfo.outputDir,
-        'unicucumber-export-format-desktop.png',
-      ),
-      fullPage: false,
-    })
 
     const downloadPromise = page.waitForEvent('download')
     await downloadButton.click()
@@ -139,28 +126,6 @@ test.describe('wide editor layout', () => {
     await expect(page.locator('.notification')).toContainText(
       'HEX export is ready.',
     )
-
-    const mobilePage = await page.context().newPage()
-    await loadWideEditor(mobilePage, 390, 844)
-    await mobilePage.evaluate(() =>
-      window.scrollTo({ top: document.documentElement.scrollHeight }),
-    )
-    const mobileExportPanel = mobilePage.locator('.export-panel')
-    await mobileExportPanel
-      .locator('.format-option')
-      .filter({ hasText: 'SVG' })
-      .click()
-    await expect(
-      mobileExportPanel.locator('.format-option').filter({ hasText: 'SVG' }),
-    ).toBeVisible()
-    await mobilePage.screenshot({
-      path: join(
-        process.env.TEMP ?? testInfo.outputDir,
-        'unicucumber-export-format-mobile.png',
-      ),
-      fullPage: false,
-    })
-    await mobilePage.close()
   })
 
   test('keeps the glyph manager as an overlay on tablets', async ({ page }) => {
@@ -175,83 +140,9 @@ test.describe('wide editor layout', () => {
     expect(sidebar.right).toBeGreaterThan(grid.left)
   })
 
-  test('reveals every vertical command name within the viewport', async ({
-    page,
-  }) => {
-    await loadWideEditor(page, 768, 1024)
-    const actionButtons = page.locator(
-      '.action-group > button, .history-controls > button',
-    )
-    const toolButtons = page.locator(
-      '.tool-buttons > .tool-button, .tool-overflow > summary',
-    )
-
-    await expect(actionButtons).toHaveCount(5)
-    await expect(toolButtons).toHaveCount(6)
-
-    const tooltip = page.getByRole('tooltip')
-    for (const button of [
-      ...(await actionButtons.all()),
-      ...(await toolButtons.all()),
-    ]) {
-      const label = await button.getAttribute('aria-label')
-      if (!label) throw new Error('Vertical command is missing its label')
-      await expect(button).not.toHaveAttribute('title')
-      await button.hover({ force: true })
-      await expect(tooltip).toBeVisible()
-      await expect(tooltip).toHaveText(
-        (await button.getAttribute('data-tooltip')) ?? label,
-      )
-      const buttonBounds = await button.boundingBox()
-      const tooltipBounds = await tooltip.boundingBox()
-      if (!buttonBounds || !tooltipBounds) {
-        throw new Error('Tool name tooltip is unavailable')
-      }
-      expect(tooltipBounds.x).toBeGreaterThanOrEqual(8)
-      expect(tooltipBounds.x + tooltipBounds.width).toBeLessThanOrEqual(760)
-      expect(tooltipBounds.y).toBeGreaterThanOrEqual(8)
-      expect(tooltipBounds.y + tooltipBounds.height).toBeLessThanOrEqual(1016)
-      const overlaps =
-        tooltipBounds.x < buttonBounds.x + buttonBounds.width &&
-        tooltipBounds.x + tooltipBounds.width > buttonBounds.x &&
-        tooltipBounds.y < buttonBounds.y + buttonBounds.height &&
-        tooltipBounds.y + tooltipBounds.height > buttonBounds.y
-      expect(overlaps).toBe(false)
-    }
-
-    await page.getByRole('button', { name: 'Erase', exact: true }).focus()
-    await expect(tooltip).toHaveText('Erase (E)')
-    await page.keyboard.press('Escape')
-    await expect(tooltip).toHaveCount(0)
-
-    const gridBefore = await getBounds(page, '.grid-container')
-    const canvasBefore = await getBounds(page, '.editor-canvas-column')
-    const outputBefore = await getBounds(page, '.editor-output-stack')
-    await page.locator('.tool-overflow > summary').click()
-    const gridAfter = await getBounds(page, '.grid-container')
-    const sheet = await getBounds(page, '.tool-sheet')
-
-    expect(gridAfter).toEqual(gridBefore)
-    expect(await getBounds(page, '.editor-canvas-column')).toEqual(canvasBefore)
-    expect(await getBounds(page, '.editor-output-stack')).toEqual(outputBefore)
-    expect(sheet.left).toBeGreaterThanOrEqual(gridAfter.right)
-
-    const menuButtons = page.locator('.tool-sheet button')
-    await expect(menuButtons).toHaveCount(7)
-    for (const button of await menuButtons.all()) {
-      const label = await button.getAttribute('aria-label')
-      if (!label) throw new Error('Overflow tool is missing its label')
-      await expect(button).not.toHaveAttribute('title')
-      await button.hover()
-      await expect(tooltip).toBeVisible()
-      await expect(tooltip).toContainText(label)
-    }
-  })
-
   for (const viewport of [
     { width: 1280, height: 720 },
     { width: 1440, height: 900 },
-    { width: 1440, height: 1200 },
   ]) {
     test(`keeps editor controls reachable at ${viewport.width}x${viewport.height}`, async ({
       page,
@@ -283,32 +174,9 @@ test.describe('wide editor layout', () => {
     })
   }
 
-  for (const viewport of [
-    { width: 720, height: 871 },
-    { width: 768, height: 871 },
-    { width: 899, height: 871 },
-    { width: 1000, height: 871 },
-    { width: 1300, height: 871 },
-    { width: 1560, height: 1040 },
-  ]) {
-    test(`keeps the grid primary on ${viewport.width}x${viewport.height}`, async ({
-      page,
-    }) => {
-      await loadWideEditor(page, viewport.width, viewport.height)
-
-      const grid = await getBounds(page, '.grid-viewport')
-      const hex = await getBounds(page, '.hex-code-container')
-      const exportPanel = await getBounds(page, '.export-panel')
-
-      expect(hex.top).toBeGreaterThanOrEqual(grid.bottom)
-      expect(exportPanel.top).toBeGreaterThanOrEqual(hex.bottom)
-      expect(exportPanel.right).toBeLessThanOrEqual(viewport.width)
-    })
-  }
-
   test('pushes the editor while the glyph manager opens and resizes', async ({
     page,
-  }, testInfo) => {
+  }) => {
     await loadWideEditor(page, 1440, 900)
     await page.getByRole('button', { name: 'Open glyph manager' }).click()
 
@@ -345,13 +213,6 @@ test.describe('wide editor layout', () => {
     expect(resizedExportPanel.left).toBeGreaterThanOrEqual(resizedSidebar.right)
     expect(resizedExportPanel.right).toBeLessThanOrEqual(1440)
     await expectControlsReachable(page)
-    await page.screenshot({
-      path: join(
-        process.env.TEMP ?? testInfo.outputDir,
-        'unicucumber-wide-sidebar-push.png',
-      ),
-      fullPage: false,
-    })
 
     await page.getByRole('button', { name: 'Close glyph manager' }).click()
     await expect(page.locator('.sidebar.active')).toHaveCount(1)

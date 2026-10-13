@@ -99,6 +99,20 @@ Build when changing the styling toolchain; use the full browser matrix when the
 scope or focused results warrant it. Verify offline behaviour against a production
 preview when relevant, as described in [Platform support](platform.md).
 
+## Test scope
+
+Keep unit tests for validation, grid commands, document history, persistence,
+async failures, and meaningful component interactions. Use browser tests for
+real pointer and keyboard input, focus, downloads, offline operation, and flows
+that cross component or platform boundaries.
+
+Use representative viewport sizes and breakpoint edges for layout smoke tests.
+Do not multiply the same checks across nearby widths, or assert exact colors,
+alignment, animation timing, and static translated text. Browser failure traces
+and screenshots provide debugging evidence; routine screenshots without
+assertions do not add coverage. Scroll controls into view before testing their
+interaction on short screens.
+
 ## Keyboard shortcuts
 
 `src/domain/shortcuts.ts` defines editor actions, default bindings, validation,

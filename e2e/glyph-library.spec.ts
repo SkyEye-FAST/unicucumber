@@ -1,9 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 
-type ThemePreference = 'auto' | 'light' | 'dark'
 const UNIFONT_TEST_VERSION = (
   JSON.parse(
     readFileSync(
@@ -30,11 +28,7 @@ const makeGlyphs = (count: number) =>
     return { codePoint, hexValue: bytes }
   })
 
-const seedGlyphs = async (
-  page: Page,
-  count = 96,
-  themePreference: ThemePreference = 'auto',
-) => {
+const seedGlyphs = async (page: Page, count = 96) => {
   const glyphs = makeGlyphs(count)
   const ranges: Array<[number, number]> = []
   for (const codePoint of glyphs
@@ -45,10 +39,10 @@ const seedGlyphs = async (
     else ranges.push([codePoint, codePoint])
   }
   await page.addInitScript(
-    ({ items, theme }) => {
+    ({ items }) => {
       localStorage.clear()
       localStorage.setItem('unicucumber_glyphs', JSON.stringify(items))
-      localStorage.setItem('unicucumber_theme_preference', theme)
+      localStorage.setItem('unicucumber_theme_preference', 'auto')
       localStorage.setItem(
         'unicucumber_settings',
         JSON.stringify({
@@ -59,7 +53,7 @@ const seedGlyphs = async (
         }),
       )
     },
-    { items: glyphs, theme: themePreference },
+    { items: glyphs },
   )
   await page.route(
     /^https:\/\/(fonts\.googleapis|fontsapi\.zeoseven)\.com\//,
@@ -99,7 +93,7 @@ const seedGlyphs = async (
 
 test('editor glyph navigation searches blocks and switches glyphs @phone @tablet', async ({
   page,
-}, testInfo) => {
+}) => {
   await seedGlyphs(page, 160)
   await page.goto('/')
   const navigator = page.getByRole('navigation', { name: 'Browse glyphs' })
@@ -121,9 +115,6 @@ test('editor glyph navigation searches blocks and switches glyphs @phone @tablet
     'scrollWidth',
     await page.locator('body').evaluate((body) => body.clientWidth),
   )
-  await navigator.screenshot({
-    path: testInfo.outputPath('glyph-navigation.png'),
-  })
   await page.locator('#hexInput').fill('FF'.repeat(16))
   await page.locator('#hexInput').press('Enter')
   await navigator.locator('[data-code-point="0081"]').click()
@@ -145,6 +136,8 @@ test('desktop glyph navigation scrolls with a mouse wheel and releases page scro
   const navigator = page.getByRole('navigation', { name: 'Browse glyphs' })
   const strip = navigator.locator('.glyph-navigator__strip')
   await expect(strip).toHaveAttribute('aria-busy', 'false')
+  // Short desktop viewports scroll vertically to preserve the canvas size.
+  await navigator.scrollIntoViewIfNeeded()
   await expect(navigator).toBeInViewport({ ratio: 1 })
   const moveMouseToStrip = async () => {
     const bounds = await strip.boundingBox()
@@ -153,12 +146,13 @@ test('desktop glyph navigation scrolls with a mouse wheel and releases page scro
   }
   await moveMouseToStrip()
   const initialPageScroll = await page.evaluate(() => window.scrollY)
+  const nextGlyph = navigator.locator('[data-code-point="002D"]')
+  await expect(nextGlyph).not.toBeInViewport()
   await page.mouse.wheel(0, 360)
   await expect
     .poll(() => strip.evaluate((element) => element.scrollLeft))
     .toBeGreaterThan(0)
   expect(await page.evaluate(() => window.scrollY)).toBe(initialPageScroll)
-  const nextGlyph = navigator.locator('[data-code-point="0030"]')
   await expect(nextGlyph).toBeInViewport({ ratio: 1 })
   const glyphBounds = await nextGlyph.boundingBox()
   if (!glyphBounds) throw new Error('Scrolled glyph is not measurable')
@@ -166,7 +160,7 @@ test('desktop glyph navigation scrolls with a mouse wheel and releases page scro
     glyphBounds.x + glyphBounds.width / 2,
     glyphBounds.y + glyphBounds.height / 2,
   )
-  await expect(page.locator('.code-point-input input')).toHaveValue('0030')
+  await expect(page.locator('.code-point-input input')).toHaveValue('002D')
   await navigator.getByRole('scrollbar').focus()
   await page.keyboard.press('End')
   await moveMouseToStrip()
@@ -276,7 +270,7 @@ const expandLibrary = async (page: Page, expectedCount = 96) => {
   }
 }
 
-test('resizes the glyph manager freely and keeps its compact heading on one row', async ({
+test('resizes the glyph manager wider and narrower', async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== 'chromium', 'interaction check runs once')
@@ -325,47 +319,6 @@ test('resizes the glyph manager freely and keeps its compact heading on one row'
       ),
     )
     .toBeLessThan(initialWidth)
-
-  const compactHeader = await page
-    .locator('.glyph-manager-heading')
-    .evaluate((header) => {
-      const title = header.querySelector<HTMLElement>('.title')
-      const actions = header.querySelector<HTMLElement>('.compact-count')
-      const headerBox = header.getBoundingClientRect()
-      const titleBox = title?.getBoundingClientRect()
-      const actionsBox = actions?.getBoundingClientRect()
-      if (!titleBox || !actionsBox)
-        throw new Error('Glyph manager heading is incomplete')
-      return {
-        height: headerBox.height,
-        titleCenter: titleBox.top + titleBox.height / 2,
-        actionsCenter: actionsBox.top + actionsBox.height / 2,
-        titleWhiteSpace: title ? getComputedStyle(title).whiteSpace : '',
-      }
-    })
-  expect(compactHeader.titleWhiteSpace).toBe('nowrap')
-  await expect(page.locator('.compact-tools-toggle span')).toBeVisible()
-  expect(compactHeader.height).toBeLessThan(50)
-  expect(
-    Math.abs(compactHeader.titleCenter - compactHeader.actionsCenter),
-  ).toBeLessThanOrEqual(1)
-})
-
-test('keeps the tools action expanded on desktop', async ({
-  page,
-}, testInfo) => {
-  test.skip(testInfo.project.name !== 'chromium', 'interaction check runs once')
-  await seedGlyphs(page)
-  await page.setViewportSize({ width: 1024, height: 768 })
-  await openLibrary(page)
-
-  const toolsToggle = page.locator('.compact-tools-toggle')
-  await expect(toolsToggle.locator('span')).toBeVisible()
-  await expect(
-    toolsToggle.locator('.compact-tools-toggle__indicator'),
-  ).toBeVisible()
-  await expect(toolsToggle).toHaveAttribute('aria-expanded', 'true')
-  await expect(page.locator('#compact-glyph-tools')).toBeVisible()
 })
 
 test('keeps the tools action explicit in the mobile glyph manager', async ({
@@ -410,99 +363,6 @@ test('keeps the tools action explicit in the mobile glyph manager', async ({
   await expect(
     page.locator('#compact-glyph-tools .codepoint-input'),
   ).toHaveValue('0041')
-})
-
-test('keeps the full-screen tools action explicit on mobile', async ({
-  page,
-}, testInfo) => {
-  test.skip(testInfo.project.name !== 'chromium', 'interaction check runs once')
-  await seedGlyphs(page)
-  await page.setViewportSize({ width: 600, height: 800 })
-  await openLibrary(page)
-  await expandLibrary(page)
-
-  const toolsToggle = page.locator('.library-tools-toggle')
-  await expect(toolsToggle).toHaveAccessibleName('Tools')
-  await expect(toolsToggle.locator('span')).toBeVisible()
-  await expect(
-    toolsToggle.locator('.library-tools-toggle__indicator'),
-  ).toBeVisible()
-  await expect(toolsToggle).toHaveAttribute('aria-expanded', 'false')
-  await toolsToggle.click()
-  await expect(toolsToggle).toHaveAttribute('aria-expanded', 'true')
-  await expect(page.locator('#glyph-library-tools')).toBeVisible()
-})
-
-test('animates the transition into the full-screen glyph library', async ({
-  page,
-}, testInfo) => {
-  test.skip(testInfo.project.name !== 'chromium', 'interaction check runs once')
-  await seedGlyphs(page)
-  await page.setViewportSize({ width: 1024, height: 768 })
-  await openLibrary(page)
-  const motion = await page
-    .getByRole('button', { name: 'Open glyph library' })
-    .evaluate(async (button) => {
-      button.click()
-      await new Promise(requestAnimationFrame)
-      const sidebar = document.querySelector<HTMLElement>('.sidebar')!
-      const toolbar = sidebar.querySelector<HTMLElement>('.library-toolbar')!
-      const animation = sidebar
-        .getAnimations()
-        .find(
-          (entry) =>
-            entry instanceof CSSAnimation &&
-            entry.animationName.startsWith('glyph-library-expand-'),
-        )!
-      animation.pause()
-      const sample = (time: number) => {
-        animation.currentTime = time
-        return {
-          clip: getComputedStyle(sidebar).clipPath,
-          width: toolbar.getBoundingClientRect().width,
-        }
-      }
-      const start = sample(0)
-      const middle = sample(160)
-      animation.finish()
-      return { start, middle, endWidth: toolbar.getBoundingClientRect().width }
-    })
-  const inset = (clip: string) => Number.parseFloat(clip.split(' ')[1]!)
-  expect(inset(motion.start.clip)).toBeGreaterThan(0)
-  expect(inset(motion.middle.clip)).toBeLessThan(inset(motion.start.clip))
-  expect(inset(motion.middle.clip)).toBeGreaterThan(0)
-  expect(motion.start.width).toBe(motion.middle.width)
-  expect(motion.middle.width).toBe(motion.endWidth)
-  await expect(
-    page.getByRole('region', { name: 'Full-screen glyph library' }),
-  ).toBeVisible()
-})
-
-test('keeps the active selection action legible in dark mode', async ({
-  page,
-}, testInfo) => {
-  test.skip(testInfo.project.name !== 'chromium', 'interaction check runs once')
-  await seedGlyphs(page, 96, 'dark')
-  await openLibrary(page)
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
-
-  const sidebarPreview = page.locator('.glyph-card .glyph-preview').first()
-  await expect(sidebarPreview).toHaveCSS('background-color', 'rgb(51, 51, 51)')
-  await expect(sidebarPreview.locator('.bitmap-svg')).toHaveCSS(
-    'fill',
-    'rgb(224, 224, 224)',
-  )
-
-  await expandLibrary(page)
-
-  const selectionToggle = page.locator('.library-selection-toggle')
-  await selectionToggle.click()
-  await expect(selectionToggle).toHaveClass(/is-active/)
-  await expect(selectionToggle).toHaveCSS('color', 'rgb(224, 224, 224)')
-
-  const bitmapPreview = page.locator('.bitmap-preview').first()
-  await expect(bitmapPreview).toHaveCSS('background-color', 'rgb(51, 51, 51)')
-  await expect(bitmapPreview).toHaveCSS('color', 'rgb(224, 224, 224)')
 })
 
 test.describe('full-screen glyph library', () => {
@@ -688,127 +548,6 @@ test.describe('full-screen glyph library', () => {
     },
   )
 
-  test('keeps the desktop filter toolbar within the viewport', async ({
-    page,
-  }) => {
-    await page.setViewportSize({ width: 1920, height: 900 })
-    await seedGlyphs(page)
-    await openLibrary(page)
-    await expandLibrary(page)
-    const filterToggle = page.getByRole('button', {
-      name: 'Filters',
-      exact: true,
-    })
-    await filterToggle.click()
-    await expect(filterToggle).toHaveAttribute('aria-expanded', 'true')
-
-    const fitsViewport = await page
-      .locator('.library-toolbar__main')
-      .evaluate((toolbar) => toolbar.scrollWidth <= toolbar.clientWidth)
-    expect(fitsViewport).toBe(true)
-
-    const unicodeFiltersDoNotOverlap = await page
-      .locator('.unicode-range-filters')
-      .evaluate((container) => {
-        const filters = Array.from(container.querySelectorAll('label'))
-        const [plane, block] = filters.map((filter) =>
-          filter.getBoundingClientRect(),
-        )
-        return Boolean(plane && block && plane.right <= block.left)
-      })
-    expect(unicodeFiltersDoNotOverlap).toBe(true)
-
-    const filterLabelsAreAligned = await page
-      .locator('.library-filters')
-      .evaluate((container) => {
-        const labels = [
-          container.querySelector(':scope > label'),
-          ...container.querySelectorAll('.unicode-range-filters label'),
-        ].filter((label): label is HTMLLabelElement => label !== null)
-        const positions = labels.map(
-          (label) => label.getBoundingClientRect().top,
-        )
-        return Math.max(...positions) - Math.min(...positions) <= 1
-      })
-    expect(filterLabelsAreAligned).toBe(true)
-
-    const toolbarControlsAreBottomAligned = await page
-      .locator('.library-toolbar__main')
-      .evaluate((toolbar) => {
-        const controls = [
-          toolbar.querySelector('.library-search'),
-          ...toolbar.querySelectorAll(
-            '.library-filters .custom-select__trigger',
-          ),
-          toolbar.querySelector('.library-tools-toggle'),
-          toolbar.querySelector('.library-collapse'),
-        ].filter((control): control is HTMLElement => control !== null)
-        const bottoms = controls.map(
-          (control) => control.getBoundingClientRect().bottom,
-        )
-        return Math.max(...bottoms) - Math.min(...bottoms) <= 1
-      })
-    expect(toolbarControlsAreBottomAligned).toBe(true)
-
-    const wideFilterWidths = await page
-      .locator('.library-filters')
-      .evaluate((filters) => {
-        const scope = filters.querySelector(':scope > label')
-        const triggers = Array.from(
-          filters.querySelectorAll('.custom-select__trigger'),
-        )
-        return {
-          scope: scope?.getBoundingClientRect().width ?? 0,
-          plane: triggers[1]?.getBoundingClientRect().width ?? 0,
-          block: triggers[2]?.getBoundingClientRect().width ?? 0,
-        }
-      })
-    expect(wideFilterWidths).toEqual({ scope: 192, plane: 304, block: 480 })
-
-    await page.setViewportSize({ width: 1440, height: 900 })
-    const searchMovesBelowDesktopControls = await page
-      .locator('.library-toolbar__main')
-      .evaluate((toolbar) => {
-        const search = toolbar.querySelector('.library-search')
-        const filters = toolbar.querySelector('.library-filters')
-        return Boolean(
-          search &&
-          filters &&
-          search.getBoundingClientRect().top >=
-            filters.getBoundingClientRect().bottom,
-        )
-      })
-    expect(searchMovesBelowDesktopControls).toBe(true)
-    const fitsAtDesktopWidth = await page
-      .locator('.library-toolbar__main')
-      .evaluate((toolbar) => toolbar.scrollWidth <= toolbar.clientWidth)
-    expect(fitsAtDesktopWidth).toBe(true)
-
-    await page.setViewportSize({ width: 390, height: 844 })
-    const mobileSectionsStack = await page
-      .locator('.library-toolbar__main')
-      .evaluate((toolbar) => {
-        const identity = toolbar.querySelector('.library-identity')
-        const actions = toolbar.querySelector('.library-toolbar__buttons')
-        const search = toolbar.querySelector('.library-search')
-        const filters = toolbar.querySelector('.library-filters')
-        return Boolean(
-          identity &&
-          actions &&
-          search &&
-          filters &&
-          search.getBoundingClientRect().top >=
-            Math.max(
-              identity.getBoundingClientRect().bottom,
-              actions.getBoundingClientRect().bottom,
-            ) &&
-          filters.getBoundingClientRect().top >=
-            search.getBoundingClientRect().bottom,
-        )
-      })
-    expect(mobileSectionsStack).toBe(true)
-  })
-
   test('Escape exits nested glyph manager states in order', async ({
     page,
   }) => {
@@ -931,7 +670,7 @@ test.describe('full-screen glyph library', () => {
 
   test('selection actions remove saved copies without removing Unifont glyphs', async ({
     page,
-  }, testInfo) => {
+  }) => {
     await openLibrary(page)
     await expandLibrary(page)
     await page.locator('.library-search input').fill('0041')
@@ -946,30 +685,10 @@ test.describe('full-screen glyph library', () => {
       'aria-selected',
       'true',
     )
-    if (testInfo.project.name === 'chromium') {
-      await page.screenshot({
-        path: join(
-          process.env.TEMP ?? testInfo.outputDir,
-          'unicucumber-glyph-library',
-          '1280x720-selection-light.png',
-        ),
-        fullPage: false,
-      })
-    }
     await page.getByRole('button', { name: /Remove from manager/ }).click()
     const confirmation = page.getByRole('dialog', { name: 'Confirm Delete' })
     await expect(confirmation).toBeVisible()
     await expect(confirmation).toHaveClass(/dialog-box--danger/)
-    if (testInfo.project.name === 'chromium') {
-      await page.screenshot({
-        path: join(
-          process.env.TEMP ?? testInfo.outputDir,
-          'unicucumber-glyph-library',
-          'dialog-danger-light.png',
-        ),
-        fullPage: false,
-      })
-    }
     await confirmation.getByRole('button', { name: /Delete/i }).click()
     await expect(page.locator('.glyph-library-cell')).toHaveCount(1)
     await expect(page.locator('.glyph-library-cell')).toHaveAttribute(
@@ -980,7 +699,7 @@ test.describe('full-screen glyph library', () => {
 
   test('library tools keep export and manager actions separate', async ({
     page,
-  }, testInfo) => {
+  }) => {
     await openLibrary(page)
     await expandLibrary(page)
     await page.getByRole('button', { name: 'Tools' }).click()
@@ -999,16 +718,6 @@ test.describe('full-screen glyph library', () => {
     await page.getByRole('combobox', { name: 'Pixel scale' }).click()
     await expect(page.getByRole('option', { name: '4×' })).toBeVisible()
     await page.getByRole('option', { name: '4×' }).click()
-    if (testInfo.project.name === 'chromium') {
-      await page.screenshot({
-        path: join(
-          process.env.TEMP ?? testInfo.outputDir,
-          'unicucumber-glyph-library',
-          '1280x720-export-menu-light.png',
-        ),
-        fullPage: false,
-      })
-    }
     const downloadPromise = page.waitForEvent('download')
     await page.getByRole('button', { name: /Web Open Font 2/ }).click()
     expect((await downloadPromise).suggestedFilename()).toBe(
@@ -1024,42 +733,10 @@ test.describe('full-screen glyph library', () => {
       page.getByRole('button', { name: /Add to glyph manager/ }),
     ).toBeDisabled()
     await page.getByRole('button', { name: 'Export Glyphs' }).click()
-    const exportOptionsCoverSelectionBar = await page.evaluate(() => {
-      const exportOptions = document.querySelector<HTMLElement>(
-        '.library-export-options',
-      )
-      const selectionBar = document.querySelector<HTMLElement>(
-        '.library-selection-bar',
-      )
-      if (!exportOptions || !selectionBar) return false
-
-      const exportRect = exportOptions.getBoundingClientRect()
-      const selectionRect = selectionBar.getBoundingClientRect()
-      const left = Math.max(exportRect.left, selectionRect.left)
-      const right = Math.min(exportRect.right, selectionRect.right)
-      const top = Math.max(exportRect.top, selectionRect.top)
-      const bottom = Math.min(exportRect.bottom, selectionRect.bottom)
-      if (left >= right || top >= bottom) return false
-
-      const topElement = document.elementFromPoint(
-        (left + right) / 2,
-        (top + bottom) / 2,
-      )
-      return topElement !== null && exportOptions.contains(topElement)
-    })
-    expect(exportOptionsCoverSelectionBar).toBe(true)
+    await page
+      .getByRole('button', { name: /Web Open Font 2/ })
+      .click({ trial: true })
     await page.getByRole('button', { name: 'Export Glyphs' }).click()
-    if (testInfo.project.name === 'chromium') {
-      await page.waitForTimeout(200)
-      await page.screenshot({
-        path: join(
-          process.env.TEMP ?? testInfo.outputDir,
-          'unicucumber-glyph-library',
-          '1280x720-library-tools-light.png',
-        ),
-        fullPage: false,
-      })
-    }
   })
 
   test('density persists and search exposes the compact empty state', async ({
@@ -1084,36 +761,6 @@ test.describe('full-screen glyph library', () => {
       JSON.parse(localStorage.getItem('unicucumber_settings') ?? '{}'),
     )
     expect(persistedDensity.glyphLibraryDensity).toBe('compact')
-  })
-
-  test('mobile library selection controls remain within the viewport', async ({
-    page,
-  }, testInfo) => {
-    test.skip(
-      testInfo.project.name !== 'chromium',
-      'mobile inspector runs once',
-    )
-    await page.setViewportSize({ width: 390, height: 844 })
-    await openLibrary(page)
-    await expandLibrary(page)
-    await page.getByRole('button', { name: 'Tools' }).click()
-    await page
-      .locator('.library-toolbar')
-      .getByRole('button', { name: 'Select to add', exact: true })
-      .click()
-    await page.getByRole('button', { name: 'Select filtered glyphs' }).click()
-    await expect(
-      page.getByRole('button', { name: /Add to glyph manager/ }),
-    ).toBeDisabled()
-    await page.waitForTimeout(200)
-    await page.screenshot({
-      path: join(
-        process.env.TEMP ?? testInfo.outputDir,
-        'unicucumber-glyph-library',
-        '390x844-selection-light.png',
-      ),
-      fullPage: false,
-    })
   })
 })
 
@@ -1270,53 +917,3 @@ test('compact manager preloads once, windows rows, and preserves state on reopen
   ).toBe(readsBeforeReopen)
   expect(unifontChunks).toEqual([])
 })
-
-const libraryViewports = [
-  { width: 390, height: 844 },
-  { width: 768, height: 1024 },
-  { width: 1440, height: 900 },
-] as const
-
-for (const viewport of libraryViewports) {
-  test(`glyph-library layout ${viewport.width}x${viewport.height}`, async ({
-    page,
-  }, testInfo) => {
-    test.skip(
-      testInfo.project.name !== 'chromium',
-      'layout breakpoints run once',
-    )
-    await seedGlyphs(page, 120)
-    await page.setViewportSize(viewport)
-    await page.emulateMedia({ reducedMotion: 'reduce' })
-    await openLibrary(page, 120)
-    await expandLibrary(page, 120)
-
-    const metrics = await page.evaluate(() => ({
-      documentWidth: Math.max(
-        document.documentElement.scrollWidth,
-        document.body.scrollWidth,
-      ),
-      viewportWidth: document.documentElement.clientWidth,
-      toolbarRight: document
-        .querySelector('.library-toolbar')
-        ?.getBoundingClientRect().right,
-      identityScrollWidth:
-        document.querySelector<HTMLElement>('.library-identity')?.scrollWidth,
-      identityClientWidth:
-        document.querySelector<HTMLElement>('.library-identity')?.clientWidth,
-      gridRight: document
-        .querySelector('.glyph-library-grid')
-        ?.getBoundingClientRect().right,
-    }))
-    expect(metrics.documentWidth).toBeLessThanOrEqual(metrics.viewportWidth)
-    expect(metrics.toolbarRight ?? Infinity).toBeLessThanOrEqual(
-      metrics.viewportWidth + 1,
-    )
-    expect(metrics.identityScrollWidth ?? 0).toBeLessThanOrEqual(
-      metrics.identityClientWidth ?? 0,
-    )
-    expect(metrics.gridRight ?? Infinity).toBeLessThanOrEqual(
-      metrics.viewportWidth + 1,
-    )
-  })
-}

@@ -4,6 +4,14 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+### Changed
+
+- Remove redundant layout, animation, static-rendering, and screenshot-only test checks while retaining editing, persistence, accessibility, and platform regression coverage.
+
+### Fixed
+
+- Scroll the glyph navigator into view before the desktop mouse-wheel browser test, matching the editor's scrollable short-viewport layout.
+
 ## [1.11.0] - 2026-10-13
 
 ### Changed

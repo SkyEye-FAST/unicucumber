@@ -81,21 +81,6 @@ describe('GlyphLibraryGrid', () => {
     wrapper.unmount()
   })
 
-  it.each([
-    ['pixelOnly', 2, 0, 0],
-    ['browserOnly', 0, 0, 2],
-    ['both', 2, 2, 0],
-  ] as const)(
-    'uses the correct %s preview anatomy',
-    (mode, bitmapCount, referenceCount, browserCount) => {
-      const wrapper = mountGrid(mode)
-      expect(wrapper.findAll('.bitmap-preview')).toHaveLength(bitmapCount)
-      expect(wrapper.findAll('.browser-reference')).toHaveLength(referenceCount)
-      expect(wrapper.findAll('.browser-primary')).toHaveLength(browserCount)
-      wrapper.unmount()
-    },
-  )
-
   it('supports roving arrow navigation, Enter, and selection-mode Space', async () => {
     const wrapper = mountGrid('both')
     const cells = wrapper.findAll<HTMLButtonElement>('.glyph-library-cell')
@@ -139,25 +124,6 @@ describe('GlyphLibraryGrid', () => {
       ['0042', true],
     ])
     document.elementFromPoint = elementFromPoint
-    wrapper.unmount()
-  })
-
-  it('shows a compact empty state and changes density without glyph mutation', async () => {
-    const source = glyphs.map((glyph) => ({ ...glyph }))
-    const wrapper = mountGrid('pixelOnly', { glyphs: source })
-    const paths = wrapper.findAll('path').map((path) => path.attributes('d'))
-    await wrapper.setProps({ density: 'large' })
-    expect(wrapper.find('.glyph-library-scroll').classes()).toContain(
-      'density-large',
-    )
-    expect(wrapper.findAll('path').map((path) => path.attributes('d'))).toEqual(
-      paths,
-    )
-    expect(source).toEqual(glyphs)
-    await wrapper.setProps({ glyphs: [] })
-    expect(wrapper.get('[role="status"]').text()).toContain(
-      'No matching glyphs',
-    )
     wrapper.unmount()
   })
 })

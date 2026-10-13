@@ -81,28 +81,7 @@ test('header appearance toggle cycles through all preferences and syncs with set
   page,
 }) => {
   await loadEditor(page, 'light')
-  const headerActions = page.locator('.editor-header .modal-buttons > *')
   const title = page.locator('.title')
-  const transitionProperties = await title.evaluate((element) =>
-    getComputedStyle(element)
-      .transitionProperty.split(',')
-      .map((value) => value.trim()),
-  )
-  expect(transitionProperties).toContain('background-color')
-  expect(transitionProperties).not.toContain('color')
-  await expect(headerActions).toHaveCount(6)
-  expect(
-    await headerActions.evaluateAll((actions) =>
-      actions.map((action) => action.getAttribute('aria-label')),
-    ),
-  ).toEqual([
-    'Toggle color theme',
-    'Open glyph manager',
-    'Open glyph composition',
-    'Open text preview',
-    'Open settings',
-    'Open the UniCucumber repository on GitHub',
-  ])
 
   const themeToggle = page.getByRole('button', { name: 'Toggle color theme' })
   const usesCompactHeader = (page.viewportSize()?.width ?? 1280) < 480
@@ -330,41 +309,18 @@ test('local preview font is prepended to the fallback stack and persists', async
     .not.toContain('UniCucumber Local Preview')
 })
 
-test('boolean settings render as animated keyboard-operable switches', async ({
-  page,
-}) => {
+test('boolean settings support keyboard toggling', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 })
   await loadEditor(page)
   const { drawer } = await openSettings(page)
   const toggle = drawer.locator('#showBorder')
 
   await expect(toggle).toHaveAttribute('role', 'switch')
-  const switchStyle = await toggle.evaluate((element) => {
-    const track = getComputedStyle(element)
-    const thumb = getComputedStyle(element, '::after')
-    return {
-      appearance: track.appearance,
-      width: Number.parseFloat(track.width),
-      height: Number.parseFloat(track.height),
-      thumbTransition: thumb.transitionDuration,
-      thumbTransform: thumb.transform,
-    }
-  })
-  expect(switchStyle.appearance).toBe('none')
-  expect(switchStyle.width).toBeGreaterThan(switchStyle.height)
-  expect(switchStyle.thumbTransition).not.toBe('0s')
 
   const initiallyChecked = await toggle.isChecked()
   await toggle.focus()
   await page.keyboard.press('Space')
   await expect(toggle).toBeChecked({ checked: !initiallyChecked })
-  await expect
-    .poll(() =>
-      toggle.evaluate(
-        (element) => getComputedStyle(element, '::after').transform,
-      ),
-    )
-    .not.toBe(switchStyle.thumbTransform)
 })
 
 test('desktop drawer is non-modal, keyboard operable, and preserves editor state', async ({
@@ -420,40 +376,6 @@ test('settings shows the application version and update-check control', async ({
   await expect(
     drawer.getByRole('button', { name: 'Check for updates' }),
   ).toBeVisible()
-})
-
-test('settings drawer uses distinct enter and leave motion', async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 768, height: 1024 })
-  await loadEditor(page)
-  const trigger = page.getByRole('button', { name: 'Open settings' })
-  const drawer = page.getByRole('dialog', { name: 'Settings' })
-
-  await trigger.click()
-  await drawer.waitFor({ state: 'attached' })
-  await expect(drawer).toHaveClass(/settings-drawer-enter-active/)
-  expect(
-    await drawer.evaluate(
-      (element) => getComputedStyle(element).transitionDuration,
-    ),
-  ).toContain('0.24s')
-  await expect(drawer).toHaveCSS('transform', 'none')
-
-  const leaveDuration = await drawer
-    .getByRole('button', { name: 'Close settings' })
-    .evaluate(
-      (button) =>
-        new Promise<string>((resolve) => {
-          button.click()
-          requestAnimationFrame(() => {
-            const element = document.querySelector('.settings-sidebar')
-            resolve(element ? getComputedStyle(element).transitionDuration : '')
-          })
-        }),
-    )
-  expect(leaveDuration).toContain('0.18s')
-  await expect(drawer).toBeHidden()
 })
 
 test(

@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test'
 
-test('icon tooltips prefer free space and stay accessible @cross-browser', async ({
+test('icon tooltips support hover, keyboard focus, and Escape dismissal @cross-browser', async ({
   page,
-}, testInfo) => {
+}) => {
   await page.setViewportSize({ width: 1920, height: 1000 })
   await page.goto('/', { waitUntil: 'domcontentloaded' })
   const tooltip = page.getByRole('tooltip')
@@ -12,31 +12,6 @@ test('icon tooltips prefer free space and stay accessible @cross-browser', async
   await expect(tooltip).toHaveText(
     (await restore.getAttribute('aria-label')) ?? '',
   )
-  const buttonBounds = await restore.boundingBox()
-  const tipBounds = await tooltip.boundingBox()
-  expect(tipBounds!.x).toBeGreaterThanOrEqual(
-    buttonBounds!.x + buttonBounds!.width + 7,
-  )
-  await page.screenshot({ path: testInfo.outputPath('tooltip-wide.png') })
-
-  for (const button of await page.locator('.view-controls button').all()) {
-    await button.hover()
-    await expect(tooltip).toHaveText(
-      (await button.getAttribute('aria-label')) ?? '',
-    )
-    const control = await button.boundingBox()
-    const hint = await tooltip.boundingBox()
-    expect(hint!.y).toBeGreaterThanOrEqual(control!.y + control!.height + 7)
-  }
-
-  for (const button of await page.locator('.modal-buttons > *').all()) {
-    await button.hover({ force: true })
-    await expect(tooltip).toHaveText(
-      (await button.getAttribute('aria-label')) ?? '',
-    )
-    await expect(tooltip).toBeVisible()
-  }
-
   const settings = page.getByRole('button', {
     name: 'Open settings',
     exact: true,
@@ -60,26 +35,7 @@ test('icon tooltips prefer free space and stay accessible @cross-browser', async
 
   await page.keyboard.press('Tab')
   await page.keyboard.press('Shift+Tab')
-  await page.setViewportSize({ width: 360, height: 640 })
   await expect(tooltip).toBeVisible()
-  await expect
-    .poll(async () => {
-      const bounds = await tooltip.boundingBox()
-      return (
-        bounds !== null &&
-        bounds.x >= 8 &&
-        bounds.x + bounds.width <= 352 &&
-        bounds.y >= 8 &&
-        bounds.y + bounds.height <= 632
-      )
-    })
-    .toBe(true)
-  await page.screenshot({ path: testInfo.outputPath('tooltip-narrow.png') })
-  const narrowSettings = await settings.boundingBox()
-  const narrowTooltip = await tooltip.boundingBox()
-  expect(narrowTooltip!.y).toBeGreaterThanOrEqual(
-    narrowSettings!.y + narrowSettings!.height + 7,
-  )
   await settings.click()
   // The drawer's focused close button may show its own accessible tooltip.
   await expect(

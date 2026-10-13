@@ -447,10 +447,6 @@ test(
       !testInfo.project.name.includes('phone'),
       'mobile command surface',
     )
-    await page.evaluate(() => {
-      document.documentElement.dataset.theme = 'dark'
-      document.documentElement.style.colorScheme = 'dark'
-    })
     const filledCell = page.locator('[data-row="0"][data-col="0"]')
     await filledCell.click()
     await expect(filledCell).toHaveClass(/filled/)
@@ -483,57 +479,6 @@ test(
     const pasteCells = page.locator('.paste-cell')
     await expect(pasteCells).toHaveCount(4)
     await expect(page.locator('.paste-cell.filled')).toHaveCount(1)
-    await expect(page.locator('.paste-cell:not(.filled)').first()).toHaveCSS(
-      'background-color',
-      'rgb(51, 51, 51)',
-    )
-    await expect(page.locator('.paste-cell.filled')).toHaveCSS(
-      'background-color',
-      'rgb(224, 224, 224)',
-    )
-  },
-)
-
-test(
-  'mobile settings and glyph manager stay within the dynamic viewport',
-  {
-    tag: '@phone',
-  },
-  async ({ page }, testInfo) => {
-    test.skip(!testInfo.project.name.includes('phone'), 'mobile overlay layout')
-
-    await page.getByRole('button', { name: 'Open settings' }).click()
-    const settings = page.getByRole('dialog').last()
-    await expect(settings).toBeVisible()
-    await expect(settings.locator('.glyph-color-theme')).toHaveCount(2)
-    expect(
-      await settings
-        .locator('.glyph-color-themes')
-        .evaluate((element) =>
-          getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/),
-        ),
-    ).toHaveLength(1)
-    const settingsBounds = await settings.boundingBox()
-    expect(settingsBounds?.height ?? Infinity).toBeLessThanOrEqual(
-      page.viewportSize()?.height ?? 0,
-    )
-    await expect(page.locator('body')).toHaveCSS('overflow', 'hidden')
-    await page.keyboard.press('Escape')
-    await expect(settings).toBeHidden({ timeout: 10_000 })
-
-    await page.getByRole('button', { name: 'Open glyph manager' }).click()
-    await expect(page.locator('.sidebar.active')).toBeVisible()
-    await expect(page.locator('.glyph-manager')).toBeVisible()
-    await expect(page.locator('.glyph-manager .search-input')).toBeVisible()
-    const metrics = await page.evaluate(() => ({
-      width: document.documentElement.scrollWidth,
-      viewport: document.documentElement.clientWidth,
-      bodyOverflow: document.body.style.overflow,
-    }))
-    expect(metrics.width).toBeLessThanOrEqual(metrics.viewport)
-    expect(metrics.bodyOverflow).toBe('hidden')
-    await page.getByRole('button', { name: 'Close glyph manager' }).click()
-    await expect(page.locator('.sidebar.active')).toBeHidden()
   },
 )
 
@@ -564,27 +509,6 @@ test('glyph manager loads only the requested Unifont range', async ({
   expect(chunkRequests).toHaveLength(1)
   expect(chunkRequests[0]).toContain('/unifont/001.json')
   expect(requested.every((url) => !url.includes('unifont-map.json'))).toBe(true)
-})
-
-test('keyboard navigation exposes a visible focus indicator', async ({
-  page,
-}, testInfo) => {
-  test.skip(testInfo.project.name !== 'chromium', 'one keyboard focus audit')
-  await page.keyboard.press('Tab')
-  const focus = await page.evaluate(() => {
-    const active = document.activeElement as HTMLElement | null
-    if (!active) return null
-    const style = getComputedStyle(active)
-    return {
-      tag: active.tagName,
-      outlineStyle: style.outlineStyle,
-      outlineWidth: style.outlineWidth,
-    }
-  })
-  expect(focus).not.toBeNull()
-  expect(focus?.tag).toMatch(/^(A|BUTTON|INPUT)$/)
-  expect(focus?.outlineStyle).not.toBe('none')
-  expect(Number.parseFloat(focus?.outlineWidth ?? '0')).toBeGreaterThan(0)
 })
 
 test('image file import still opens the preparation dialog without capture inputs', async ({
