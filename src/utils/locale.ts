@@ -11,3 +11,6 @@ export const normalizeLocale = (language?: string): SupportedLocale => {
   if (normalized.includes('tw') || normalized.includes('hant')) return 'zh-TW'
   return 'zh'
 }
+
+export const isChineseLocale = (language?: string): boolean =>
+  normalizeLocale(language) !== 'en'

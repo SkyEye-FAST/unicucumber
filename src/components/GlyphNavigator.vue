@@ -202,7 +202,7 @@ const blockOptions = computed(() =>
     const localized = getUnicodeBlockNameForLocale(locale.value, block.id)
     return {
       value: block.id,
-      label: localized ? `${localized} · ${block.name}` : block.name,
+      label: localized ? `${localized}（${block.name}）` : block.name,
       searchText: `${block.name} ${formatCodePoint(block.start)} ${formatCodePoint(block.end)}`,
     }
   }),

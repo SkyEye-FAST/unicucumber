@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { normalizeLocale } from './locale'
+import { isChineseLocale, normalizeLocale } from './locale'
 
 describe('locale normalization', () => {
   it.each([
@@ -16,5 +16,17 @@ describe('locale normalization', () => {
     [undefined, 'en'],
   ])('normalizes %s to %s', (input, expected) => {
     expect(normalizeLocale(input)).toBe(expected)
+  })
+
+  it.each([
+    ['zh-CN', true],
+    ['zh-TW', true],
+    ['zh', true],
+    ['lzh', true],
+    ['en', false],
+    ['en-US', false],
+    [undefined, false],
+  ])('identifies %s as Chinese locale: %s', (input, expected) => {
+    expect(isChineseLocale(input)).toBe(expected)
   })
 })
