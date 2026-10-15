@@ -43,7 +43,7 @@
     "stream-browserify": "^3.0.0",
     "unicode-name": "^1.2.1",
     "vue": "^3.5.43",
-    "vue-i18n": "^11.4.13",
+    "vue-i18n": "^11.4.14",
     "woff2-encoder": "^2.0.0"
   },
   "devDependencies": {
