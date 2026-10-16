@@ -18,6 +18,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Fixed
 
+- Keep the composition workspace header, canvas, and toolbar usable on phones and short tablet viewports: the code point and IDS hints no longer overflow under the close button, the canvas fits the available height, and Undo/Redo become icon-only below 400px.
 - Keep character encoding details and Unicode names available offline by runtime-caching their lazily loaded modules after first use, and ignore intermittent Chromium preload warnings in the offline browser test.
 - Start the editor's Copy image clipboard write within the click gesture so Safari accepts it, via a shared clipboard platform adapter.
 - Scroll the glyph navigator into view before the desktop mouse-wheel browser test, matching the editor's scrollable short-viewport layout.

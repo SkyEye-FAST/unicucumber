@@ -1009,6 +1009,7 @@ onUnmounted(() => {
 }
 
 .canvas-stage {
+  container-type: size;
   display: grid;
   min-width: 0;
   min-height: 0;
@@ -1028,6 +1029,7 @@ onUnmounted(() => {
 @media (max-width: 959px) {
   .composition-code-point-cluster {
     display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
     gap: var(--space-2);
   }
 
@@ -1150,17 +1152,23 @@ onUnmounted(() => {
   }
 
   .composition-heading {
-    display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-2);
   }
 
   .composition-code-point-cluster {
-    display: grid;
-    gap: var(--space-2);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .canvas-panel-title {
+    display: none;
   }
 
   .composition-code-point-row {
-    width: 100%;
+    flex: 1 1 12rem;
   }
 
   .composition-code-point-field {
@@ -1174,6 +1182,7 @@ onUnmounted(() => {
   .composition-code-point-field input {
     flex: 1;
     width: 0;
+    min-width: 4.5rem;
   }
 
   .composition-code-point-confirm {

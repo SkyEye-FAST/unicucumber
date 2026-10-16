@@ -38,7 +38,9 @@
         @click="$emit('undo')"
       >
         <i-material-symbols-undo aria-hidden="true" />
-        <span>{{ $t('composition.undo_short') }}</span>
+        <span class="toolbar-short-label">{{
+          $t('composition.undo_short')
+        }}</span>
       </button>
       <button
         type="button"
@@ -49,7 +51,9 @@
         @click="$emit('redo')"
       >
         <i-material-symbols-redo aria-hidden="true" />
-        <span>{{ $t('composition.redo_short') }}</span>
+        <span class="toolbar-short-label">{{
+          $t('composition.redo_short')
+        }}</span>
       </button>
       <button
         type="button"
@@ -135,6 +139,16 @@ const { t: $t } = useI18n()
     padding-inline: var(--space-2);
     font-size: 0.85rem;
     white-space: nowrap;
+  }
+}
+
+@media (max-width: 399px) {
+  .toolbar-commit-actions {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2.5fr);
+  }
+
+  .toolbar-short-label {
+    display: none;
   }
 }
 </style>

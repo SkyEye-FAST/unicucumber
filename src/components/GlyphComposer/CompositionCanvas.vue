@@ -164,7 +164,7 @@ const cancelPointerMove = (): void => {
 <style scoped>
 .composition-canvas {
   display: block;
-  width: min(100%, 34rem);
+  width: min(100cqw, 100cqh, 34rem);
   aspect-ratio: 1;
   margin: auto;
   color: var(--glyph-foreground-color);
