@@ -446,6 +446,37 @@ const restoreDraft = async (): Promise<void> => {
   }
 }
 
+const offerDiscardUndo = (
+  codePoint: string,
+  discarded: CompositionDocument,
+  discardedFingerprint: string,
+): void => {
+  const resetFingerprint = documentFingerprint()
+  if (discardedFingerprint === resetFingerprint) return
+  notify(
+    {
+      tone: 'info',
+      message: $t('composition.draft_discarded'),
+      actionLabel: $t('composition.undo_short'),
+      action: () => {
+        if (
+          compositionCodePoint.value !== codePoint ||
+          documentFingerprint() !== resetFingerprint
+        ) {
+          notify({
+            tone: 'warning',
+            message: $t('composition.restore_unavailable'),
+          })
+          return
+        }
+        composer.reset(discarded)
+        queueDraftSave()
+      },
+    },
+    10000,
+  )
+}
+
 const discardDraft = async (): Promise<void> => {
   const codePoint = composer.document.value.codePoint
   const fingerprint = documentFingerprint()
@@ -460,11 +491,13 @@ const discardDraft = async (): Promise<void> => {
       composer.document.value.codePoint === codePoint &&
       documentFingerprint() === fingerprint
     ) {
+      const discarded = composer.document.value
       draftPending = false
       composer.reset(buildInitialDocument())
       activeTab.value = 'canvas'
       nextLayerNumber.value = 1
       nextComponentNumber.value = 1
+      offerDiscardUndo(codePoint, discarded, fingerprint)
     } else {
       draftPending = true
     }
@@ -481,8 +514,22 @@ const selectLayer = (layerId: string): void => {
   composer.selectedLayerId.value = layerId
 }
 
+// Restored drafts may already use the counter's next id.
+const nextFreeLayerNumber = (
+  start: number,
+  idFor: (number: number) => string,
+): number => {
+  const ids = new Set(composer.document.value.layers.map(({ id }) => id))
+  let number = start
+  while (ids.has(idFor(number))) number += 1
+  return number
+}
+
 const addBlankLayer = (): void => {
-  const number = nextLayerNumber.value
+  const number = nextFreeLayerNumber(
+    nextLayerNumber.value,
+    (candidate) => `blank-${candidate}`,
+  )
   const id = `blank-${number}`
   if (
     composer.execute({
@@ -500,7 +547,7 @@ const addBlankLayer = (): void => {
       },
     })
   ) {
-    nextLayerNumber.value += 1
+    nextLayerNumber.value = number + 1
     selectLayer(id)
   }
 }
@@ -509,7 +556,10 @@ const addComponentLayer = (record: CompositionComponentRecord): void => {
   const bitmap = hexToGrid(record.hex)
   if (bitmap === null || bitmap[0]?.length !== 16) return
 
-  const number = nextComponentNumber.value
+  const number = nextFreeLayerNumber(
+    nextComponentNumber.value,
+    (candidate) => `component-${record.id}-${candidate}`,
+  )
   const id = `component-${record.id}-${number}`
   if (
     composer.execute({
@@ -528,7 +578,7 @@ const addComponentLayer = (record: CompositionComponentRecord): void => {
       },
     })
   ) {
-    nextComponentNumber.value += 1
+    nextComponentNumber.value = number + 1
     selectLayer(id)
   }
 }

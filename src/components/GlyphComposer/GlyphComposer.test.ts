@@ -8,6 +8,7 @@ import type {
   CompositionComponentSummary,
   CompositionDocument,
 } from '@/types/composition'
+import { useNotifications } from '@/composables/useNotifications'
 import type { GridData } from '@/types/glyph'
 import { createGrid } from '@/utils/hexUtils'
 
@@ -76,6 +77,7 @@ const messages = {
       current_glyph: 'Current glyph',
       discard: 'Discard draft',
       delete_layer: 'Delete {name}',
+      draft_discarded: 'Composition draft discarded.',
       draft_fallback_warning: 'Composition drafts are using fallback storage.',
       draft_storage_warning: 'Unable to save composition draft.',
       hide: 'Hide',
@@ -97,6 +99,7 @@ const messages = {
       ids_retry: 'Retry IDS',
       redo: 'Redo composition action',
       redo_short: 'Redo',
+      restore_unavailable: 'The discarded draft can no longer be restored.',
       select_layer: 'Select {name}',
       shift_distance: 'Shift distance (pixels)',
       shift_down: 'Move down {pixels} pixels',
@@ -160,6 +163,8 @@ beforeEach(() => {
 afterEach(() => {
   activeWrapper?.unmount()
   activeWrapper = null
+  const { notifications, dismiss } = useNotifications()
+  notifications.value.forEach(({ id }) => dismiss(id))
   vi.useRealTimers()
 })
 
@@ -555,6 +560,64 @@ describe('GlyphComposer', () => {
     await wrapper.get('[data-testid="composition-save"]').trigger('click')
     const saved = wrapper.emitted<[string, GridData]>('save')?.[0]?.[1]
     expect(saved).toEqual(input)
+  })
+
+  it('restores a discarded draft from the notification Undo action', async () => {
+    const wrapper = mountComposer()
+    await flushPromises()
+    await wrapper.get('[data-testid="composition-add-blank"]').trigger('click')
+
+    await wrapper.get('[data-testid="composition-discard"]').trigger('click')
+    await flushPromises()
+    expect(
+      wrapper.find('[data-testid="composition-layer-blank-1-select"]').exists(),
+    ).toBe(false)
+
+    const { notifications, dismiss } = useNotifications()
+    const undo = notifications.value.find(
+      ({ message }) => message === 'Composition draft discarded.',
+    )
+    undo?.action?.()
+    if (undo) dismiss(undo.id)
+    await flushPromises()
+
+    expect(
+      wrapper.find('[data-testid="composition-layer-blank-1-select"]').exists(),
+    ).toBe(true)
+  })
+
+  it('keeps adding layers after restoring a draft that uses the next layer id', async () => {
+    draftRepositoryMocks.loadDraft.mockResolvedValue({
+      id: '660E',
+      schemaVersion: 1,
+      updatedAt: 123,
+      document: {
+        schemaVersion: 1,
+        codePoint: '660E',
+        width: 16,
+        layers: [
+          {
+            id: 'blank-1',
+            name: 'Layer 1',
+            bitmap: createGrid(16),
+            offsetX: 0,
+            offsetY: 0,
+            mask: null,
+            operation: 'add',
+            visible: true,
+            locked: false,
+          },
+        ],
+      },
+    })
+    const wrapper = mountComposer()
+    await flushPromises()
+
+    await wrapper.get('[data-testid="composition-add-blank"]').trigger('click')
+
+    expect(
+      wrapper.find('[data-testid="composition-layer-blank-2-select"]').exists(),
+    ).toBe(true)
   })
 
   it('keeps in-memory composition usable when draft autosave fails', async () => {
