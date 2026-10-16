@@ -16,6 +16,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Fixed
 
+- Start the editor's Copy image clipboard write within the click gesture so Safari accepts it, via a shared clipboard platform adapter.
 - Scroll the glyph navigator into view before the desktop mouse-wheel browser test, matching the editor's scrollable short-viewport layout.
 
 ## [1.11.0] - 2026-10-13

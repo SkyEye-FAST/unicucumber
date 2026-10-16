@@ -106,6 +106,7 @@ import CustomSelect, {
   type CustomSelectOption,
 } from '@/components/CustomSelect.vue'
 import { useNotifications } from '@/composables/useNotifications'
+import { canWriteClipboardImage, writeClipboardPng } from '@/platform/clipboard'
 import type { ExportScale, GridData } from '@/types/glyph'
 import {
   canvasToBlob,
@@ -147,10 +148,7 @@ const transparent = computed({
 const baseFilename = computed(() => props.codepoint || 'glyph')
 const canShare =
   typeof navigator !== 'undefined' && typeof navigator.share === 'function'
-const canCopyImage =
-  typeof navigator !== 'undefined' &&
-  typeof navigator.clipboard?.write === 'function' &&
-  typeof ClipboardItem !== 'undefined'
+const canCopyImage = canWriteClipboardImage()
 const selectedFormat = ref<DownloadFormat>('PNG')
 
 const filename = (extension: string): string =>
@@ -221,8 +219,7 @@ const createPngBlob = (): Promise<Blob> =>
 
 const copyImage = async (): Promise<void> => {
   try {
-    const blob = await createPngBlob()
-    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+    await writeClipboardPng(createPngBlob())
     notify({ tone: 'success', message: $t('export.image_copied') })
   } catch (error) {
     console.error('Unable to copy the glyph image.', error)
