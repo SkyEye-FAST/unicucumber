@@ -158,11 +158,46 @@
               class="composition-canvas-panel"
               :class="{ 'mobile-hidden': activeTab !== 'canvas' }"
             >
-              <div class="canvas-panel-heading" aria-hidden="true">
-                <span>{{ $t('composition.canvas') }}</span>
-                <span class="canvas-dimensions">
-                  {{ $t('composition.canvas_dimensions') }}
+              <div class="canvas-panel-heading">
+                <span class="canvas-panel-title" aria-hidden="true">
+                  <span>{{ $t('composition.canvas') }}</span>
+                  <span class="canvas-dimensions">
+                    {{ $t('composition.canvas_dimensions') }}
+                  </span>
                 </span>
+                <div
+                  v-if="canCopyImage || canCopyText"
+                  class="canvas-copy-actions"
+                  role="group"
+                  :aria-label="$t('composition.copy_actions')"
+                >
+                  <button
+                    v-if="canCopyImage"
+                    type="button"
+                    class="ui-button"
+                    data-testid="composition-copy-png"
+                    :aria-label="$t('composition.copy_png_label')"
+                    :title="$t('composition.copy_png_label')"
+                    @click="copyPng"
+                  >
+                    <i-material-symbols-imagesmode-outline aria-hidden="true" />
+                    <span>{{ $t('composition.copy_png') }}</span>
+                  </button>
+                  <button
+                    v-if="canCopyText"
+                    type="button"
+                    class="ui-button"
+                    data-testid="composition-copy-hex"
+                    :aria-label="$t('composition.copy_hex_label')"
+                    :title="$t('composition.copy_hex_label')"
+                    @click="copyHex"
+                  >
+                    <i-material-symbols-content-copy-outline
+                      aria-hidden="true"
+                    />
+                    <span>{{ $t('composition.copy_hex') }}</span>
+                  </button>
+                </div>
               </div>
               <div class="canvas-stage">
                 <CompositionCanvas
@@ -209,7 +244,15 @@ import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useGlyphComposer } from '@/composables/useGlyphComposer'
+import { useNotifications } from '@/composables/useNotifications'
+import { useSettings } from '@/composables/useSettings'
 import { createCompositionDocument } from '@/domain/composition'
+import {
+  canWriteClipboardImage,
+  canWriteClipboardText,
+  writeClipboardPng,
+  writeClipboardText,
+} from '@/platform/clipboard'
 import { registerDraftFlusher } from '@/platform/draftFlush'
 import {
   getCompositionDraftRepository,
@@ -222,7 +265,13 @@ import type {
 } from '@/types/composition'
 import type { GridData } from '@/types/glyph'
 import { isCJKCodePoint, normalizeCodePointHex } from '@/utils/charUtils'
-import { createGrid, deepCloneGrid, hexToGrid } from '@/utils/hexUtils'
+import { canvasToBlob, createCanvasFromGrid } from '@/utils/exportUtils'
+import {
+  createGrid,
+  deepCloneGrid,
+  gridToHex,
+  hexToGrid,
+} from '@/utils/hexUtils'
 import { acquireOverlayLock, releaseOverlayLock } from '@/utils/overlayStack'
 
 import ComponentBrowser from './ComponentBrowser.vue'
@@ -245,6 +294,10 @@ const emit = defineEmits<{
 }>()
 
 const { t: $t } = useI18n()
+const { notify } = useNotifications()
+const { settings } = useSettings()
+const canCopyImage = canWriteClipboardImage()
+const canCopyText = canWriteClipboardText()
 const draftRepository = getCompositionDraftRepository()
 const AUTOSAVE_DELAY_MS = 500
 const DEFAULT_COMPOSITION_CODE_POINT = '4E00'
@@ -582,6 +635,40 @@ const save = (): void => {
   )
 }
 
+const copyPng = async (): Promise<void> => {
+  const grid = deepCloneGrid(composer.resultGrid.value)
+  try {
+    await writeClipboardPng(
+      canvasToBlob(
+        createCanvasFromGrid(grid, {
+          scale: settings.value.exportScale,
+          transparent: settings.value.exportTransparent,
+        }),
+      ),
+    )
+    notify({ tone: 'success', message: $t('composition.png_copied') })
+  } catch (error) {
+    console.error('Unable to copy the composed glyph image.', error)
+    notify({ tone: 'error', message: $t('composition.copy_failed') })
+  }
+}
+
+const copyHex = async (): Promise<void> => {
+  const codePoint = compositionCodePoint.value
+  try {
+    await writeClipboardText(
+      `${codePoint}:${gridToHex(composer.resultGrid.value)}`,
+    )
+    notify({
+      tone: 'success',
+      message: $t('composition.hex_copied', { codePoint }),
+    })
+  } catch (error) {
+    console.error('Unable to copy the composed glyph HEX data.', error)
+    notify({ tone: 'error', message: $t('composition.copy_failed') })
+  }
+}
+
 const close = (): void => {
   workspaceExpanded.value = false
   emit('update:modelValue', false)
@@ -883,14 +970,33 @@ onUnmounted(() => {
 
 .canvas-panel-heading {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+}
+
+.canvas-panel-title {
+  display: flex;
+  align-items: center;
   gap: var(--space-3);
   color: var(--text-secondary);
   font-size: 0.75rem;
   font-weight: 650;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.canvas-copy-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.canvas-copy-actions .ui-button {
+  min-height: var(--control-height-compact);
+  padding-inline: var(--space-3);
+  font-size: 0.85rem;
 }
 
 .canvas-dimensions {
@@ -1081,6 +1187,10 @@ onUnmounted(() => {
 
   .composition-canvas-panel {
     padding: var(--space-3);
+  }
+
+  .canvas-copy-actions .ui-button {
+    min-height: var(--control-height);
   }
 }
 </style>

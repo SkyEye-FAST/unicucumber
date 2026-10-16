@@ -63,6 +63,14 @@ const messages = {
       component_search_error: 'Unable to load components.',
       component_search_placeholder: 'Character or code point',
       component_retry: 'Retry',
+      copy_actions: 'Copy composed glyph',
+      copy_failed: 'Unable to access the clipboard.',
+      copy_hex: 'Copy HEX',
+      copy_hex_label: 'Copy composed glyph as Unifont HEX data',
+      copy_png: 'Copy PNG',
+      copy_png_label: 'Copy composed glyph as a PNG image',
+      hex_copied: 'HEX data for U+{codePoint} copied.',
+      png_copied: 'Composed glyph image copied.',
       expand: 'Expand composition workspace',
       exit_fullscreen: 'Exit full-screen composition workspace',
       current_glyph: 'Current glyph',
@@ -206,6 +214,29 @@ describe('GlyphComposer', () => {
     expect(emissions[0]?.[1]?.[0]?.[0]).toBe(0)
     expect(emissions[0]?.[1]?.[0]?.[1]).toBe(1)
     expect(emissions[1]?.[1]).toEqual(emissions[0]?.[1])
+  })
+
+  it('copies the composed result as a Unifont HEX line without saving', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    const descriptor = Object.getOwnPropertyDescriptor(navigator, 'clipboard')
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    })
+    try {
+      const wrapper = mountComposer(pixelGrid(0, 0))
+      await wrapper
+        .get('[data-testid="composition-add-blank"]')
+        .trigger('click')
+      await wrapper.get('[data-testid="composition-copy-hex"]').trigger('click')
+      await flushPromises()
+
+      expect(writeText).toHaveBeenCalledWith(`660E:8000${'0'.repeat(60)}`)
+      expect(wrapper.emitted('save')).toBeUndefined()
+    } finally {
+      if (descriptor) Object.defineProperty(navigator, 'clipboard', descriptor)
+      else Reflect.deleteProperty(navigator, 'clipboard')
+    }
   })
 
   it('initializes from the latest editor grid on the first open', async () => {
