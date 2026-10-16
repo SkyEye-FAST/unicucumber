@@ -200,6 +200,7 @@
     "export_hex": "Unifont glyphs (.hex)",
     "batch_export": {
       "scope_label": "Batch export scope",
+      "scale_label": "Pixel scale for image archives",
       "scope": {
         "saved": "Saved glyphs",
         "selected": "Selected glyphs",

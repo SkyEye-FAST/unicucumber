@@ -200,6 +200,7 @@
     "export_hex": "萬國碼字體範式（.hex）",
     "batch_export": {
       "scope_label": "群錄之域",
+      "scale_label": "圖卷之像素尺寸",
       "scope": {
         "saved": "已存字形",
         "selected": "已擇字形",

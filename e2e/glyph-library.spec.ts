@@ -715,7 +715,9 @@ test.describe('full-screen glyph library', () => {
     await expect(
       page.getByRole('button', { name: /OpenType font/ }),
     ).toBeVisible()
-    await page.getByRole('combobox', { name: 'Pixel scale' }).click()
+    await page
+      .getByRole('combobox', { name: 'Pixel scale', exact: true })
+      .click()
     await expect(page.getByRole('option', { name: '4×' })).toBeVisible()
     await page.getByRole('option', { name: '4×' }).click()
     const downloadPromise = page.waitForEvent('download')

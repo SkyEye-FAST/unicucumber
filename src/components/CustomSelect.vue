@@ -94,7 +94,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  useId,
+  watch,
+} from 'vue'
 
 export interface CustomSelectOption {
   value: string | number
@@ -102,8 +110,6 @@ export interface CustomSelectOption {
   searchText?: string
   disabled?: boolean
 }
-
-let selectId = 0
 
 const props = withDefaults(
   defineProps<{
@@ -140,7 +146,7 @@ const query = ref('')
 const highlightedValue = ref<string | number | null>(null)
 const visualViewportHeight = ref<number | null>(null)
 const visualViewportOffsetTop = ref(0)
-const menuId = `custom-select-${++selectId}`
+const menuId = `custom-select-${useId()}`
 
 const selectedOption = computed(() =>
   props.options.find((option) => option.value === props.modelValue),
@@ -185,6 +191,9 @@ const show = (): void => {
   setInitialHighlight()
   void nextTick(() => {
     if (props.searchable) searchInput.value?.focus()
+    // Menus inside scrollable panels may open below the visible area.
+    if (!useMobileModal.value)
+      menu.value?.scrollIntoView?.({ block: 'nearest' })
   })
 }
 const hide = (restoreFocus = false): void => {

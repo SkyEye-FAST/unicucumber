@@ -200,6 +200,7 @@
     "export_hex": "Unifont字形（.hex）",
     "batch_export": {
       "scope_label": "批次匯出範圍",
+      "scale_label": "影像壓縮檔的像素縮放",
       "scope": {
         "saved": "已儲存字形",
         "selected": "已選字形",

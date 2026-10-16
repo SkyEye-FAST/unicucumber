@@ -756,11 +756,6 @@ const exportSheet = (): void => {
   z-index: 60;
 }
 
-/* Keep nested select options above the export panel instead of clipping them. */
-.library-export-options:has(:deep(.custom-select.is-open)) {
-  overflow: visible;
-}
-
 /* Density selection and bulk actions. */
 .density-control {
   height: var(--control-height-compact);

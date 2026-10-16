@@ -47,15 +47,14 @@
       <div class="batch-export-image-options">
         <label class="batch-export-scale-label">
           <span class="batch-export-sublabel">{{ t('export.scale') }}</span>
-          <select v-model.number="scale" class="batch-export-select">
-            <option
-              v-for="value in [1, 2, 4, 8, 16]"
-              :key="value"
-              :value="value"
-            >
-              {{ value }}×
-            </option>
-          </select>
+          <CustomSelect
+            v-model="scale"
+            class="batch-export-select"
+            :ariaLabel="t('glyph_manager.batch_export.scale_label')"
+            :disabled="busy"
+            :options="scaleOptions"
+            mobile-modal
+          />
         </label>
         <label class="batch-export-checkbox-label">
           <input v-model="transparent" type="checkbox" />
@@ -96,6 +95,9 @@
 <script setup lang="ts">
 import { computed, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
+import CustomSelect, {
+  type CustomSelectOption,
+} from '@/components/CustomSelect.vue'
 import type { BatchExportRequest, BatchExportScope } from '@/utils/batchExport'
 
 const props = defineProps<{
@@ -110,7 +112,15 @@ const scopeId = useId()
 const charactersId = useId()
 const scope = ref<BatchExportScope>('saved')
 const characters = ref('')
-const scale = ref(1)
+const scaleValue = ref(1)
+const scale = computed({
+  get: () => scaleValue.value,
+  set: (value: string | number) => (scaleValue.value = Number(value)),
+})
+const scaleOptions: CustomSelectOption[] = [1, 2, 4, 8, 16].map((value) => ({
+  value,
+  label: `${value}×`,
+}))
 const transparent = ref(false)
 const formats = ['hex', 'svg', 'png'] as const
 const scopes = computed<BatchExportScope[]>(() =>
@@ -296,8 +306,11 @@ textarea {
 }
 
 .batch-export-select {
+  width: 4.75rem;
+}
+
+.batch-export-select :deep(.custom-select__trigger) {
   min-height: 1.875rem;
-  padding: 0.15rem 0.4rem;
 }
 
 .batch-export-actions {
