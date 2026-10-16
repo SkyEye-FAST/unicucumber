@@ -4,14 +4,18 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-10-16
+
 ### Added
 
+- Complete Unicode 18.0 block filtering with all seven new blocks and their Chinese names from Wikipedia's rendered Simplified and Traditional variants.
 - Export saved, selected, filtered, or pasted character lists as HEX or zipped SVG/PNG files (#50).
 - Add configurable Ctrl+[ / Ctrl+] shortcuts for previous/next character navigation, retaining unsaved-edit confirmation (#50).
 - Copy the composed glyph directly from the composition canvas as a PNG image (using the export scale and background settings) or a Unifont HEX line, without saving it to the glyph manager.
 
 ### Changed
 
+- Update Vue I18n with security fixes, upgrade Happy DOM to 21 and vite-plugin-pwa to 2, and refresh Playwright, Vite, Vue tooling, formatting, and icon dependencies (#51–#54).
 - Optimize the Glyph Manager export menu layout for desktop and mobile viewports with segmented batch export controls, group sheet export options, replace left and bottom accent stripe box styles with unified borders, use fullwidth parentheses in Chinese locales for block names and metadata summaries, and retain the interval dot in Unicode plane names.
 - Remove redundant layout, animation, static-rendering, and screenshot-only test checks while retaining editing, persistence, accessibility, and platform regression coverage.
 - Emit typed files from the glyph-manager upload section instead of synthetic input events, and remove unused clipboard and test-reset helpers.

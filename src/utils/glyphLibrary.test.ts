@@ -18,7 +18,7 @@ import {
 } from './glyphLibrary'
 
 describe('glyph-library preview preparation', () => {
-  it('uses Unicode 17 plane and block ranges for catalog filtering', () => {
+  it('uses Unicode 18 plane and block ranges for catalog filtering', () => {
     expect(UNICODE_BLOCKS.length).toBeGreaterThan(300)
     expect(
       blocksForPlane(0).find((block) => block.id === 'basic-latin'),

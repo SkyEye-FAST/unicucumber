@@ -5,7 +5,7 @@ export interface UnicodeBlock {
   end: number
 }
 
-// Unicode 17.0 Blocks.txt: https://www.unicode.org/Public/17.0.0/ucd/Blocks.txt
+// Unicode 18.0 Blocks.txt: https://www.unicode.org/Public/18.0.0/ucd/Blocks.txt
 export const UNICODE_BLOCKS: readonly UnicodeBlock[] = [
   { id: 'basic-latin', name: 'Basic Latin', start: 0x0000, end: 0x007f },
   {
@@ -821,6 +821,12 @@ export const UNICODE_BLOCKS: readonly UnicodeBlock[] = [
   { id: 'masaram-gondi', name: 'Masaram Gondi', start: 0x11d00, end: 0x11d5f },
   { id: 'gunjala-gondi', name: 'Gunjala Gondi', start: 0x11d60, end: 0x11daf },
   { id: 'tolong-siki', name: 'Tolong Siki', start: 0x11db0, end: 0x11def },
+  {
+    id: 'bengali-supplement',
+    name: 'Bengali Supplement',
+    start: 0x11df0,
+    end: 0x11dff,
+  },
   { id: 'makasar', name: 'Makasar', start: 0x11ee0, end: 0x11eff },
   { id: 'kawi', name: 'Kawi', start: 0x11f00, end: 0x11f5f },
   {
@@ -847,6 +853,12 @@ export const UNICODE_BLOCKS: readonly UnicodeBlock[] = [
     name: 'Early Dynastic Cuneiform',
     start: 0x12480,
     end: 0x1254f,
+  },
+  {
+    id: 'archaic-cuneiform-numerals',
+    name: 'Archaic Cuneiform Numerals',
+    start: 0x12550,
+    end: 0x1268f,
   },
   { id: 'cypro-minoan', name: 'Cypro-Minoan', start: 0x12f90, end: 0x12fff },
   {
@@ -919,6 +931,13 @@ export const UNICODE_BLOCKS: readonly UnicodeBlock[] = [
     start: 0x18d80,
     end: 0x18dff,
   },
+  { id: 'jurchen', name: 'Jurchen', start: 0x18e00, end: 0x1919f },
+  {
+    id: 'jurchen-radicals',
+    name: 'Jurchen Radicals',
+    start: 0x191a0,
+    end: 0x191df,
+  },
   {
     id: 'kana-extended-b',
     name: 'Kana Extended-B',
@@ -988,6 +1007,12 @@ export const UNICODE_BLOCKS: readonly UnicodeBlock[] = [
     end: 0x1d24f,
   },
   {
+    id: 'musical-symbols-supplement',
+    name: 'Musical Symbols Supplement',
+    start: 0x1d250,
+    end: 0x1d28f,
+  },
+  {
     id: 'kaktovik-numerals',
     name: 'Kaktovik Numerals',
     start: 0x1d2c0,
@@ -1022,6 +1047,12 @@ export const UNICODE_BLOCKS: readonly UnicodeBlock[] = [
     name: 'Sutton SignWriting',
     start: 0x1d800,
     end: 0x1daaf,
+  },
+  {
+    id: 'miscellaneous-symbols-and-arrows-extended',
+    name: 'Miscellaneous Symbols and Arrows Extended',
+    start: 0x1db00,
+    end: 0x1dbff,
   },
   {
     id: 'latin-extended-g',
@@ -1209,6 +1240,7 @@ export const UNICODE_BLOCKS: readonly UnicodeBlock[] = [
     start: 0x323b0,
     end: 0x3347f,
   },
+  { id: 'seal', name: 'Seal', start: 0x3d000, end: 0x3fc3f },
   { id: 'tags', name: 'Tags', start: 0xe0000, end: 0xe007f },
   {
     id: 'variation-selectors-supplement',
@@ -1235,8 +1267,9 @@ export const UNICODE_PLANES = [0, 1, 2, 3, 14, 15, 16] as const
 export const blocksForPlane = (plane: number): readonly UnicodeBlock[] =>
   UNICODE_BLOCKS.filter((block) => Math.floor(block.start / 0x10000) === plane)
 
-// Simplified and Traditional names from the Unicode 17.0 table at
-// https://zh.wikipedia.org/wiki/Unicode%E5%8D%80%E6%AE%B5.
+// Names read from the rendered Simplified and Traditional variant tables:
+// https://zh.wikipedia.org/zh-hans/Unicode%E5%8D%80%E6%AE%B5
+// https://zh.wikipedia.org/zh-hant/Unicode%E5%8D%80%E6%AE%B5
 
 export const UNICODE_BLOCK_NAMES_ZH_HANS: Readonly<Record<string, string>> = {
   'basic-latin': '基本拉丁字母',
@@ -1495,6 +1528,7 @@ export const UNICODE_BLOCK_NAMES_ZH_HANS: Readonly<Record<string, string>> = {
   'masaram-gondi': '马萨拉姆贡德文字',
   'gunjala-gondi': '托隆希基文',
   'tolong-siki': '贡贾拉贡德文字',
+  'bengali-supplement': '孟加拉文补充',
   makasar: '望加锡文',
   kawi: '卡维文',
   'lisu-supplement': '老傈僳文补充',
@@ -1502,6 +1536,7 @@ export const UNICODE_BLOCK_NAMES_ZH_HANS: Readonly<Record<string, string>> = {
   cuneiform: '楔形文字',
   'cuneiform-numbers-and-punctuation': '楔形文字数字和标点符号',
   'early-dynastic-cuneiform': '早期王朝楔形文字',
+  'archaic-cuneiform-numerals': '原始楔形文字数字',
   'cypro-minoan': '塞浦路斯-米诺斯文字',
   'egyptian-hieroglyphs': '埃及圣书体',
   'egyptian-hieroglyph-format-controls': '埃及圣书体格式控制',
@@ -1523,6 +1558,8 @@ export const UNICODE_BLOCK_NAMES_ZH_HANS: Readonly<Record<string, string>> = {
   'khitan-small-script': '契丹小字',
   'tangut-supplement': '西夏文补充',
   'tangut-components-supplement': '西夏文部件补充',
+  jurchen: '女真文',
+  'jurchen-radicals': '女真文部首',
   'kana-extended-b': '假名扩展-B',
   'kana-supplement': '假名补充',
   'kana-extended-a': '假名扩展-A',
@@ -1536,12 +1573,14 @@ export const UNICODE_BLOCK_NAMES_ZH_HANS: Readonly<Record<string, string>> = {
   'byzantine-musical-symbols': '拜占庭音乐符号',
   'musical-symbols': '音乐符号',
   'ancient-greek-musical-notation': '古希腊音乐记号',
+  'musical-symbols-supplement': '音乐符号补充',
   'kaktovik-numerals': '卡克托维克数字',
   'mayan-numerals': '玛雅数字',
   'tai-xuan-jing-symbols': '太玄经符号',
   'counting-rod-numerals': '算筹',
   'mathematical-alphanumeric-symbols': '字母和数字符号',
   'sutton-signwriting': '萨顿书写符号',
+  'miscellaneous-symbols-and-arrows-extended': '杂项符号和箭头扩展',
   'latin-extended-g': '拉丁字母扩展-G',
   'glagolitic-supplement': '格拉哥里字母补充',
   'cyrillic-extended-d': '西里尔字母扩展-D',
@@ -1583,6 +1622,7 @@ export const UNICODE_BLOCK_NAMES_ZH_HANS: Readonly<Record<string, string>> = {
   'cjk-unified-ideographs-extension-g': '中日韩统一表意文字扩展区G',
   'cjk-unified-ideographs-extension-h': '中日韩统一表意文字扩展区H',
   'cjk-unified-ideographs-extension-j': '中日韩统一表意文字扩展区J',
+  seal: '篆书',
   tags: '标签',
   'variation-selectors-supplement': '变体选择符补充',
   'supplementary-private-use-area-a': '补充私人使用区-A',
@@ -1846,6 +1886,7 @@ export const UNICODE_BLOCK_NAMES_ZH_HANT: Readonly<Record<string, string>> = {
   'masaram-gondi': '馬薩拉姆貢德文字',
   'gunjala-gondi': '托隆希基文',
   'tolong-siki': '貢賈拉貢德文字',
+  'bengali-supplement': '孟加拉文補充',
   makasar: '望加錫文',
   kawi: '卡維文',
   'lisu-supplement': '老傈僳文補充',
@@ -1853,6 +1894,7 @@ export const UNICODE_BLOCK_NAMES_ZH_HANT: Readonly<Record<string, string>> = {
   cuneiform: '楔形文字',
   'cuneiform-numbers-and-punctuation': '楔形文字數字和標點符號',
   'early-dynastic-cuneiform': '早期王朝楔形文字',
+  'archaic-cuneiform-numerals': '原始楔形文字數字',
   'cypro-minoan': '賽普勒斯-米諾斯文字',
   'egyptian-hieroglyphs': '埃及聖書體',
   'egyptian-hieroglyph-format-controls': '埃及聖書體格式控制',
@@ -1874,6 +1916,8 @@ export const UNICODE_BLOCK_NAMES_ZH_HANT: Readonly<Record<string, string>> = {
   'khitan-small-script': '契丹小字',
   'tangut-supplement': '西夏文補充',
   'tangut-components-supplement': '西夏文部件補充',
+  jurchen: '女真文',
+  'jurchen-radicals': '女真文部首',
   'kana-extended-b': '假名擴展-B',
   'kana-supplement': '假名補充',
   'kana-extended-a': '假名擴展-A',
@@ -1887,12 +1931,14 @@ export const UNICODE_BLOCK_NAMES_ZH_HANT: Readonly<Record<string, string>> = {
   'byzantine-musical-symbols': '拜占庭音樂符號',
   'musical-symbols': '音樂符號',
   'ancient-greek-musical-notation': '古希臘音樂記號',
+  'musical-symbols-supplement': '音樂符號補充',
   'kaktovik-numerals': '卡克托維克數字',
   'mayan-numerals': '瑪雅數字',
   'tai-xuan-jing-symbols': '太玄經符號',
   'counting-rod-numerals': '算籌',
   'mathematical-alphanumeric-symbols': '字母和數字符號',
   'sutton-signwriting': '薩頓書寫符號',
+  'miscellaneous-symbols-and-arrows-extended': '雜項符號和箭頭擴展',
   'latin-extended-g': '拉丁字母擴展-G',
   'glagolitic-supplement': '格拉哥里字母補充',
   'cyrillic-extended-d': '西里爾字母擴展-D',
@@ -1934,6 +1980,7 @@ export const UNICODE_BLOCK_NAMES_ZH_HANT: Readonly<Record<string, string>> = {
   'cjk-unified-ideographs-extension-g': '中日韓統一表意文字擴充區G',
   'cjk-unified-ideographs-extension-h': '中日韓統一表意文字擴充區H',
   'cjk-unified-ideographs-extension-j': '中日韓統一表意文字擴充區J',
+  seal: '篆書',
   tags: '標籤',
   'variation-selectors-supplement': '變體選擇符補充',
   'supplementary-private-use-area-a': '補充私人使用區-A',
