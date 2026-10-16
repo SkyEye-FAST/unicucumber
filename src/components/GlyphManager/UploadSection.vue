@@ -44,7 +44,10 @@ import { useFileDialog } from '@vueuse/core'
 
 import { useNotifications } from '@/composables/useNotifications'
 
-const emit = defineEmits(['hex-upload', 'image-upload'])
+const emit = defineEmits<{
+  'hex-upload': [file: File]
+  'image-upload': [files: File[]]
+}>()
 const { t: $t } = useI18n()
 const { notify } = useNotifications()
 const dragActive = ref(false)
@@ -61,12 +64,12 @@ const { open: openImageDialog, onChange: onImageChange } = useFileDialog({
 })
 
 const emitImageFiles = (files: File[]): void => {
-  if (files.length > 0) emit('image-upload', { target: { files } })
+  if (files.length > 0) emit('image-upload', files)
 }
 
 onHexChange((files) => {
   const file = files?.[0]
-  if (file) emit('hex-upload', { target: { files: [file] } })
+  if (file) emit('hex-upload', file)
 })
 
 onImageChange((files) => {
@@ -77,7 +80,7 @@ const handleDrop = (event: DragEvent): void => {
   dragActive.value = false
   const files = Array.from(event.dataTransfer?.files ?? [])
   const hexFile = files.find((file) => file.name.toLowerCase().endsWith('.hex'))
-  if (hexFile) emit('hex-upload', { target: { files: [hexFile] } })
+  if (hexFile) emit('hex-upload', hexFile)
   emitImageFiles(files.filter((file) => file.type.startsWith('image/')))
 }
 

@@ -112,7 +112,3 @@ export const getLocalPreviewFontRepository = () => {
   repository ??= new IndexedDbLocalPreviewFontRepository(indexedDB)
   return repository
 }
-
-export const __resetLocalPreviewFontRepositoryForTests = (): void => {
-  repository = null
-}

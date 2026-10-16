@@ -1326,11 +1326,7 @@ watch(
   { flush: 'post' },
 )
 
-const handleHexFileUpload = async (event: Event): Promise<void> => {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-
+const handleHexFileUpload = async (file: File): Promise<void> => {
   const text = await file.text()
   const parsed = parseHexFile(text)
   const newGlyphs: Glyph[] = []
@@ -1424,8 +1420,6 @@ const handleHexFileUpload = async (event: Event): Promise<void> => {
       },
     }
   }
-
-  target.value = ''
 }
 
 const validateImageDimensions = (img: ImageWithDimensions): boolean => {
@@ -1559,17 +1553,14 @@ const processImageFile = async (
   return { glyph: null, error: 'Unknown error' }
 }
 
-const handleImageFileUpload = async (event: Event): Promise<void> => {
-  const target = event.target as HTMLInputElement
-  const files = target.files
-  if (!files || files.length === 0) return
+const handleImageFileUpload = async (files: File[]): Promise<void> => {
+  if (files.length === 0) return
 
   if (files.length === 1 && files[0]) {
     try {
       const image = await loadImage(files[0])
       if (!validateImageDimensions(image as ImageWithDimensions)) {
         pendingImageFile.value = files[0]
-        target.value = ''
         return
       }
     } catch (error) {
@@ -1671,8 +1662,6 @@ const handleImageFileUpload = async (event: Event): Promise<void> => {
   } else {
     handleManualInputGlyphs(manualInputGlyphs)
   }
-
-  target.value = ''
 }
 
 const handlePreparedImage = (grid: GridData): void => {

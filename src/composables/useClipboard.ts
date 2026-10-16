@@ -84,24 +84,6 @@ export function useClipboard() {
     _isPasteMode.value = false
   }
 
-  const clear = (): void => {
-    _clipboardData.value = null
-    _isPasteMode.value = false
-  }
-
-  const getClipboardInfo = () => {
-    if (!_clipboardData.value) return null
-
-    return {
-      width: _clipboardData.value.width,
-      height: _clipboardData.value.height,
-      timestamp: _clipboardData.value.timestamp,
-      isEmpty: _clipboardData.value.data.every((row) =>
-        row.every((cell) => cell === 0),
-      ),
-    }
-  }
-
   return {
     clipboardData,
     isPasteMode,
@@ -113,7 +95,5 @@ export function useClipboard() {
     getPasteData,
     enterPasteMode,
     exitPasteMode,
-    clear,
-    getClipboardInfo,
   }
 }
