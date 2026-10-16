@@ -1,68 +1,71 @@
 <template>
-  <div class="notification-region" aria-live="polite" aria-atomic="false">
-    <article
-      v-for="notification in notifications"
-      :key="notification.id"
-      class="notification"
-      :class="[
-        notification.tone,
-        `notification--${notification.kind ?? 'default'}`,
-      ]"
-      role="status"
-    >
-      <div class="notification-copy">
-        <i-material-symbols-system-update-alt
-          v-if="notification.kind === 'update'"
-          class="notification-symbol update"
-          aria-hidden="true"
-        />
-        <i-material-symbols-check-circle-outline
-          v-else-if="notification.tone === 'success'"
-          class="notification-symbol success"
-          aria-hidden="true"
-        />
-        <i-material-symbols-warning-outline
-          v-else-if="notification.tone === 'warning'"
-          class="notification-symbol warning"
-          aria-hidden="true"
-        />
-        <i-material-symbols-error-outline
-          v-else-if="notification.tone === 'error'"
-          class="notification-symbol error"
-          aria-hidden="true"
-        />
-        <i-material-symbols-info-outline
-          v-else
-          class="notification-symbol info"
-          aria-hidden="true"
-        />
-        <div>
-          <strong v-if="notification.title" class="notification-title">
-            {{ notification.title }}
-          </strong>
-          <p class="notification-message">{{ notification.message }}</p>
+  <!-- Overlays make #app inert; keep notifications reachable above them. -->
+  <Teleport to="body">
+    <div class="notification-region" aria-live="polite" aria-atomic="false">
+      <article
+        v-for="notification in notifications"
+        :key="notification.id"
+        class="notification"
+        :class="[
+          notification.tone,
+          `notification--${notification.kind ?? 'default'}`,
+        ]"
+        :role="notification.tone === 'error' ? 'alert' : undefined"
+      >
+        <div class="notification-copy">
+          <i-material-symbols-system-update-alt
+            v-if="notification.kind === 'update'"
+            class="notification-symbol update"
+            aria-hidden="true"
+          />
+          <i-material-symbols-check-circle-outline
+            v-else-if="notification.tone === 'success'"
+            class="notification-symbol success"
+            aria-hidden="true"
+          />
+          <i-material-symbols-warning-outline
+            v-else-if="notification.tone === 'warning'"
+            class="notification-symbol warning"
+            aria-hidden="true"
+          />
+          <i-material-symbols-error-outline
+            v-else-if="notification.tone === 'error'"
+            class="notification-symbol error"
+            aria-hidden="true"
+          />
+          <i-material-symbols-info-outline
+            v-else
+            class="notification-symbol info"
+            aria-hidden="true"
+          />
+          <div>
+            <strong v-if="notification.title" class="notification-title">
+              {{ notification.title }}
+            </strong>
+            <p class="notification-message">{{ notification.message }}</p>
+          </div>
         </div>
-      </div>
-      <div class="notification-actions">
-        <button
-          v-if="notification.action && notification.actionLabel"
-          class="ui-button ui-button--primary notification-action"
-          type="button"
-          @click="runAction(notification)"
-        >
-          {{ notification.actionLabel }}
-        </button>
-        <button
-          class="ui-icon-button ui-button--quiet dismiss"
-          type="button"
-          :aria-label="$t('notifications.dismiss')"
-          @click="dismiss(notification.id)"
-        >
-          <i-material-symbols-close />
-        </button>
-      </div>
-    </article>
-  </div>
+        <div class="notification-actions">
+          <button
+            v-if="notification.action && notification.actionLabel"
+            class="ui-button ui-button--primary notification-action"
+            type="button"
+            @click="runAction(notification)"
+          >
+            {{ notification.actionLabel }}
+          </button>
+          <button
+            class="ui-icon-button ui-button--quiet dismiss"
+            type="button"
+            :aria-label="$t('notifications.dismiss')"
+            @click="dismiss(notification.id)"
+          >
+            <i-material-symbols-close />
+          </button>
+        </div>
+      </article>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
