@@ -904,7 +904,7 @@ test('compact manager preloads once, windows rows, and preserves state on reopen
       (window as typeof window & { __glyphIdbReads: number }).__glyphIdbReads,
   )
   await page.locator('.btn-close-sidebar').click()
-  await page.waitForTimeout(350)
+  await expect(page.locator('.sidebar')).toHaveCount(0)
   await page.getByRole('button', { name: 'Open glyph manager' }).click()
   await expect(
     page.locator('.glyph-manager > .toolbar .search-input'),
