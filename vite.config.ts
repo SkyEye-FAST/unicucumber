@@ -226,6 +226,20 @@ export default defineConfig(({ command }) => ({
         maximumFileSizeToCacheInBytes: 3_000_000,
         runtimeCaching: [
           {
+            // Hashed optional modules excluded from precache; keep only the
+            // latest few so stale builds are evicted.
+            urlPattern: /\/assets\/(?:encoding|unicode-name)-[\w-]+\.js$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'unicucumber-optional-modules-v1',
+              cacheableResponse: { statuses: [200] },
+              expiration: {
+                maxEntries: 4,
+                purgeOnQuotaError: true,
+              },
+            },
+          },
+          {
             urlPattern: /\/composition\/index\.json$/,
             handler: 'NetworkFirst',
             options: {

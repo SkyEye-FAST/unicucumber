@@ -1,4 +1,19 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
+
+const expectEncodingInfoForLatinA = async (page: Page): Promise<void> => {
+  await page.locator('.code-point-input input').fill('0041')
+  await page.locator('.code-point-input input').press('Enter')
+  await page.locator('.encoding-info-btn').click()
+  await expect(page.locator('.unicode-name')).toHaveText(
+    'LATIN CAPITAL LETTER A',
+  )
+  await expect(
+    page
+      .locator('.encoding-row', { hasText: 'GBK' })
+      .locator('.encoding-value'),
+  ).toHaveText('41')
+  await page.locator('.encoding-info-btn').click()
+}
 
 test('production shell reloads offline after service-worker installation', async ({
   page,
@@ -17,6 +32,15 @@ test('production shell reloads offline after service-worker installation', async
       message.type() === 'error' &&
       message.text() === 'Failed to load resource: net::ERR_FAILED' &&
       (location.includes('/unifont/') || location.includes('/composition/'))
+    ) {
+      return
+    }
+    // Chromium intermittently reports module preloads that race service-worker
+    // control; the modules still load from the precache.
+    if (
+      message.type() === 'warning' &&
+      (message.text().includes('cross-world service worker resource') ||
+        message.text().includes('was preloaded using link preload'))
     ) {
       return
     }
@@ -124,6 +148,7 @@ test('production shell reloads offline after service-worker installation', async
     )
     .toBe(true)
   await page.keyboard.press('Escape')
+  await expectEncodingInfoForLatinA(page)
 
   await page.getByRole('button', { name: 'Open settings' }).click()
   await page.getByRole('button', { name: 'Check for updates' }).click()
@@ -152,6 +177,7 @@ test('production shell reloads offline after service-worker installation', async
         async () => (await fetch('/unifont/catalog.json')).ok,
       ),
     ).toBe(true)
+    await expectEncodingInfoForLatinA(page)
 
     await page.locator('.code-point-input input').fill('660E')
     await page.locator('.code-point-input input').press('Enter')

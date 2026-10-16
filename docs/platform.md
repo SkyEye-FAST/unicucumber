@@ -42,7 +42,8 @@ new release is found, the current draft is flushed before the user applies it.
 Development intentionally does not register a service worker, so stale cached assets
 do not hide local changes. The editor shell works offline after a successful
 production load; large optional Unifont and Unicode-name lookup data is not blindly
-precached.
+precached. The lazily loaded encoding and Unicode-name modules are kept in a small
+runtime cache after their first online use, so encoding details keep working offline.
 
 Test installation, offline operation, and updates with:
 
