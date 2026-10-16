@@ -258,6 +258,7 @@
     "glyph": {
       "code_point": "Code point:",
       "delete": "Delete",
+      "deleted": "Deleted U+{codePoint}.",
       "edit": "Edit",
       "edit_in_grid": "Click to edit glyph: U+{codePoint}",
       "hex": "Hex:"
@@ -282,6 +283,7 @@
         "large": "Large"
       },
       "density_label": "Glyph matrix density",
+      "empty_collection": "No saved glyphs yet. Save a glyph from the editor or import a .hex file.",
       "entered_fullscreen": "Full-screen glyph library opened.",
       "entry_description": "Explore all Unifont glyphs and add them to your collection.",
       "exit_fullscreen": "Back to glyph manager",

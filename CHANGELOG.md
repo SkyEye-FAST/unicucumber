@@ -18,6 +18,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Fixed
 
+- Offer Undo after deleting a single glyph from the glyph manager, restoring it at its original position, and distinguish an empty glyph collection from a search without matches.
 - Offer Undo after discarding a composition draft, and keep Add blank layer and component insertion working after a restored draft already uses the next layer number.
 - Keep notifications clickable and announced while dialogs or the composition workspace are open, and announce error notifications as alerts instead of nested status regions.
 - Keep the composition workspace header, canvas, and toolbar usable on phones and short tablet viewports: the code point and IDS hints no longer overflow under the close button, the canvas fits the available height, and Undo/Redo become icon-only below 400px.

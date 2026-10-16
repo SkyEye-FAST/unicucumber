@@ -1,6 +1,6 @@
 <template>
   <div class="glyph-list tw:flex tw:flex-col tw:gap-[6px] tw:overflow-hidden">
-    <div class="select-all-row">
+    <div v-if="!collectionEmpty" class="select-all-row">
       <div class="tw:flex tw:w-full tw:items-center tw:justify-between">
         <label class="checkbox-label">
           <input
@@ -140,7 +140,13 @@
         class="glyph-list-empty tw:grid tw:place-items-center tw:text-center"
         role="status"
       >
-        {{ $t('glyph_manager.library.no_matches') }}
+        {{
+          $t(
+            collectionEmpty
+              ? 'glyph_manager.library.empty_collection'
+              : 'glyph_manager.library.no_matches',
+          )
+        }}
       </div>
     </div>
   </div>
@@ -169,6 +175,7 @@ const { t: $t } = useI18n()
 
 const props = defineProps<{
   glyphs: Glyph[]
+  collectionEmpty?: boolean
   selectedCodePoints: string[]
   settings: Pick<EditorSettings, 'glyphPreviewMode' | 'browserPreviewFont'>
 }>()

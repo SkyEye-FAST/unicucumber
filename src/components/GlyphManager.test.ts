@@ -3,6 +3,7 @@ import { nextTick } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 
+import { useNotifications } from '@/composables/useNotifications'
 import en from '@/locales/en.json'
 import type { Glyph } from '@/types/glyph'
 import { flushPromises, mount } from '@vue/test-utils'
@@ -255,6 +256,27 @@ describe('GlyphManager full-screen state', () => {
       wrapper.unmount()
       errorLog.mockRestore()
     }
+  })
+
+  it('restores a single deleted glyph at its original position from Undo', async () => {
+    const onGlyphChange = vi.fn().mockResolvedValue(undefined)
+    const wrapper = mountManager({ onGlyphChange })
+    await flushPromises()
+
+    await wrapper.get('.glyph-list .btn-icon.danger').trigger('click')
+    await flushPromises()
+    const remaining = onGlyphChange.mock.lastCall?.[0] as Glyph[]
+    expect(remaining).toHaveLength(1)
+    await wrapper.setProps({ glyphs: remaining })
+
+    const { notifications, dismiss } = useNotifications()
+    const undo = notifications.value.at(-1)
+    expect(undo?.actionLabel).toBe('Undo')
+    undo?.action?.()
+    if (undo) dismiss(undo.id)
+
+    expect(onGlyphChange).toHaveBeenLastCalledWith(glyphs)
+    wrapper.unmount()
   })
 
   it('opens the compact add/import tools by default on desktop', async () => {

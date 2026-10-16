@@ -173,6 +173,7 @@
     <GlyphList
       v-else-if="!isExpanded"
       :glyphs="filteredGlyphs"
+      :collection-empty="props.glyphs.length === 0"
       :selected-code-points="selectedCodePoints"
       :settings="glyphListSettings"
       @edit="editGlyph"
@@ -1025,11 +1026,31 @@ watch([searchQuery, isExpanded, catalogGlyphs], async ([query]) => {
   }
 })
 
-const removeGlyph = (codePoint: string): void => {
+const removeGlyph = async (codePoint: string): Promise<void> => {
+  const index = props.glyphs.findIndex((glyph) => glyph.codePoint === codePoint)
+  const removed = props.glyphs[index]
+  if (!removed) return
   const updatedGlyphs = props.glyphs.filter(
     (glyph) => glyph.codePoint !== codePoint,
   )
-  saveGlyphsToStorage(updatedGlyphs)
+  if (!(await saveGlyphsToStorage(updatedGlyphs))) return
+
+  notify(
+    {
+      tone: 'info',
+      message: $t('glyph_manager.glyph.deleted', {
+        codePoint: formatGlyphCodePoint(codePoint),
+      }),
+      actionLabel: $t('editor.actions.undo.title'),
+      action: () => {
+        if (props.glyphs.some((glyph) => glyph.codePoint === codePoint)) return
+        const restored = [...props.glyphs]
+        restored.splice(Math.min(index, restored.length), 0, removed)
+        void saveGlyphsToStorage(restored)
+      },
+    },
+    10000,
+  )
 }
 
 const editGlyph = (glyph: Glyph): void => {

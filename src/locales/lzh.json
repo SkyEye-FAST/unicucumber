@@ -258,6 +258,7 @@
     "glyph": {
       "code_point": "碼位：",
       "delete": "刪",
+      "deleted": "U+{codePoint}既刪。",
       "edit": "纂",
       "edit_in_grid": "擊之以纂字形：U+{codePoint}",
       "hex": "十六進碼："
@@ -282,6 +283,7 @@
         "large": "疏"
       },
       "density_label": "字形柵之疏密",
+      "empty_collection": "尙無所存之形。且自纂形處存之，抑納.hex之卷。",
       "entered_fullscreen": "全幕字庫既開。",
       "entry_description": "遍覽萬國碼字體諸形，擇而收入爾集。",
       "exit_fullscreen": "返司形儀",

@@ -258,6 +258,7 @@
     "glyph": {
       "code_point": "码位：",
       "delete": "删除",
+      "deleted": "已删除U+{codePoint}。",
       "edit": "编辑",
       "edit_in_grid": "点击编辑字形：U+{codePoint}",
       "hex": "Hex："
@@ -282,6 +283,7 @@
         "large": "宽松"
       },
       "density_label": "字形矩阵密度",
+      "empty_collection": "还没有保存的字形。请从编辑器保存字形，或导入.hex文件。",
       "entered_fullscreen": "已打开全屏字形库。",
       "entry_description": "浏览全部Unifont字形，选入自己的字形集。",
       "exit_fullscreen": "返回字形管理器",
