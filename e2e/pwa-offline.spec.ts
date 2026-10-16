@@ -190,7 +190,8 @@ test('production shell reloads offline after service-worker installation', async
     const offlineComponent = page.locator('.component-card').first()
     await expect(offlineComponent).toBeVisible()
     await offlineComponent.click()
-    await expect(page.locator('.composition-layer')).toHaveCount(1)
+    // The online layer is restored from the draft; the offline one is added.
+    await expect(page.locator('.composition-layer')).toHaveCount(2)
     expect(failures).toEqual([])
   } finally {
     await context.setOffline(false)
