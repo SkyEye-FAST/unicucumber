@@ -164,6 +164,51 @@ test('restores an unfinished composition draft after reload', async ({
   await expect(
     page.getByTestId(`composition-layer-component-${COMPONENT_ID}-1-select`),
   ).toBeVisible()
+
+  await page.getByTestId('composition-discard').click()
+  await expect.poll(() => compositionDraftLayerCount(page)).toBe(0)
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await openComposition(page)
+  await expect(
+    page.getByTestId(`composition-layer-component-${COMPONENT_ID}-1-select`),
+  ).toHaveCount(0)
+  await expect(
+    page
+      .getByTestId('composition-canvas')
+      .locator('.canvas-pixel')
+      .filter({ visible: true }),
+  ).toHaveCount(0)
+})
+
+test('clears the first editor glyph from composition and allows undo', async ({
+  page,
+}) => {
+  await installCompositionFixture(page)
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
+  await selectCjkGlyph(page)
+  await page.locator('[data-row="0"][data-col="0"]').click()
+  await page.getByTestId('composition-open').click()
+
+  const pixels = page
+    .getByTestId('composition-canvas')
+    .locator('.canvas-pixel')
+    .filter({ visible: true })
+  await expect(pixels).toHaveCount(1)
+  await page.getByTestId('composition-discard').click()
+  await expect(pixels).toHaveCount(0)
+  await page
+    .getByRole('article')
+    .filter({ hasText: 'Composition draft discarded.' })
+    .getByRole('button', { name: 'Undo', exact: true })
+    .click()
+  await expect(pixels).toHaveCount(1)
+  await page.getByTestId('composition-discard').click()
+  await expect(pixels).toHaveCount(0)
+  await page
+    .getByRole('button', { name: 'Close composition workspace', exact: true })
+    .click()
+  await page.getByTestId('composition-open').click()
+  await expect(pixels).toHaveCount(0)
 })
 
 test(

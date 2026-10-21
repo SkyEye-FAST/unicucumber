@@ -4,6 +4,10 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+### Fixed
+
+- Clear composition drafts to an empty canvas instead of restoring the first editor glyph, and prevent pending draft loads from bringing discarded content back.
+
 ## [1.12.0] - 2026-10-16
 
 ### Added

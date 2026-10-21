@@ -305,7 +305,6 @@ const DEFAULT_COMPOSITION_CODE_POINT = '4E00'
 const compositionCodePoint = ref(DEFAULT_COMPOSITION_CODE_POINT)
 const compositionCodePointInput = ref(DEFAULT_COMPOSITION_CODE_POINT)
 const compositionCodePointError = ref<string | null>(null)
-const initialGrids = new Map<string, GridData>()
 
 const normalizeCompositionCodePoint = (value: string): string | null => {
   const normalized = normalizeCodePointHex(value)
@@ -326,11 +325,9 @@ const initialCodePointFromEditor = (): {
 
 const buildInitialDocument = (
   codePoint = compositionCodePoint.value,
+  grid?: GridData,
 ): CompositionDocument => {
-  const document = createCompositionDocument(
-    codePoint,
-    initialGrids.get(codePoint) ?? createGrid(16),
-  )
+  const document = createCompositionDocument(codePoint, grid)
   const currentGlyph = document.layers.find(({ id }) => id === 'current-glyph')
   if (currentGlyph) currentGlyph.name = $t('composition.current_glyph')
   return document
@@ -478,6 +475,7 @@ const offerDiscardUndo = (
 }
 
 const discardDraft = async (): Promise<void> => {
+  restoreGeneration += 1
   const codePoint = composer.document.value.codePoint
   const fingerprint = documentFingerprint()
   const wasPending = draftPending
@@ -740,9 +738,7 @@ const registerOverlay = (): void => {
     const initial = initialCodePointFromEditor()
     compositionCodePoint.value = initial.codePoint
     compositionCodePointInput.value = initial.codePoint
-    initialGrids.clear()
-    initialGrids.set(initial.codePoint, initial.grid)
-    composer.reset(buildInitialDocument(initial.codePoint))
+    composer.reset(buildInitialDocument(initial.codePoint, initial.grid))
     hasOpened = true
     void restoreDraft()
   } else {
@@ -770,6 +766,8 @@ const unregisterOverlay = (): void => {
 watch(
   () => composer.document.value,
   () => queueDraftSave(),
+  // Observe resets while autosave is paused, before the async operation resumes it.
+  { flush: 'sync' },
 )
 
 watch(

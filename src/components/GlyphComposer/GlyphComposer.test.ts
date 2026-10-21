@@ -9,6 +9,8 @@ import type {
   CompositionDocument,
 } from '@/types/composition'
 import { useNotifications } from '@/composables/useNotifications'
+import { createCompositionDocument } from '@/domain/composition'
+import type { StoredCompositionDraft } from '@/storage/compositionDraftRepository'
 import type { GridData } from '@/types/glyph'
 import { createGrid } from '@/utils/hexUtils'
 
@@ -547,11 +549,13 @@ describe('GlyphComposer', () => {
     expect(draftRepositoryMocks.deleteDraft).not.toHaveBeenCalled()
   })
 
-  it('discards only the active draft and resets to the latest editor grid', async () => {
+  it('discards only the active draft without bringing back the first editor glyph', async () => {
     const input = pixelGrid(2, 3)
     const wrapper = mountComposer(input)
     await flushPromises()
     await wrapper.get('[data-testid="composition-add-blank"]').trigger('click')
+    await wrapper.setProps({ modelValue: false })
+    await wrapper.setProps({ grid: pixelGrid(5, 6), modelValue: true })
 
     await wrapper.get('[data-testid="composition-discard"]').trigger('click')
     await flushPromises()
@@ -559,7 +563,70 @@ describe('GlyphComposer', () => {
     expect(draftRepositoryMocks.deleteDraft).toHaveBeenCalledWith('660E')
     await wrapper.get('[data-testid="composition-save"]').trigger('click')
     const saved = wrapper.emitted<[string, GridData]>('save')?.[0]?.[1]
-    expect(saved).toEqual(input)
+    expect(saved).toEqual(createGrid(16))
+    expect(
+      wrapper
+        .find('[data-testid="composition-layer-current-glyph-select"]')
+        .exists(),
+    ).toBe(false)
+  })
+
+  it('ignores a pending draft restore after discarding and keeps autosave usable', async () => {
+    vi.useFakeTimers()
+    let resolveDraft!: (draft: StoredCompositionDraft) => void
+    draftRepositoryMocks.loadDraft.mockReturnValueOnce(
+      new Promise<StoredCompositionDraft>((resolve) => {
+        resolveDraft = resolve
+      }),
+    )
+    const wrapper = mountComposer()
+
+    await wrapper.get('[data-testid="composition-discard"]').trigger('click')
+    await flushPromises()
+    resolveDraft({
+      id: '660E',
+      schemaVersion: 1,
+      updatedAt: 123,
+      document: createCompositionDocument('660E', pixelGrid(4, 5)),
+    })
+    await flushPromises()
+
+    await wrapper.get('[data-testid="composition-save"]').trigger('click')
+    expect(wrapper.emitted<[string, GridData]>('save')?.[0]?.[1]).toEqual(
+      createGrid(16),
+    )
+    await vi.advanceTimersByTimeAsync(500)
+    expect(draftRepositoryMocks.saveDraft).not.toHaveBeenCalled()
+
+    await wrapper.get('[data-testid="composition-add-blank"]').trigger('click')
+    await vi.advanceTimersByTimeAsync(500)
+    expect(draftRepositoryMocks.saveDraft).toHaveBeenCalledWith(
+      expect.objectContaining({
+        document: expect.objectContaining({
+          layers: [expect.objectContaining({ id: 'blank-1' })],
+        }),
+      }),
+    )
+  })
+
+  it('does not reuse the first editor glyph when returning to a cleared code point', async () => {
+    const wrapper = mountComposer()
+    await flushPromises()
+    await wrapper.get('[data-testid="composition-discard"]').trigger('click')
+    await flushPromises()
+
+    const codePoint = wrapper.get('[data-testid="composition-code-point"]')
+    for (const value of ['4E00', '660E']) {
+      await codePoint.setValue(value)
+      await codePoint.trigger('keydown', { key: 'Enter' })
+      await flushPromises()
+    }
+
+    await wrapper.get('[data-testid="composition-save"]').trigger('click')
+    expect(wrapper.emitted<[string, GridData]>('save')?.[0]).toEqual([
+      '660E',
+      createGrid(16),
+    ])
   })
 
   it('restores a discarded draft from the notification Undo action', async () => {
