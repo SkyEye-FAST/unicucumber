@@ -4,6 +4,10 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+### Changed
+
+- Retire the dev branch and let Dependabot target the repository's default branch.
+
 ### Fixed
 
 - Clear composition drafts to an empty canvas instead of restoring the first editor glyph, and prevent pending draft loads from bringing discarded content back.
