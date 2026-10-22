@@ -70,9 +70,13 @@ const parseSummary = (
   }
   const parsedBounds = parseBounds(bounds)
   if (parsedBounds === null) return null
+  const normalizedCharacters = [...characters]
+  if (characters.includes('糹') && !characters.includes('糸')) {
+    normalizedCharacters.push('糸')
+  }
   return {
     id,
-    characters: [...characters],
+    characters: normalizedCharacters,
     bounds: parsedBounds,
     chunk,
   }

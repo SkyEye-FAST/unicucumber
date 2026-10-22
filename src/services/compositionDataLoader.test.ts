@@ -108,6 +108,45 @@ describe('CompositionDataLoader', () => {
     ).toHaveLength(1)
   })
 
+  it('finds and hydrates 糹 components through both 糹 and 糸', async () => {
+    const summaries = [
+      makeSummary('00', '糹'),
+      makeSummary('01', '糸'),
+      makeSummary('02', '木'),
+      { ...makeSummary('03', '糹'), characters: ['糹', '糸'] },
+    ]
+    const fixture = fixtureFetcher({
+      '/composition/index.json': { body: manifest(summaries.length) },
+      '/composition/catalog.json': { body: summaries },
+      '/composition/components/00.json': {
+        body: [{ ...summaries[0], hex: componentHex('F') }],
+      },
+    })
+    const loader = new CompositionDataLoader(fixture.fetcher)
+    const silk = { ...summaries[0], characters: ['糹', '糸'] }
+
+    for (const query of ['糹', '7CF9', 'U+7CF9']) {
+      await expect(loader.searchComponents(query)).resolves.toEqual([
+        silk,
+        summaries[3],
+      ])
+    }
+    for (const query of ['糸', '7CF8', 'U+7CF8']) {
+      await expect(loader.searchComponents(query)).resolves.toEqual([
+        silk,
+        summaries[1],
+        summaries[3],
+      ])
+    }
+    expect(fixture.calls.some((url) => url.includes('/components/'))).toBe(
+      false,
+    )
+    await expect(loader.hydrateComponents([summaries[0]!.id])).resolves.toEqual(
+      [{ ...silk, hex: componentHex('F') }],
+    )
+    expect(summaries[0]!.characters).toEqual(['糹'])
+  })
+
   it('retries failed requests instead of caching their rejection', async () => {
     let attempts = 0
     const fetcher: typeof fetch = async (input) => {
@@ -205,7 +244,7 @@ describe('CompositionDataLoader', () => {
   })
 
   it('uses only same-version runtime caches when the network is unavailable', async () => {
-    const summary = makeSummary('00', '木')
+    const summary = makeSummary('00', '糹')
     const cacheStorage = new MemoryCacheStorage()
     const online = fixtureFetcher({
       '/composition/index.json': { body: manifest(1) },
@@ -239,7 +278,10 @@ describe('CompositionDataLoader', () => {
     )
 
     await expect(second.hydrateComponents([summary.id])).resolves.toEqual([
-      expect.objectContaining({ id: summary.id, hex: componentHex('F') }),
+      { ...summary, characters: ['糹', '糸'], hex: componentHex('F') },
+    ])
+    await expect(second.searchComponents('糸')).resolves.toEqual([
+      { ...summary, characters: ['糹', '糸'] },
     ])
     expect(offlineCalls).toContain('/composition/catalog.json')
     expect(offlineCalls).toContain('/composition/components/00.json')

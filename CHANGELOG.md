@@ -13,6 +13,7 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 ### Fixed
 
 - Clear composition drafts to an empty canvas instead of restoring the first editor glyph, and prevent pending draft loads from bringing discarded content back.
+- Map 糹 composition components to both 糹 and 糸 for character and code-point searches, IDS lookup, and component labels.
 
 ## [1.12.0] - 2026-10-16
 

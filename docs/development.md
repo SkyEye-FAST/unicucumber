@@ -76,6 +76,11 @@ pass before merging; automatic merging is not enabled.
   their data from the required chunks instead of parsing the complete map in the
   browser.
 
+Composition catalog and bitmap metadata share the same semantic normalization:
+糹 components are mapped to both 糹 and 糸 for search, IDS lookup, and labels,
+including when loaded from offline caches. Component IDs and bitmaps retain their
+source identity.
+
 ## Styling
 
 Tailwind CSS 4 runs through `@tailwindcss/vite`. Import its single entry point,
