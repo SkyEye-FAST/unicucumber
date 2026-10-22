@@ -2,8 +2,8 @@
 
 ## Requirements and setup
 
-UniCucumber supports Node.js 24 LTS or later and uses pnpm 10.34.5 through
-Corepack.
+UniCucumber supports Node.js 24 LTS or later and uses pnpm 12 through
+Corepack. The exact version and integrity hash are pinned in `package.json`.
 
 ```shell
 git clone https://github.com/SkyEye-FAST/unicucumber.git
@@ -37,6 +37,20 @@ pnpm update-unifont  # download and atomically install the latest Unifont data
 non-mutating `lint` and `format:check` commands in CI. Run `check:locales` as a
 non-mutating locale audit before committing. The locale cleanup command and
 generated-data commands change files, so review their diffs before committing.
+
+## Dependency updates
+
+[Renovate](https://github.com/apps/renovate) manages npm dependencies, the pinned
+pnpm version, and GitHub Actions on the repository's default branch. Its GitHub
+App must be installed with access to this repository; committing `renovate.json`
+alone does not grant that access. Dependabot version updates are disabled by
+removing its configuration.
+
+Updates are scheduled before 06:00 on Mondays in Asia/Taipei. Minor and patch
+updates are grouped separately for production and development dependencies;
+GitHub Actions are grouped together. Other updates receive individual pull
+requests. Review the Dependency Dashboard for pending updates and errors. CI must
+pass before merging; automatic merging is not enabled.
 
 ## Architecture
 

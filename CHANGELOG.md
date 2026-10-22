@@ -6,7 +6,9 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ### Changed
 
-- Retire the dev branch and let Dependabot target the repository's default branch.
+- Retire the dev branch and target the repository's default branch for dependency updates.
+- Upgrade the Corepack-pinned package manager to pnpm 12.15.0.
+- Replace Dependabot with Renovate for weekly dependency, pnpm, and GitHub Actions updates on the default branch.
 
 ### Fixed
 

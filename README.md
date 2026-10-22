@@ -57,7 +57,7 @@ You can try the demo at the following links:
 
 ## Development
 
-UniCucumber supports Node.js 24 LTS or later and uses pnpm 10.34.5 through Corepack. Modern evergreen browsers with Pointer Events and ES modules are supported.
+UniCucumber supports Node.js 24 LTS or later and uses pnpm 12 through Corepack. Modern evergreen browsers with Pointer Events and ES modules are supported.
 
 1. Clone this repository:
 
