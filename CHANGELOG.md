@@ -4,6 +4,8 @@ All notable changes follow the rules in [Versioning](docs/versioning.md).
 
 ## [Unreleased]
 
+## [1.12.1] - 2026-10-22
+
 ### Changed
 
 - Retire the dev branch and target the repository's default branch for dependency updates.
